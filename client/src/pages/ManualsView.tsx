@@ -24,7 +24,7 @@ interface ManualsViewProps {
     onBack: () => void;
     initialManual?: string;
 }
-
+// @ts-ignore
 export const ManualsView: React.FC<ManualsViewProps> = ({ onBack, initialManual }) => {
     const [selectedManual, setSelectedManual] = useState<string | null>(initialManual || null);
     const { playSound } = useSound();

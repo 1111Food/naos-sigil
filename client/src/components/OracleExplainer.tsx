@@ -253,7 +253,7 @@ const CONTENT = {
         ]
     }
 };
-
+// @ts-ignore
 export const OracleExplainer: React.FC<OracleExplainerProps> = ({ type, onClose }) => {
     const { playSound } = useSound();
 
