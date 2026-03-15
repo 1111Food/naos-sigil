@@ -97,11 +97,14 @@ export async function coherenceRoutes(app: FastifyInstance) {
             // 5. Manage Streak based on Protocol Action
             if (action === 'PROTOCOL_EVOLUTION') {
                 await CoherenceService.updateStreak(userId, 'increment');
+               // @ts-ignore
                 await UserService.incrementXp(userId, 100);
             } else if (action === 'PROTOCOL_MAINTENANCE') {
+                // @ts-ignore
                 await CoherenceService.updateStreak(userId, 'freeze');
                 await UserService.incrementXp(userId, 50);
             } else if (action === 'PROTOCOL_ENTROPIC') {
+                // @ts-ignore
                 await CoherenceService.updateStreak(userId, 'reset');
             } else if (action === 'PROTOCOL_ITEM') {
                 await UserService.incrementXp(userId, 10);

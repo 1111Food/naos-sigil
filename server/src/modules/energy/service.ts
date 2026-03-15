@@ -54,8 +54,8 @@ export class EnergyService {
             guidance: dailyTip,
             moonPhase: 'Luna Creciente 🌙',
             mayan: {
-                nawal: mayanDaily.nawal_maya,
-                tone: mayanDaily.nawal_tono,
+                nawal: mayanDaily.kicheName,
+                tone: mayanDaily.tone,
                 meaning: mayanDaily.meaning
             } as any, // Cast to match interface if needed
             fengShui: {

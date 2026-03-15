@@ -1,6 +1,5 @@
 
 import { config } from './src/config/env';
-import fetch from 'node-fetch';
 
 async function testKey() {
     const apiKey = config.GOOGLE_API_KEY;
