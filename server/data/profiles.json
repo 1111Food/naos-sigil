@@ -1,0 +1,721 @@
+{
+  "0b10b97f-74aa-4028-a6ad-1cca581b89ad": {
+    "naos_identity_code": {
+      "arquetipo": {
+        "rol": "Analista",
+        "nombre": "El Custodio",
+        "elemento": "tierra",
+        "frecuencia": "Telúrica",
+        "descripcion": "El guardián del tiempo y los recursos. Resistencia infinita para sostener imperios a través del tiempo."
+      },
+      "patron_sombra": "La sombra de El Custodio se manifiesta en la autocrítica implacable y la tendencia a la preocupación excesiva. El miedo a la imperfección y al error puede llevar a la parálisis por análisis, impidiendo la acción y la expresión auténtica. La rigidez y el perfeccionismo pueden alejar a los demás.",
+      "nucleo_interno": "En su interior, El Custodio busca la perfección y la comprensión profunda del mundo. La necesidad de análisis y orden surge de un deseo de encontrar sentido y propósito en cada experiencia, luchando contra la incertidumbre y el caos interno a través de la lógica y la razón.",
+      "direccion_vital": "El camino de El Custodio implica aprender a equilibrar la razón con la intuición, permitiéndose la vulnerabilidad y la aceptación de la imperfección. El desafío es transformar la crítica interna en auto-compasión y utilizar su capacidad analítica para el crecimiento personal y la conexión genuina con los demás.",
+      "interfaz_social": "El Custodio se presenta como un observador meticuloso y servicial, alguien que analiza y organiza para el bienestar colectivo. Su enfoque práctico y su atención al detalle inspiran confianza y respeto en su círculo social, aunque a veces pueden parecer reservados o excesivamente críticos.",
+      "alquimia_vinculos": "En sus relaciones, El Custodio busca la armonía y la estabilidad, ofreciendo apoyo práctico y soluciones a los problemas. Sin embargo, debe evitar caer en el rol de 'salvador' o 'controlador', permitiendo a los demás crecer y aprender de sus propios errores. La clave está en cultivar la empatía y la aceptación incondicional.",
+      "tension_evolutiva": "La tensión evolutiva reside en la necesidad de trascender la mente analítica y conectar con la sabiduría del cuerpo y el corazón. El Custodio debe aprender a confiar en su intuición y a permitirse sentir plenamente, liberándose del control excesivo y abrazando la espontaneidad.",
+      "arquitectura_entorno": "El entorno ideal para El Custodio es aquel que ofrece estructura y orden, pero también flexibilidad y espacio para la creatividad. Un ambiente donde pueda aplicar sus habilidades analíticas y organizativas, al tiempo que se siente seguro para expresar su vulnerabilidad y explorar nuevas ideas.",
+      "umbral_manifestacion": "El Custodio manifiesta su potencial al integrar la mente y el corazón, utilizando su capacidad analítica para el servicio y la conexión humana. Al abrazar la imperfección y confiar en su intuición, se convierte en un faro de sabiduría y compasión, inspirando a otros a encontrar su propio camino hacia la autenticidad."
+    },
+    "id": "0b10b97f-74aa-4028-a6ad-1cca581b89ad",
+    "name": "Luis Alfredo Herrera Mendez",
+    "guardian_notes": {},
+    "birthDate": "1986-07-12",
+    "birthTime": "09:40:00",
+    "birthCity": "",
+    "astrology": {
+      "houses": [
+        {
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 15.089684582810946,
+          "absDegree": 165.08968458281095
+        },
+        {
+          "sign": "Libra",
+          "house": 2,
+          "degree": 15.089684582810946,
+          "absDegree": 195.08968458281095
+        },
+        {
+          "sign": "Scorpio",
+          "house": 3,
+          "degree": 15.089684582810946,
+          "absDegree": 225.08968458281095
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 15.089684582810946,
+          "absDegree": 255.08968458281095
+        },
+        {
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 15.089684582810946,
+          "absDegree": 285.08968458281095
+        },
+        {
+          "sign": "Aquarius",
+          "house": 6,
+          "degree": 15.089684582810946,
+          "absDegree": 315.08968458281095
+        },
+        {
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 15.089684582810946,
+          "absDegree": 345.08968458281095
+        },
+        {
+          "sign": "Aries",
+          "house": 8,
+          "degree": 15.089684582810946,
+          "absDegree": 15.089684582810946
+        },
+        {
+          "sign": "Taurus",
+          "house": 9,
+          "degree": 15.089684582810946,
+          "absDegree": 45.089684582810946
+        },
+        {
+          "sign": "Gemini",
+          "house": 10,
+          "degree": 15.089684582810946,
+          "absDegree": 75.08968458281095
+        },
+        {
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 15.089684582810946,
+          "absDegree": 105.08968458281095
+        },
+        {
+          "sign": "Leo",
+          "house": 12,
+          "degree": 15.089684582810946,
+          "absDegree": 135.08968458281095
+        }
+      ],
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 20,
+          "absDegree": 109.99502986277126,
+          "retrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 23.83,
+          "absDegree": 173.83045563479573,
+          "retrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Leo",
+          "house": 11,
+          "degree": 6.12,
+          "absDegree": 126.1171621946723,
+          "retrograde": true
+        },
+        {
+          "name": "Venus",
+          "sign": "Virgo",
+          "house": 12,
+          "degree": 1.1,
+          "absDegree": 151.10457760122466,
+          "retrograde": false
+        },
+        {
+          "name": "Mars",
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 16.97,
+          "absDegree": 286.9682176014637,
+          "retrograde": true
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 22.86,
+          "absDegree": 352.85752739399595,
+          "retrograde": false
+        },
+        {
+          "name": "Saturn",
+          "sign": "Sagittarius",
+          "house": 3,
+          "degree": 3.58,
+          "absDegree": 243.57814889142412,
+          "retrograde": true
+        },
+        {
+          "name": "Uranus",
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 19.19,
+          "absDegree": 259.18677320995045,
+          "retrograde": true
+        },
+        {
+          "name": "Neptune",
+          "sign": "Capricorn",
+          "house": 4,
+          "degree": 4,
+          "absDegree": 273.9964754722916,
+          "retrograde": true
+        },
+        {
+          "name": "Pluto",
+          "sign": "Scorpio",
+          "house": 2,
+          "degree": 4.54,
+          "absDegree": 214.53987163706836,
+          "retrograde": true
+        }
+      ],
+      "elements": {
+        "air": 0,
+        "fire": 3,
+        "earth": 4,
+        "water": 3
+      },
+      "ascendant": 165.08968458281095,
+      "midheaven": 75.93999088935038,
+      "modalities": {
+        "fixed": 2,
+        "mutable": 5,
+        "cardinal": 3
+      }
+    },
+    "numerology": {
+      "pinaculo": {
+        "a": 7,
+        "b": 3,
+        "c": 6,
+        "d": 7,
+        "e": 1,
+        "f": 9,
+        "g": 1,
+        "h": 22,
+        "i": 11,
+        "j": 11,
+        "o": 3,
+        "p": 4,
+        "q": 1,
+        "r": 7,
+        "s": 8
+      },
+      "nameNumber": 1,
+      "lifePathNumber": 7
+    },
+    "mayan": {
+      "tone": 4,
+      "meaning": "Cocodrilo, Agua, Locura Divina",
+      "mission": "Misión de Imox: Cocodrilo, Agua, Locura Divina. Expandir la conciencia a través de La esencia del agua y lo subconsciente.",
+      "glyphUrl": "/nawales/imox.svg",
+      "toneName": "Kajib' (4) - Estabilidad, Los 4 Rumbos",
+      "kicheName": "Imox",
+      "challenges": "Desafío: Integrar la sombra de Imox y usar su energía para construir, no para destruir.",
+      "nawal_maya": "Imox",
+      "nawal_tono": 4,
+      "description": "La esencia del agua y lo subconsciente. Creatividad desbordante, intuición profunda y conexión con el origen."
+    },
+    "nawal_maya": "4 Imox",
+    "chinese_animal": "Tigre",
+    "chinese_element": "Fuego",
+    "chinese_birth_year": 1986,
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "FREE",
+      "features": []
+    },
+    "plan_type": "free",
+    "usage_level": "normal",
+    "daily_interactions": 0,
+    "onboarding_completed": true
+  },
+  "1d4ee3c8-9624-4d73-b7d7-869204c9f142": {
+    "id": "1d4ee3c8-9624-4d73-b7d7-869204c9f142",
+    "name": "Luis Alfredo Herrera Mendez",
+    "guardian_notes": {},
+    "birthDate": "1986-07-12",
+    "birthTime": "09:40:00",
+    "birthCity": "",
+    "astrology": {
+      "houses": [
+        {
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 15.089684582810946,
+          "absDegree": 165.08968458281095
+        },
+        {
+          "sign": "Libra",
+          "house": 2,
+          "degree": 15.089684582810946,
+          "absDegree": 195.08968458281095
+        },
+        {
+          "sign": "Scorpio",
+          "house": 3,
+          "degree": 15.089684582810946,
+          "absDegree": 225.08968458281095
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 15.089684582810946,
+          "absDegree": 255.08968458281095
+        },
+        {
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 15.089684582810946,
+          "absDegree": 285.08968458281095
+        },
+        {
+          "sign": "Aquarius",
+          "house": 6,
+          "degree": 15.089684582810946,
+          "absDegree": 315.08968458281095
+        },
+        {
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 15.089684582810946,
+          "absDegree": 345.08968458281095
+        },
+        {
+          "sign": "Aries",
+          "house": 8,
+          "degree": 15.089684582810946,
+          "absDegree": 15.089684582810946
+        },
+        {
+          "sign": "Taurus",
+          "house": 9,
+          "degree": 15.089684582810946,
+          "absDegree": 45.089684582810946
+        },
+        {
+          "sign": "Gemini",
+          "house": 10,
+          "degree": 15.089684582810946,
+          "absDegree": 75.08968458281095
+        },
+        {
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 15.089684582810946,
+          "absDegree": 105.08968458281095
+        },
+        {
+          "sign": "Leo",
+          "house": 12,
+          "degree": 15.089684582810946,
+          "absDegree": 135.08968458281095
+        }
+      ],
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 20,
+          "absDegree": 109.99502986277126,
+          "retrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 23.83,
+          "absDegree": 173.83045563479573,
+          "retrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Leo",
+          "house": 11,
+          "degree": 6.12,
+          "absDegree": 126.1171621946723,
+          "retrograde": true
+        },
+        {
+          "name": "Venus",
+          "sign": "Virgo",
+          "house": 12,
+          "degree": 1.1,
+          "absDegree": 151.10457760122466,
+          "retrograde": false
+        },
+        {
+          "name": "Mars",
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 16.97,
+          "absDegree": 286.9682176014637,
+          "retrograde": true
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 22.86,
+          "absDegree": 352.85752739399595,
+          "retrograde": false
+        },
+        {
+          "name": "Saturn",
+          "sign": "Sagittarius",
+          "house": 3,
+          "degree": 3.58,
+          "absDegree": 243.57814889142412,
+          "retrograde": true
+        },
+        {
+          "name": "Uranus",
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 19.19,
+          "absDegree": 259.18677320995045,
+          "retrograde": true
+        },
+        {
+          "name": "Neptune",
+          "sign": "Capricorn",
+          "house": 4,
+          "degree": 4,
+          "absDegree": 273.9964754722916,
+          "retrograde": true
+        },
+        {
+          "name": "Pluto",
+          "sign": "Scorpio",
+          "house": 2,
+          "degree": 4.54,
+          "absDegree": 214.53987163706836,
+          "retrograde": true
+        }
+      ],
+      "elements": {
+        "air": 0,
+        "fire": 3,
+        "earth": 4,
+        "water": 3
+      },
+      "ascendant": 165.08968458281095,
+      "midheaven": 75.93999088935038,
+      "modalities": {
+        "fixed": 2,
+        "mutable": 5,
+        "cardinal": 3
+      }
+    },
+    "numerology": {
+      "pinaculo": {
+        "a": 7,
+        "b": 3,
+        "c": 6,
+        "d": 7,
+        "e": 1,
+        "f": 9,
+        "g": 1,
+        "h": 22,
+        "i": 11,
+        "j": 11,
+        "o": 3,
+        "p": 4,
+        "q": 1,
+        "r": 7,
+        "s": 8
+      },
+      "nameNumber": 1,
+      "lifePathNumber": 7
+    },
+    "mayan": {
+      "tone": 4,
+      "meaning": "Cocodrilo, Agua, Locura Divina",
+      "mission": "Misión de Imox: Cocodrilo, Agua, Locura Divina. Expandir la conciencia a través de La esencia del agua y lo subconsciente.",
+      "glyphUrl": "/nawales/imox.svg",
+      "toneName": "Kajib' (4) - Estabilidad, Los 4 Rumbos",
+      "kicheName": "Imox",
+      "challenges": "Desafío: Integrar la sombra de Imox y usar su energía para construir, no para destruir.",
+      "nawal_maya": "Imox",
+      "nawal_tono": 4,
+      "description": "La esencia del agua y lo subconsciente. Creatividad desbordante, intuición profunda y conexión con el origen."
+    },
+    "nawal_maya": "4 Imox",
+    "chinese_animal": "Tigre",
+    "chinese_element": "Fuego",
+    "chinese_birth_year": 1986,
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "FREE",
+      "features": []
+    },
+    "plan_type": "free",
+    "usage_level": "normal",
+    "daily_interactions": 0,
+    "onboarding_completed": true
+  },
+  "cc334799-2e7d-4d8c-87d5-a6ca49e9b96d": {
+    "id": "cc334799-2e7d-4d8c-87d5-a6ca49e9b96d",
+    "name": "Luis HerreraLuis Herrera",
+    "mayan": {
+      "tone": 12,
+      "meaning": "Perro, Ley, Justicia",
+      "mission": "Misión de Tz'i': Perro, Ley, Justicia. Expandir la conciencia a través de El guardián de la ley material y espiritual.",
+      "glyphUrl": "/nawales/tzi'.svg",
+      "toneName": "Kab'lajuj (12) - Entendimiento, Totalidad",
+      "kicheName": "Tz'i'",
+      "challenges": "Desafío: Integrar la sombra de Tz'i' y usar su energía para construir, no para destruir.",
+      "nawal_maya": "Tz'i'",
+      "nawal_tono": 12,
+      "description": "El guardián de la ley material y espiritual. Fidelidad, justicia y autoridad. Guía en el camino de la vida."
+    },
+    "astrology": {
+      "houses": [
+        {
+          "sign": "Aries",
+          "house": 1,
+          "degree": 13.004850229195142,
+          "absDegree": 13.004850229195142
+        },
+        {
+          "sign": "Taurus",
+          "house": 2,
+          "degree": 13.004850229195142,
+          "absDegree": 43.00485022919514
+        },
+        {
+          "sign": "Gemini",
+          "house": 3,
+          "degree": 13.004850229195142,
+          "absDegree": 73.00485022919514
+        },
+        {
+          "sign": "Cancer",
+          "house": 4,
+          "degree": 13.004850229195142,
+          "absDegree": 103.00485022919514
+        },
+        {
+          "sign": "Leo",
+          "house": 5,
+          "degree": 13.004850229195142,
+          "absDegree": 133.00485022919514
+        },
+        {
+          "sign": "Virgo",
+          "house": 6,
+          "degree": 13.004850229195142,
+          "absDegree": 163.00485022919514
+        },
+        {
+          "sign": "Libra",
+          "house": 7,
+          "degree": 13.004850229195142,
+          "absDegree": 193.00485022919514
+        },
+        {
+          "sign": "Scorpio",
+          "house": 8,
+          "degree": 13.004850229195142,
+          "absDegree": 223.00485022919514
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 9,
+          "degree": 13.004850229195142,
+          "absDegree": 253.00485022919514
+        },
+        {
+          "sign": "Capricorn",
+          "house": 10,
+          "degree": 13.004850229195142,
+          "absDegree": 283.00485022919514
+        },
+        {
+          "sign": "Aquarius",
+          "house": 11,
+          "degree": 13.004850229195142,
+          "absDegree": 313.00485022919514
+        },
+        {
+          "sign": "Pisces",
+          "house": 12,
+          "degree": 13.004850229195142,
+          "absDegree": 343.00485022919514
+        }
+      ],
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Capricorn",
+          "house": 9,
+          "degree": 11.07,
+          "absDegree": 281.0690633854152,
+          "retrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Pisces",
+          "house": 11,
+          "degree": 7.26,
+          "absDegree": 337.26330619032956,
+          "retrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Capricorn",
+          "house": 10,
+          "degree": 25.59,
+          "absDegree": 295.59202823178407,
+          "retrograde": true
+        },
+        {
+          "name": "Venus",
+          "sign": "Aquarius",
+          "house": 10,
+          "degree": 6.19,
+          "absDegree": 306.1898362747683,
+          "retrograde": true
+        },
+        {
+          "name": "Mars",
+          "sign": "Sagittarius",
+          "house": 8,
+          "degree": 10.18,
+          "absDegree": 250.1755963079849,
+          "retrograde": false
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Cancer",
+          "house": 3,
+          "degree": 5.12,
+          "absDegree": 95.11519526845386,
+          "retrograde": true
+        },
+        {
+          "name": "Saturn",
+          "sign": "Capricorn",
+          "house": 10,
+          "degree": 15.69,
+          "absDegree": 285.68694128371015,
+          "retrograde": false
+        },
+        {
+          "name": "Uranus",
+          "sign": "Capricorn",
+          "house": 9,
+          "degree": 5.8,
+          "absDegree": 275.79927772338027,
+          "retrograde": false
+        },
+        {
+          "name": "Neptune",
+          "sign": "Capricorn",
+          "house": 9,
+          "degree": 12.05,
+          "absDegree": 282.04707377540865,
+          "retrograde": false
+        },
+        {
+          "name": "Pluto",
+          "sign": "Scorpio",
+          "house": 8,
+          "degree": 17.1,
+          "absDegree": 227.10090579128956,
+          "retrograde": false
+        }
+      ],
+      "elements": {
+        "air": 1,
+        "fire": 1,
+        "earth": 5,
+        "water": 3
+      },
+      "ascendant": 13.004850229195142,
+      "midheaven": 279.7602198036095,
+      "modalities": {
+        "fixed": 2,
+        "mutable": 2,
+        "cardinal": 6
+      }
+    },
+    "birthCity": "",
+    "birthDate": "1990-01-01",
+    "birthTime": "12:00:00",
+    "plan_type": "free",
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "nawal_maya": "12 Tz'i'",
+    "numerology": {
+      "pinaculo": {
+        "a": 1,
+        "b": 1,
+        "c": 1,
+        "d": 3,
+        "e": 2,
+        "f": 2,
+        "g": 4,
+        "h": 3,
+        "i": 4,
+        "j": 8,
+        "o": 0,
+        "p": 0,
+        "q": 0,
+        "r": 0,
+        "s": 0
+      },
+      "nameNumber": 7,
+      "lifePathNumber": 3
+    },
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "usage_level": "normal",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "PREMIUM",
+      "validUntil": "2026-04-13T20:54:42.940Z",
+      "features": [
+        "basic_chat",
+        "daily_energy",
+        "tarot_spreads",
+        "full_chart"
+      ]
+    },
+    "chinese_animal": "Serpiente",
+    "guardian_notes": {},
+    "chinese_element": "Tierra",
+    "chinese_birth_year": 1989,
+    "daily_interactions": 0,
+    "onboarding_completed": true
+  }
+}

@@ -1,0 +1,43 @@
+export const MAJOR_ARCANA_MEANINGS: Record<number, string> = {
+    0: "El Loco: Un nuevo comienzo, espontaneidad, fe ciega. El universo te pide que des un salto al vacío con confianza.",
+    1: "El Mago: Manifestación, poder personal, recursos. Tienes todas las herramientas necesarias para crear tu realidad.",
+    2: "La Sacerdotisa: Intuición, misterio, subconsciente. Escucha tu voz interior; las respuestas no están afuera.",
+    3: "La Emperatriz: Abundancia, naturaleza, creatividad. Es momento de gestar, nutrir y permitir que las cosas florezcan.",
+    4: "El Emperador: Estructura, autoridad, estabilidad. Pon orden en tu caos y asume el liderazgo de tu vida.",
+    5: "El Hierofante: Tradición, guía espiritual, conformidad. Busca sabiduría en lo establecido o en un mentor.",
+    6: "Los Enamorados: Unión, decisiones, alineación de valores. Una elección importante se presenta ante ti.",
+    7: "El Carro: Voluntad, victoria, dirección. Avanza con determinación y mantén las riendas firmes.",
+    8: "La Fuerza: Coraje, compasión, dominio suave. Tu verdadera fuerza reside en tu capacidad de amar y resistir sin violencia.",
+    9: "El Ermitaño: Introspección, soledad, guía interior. Retírate un momento para encontrar tu propia luz.",
+    10: "La Rueda de la Fortuna: Ciclos, cambio, destino. Todo gira; acepta el movimiento y adáptate al nuevo ciclo.",
+    11: "La Justicia: Verdad, causa y efecto, equilibrio. Sé honesto contigo mismo; recibirás lo que has sembrado.",
+    12: "El Colgado: Pausa, rendición, nueva perspectiva. A veces hay que detenerse y soltar el control para ver la verdad.",
+    13: "La Muerte: Transformación, finales, renacimiento. Deja ir lo que ya no sirve para que lo nuevo pueda nacer.",
+    14: "La Templanza: Equilibrio, moderación, alquimia. Mezcla los opuestos con paciencia para encontrar la armonía.",
+    15: "El Diablo: Ataduras, materialismo, sombra. Reconoce tus cadenas y adicciones para poder liberarte de ellas.",
+    16: "La Torre: Revelación, colapso, despertar súbito. Las estructuras falsas deben caer para construir sobre verdad.",
+    17: "La Estrella: Esperanza, inspiración, serenidad. Después de la tormenta, la guía celestial te muestra el camino.",
+    18: "La Luna: Ilusión, miedo, subconsciente. No todo es lo que parece; navega tus sombras con intuición.",
+    19: "El Sol: Alegría, éxito, vitalidad. La luz brilla sobre ti; disfruta de este momento de claridad y calor.",
+    20: "El Juicio: Llamado, absolución, renacimiento. Despierta a tu propósito superior; una segunda oportunidad te espera.",
+    21: "El Mundo: Completitud, integración, logro. Un ciclo se cierra con éxito; celebra tu viaje y tu totalidad."
+};
+
+export const NAOS_ARCHETYPE_MEANINGS: Record<number, string> = {
+    0: "El Arquitecto: Visión sistémica y diseño de estructuras de largo plazo. Es momento de construir cimientos sólidos.",
+    1: "El Estratega: Optimización de recursos y planificación de rutas críticas. Analiza el tablero antes de mover tu pieza.",
+    2: "El Custodio: Protección de valores esenciales y mantenimiento de la integridad. Protege lo que es verdaderamente importante.",
+    3: "El Alquimista: Transformación de crisis en oportunidades y transmutación de energía. Convierte el plomo de tus problemas en oro.",
+    4: "El Comandante: Liderazgo pragmático y ejecución de acciones decisivas. Toma el mando con autoridad y dirección clara.",
+    5: "El Orador: Influencia a través del lenguaje y expansión de redes de impacto. Tu voz es tu herramienta de cambio más poderosa.",
+    6: "El Visionario: Detección de tendencias futuras y exploración de límites. Mira más allá del horizonte convencional.",
+    7: "El Embajador: Diplomacia estratégica y resolución de tensiones externas. Busca alianzas beneficiosas y armonía en el conflicto.",
+    8: "El Analista: Procesamiento de datos complejos y búsqueda de eficiencia. Descompón el problema en sus partes fundamentales.",
+    9: "El Mediador: Equilibrio de fuerzas opuestas y búsqueda de consenso táctico. Encuentra el punto medio donde todos avanzan.",
+    10: "El Explorador: Búsqueda de nuevos territorios y aprendizaje acelerado. Sal de tu zona de confort y descubre lo desconocido.",
+    11: "El Guía: Acompañamiento en procesos de evolución y transferencia de sabiduría. Sé la luz que otros necesitan para su camino.",
+    12: "El Innovador: Ruptura de paradigmas y hacking de sistemas establecidos. Introduce una solución disruptiva y original.",
+    13: "El Guardián: Vigilancia de fronteras y preservación de la seguridad. Asegura tu entorno antes de proceder con la expansión.",
+    14: "El Maestro: Dominio técnico y excelencia en la ejecución operativa. Perfecciona tu arte; el detalle es donde reside la maestría.",
+    15: "El Mentor: Desarrollo de potencial humano y guía estratégica personalizada. Invierte tiempo en cultivar el talento propio o ajeno."
+};

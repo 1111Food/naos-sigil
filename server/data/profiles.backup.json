@@ -1,0 +1,191 @@
+{
+  "user-1": {
+    "id": "user-1",
+    "name": "Luis Herrera",
+    "birthDate": "1986-07-12",
+    "birthTime": "09:40",
+    "birthPlace": "Earth",
+    "birthCity": "guatemala",
+    "birthState": "",
+    "birthCountry": "Guatemala",
+    "coordinates": {
+      "lat": 15.5855545,
+      "lng": -90.345759
+    },
+    "subscription": {
+      "plan": "PREMIUM",
+      "validUntil": "2026-02-23T03:11:52.077Z",
+      "features": [
+        "basic_chat",
+        "daily_energy",
+        "tarot_spreads",
+        "full_chart"
+      ]
+    },
+    "email": "luisalfredoherreramendez@gmail.com",
+    "utcOffset": -6,
+    "astrology": {
+      "sun": {
+        "name": "Sun",
+        "sign": "Cancer",
+        "degree": 19.81,
+        "absDegree": 109.80504623160505,
+        "house": 11,
+        "retrograde": false
+      },
+      "moon": {
+        "name": "Moon",
+        "sign": "Virgo",
+        "degree": 23.64,
+        "absDegree": 173.64309007080746,
+        "house": 1,
+        "retrograde": false
+      },
+      "rising": {
+        "name": "Ascendant",
+        "sign": "Virgo",
+        "degree": 15.34662088343066,
+        "absDegree": 165.34662088343066,
+        "house": 1
+      },
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Cancer",
+          "degree": 19.81,
+          "absDegree": 109.80504623160505,
+          "house": 11,
+          "retrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Virgo",
+          "degree": 23.64,
+          "absDegree": 173.64309007080746,
+          "house": 1,
+          "retrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Leo",
+          "degree": 5.93,
+          "absDegree": 125.92718700447904,
+          "house": 12,
+          "retrograde": false
+        },
+        {
+          "name": "Venus",
+          "sign": "Virgo",
+          "degree": 0.91,
+          "absDegree": 150.91460045836172,
+          "house": 1,
+          "retrograde": false
+        },
+        {
+          "name": "Mars",
+          "sign": "Capricorn",
+          "degree": 16.78,
+          "absDegree": 286.77824159090903,
+          "house": 5,
+          "retrograde": false
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Pisces",
+          "degree": 22.67,
+          "absDegree": 352.6675479583767,
+          "house": 7,
+          "retrograde": false
+        },
+        {
+          "name": "Saturn",
+          "sign": "Sagittarius",
+          "degree": 3.39,
+          "absDegree": 243.3881772462151,
+          "house": 4,
+          "retrograde": false
+        },
+        {
+          "name": "Uranus",
+          "sign": "Sagittarius",
+          "degree": 19,
+          "absDegree": 258.99679574180584,
+          "house": 4,
+          "retrograde": false
+        },
+        {
+          "name": "Neptune",
+          "sign": "Capricorn",
+          "degree": 3.81,
+          "absDegree": 273.80650097358904,
+          "house": 5,
+          "retrograde": false
+        },
+        {
+          "name": "Pluto",
+          "sign": "Scorpio",
+          "degree": 4.35,
+          "absDegree": 214.3499235645981,
+          "house": 3,
+          "retrograde": false
+        }
+      ],
+      "houses": [
+        150,
+        180,
+        210,
+        240,
+        270,
+        300,
+        330,
+        0,
+        30,
+        60,
+        90,
+        120
+      ],
+      "houseSystem": "Whole Sign",
+      "elements": {
+        "fire": 3,
+        "earth": 4,
+        "air": 0,
+        "water": 3
+      },
+      "sunSign": "Cancer",
+      "moonSign": "Virgo",
+      "risingSign": "Virgo"
+    },
+    "numerology": {
+      "lifePathNumber": 7,
+      "destinyNumber": 8,
+      "soulUrgeNumber": 5,
+      "pinnacles": [
+        1,
+        9,
+        1,
+        4
+      ]
+    },
+    "fengShui": {
+      "kuaNumber": 5,
+      "element": "Tierra",
+      "favorableDirections": [
+        "Noreste (Crecimiento)",
+        "Suroeste (Prosperidad)",
+        "Oeste (Salud)",
+        "Noroeste (Relaciones)"
+      ],
+      "guidance": "Organiza tu espacio para permitir que el Chi fluya sin obstáculos desde el Este."
+    },
+    "mayan": {
+      "kicheName": "Tz'i'",
+      "tone": 1,
+      "meaning": "Perro, Ley, Justicia",
+      "toneName": "Jun (1) - Unidad, Inicio",
+      "description": "El guardián de la ley material y espiritual. Fidelidad, justicia y autoridad. Guía en el camino de la vida.",
+      "glyphUrl": "/nawales/tzi'.svg"
+    },
+    "nawal_maya": "Tz'i'",
+    "nawal_tono": 1
+  }
+}

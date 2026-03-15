@@ -1,0 +1,501 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 20% 97%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 255 60% 65%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 260 50% 90%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 260 40% 5%;
+    --foreground: 0 0% 98%;
+    --card: 260 40% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 260 40% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 255 60% 65%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 260 30% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Support for PWA and Mobile Safe Areas */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    min-height: 100vh;
+  }
+
+  html {
+    height: -webkit-fill-available;
+  }
+}
+
+@layer utilities {
+  .mobile-safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .mobile-safe-bottom {
+    padding-bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 2rem);
+  }
+
+  .ceremonial-input {
+    @apply w-full bg-transparent border-b border-white/10 py-3 text-white focus:outline-none focus:border-amber-500/50 transition-all placeholder:text-white/10 text-lg;
+  }
+
+  .astral-input {
+    @apply w-full bg-black/40 border-b border-white/20 py-4 px-3 text-white font-medium outline-none transition-all duration-500 placeholder:text-white/40 placeholder:font-light placeholder:italic;
+  }
+
+  .astral-input:focus {
+    @apply border-amber-500/40 bg-amber-500/5;
+    box-shadow: 0 4px 20px -10px rgba(245, 158, 11, 0.2);
+  }
+
+  .mystic-button {
+    @apply relative px-8 py-4 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full text-amber-100 font-serif italic tracking-widest overflow-hidden transition-all duration-500;
+  }
+
+  .mystic-button::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 -translate-x-full transition-transform duration-1000;
+  }
+
+  .mystic-button:hover::before {
+    @apply translate-x-full;
+  }
+
+  .mystic-button:hover {
+    @apply border-amber-500/30 shadow-[0_0_30px_rgba(245, 158, 11, 0.15)];
+  }
+
+  .gold-gradient {
+    background: linear-gradient(135deg, #d4af37 0%, #f9f295 50%, #d4af37 100%);
+  }
+
+  .glass-sidebar {
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 8px rgba(var(--primary), 0.5));
+}
+
+@layer utilities {
+  .animate-breathe {
+    animation: breathe 6s ease-in-out infinite;
+  }
+
+  .animate-micro-rotate {
+    animation: micro-rotate 20s ease-in-out infinite alternate;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 10s ease-in-out infinite;
+  }
+
+  .animate-float-particle {
+    animation: ethereal-float var(--duration) linear infinite;
+    opacity: var(--opacity, 0.5);
+  }
+
+  .global-aura-bg {
+    @apply transition-all ease-in-out;
+  }
+
+  .aura-deep-space {
+    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%) fixed;
+  }
+
+  .aura-zen-stone {
+    background: radial-gradient(circle at center, #262626 0%, #0a0a0a 100%) fixed;
+  }
+
+  .aura-astral-turquoise {
+    background: radial-gradient(circle at center, #083344 0%, #020617 100%) fixed;
+  }
+
+  .aura-mystic-lilac {
+    background: radial-gradient(circle at center, #2e1065 0%, #020202 100%) fixed;
+  }
+
+  .aura-zen-white {
+    background: radial-gradient(circle at center, #f5f5f5 0%, #e5e5e5 50%, #d4d4d4 100%);
+    animation: aura-breathe 15s ease-in-out infinite alternate;
+  }
+
+  .aura-naos-red {
+    background: radial-gradient(circle at center, #2e0707 0%, #000000 100%) fixed;
+  }
+
+  .aura-temple-gold {
+    background: radial-gradient(circle at center, #2b1704 0%, #000000 100%) fixed;
+  }
+}
+
+/* Theme-aware Content Colors based on Active Aura */
+body {
+  --aura-content-color: rgba(255, 255, 255, 0.8);
+  --aura-symbol-opacity: 0.05;
+  --vignette-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Zen White: Higher Clarity & Premium Feel */
+body.aura-zen-white {
+  background: radial-gradient(circle at center, #ffffff 0%, #f0f2f5 50%, #e1e4e8 100%) fixed !important;
+  --aura-content-color: #ffffff;
+  /* White Typography */
+  --aura-symbol-opacity: 0.15;
+  --vignette-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Glass Card System - Adaptive */
+.glass-card {
+  @apply backdrop-blur-2xl border transition-all duration-700;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+}
+
+.glass-panel {
+  @apply backdrop-blur-[40px] border transition-all duration-1000;
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.mystic-glow {
+  box-shadow: 0 0 40px -10px currentColor;
+}
+
+body.aura-zen-white .glass-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.aura-zen-white .glass-panel {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.text-primary {
+  @apply transition-colors duration-500;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.text-secondary {
+  @apply transition-colors duration-500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.text-tertiary {
+  @apply transition-colors duration-500;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+body.aura-zen-white .text-primary {
+  color: #1a1b2e !important; /* Deep Ink */
+}
+
+body.aura-zen-white .text-secondary {
+  color: #26619C !important; /* Lapis Lazuli */
+}
+
+body.aura-zen-white .text-tertiary {
+  color: #64748b !important; /* Slate */
+}
+
+/* Typography Standard Classes */
+.text-label {
+  @apply text-[11px] uppercase tracking-[0.2em] font-bold;
+}
+
+.text-detail {
+  @apply text-[10px] uppercase tracking-widest font-medium;
+}
+
+.text-oracle {
+  @apply font-serif italic tracking-wide;
+}
+
+/* Theme-aware text reinforcement - ULTRA SPECIFIC (INK LAPIS) */
+body.aura-zen-white .theme-aware-text,
+body.aura-zen-white [class*="text-white/90"],
+body.aura-zen-white [class*="text-white/50"],
+body.aura-zen-white .bento-title,
+body.aura-zen-white .bento-label,
+body.aura-zen-white h1,
+body.aura-zen-white h2,
+body.aura-zen-white h3 {
+  color: #26619C !important;
+  /* Lapis Lazuli */
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8) !important;
+  font-weight: 800 !important;
+}
+
+body.aura-zen-white .bento-status,
+body.aura-zen-white [class*="text-blue-400"],
+body.aura-zen-white [class*="text-purple-400"],
+body.aura-zen-white [class*="text-emerald-400"],
+body.aura-zen-white [class*="text-amber-400"] {
+  color: #26619C !important;
+  border-color: rgba(38, 97, 156, 0.6) !important;
+}
+
+body.aura-zen-white .text-white\/50 {
+  opacity: 0.6;
+}
+
+/* Matrix symbols for White mode: Clean and sharp */
+body.aura-zen-white .theme-aware-symbol {
+  color: #1a1b2e !important;
+  opacity: 0.15 !important;
+  filter: blur(0px);
+}
+
+body.aura-zen-white .text-gold-ink {
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.6), 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+body.aura-zen-white .bento-title {
+  color: #ffffff !important;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.2);
+}
+
+body.aura-zen-white .bento-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+body.aura-zen-white .bento-divider {
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent) !important;
+}
+
+body.aura-zen-white .bento-status {
+  background-color: rgba(38, 97, 156, 0.1) !important;
+  color: #26619C !important;
+  border-color: rgba(38, 97, 156, 0.4) !important;
+}
+
+/* Force transparency on structural containers to show Global Aura */
+body.aura-zen-white main,
+body.aura-zen-white #root,
+body.aura-zen-white .max-w-4xl,
+body.aura-zen-white .max-w-6xl,
+body.aura-zen-white [class*="max-w-"],
+body.aura-zen-white #root>div,
+body.aura-zen-white .fixed.inset-0,
+body.aura-zen-white .remotion-player,
+body.aura-zen-white .remotion-player>div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Neutralize dark blue gradients but KEEP vibrant colors in Zen White */
+body.aura-zen-white [class*="bg-blue-9"],
+body.aura-zen-white [class*="bg-purple-9"],
+body.aura-zen-white [class*="bg-emerald-9"],
+body.aura-zen-white [class*="bg-amber-9"] {
+  background-image: none !important;
+}
+
+/* Specific vibrant saturated light gradients for blocks in Zen White (70% Density) */
+body.aura-zen-white .bg-blue-900\/40 {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.85) 0%, rgba(14, 165, 233, 0.65) 100%) !important;
+}
+
+body.aura-zen-white .bg-purple-900\/40 {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.85) 0%, rgba(168, 85, 247, 0.65) 100%) !important;
+}
+
+body.aura-zen-white .bg-emerald-900\/40 {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.85) 0%, rgba(16, 185, 129, 0.65) 100%) !important;
+}
+
+body.aura-zen-white .bg-amber-900\/30 {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.85) 0%, rgba(245, 158, 11, 0.65) 100%) !important;
+}
+
+/* Specific fix for Sanctuary backdrop when active in Zen White */
+body.aura-zen-white .z-50.bg-\[\#0a0a0b\] {
+  background-color: transparent !important;
+}
+
+/* Desaturate TempleAura particles in Zen White */
+body.aura-zen-white .remotion-player div {
+  filter: grayscale(0.8) brightness(0.5) contrast(1.2) !important;
+}
+
+body.aura-zen-white nav.fixed {
+  background: rgba(38, 97, 156, 0.95) !important;
+  /* Solid Lapis */
+  backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.aura-zen-white header .glass-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: #26619C !important;
+}
+
+body.aura-zen-white nav.fixed .lucide {
+  color: #ffffff !important;
+  /* White icons on Lapis */
+}
+
+.theme-aware-text {
+  color: var(--aura-content-color);
+  transition: color 1s ease-in-out;
+}
+
+.theme-aware-symbol {
+  color: var(--aura-content-color);
+  opacity: var(--aura-symbol-opacity);
+  transition: color 1s ease-in-out, opacity 1s ease-in-out;
+}
+
+/* Improved Falling Animation Layering */
+.aura-zen-white .animate-float-particle {
+  animation: matrix-fall var(--duration) linear infinite !important;
+  font-weight: 700;
+}
+
+@keyframes matrix-fall {
+  0% {
+    transform: translateY(-100vh) scale(1);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: var(--opacity);
+  }
+
+  90% {
+    opacity: var(--opacity);
+  }
+
+  100% {
+    transform: translateY(100vh) scale(1);
+    opacity: 0;
+  }
+}
+
+.aura-zen-white .text-white\/90,
+.aura-zen-white .text-white\/40,
+.aura-zen-white .text-amber-100 {
+  color: #1e293b !important;
+}
+
+.aura-zen-white .bg-black\/40 {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(20px);
+}
+
+.aura-zen-white .border-white\/5,
+.aura-zen-white .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+@keyframes aura-breathe {
+  0% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes micro-rotate {
+  from {
+    transform: rotate(-1deg);
+  }
+
+  to {
+    transform: rotate(1deg);
+  }
+}
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ethereal-float {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: var(--opacity);
+  }
+
+  80% {
+    opacity: var(--opacity);
+  }
+
+  100% {
+    transform: translate(var(--drift-x), var(--drift-y)) rotate(var(--rotation-end));
+    opacity: 0;
+  }
+}

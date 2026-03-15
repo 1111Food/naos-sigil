@@ -1,0 +1,37 @@
+# Common
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+*.txt
+.DS_Store
+
+# Client
+client/node_modules/
+client/dist/
+client/.env
+
+# Server
+server/node_modules/
+server/dist/
+server/.env
+server/temp_*/
+server/audit_*/
+server/*.log
+server/*.txt
+server/debug_*/
+server/out.log
+server/out_recent.log
+server/out_utf8.log
+server/geocoding_output*/
+server/models_list*/
+server/schema_results.txt
+server/diag_results.txt
+server/test-result.log
+server/migration_output*/
+
+# Vercel
+.vercel

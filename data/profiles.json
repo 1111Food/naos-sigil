@@ -1,0 +1,26 @@
+{
+  "fd03cb0d-35a8-4f61-810b-2f0ff185a05d": {
+    "id": "fd03cb0d-35a8-4f61-810b-2f0ff185a05d",
+    "name": "Viajero en el Umbral",
+    "birthDate": "",
+    "birthTime": "",
+    "birthPlace": "Tierra",
+    "birthCity": "",
+    "birthState": "",
+    "birthCountry": "",
+    "coordinates": {
+      "lat": 40.7128,
+      "lng": -74.006
+    },
+    "subscription": {
+      "plan": "FREE",
+      "features": [
+        "basic_chat"
+      ]
+    },
+    "plan_type": "free",
+    "usage_level": "normal",
+    "daily_interactions": 0,
+    "onboarding_completed": false
+  }
+}

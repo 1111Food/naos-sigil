@@ -1,0 +1,25 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load .env from server directory (standard for this backend)
+dotenv.config({ path: path.join(__dirname, '../../.env') });
+
+export const config = {
+    PORT: process.env.PORT || 3001,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || '',
+    NODE_ENV: process.env.NODE_ENV || 'development',
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+    ASTROLOGY_API_USER_ID: process.env.ASTROLOGY_API_USER_ID,
+    ASTROLOGY_API_KEY: process.env.ASTROLOGY_API_KEY,
+    ASTROLOGY_API_ENDPOINT: process.env.ASTROLOGY_API_ENDPOINT || 'https://json.astrologyapi.com/v1',
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+};
+
+// Debug log (masked)
+const usedKey = config.GOOGLE_API_KEY || "(EMPTY)";
+console.log(`📡 Cosmic Config: GOOGLE_API_KEY detected? ${config.GOOGLE_API_KEY ? 'YES' : 'NO'} (${usedKey.substring(0, 4)}...)`);
+
+if (!config.GOOGLE_API_KEY) {
+    console.error("❌ CRITICAL: GOOGLE_API_KEY is missing. Production AI will fail.");
+}

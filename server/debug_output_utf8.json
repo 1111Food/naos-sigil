@@ -1,0 +1,376 @@
+﻿­ƒôí Cosmic Config: GOOGLE_API_KEY detected? YES (AIza...)
+­ƒöì Debugging user: a9b60edd-55ae-4bab-bf5e-a7a1141eb46b
+­ƒôé RAW Profile: {
+  "id": "a9b60edd-55ae-4bab-bf5e-a7a1141eb46b",
+  "created_at": "2026-03-05T01:01:43.653595+00:00",
+  "full_name": "Luis Alfredo Herrera Mendez",
+  "birth_date": "1986-07-12",
+  "birth_time": "09:40:00",
+  "birth_location": null,
+  "email": "",
+  "quiron": null,
+  "lilith": null,
+  "nodo_norte": null,
+  "nodo_sur": null,
+  "path_number": null,
+  "pinacle_1": null,
+  "pinacle_2": null,
+  "pinacle_3": null,
+  "pinacle_4": null,
+  "personal_year": null,
+  "lilith_sign": null,
+  "lilith_house": null,
+  "chiron_sign": null,
+  "chiron_house": null,
+  "north_node_sign": null,
+  "north_node_house": null,
+  "south_node_sign": null,
+  "south_node_house": null,
+  "life_path_number": null,
+  "destiny_number": null,
+  "soul_urge_number": null,
+  "tantric_karma": null,
+  "tantric_soul": null,
+  "tantric_gift": null,
+  "tantric_destiny": null,
+  "tantric_path": null,
+  "nawal_maya": "4 Imox",
+  "nawal_tono": null,
+  "karma_number": null,
+  "personal_number": null,
+  "past_life_number": null,
+  "personality_number": null,
+  "subconscious_number": null,
+  "unconscious_number": null,
+  "shadow_number": null,
+  "negative_unconscious": null,
+  "family_inheritance": null,
+  "conscious_lower_self": null,
+  "latent_lower_self": null,
+  "pin_a_karma": null,
+  "pin_b_personal": null,
+  "pin_c_past": null,
+  "pin_d_personality": null,
+  "pin_e_cycle1": null,
+  "pin_f_cycle2": null,
+  "pin_g_central": null,
+  "pin_h_realization": null,
+  "pin_i_subconscious": null,
+  "pin_j_unconscious": null,
+  "pin_k_chal1": null,
+  "pin_l_chal2": null,
+  "pin_m_chal_main": null,
+  "pin_n_chal_legacy": null,
+  "pin_o_unconscious_neg": null,
+  "pin_p_shadow": null,
+  "pin_q_lower_inherited": null,
+  "pin_r_lower_conscious": null,
+  "pin_s_lower_latent": null,
+  "natal_chart": null,
+  "sigil_url": null,
+  "chinese_animal": "Tigre",
+  "chinese_element": "Fuego",
+  "chinese_birth_year": 1986,
+  "guardian_notes": {},
+  "profile_data": {},
+  "usage_level": "normal",
+  "daily_interactions": 0,
+  "plan_type": "free",
+  "updated_at": "2026-03-05T01:11:34.833+00:00",
+  "astroData": null,
+  "numerologyData": null,
+  "mayanData": null,
+  "birth_place": null,
+  "astrology": {
+    "houses": [
+      {
+        "sign": "Virgo",
+        "house": 1,
+        "degree": 15.089684582810946,
+        "absDegree": 165.08968458281095
+      },
+      {
+        "sign": "Libra",
+        "house": 2,
+        "degree": 15.089684582810946,
+        "absDegree": 195.08968458281095
+      },
+      {
+        "sign": "Scorpio",
+        "house": 3,
+        "degree": 15.089684582810946,
+        "absDegree": 225.08968458281095
+      },
+      {
+        "sign": "Sagittarius",
+        "house": 4,
+        "degree": 15.089684582810946,
+        "absDegree": 255.08968458281095
+      },
+      {
+        "sign": "Capricorn",
+        "house": 5,
+        "degree": 15.089684582810946,
+        "absDegree": 285.08968458281095
+      },
+      {
+        "sign": "Aquarius",
+        "house": 6,
+        "degree": 15.089684582810946,
+        "absDegree": 315.08968458281095
+      },
+      {
+        "sign": "Pisces",
+        "house": 7,
+        "degree": 15.089684582810946,
+        "absDegree": 345.08968458281095
+      },
+      {
+        "sign": "Aries",
+        "house": 8,
+        "degree": 15.089684582810946,
+        "absDegree": 15.089684582810946
+      },
+      {
+        "sign": "Taurus",
+        "house": 9,
+        "degree": 15.089684582810946,
+        "absDegree": 45.089684582810946
+      },
+      {
+        "sign": "Gemini",
+        "house": 10,
+        "degree": 15.089684582810946,
+        "absDegree": 75.08968458281095
+      },
+      {
+        "sign": "Cancer",
+        "house": 11,
+        "degree": 15.089684582810946,
+        "absDegree": 105.08968458281095
+      },
+      {
+        "sign": "Leo",
+        "house": 12,
+        "degree": 15.089684582810946,
+        "absDegree": 135.08968458281095
+      }
+    ],
+    "planets": [
+      {
+        "name": "Sun",
+        "sign": "Cancer",
+        "house": 11,
+        "degree": 19.81,
+        "absDegree": 109.80505208028501,
+        "retrograde": false
+      },
+      {
+        "name": "Moon",
+        "sign": "Virgo",
+        "house": 1,
+        "degree": 23.64,
+        "absDegree": 173.64047759333036,
+        "retrograde": false
+      },
+      {
+        "name": "Mercury",
+        "sign": "Leo",
+        "house": 11,
+        "degree": 5.93,
+        "absDegree": 125.92719162155038,
+        "retrograde": true
+      },
+      {
+        "name": "Venus",
+        "sign": "Virgo",
+        "house": 12,
+        "degree": 0.91,
+        "absDegree": 150.9145981729489,
+        "retrograde": false
+      },
+      {
+        "name": "Mars",
+        "sign": "Capricorn",
+        "house": 5,
+        "degree": 16.78,
+        "absDegree": 286.77822547993935,
+        "retrograde": true
+      },
+      {
+        "name": "Jupiter",
+        "sign": "Pisces",
+        "house": 7,
+        "degree": 22.67,
+        "absDegree": 352.66754943726596,
+        "retrograde": false
+      },
+      {
+        "name": "Saturn",
+        "sign": "Sagittarius",
+        "house": 3,
+        "degree": 3.39,
+        "absDegree": 243.38817598818287,
+        "retrograde": true
+      },
+      {
+        "name": "Uranus",
+        "sign": "Sagittarius",
+        "house": 4,
+        "degree": 19,
+        "absDegree": 258.9967951699882,
+        "retrograde": true
+      },
+      {
+        "name": "Neptune",
+        "sign": "Capricorn",
+        "house": 4,
+        "degree": 3.81,
+        "absDegree": 273.806500680013,
+        "retrograde": true
+      },
+      {
+        "name": "Pluto",
+        "sign": "Scorpio",
+        "house": 2,
+        "degree": 4.35,
+        "absDegree": 214.3499231539385,
+        "retrograde": true
+      }
+    ],
+    "elements": {
+      "air": 0,
+      "fire": 3,
+      "earth": 4,
+      "water": 3
+    },
+    "ascendant": 165.08968458281095,
+    "midheaven": 75.93999088935038,
+    "modalities": {
+      "fixed": 2,
+      "mutable": 5,
+      "cardinal": 3
+    }
+  },
+  "numerology": {
+    "pinaculo": {
+      "a": 7,
+      "b": 3,
+      "c": 6,
+      "d": 7,
+      "e": 1,
+      "f": 9,
+      "g": 1,
+      "h": 22,
+      "i": 11,
+      "j": 11,
+      "o": 3,
+      "p": 4,
+      "q": 1,
+      "r": 7,
+      "s": 8
+    },
+    "nameNumber": 1,
+    "lifePathNumber": 7
+  },
+  "mayan": {
+    "tone": 4,
+    "meaning": "Cocodrilo, Agua, Locura Divina",
+    "mission": "Misi├│n de Imox: Cocodrilo, Agua, Locura Divina. Expandir la conciencia a trav├®s de La esencia del agua y lo subconsciente.",
+    "glyphUrl": "/nawales/imox.svg",
+    "toneName": "Kajib' (4) - Estabilidad, Los 4 Rumbos",
+    "kicheName": "Imox",
+    "challenges": "Desaf├¡o: Integrar la sombra de Imox y usar su energ├¡a para construir, no para destruir.",
+    "nawal_maya": "Imox",
+    "nawal_tono": 4,
+    "description": "La esencia del agua y lo subconsciente. Creatividad desbordante, intuici├│n profunda y conexi├│n con el origen."
+  },
+  "birth_city": "guatemala, guatemala, guatemala",
+  "birth_country": "Guatemala",
+  "name": "Luis Alfredo Herrera Mendez",
+  "nickname": "Salsa",
+  "protocols_completed": 0,
+  "dominant_intent": "none",
+  "onboarding_completed": true
+}
+­ƒîî Astro Engine: Calculating for 1986-07-12 09:40:00 (Offset -6) => UTC: 1986-07-12T15:40:00.000Z
+­ƒôû Consolidated Bible: {
+  "astrology": {
+    "sun": "Cancer",
+    "moon": "Virgo",
+    "ascendant": "Virgo",
+    "houses": [
+      {
+        "name": "Sun",
+        "sign": "Cancer",
+        "house": 11
+      },
+      {
+        "name": "Moon",
+        "sign": "Virgo",
+        "house": 1
+      },
+      {
+        "name": "Mercury",
+        "sign": "Leo",
+        "house": 11
+      },
+      {
+        "name": "Venus",
+        "sign": "Virgo",
+        "house": 12
+      },
+      {
+        "name": "Mars",
+        "sign": "Capricorn",
+        "house": 5
+      },
+      {
+        "name": "Jupiter",
+        "sign": "Pisces",
+        "house": 7
+      },
+      {
+        "name": "Saturn",
+        "sign": "Sagittarius",
+        "house": 3
+      },
+      {
+        "name": "Uranus",
+        "sign": "Sagittarius",
+        "house": 4
+      },
+      {
+        "name": "Neptune",
+        "sign": "Capricorn",
+        "house": 4
+      },
+      {
+        "name": "Pluto",
+        "sign": "Scorpio",
+        "house": 2
+      }
+    ]
+  },
+  "numerology": {
+    "lifePath": 7,
+    "personality": 7,
+    "mission": 1,
+    "realization": 22,
+    "shadow": 4,
+    "masterNumbers": {
+      "lifePath": null,
+      "mission": null,
+      "realization": 22
+    }
+  },
+  "maya": {
+    "nahual": "Imox",
+    "tone": 1,
+    "energy": "La esencia del agua y lo subconsciente. Creatividad desbordante, intuici├│n profunda y conexi├│n con el origen."
+  },
+  "oriental": {
+    "animal": "Tigre",
+    "element": "Fuego"
+  }
+}
