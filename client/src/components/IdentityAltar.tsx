@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { User, Hexagon, Sparkles } from 'lucide-react';
 import { DeepIdentityView } from './DeepIdentityView';
 import { getAsyncAuthHeaders } from '../lib/api';
-import { WisdomOverlay, WisdomButton } from './WisdomOverlay';
+import { WisdomOverlay } from './WisdomOverlay';
 import { getZodiacImage } from '../utils/zodiacMapper';
 import { getChineseZodiacImage } from '../utils/chineseMapper';
 import { getNahualImage } from '../utils/nahualMapper';
