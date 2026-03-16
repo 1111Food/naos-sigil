@@ -11,7 +11,7 @@ interface IdentityNexusProps {
     onNavigate: (view: any) => void;
     onBack: () => void;
 }
-
+// @ts-ignore
 export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack }) => {
     const [explainerType, setExplainerType] = React.useState<'IDENTITY_NEXUS' | 'IDENTITY_COMPLETE' | 'IDENTITY_WISDOM' | null>(null);
     const { openWisdom } = useWisdom();

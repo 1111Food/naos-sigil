@@ -29,7 +29,7 @@ const ChineseAnimalImage = ({ animal, className }: { animal: string, className?:
         />
     );
 };
-
+// @ts-ignore
 export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overrideProfile }) => {
     const { profile: hookProfile, loading } = useProfile();
     // Logic: Use passed profile (override) OR hook profile

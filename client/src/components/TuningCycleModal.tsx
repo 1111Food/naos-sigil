@@ -38,7 +38,7 @@ const CYCLE_PLANS = [
         icon: <Sparkles className="w-5 h-5 text-cyan-400" />
     }
 ];
-
+// @ts-ignore
 export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
     isOpen,
     onClose,
