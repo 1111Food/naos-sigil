@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+export const API_BASE_URL = 'https://naos-backend.onrender.com';
 
 import { supabase } from './supabase';
 
@@ -38,7 +38,7 @@ export const getAsyncAuthHeaders = async (): Promise<Record<string, string>> => 
     } else {
         console.warn("⚠️ API: Intentando petición sin sesión activa.");
     }
-    
+
     return headers;
 };
 

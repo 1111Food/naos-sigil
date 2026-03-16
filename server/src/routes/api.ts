@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+importimport { FastifyInstance } from 'fastify';
 import { SigilService } from '../modules/sigil/service';
 import { EnergyService } from '../modules/energy/service';
 import { UserService } from '../modules/user/service';
