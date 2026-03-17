@@ -7,6 +7,7 @@ import AstrologyView from '../components/AstrologyView';
 import { NumerologyView } from '../components/NumerologyView';
 import { NawalView } from '../components/NawalView';
 import { SabiduriaOriental } from '../components/SabiduriaOriental';
+import { API_BASE_URL } from '../lib/api';
 
 // --- TYPES & INTERFACES ---
 type ViewMode = 'MENU' | 'USER_TABS' | 'GUEST_FORM' | 'GUEST_RESULT';
@@ -241,7 +242,7 @@ export const EnergyCodeView: React.FC<EnergyCodeViewProps> = ({ onBack }) => {
         setCalculating(true);
         try {
             // 2. Call Calculation API (Modifying Astrology Route in Step 3, utilizing it here anticipating)
-            const response = await fetch('/api/astrology/natal-chart-temp', {
+            const response = await fetch(`${API_BASE_URL}/api/astrology/natal-chart-temp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

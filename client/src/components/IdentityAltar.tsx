@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { User, Hexagon, Sparkles } from 'lucide-react';
 import { DeepIdentityView } from './DeepIdentityView';
-import { getAsyncAuthHeaders } from '../lib/api';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { WisdomOverlay } from './WisdomOverlay';
 import { getZodiacImage } from '../utils/zodiacMapper';
 import { getChineseZodiacImage } from '../utils/chineseMapper';
@@ -63,7 +63,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
         const fetchRank = async () => {
             try {
                 const headers = await getAsyncAuthHeaders();
-                const response = await fetch('/api/ranking', {
+                const response = await fetch(`${API_BASE_URL}/api/ranking`, {
                     headers: headers as HeadersInit
                 });
                 if (response.ok) {

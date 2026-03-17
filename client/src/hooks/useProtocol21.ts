@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useProfile } from './useProfile';
+import { API_BASE_URL } from '../lib/api';
 
 export interface Protocol21 {
     id: string;
@@ -145,7 +146,7 @@ export const useProtocol21 = () => {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
 
-            const response = await fetch('/api/protocols/seal-day', {
+            const response = await fetch(`${API_BASE_URL}/api/protocols/seal-day`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -201,7 +202,7 @@ export const useProtocol21 = () => {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
 
-            const response = await fetch('/api/protocols/evolve', {
+            const response = await fetch(`${API_BASE_URL}/api/protocols/evolve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

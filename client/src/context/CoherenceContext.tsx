@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useProfile } from '../hooks/useProfile';
-import { getAsyncAuthHeaders } from '../lib/api';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 
 interface CoherenceStatus {
     score: number;
@@ -43,7 +43,7 @@ export const CoherenceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!profile?.id) return;
         try {
             const headers = await getAsyncAuthHeaders();
-            const response = await fetch('/api/coherence/status', {
+            const response = await fetch(`${API_BASE_URL}/api/coherence/status`, {
                 headers: headers as HeadersInit
             });
             if (response.ok) {
@@ -65,7 +65,7 @@ export const CoherenceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!profile?.id) return;
         try {
             const headers = await getAsyncAuthHeaders();
-            const response = await fetch('/api/coherence/action', {
+            const response = await fetch(`${API_BASE_URL}/api/coherence/action`, {
                 method: 'POST',
                 headers: headers as HeadersInit,
                 body: JSON.stringify({ action })

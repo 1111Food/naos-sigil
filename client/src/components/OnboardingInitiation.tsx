@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
-import { getAsyncAuthHeaders } from '../lib/api';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AstralVortex } from './AstralVortex';
 
 interface OnboardingInitiationProps {
@@ -43,7 +43,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
         try {
             // 1. Try backend sync with fresh dynamic token
             const headers = await getAsyncAuthHeaders();
-            await fetch('/api/onboarding/complete', {
+            await fetch(`${API_BASE_URL}/api/onboarding/complete`, {
                 method: 'POST',
                 headers
             });

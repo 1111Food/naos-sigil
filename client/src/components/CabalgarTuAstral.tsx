@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Moon, Sun, Wind, Mountain, Sparkles, AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { AstralLoading } from './AstralLoading';
-import { getAuthHeaders } from '../lib/api';
+import { getAuthHeaders, API_BASE_URL } from '../lib/api';
 
 interface DailyGuidance {
     personalNumber: number;
@@ -29,7 +29,7 @@ export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/astrology/daily', { headers: getAuthHeaders() })
+        fetch(`${API_BASE_URL}/api/astrology/daily`, { headers: getAuthHeaders() })
             .then(res => {
                 if (!res.ok) throw new Error('Portal desconectado');
                 return res.json();

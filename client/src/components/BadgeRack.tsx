@@ -6,7 +6,7 @@ import { cn } from '../lib/utils';
 import { useProfile } from '../hooks/useProfile';
 import { PerformanceSparkline } from './PerformanceSparkline';
 import { supabase } from '../lib/supabase';
-import { getAuthHeaders } from '../lib/api';
+import { getAuthHeaders, API_BASE_URL } from '../lib/api';
 
 // --- GEOMETRIC ARTIFACTS (SVG COMPONENTS) ---
 
@@ -173,7 +173,7 @@ export const BadgeRack: React.FC<{ onRankingClick?: () => void }> = ({ onRanking
         const fetchStats = async () => {
             try {
                 // 1. Fetch Rank Stats
-                const res = await fetch('/api/ranking', {
+                const res = await fetch(`${API_BASE_URL}/api/ranking`, {
                     headers: getAuthHeaders() as HeadersInit
                 });
 
