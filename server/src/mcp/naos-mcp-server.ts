@@ -93,10 +93,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     if (!hh || !mm) continue;
 
                     const userOffset = -6; // Fallback para Guatemala (UTC-6)
-                    const scheduledToday = new Date();
-                    // scheduledToday está en UTC. Calculamos el instante exacto en UTC que corresponde a la hora local.
-                    // Ej: 08:00 Local => 08 - (-6) = 14:00 UTC
+                    const scheduledToday = new Date(now);
                     scheduledToday.setUTCHours(parseInt(hh, 10) - userOffset, parseInt(mm, 10), 0, 0);
+
+                    // Corrección de Rollover UTC: Si la hora calculada se desfasa más de 12h por cambio de día de servidor
+                    if (scheduledToday.getTime() - nowMs > 12 * 60 * 60 * 1000) {
+                        scheduledToday.setUTCDate(scheduledToday.getUTCDate() - 1);
+                    } else if (nowMs - scheduledToday.getTime() > 12 * 60 * 60 * 1000) {
+                        scheduledToday.setUTCDate(scheduledToday.getUTCDate() + 1);
+                    }
+
                     const scheduledTimeMs = scheduledToday.getTime();
 
                     // Ventana de tolerancia: Si estamos hasta 60 minutos después de la hora programada
