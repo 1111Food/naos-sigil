@@ -2,6 +2,7 @@ import React, { useState, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flower2, Users, ArrowLeft, Eye, History, X, Calendar, ChevronDown, Info } from 'lucide-react';
 import { OracleExplainer } from '../components/OracleExplainer';
+import { OracleOnboarding } from '../components/OracleOnboarding';
 const Spline = React.lazy(() => import('@splinetool/react-spline'));
  // Added History, X, ChevronDown, Calendar
 import { Tarot } from './Tarot';
@@ -45,6 +46,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
     const [explainerType, setExplainerType] = useState<'TAROT' | 'SOULS' | null>(null);
+    const [showOnboarding, setShowOnboarding] = useState(false);
 
     const { playSound } = useSound();
 
@@ -135,6 +137,13 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
             scene: "https://prod.spline.design/kZSsq6RJS9Yk4zJS/scene.splinecode" // Placeholder for 3D Pillar
         },
     ];
+
+    React.useEffect(() => {
+        const hasSeen = localStorage.getItem('has_seen_oracle_onboarding');
+        if (!hasSeen) {
+            setShowOnboarding(true);
+        }
+    }, []);
 
     return (
         <div className="w-full min-h-screen relative overflow-hidden">
@@ -532,6 +541,12 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                     />
                 )}
             </AnimatePresence>
+
+            {/* Oracle Onboarding Wizard */}
+            <OracleOnboarding 
+                isOpen={showOnboarding}
+                onClose={() => setShowOnboarding(false)}
+            />
         </div>
     );
 };
