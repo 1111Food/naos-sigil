@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Shield, Target, User, AlertTriangle, RefreshCw, Hexagon, Sparkles, Heart, Home, Wind, ChevronDown, BookOpen, Info } from 'lucide-react';
 import { OracleExplainer } from './OracleExplainer';
 import { cn } from '../lib/utils';
-import { getAsyncAuthHeaders } from '../lib/api';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 import { ArchetypeLibrary } from './ArchetypeLibrary';
@@ -86,7 +86,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             console.log("🔑 [NaosIdentityView] Fetching async auth headers...");
             const authHeaders = await getAsyncAuthHeaders();
             console.log("📡 [NaosIdentityView] Requesting /api/naos-code...");
-            const res = await fetch(`/api/naos-code${refresh ? '?refresh=true' : ''}`, {
+            const res = await fetch(`${API_BASE_URL}/api/naos-code${refresh ? '?refresh=true' : ''}`, {
                 headers: authHeaders as HeadersInit
             });
             console.log("🔌 [NaosIdentityView] Response status:", res.status);
