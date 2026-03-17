@@ -13,8 +13,8 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 async function createMcpClient() {
     const transport = new StdioClientTransport({
-        command: 'npx',
-        args: ['tsx', MCP_SERVER_PATH],
+        command: isProd ? 'node' : 'npx',
+        args: isProd ? [MCP_SERVER_PATH] : ['tsx', MCP_SERVER_PATH],
     });
 
     const client = new Client(
