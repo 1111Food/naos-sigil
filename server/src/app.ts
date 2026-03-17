@@ -15,6 +15,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         ignoreTrailingSlash: true
     });
 
+    /*
     await app.register(cors, {
         origin: [
             'http://localhost:5173',
@@ -32,13 +33,15 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         credentials: true,
         preflightContinue: false
     });
+    */
 
     app.addHook('onRequest', async (request, reply) => {
+        reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
+        reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Profile-Id, x-profile-id');
+        reply.header('Access-Control-Allow-Credentials', 'true');
+
         if (request.method === 'OPTIONS') {
-            reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
-            reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-            reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Profile-Id, x-profile-id');
-            reply.header('Access-Control-Allow-Credentials', 'true');
             return reply.status(204).send();
         }
     });
