@@ -28,6 +28,8 @@
     "src/calibrate-maya.ts",
     "src/validate-astro.ts",
     "src/check-*.ts",
+    "src/check_rituals_table.ts",
+    "src/scripts/*",
     "src/test-*.js",
     "src/debug-*.js"
   ]

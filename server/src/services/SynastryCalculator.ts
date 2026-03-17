@@ -78,7 +78,7 @@ export class SynastryCalculator {
         return {
             astrology: astro,
             numerology: num,
-            mayan: { nawal: maya.nawal_maya, tone: maya.nawal_tono },
+            mayan: { nawal: maya.kicheName, tone: maya.tone },
             chinese: { animal: chinese.animal, element: chinese.element }
         };
     }
