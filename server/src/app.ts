@@ -15,25 +15,6 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         ignoreTrailingSlash: true
     });
 
-    /*
-    await app.register(cors, {
-        origin: [
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'http://localhost:5175',
-            'http://127.0.0.1:5173',
-            'http://127.0.0.1:5174',
-            'http://127.0.0.1:5175',
-            'http://192.168.1.72:5174',
-            'https://naos-platform.vercel.app',
-            'https://naos-sigil.vercel.app'
-        ],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Profile-Id', 'x-profile-id'],
-        credentials: true,
-        preflightContinue: false
-    });
-    */
 
     app.addHook('onRequest', async (request, reply) => {
         reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
