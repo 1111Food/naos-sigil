@@ -16,15 +16,15 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     });
 
 
-    app.addHook('onRequest', async (request, reply) => {
-        reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
-        reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Profile-Id, x-profile-id');
-        reply.header('Access-Control-Allow-Credentials', 'true');
-
-        if (request.method === 'OPTIONS') {
-            return reply.status(204).send();
-        }
+    await app.register(cors, {
+        origin: [
+            'https://naos-sigil.vercel.app',
+            'http://localhost:5173',
+            'http://localhost:5174'
+        ],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Profile-Id', 'x-profile-id'],
+        credentials: true
     });
 
     app.get('/health', async (request, reply) => {
