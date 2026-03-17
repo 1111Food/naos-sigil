@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import { UsageGuardService } from '../user/UsageGuard';
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { SynastryOracle } from './SynastryOracle';
@@ -18,6 +19,13 @@ import { ProfileConsolidator } from '../user/profileConsolidator';
 export class SynastryController {
     public static async analyze(request: FastifyRequest, reply: FastifyReply) {
         const userId = (request as any).user_id;
+
+        // 🛡️ UsageGuard Limit Check (Dual)
+        const limitCheck = await UsageGuardService.checkLimit(userId, 'synastry_dual');
+        if (!limitCheck.ok) {
+            return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+        }
+
         try {
             const { userProfile, partnerData, relationshipType } = request.body as any;
             const type = relationshipType || RelationshipType.ROMANTIC;
@@ -160,6 +168,7 @@ export class SynastryController {
             }
 
             console.log("📤 API RESPONSE EXPLANATIONS:", finalResult.report.explanations ? "OK" : "MISSING");
+            await UsageGuardService.incrementUsage(userId, 'synastry_dual');
             return reply.send({ success: true, cached: false, data: finalResult });
         } catch (error: any) {
             console.error("❌ Synastry Analysis Critical Failure:", error);
@@ -168,6 +177,14 @@ export class SynastryController {
     }
 
     public static async analyzeGroup(request: FastifyRequest, reply: FastifyReply) {
+        const userId = (request as any).user_id;
+
+        // 🛡️ UsageGuard Limit Check (Group)
+        const limitCheck = await UsageGuardService.checkLimit(userId, 'synastry_group');
+        if (!limitCheck.ok) {
+            return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+        }
+
         try {
             const { rosterProfiles } = request.body as any;
 
@@ -214,6 +231,7 @@ export class SynastryController {
                 if (insertError) console.error("❌ Group History Insertion Error:", insertError);
             }
 
+            await UsageGuardService.incrementUsage(userId, 'synastry_group');
             return reply.send({ success: true, data: finalResult });
 
         } catch (error: any) {

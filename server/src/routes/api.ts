@@ -12,6 +12,7 @@ import { validateUser } from '../middleware/auth';
 import { CoherenceService } from '../modules/coherence/service';
 import { NaosCompilerService } from '../modules/user/naosCompiler.service';
 import { ProtocolService } from '../modules/protocol/service';
+import { UsageGuardService } from '../modules/user/UsageGuard';
 
 const sigilService = new SigilService();
 
@@ -52,10 +53,19 @@ export async function apiRoutes(app: FastifyInstance) {
 
     // Chat
     app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
+        const { message, localTimestamp, oracleState, role } = req.body;
+        const userId = (req as any).user_id;
+
+        // 🛡️ UsageGuard Limit Check
+        const limitCheck = await UsageGuardService.checkLimit(userId, 'sigil');
+        if (!limitCheck.ok) {
+            return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+        }
+
         try {
-            const { message, localTimestamp, oracleState, role } = req.body;
-            const userId = (req as any).user_id;
-            return await sigilService.processMessage(userId, message, localTimestamp, oracleState, role);
+            const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role);
+            await UsageGuardService.incrementUsage(userId, 'sigil');
+            return res;
         } catch (error: any) {
             console.error("🔥 SIGIL ERROR:", error);
 
@@ -174,9 +184,22 @@ export async function apiRoutes(app: FastifyInstance) {
     app.get('/api/naos-code', { preHandler: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const forceRefresh = (req.query as any).refresh === 'true';
+
+        // 🛡️ UsageGuard Limit Check
+        if (forceRefresh) { // Only count against quota if they are FORCING a full AI recompile
+             const limitCheck = await UsageGuardService.checkLimit(userId, 'naos_code');
+             if (!limitCheck.ok) {
+                 return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+             }
+        }
+
         console.log(`🧬 [NAOS_CODE_START] Compilación solicitada para: ${userId} | Refresh: ${forceRefresh}`);
         try {
-            return await NaosCompilerService.compile(userId, forceRefresh);
+            const res = await NaosCompilerService.compile(userId, forceRefresh);
+            if (forceRefresh) {
+                 await UsageGuardService.incrementUsage(userId, 'naos_code');
+            }
+            return res;
         } catch (e: any) {
             console.error("🔥 NAOS Compiler Route Error:", e);
             return reply.status(500).send({ error: 'Failed to compile NAOS Identity', details: e.message });

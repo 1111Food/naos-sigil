@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { SigilService } from '../modules/sigil/service';
 import { validateUser } from '../middleware/auth';
+import { UsageGuardService } from '../modules/user/UsageGuard';
 
 const sigilService = new SigilService();
 
@@ -32,6 +33,12 @@ export async function tarotRoutes(app: FastifyInstance) {
         // @ts-ignore - bypassCoherence might not be in interface yet
         const { question, engine, spreadType, cards, mode, forceReading, bypassCoherence } = request.body;
         const userId = (request as any).user_id;
+
+        // 🛡️ UsageGuard Limit Check
+        const limitCheck = await UsageGuardService.checkLimit(userId, 'tarot');
+        if (!limitCheck.ok) {
+            return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+        }
 
         const selectedEngine = engine || 'ARCANOS';
         const toneDirective = selectedEngine === 'ARQUETIPOS' 
@@ -76,6 +83,7 @@ export async function tarotRoutes(app: FastifyInstance) {
             const response = await sigilService.processMessage(userId, message, undefined, undefined, 'maestro', finalForceReading);
             console.log("Gemini response received.");
 
+            await UsageGuardService.incrementUsage(userId, 'tarot');
             return {
                 interpretation: response
             };
@@ -117,6 +125,7 @@ export async function tarotRoutes(app: FastifyInstance) {
             La red volverá a sincronizarse pronto.
             `;
 
+            await UsageGuardService.incrementUsage(userId, 'tarot');
             return reply.status(200).send({
                 interpretation: fallbackResponse
             });
