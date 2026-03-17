@@ -107,43 +107,6 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                             )} />
                         </button>
 
-                        <AnimatePresence>
-                            {showAuras && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20, scale: 0.95 }}
-                                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                                    exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                                    className="absolute bottom-full right-0 md:right-auto md:left-full mb-6 md:mb-0 md:top-1/2 md:-translate-y-1/2 md:ml-6 flex md:flex-col gap-3 p-4 rounded-[2.5rem] glass-panel shadow-2xl z-50"
-                                >
-                                    {[
-                                        { id: 'deep-space', label: 'Deep Space - Para enfoque sideral neutro e inmersión profunda.', color: 'bg-slate-900', border: 'border-slate-700' },
-                                        { id: 'zen-stone', label: 'Stone Zen - Silencio terrenal, para enraizar mentes ansiosas.', color: 'bg-neutral-800', border: 'border-neutral-600' },
-                                        { id: 'astral-turquoise', label: 'Cyan Astral - Claridad fluida, para disolver bloqueos creativos.', color: 'bg-cyan-900', border: 'border-cyan-700' },
-                                        { id: 'mystic-lilac', label: 'Lila Místico - Alta frecuencia, estimula la intuición y el Tercer Ojo.', color: 'bg-purple-900', border: 'border-purple-700' },
-                                        { id: 'naos-red', label: 'Rojo NAOS - Furia disciplinada, ideal para el Motor de Hábitos.', color: 'bg-red-900', border: 'border-red-700' },
-                                        { id: 'temple-gold', label: 'Dorado Templo - Prosperidad y Sabiduría, el color del Oráculo.', color: 'bg-yellow-900', border: 'border-yellow-700' }
-                                    ].map((aura) => (
-                                        <button
-                                            key={aura.id}
-                                            onClick={() => {
-                                                setAura(aura.id as AuraType);
-                                                setShowAuras(false);
-                                            }}
-                                            className={cn(
-                                                "w-7 h-7 md:w-8 md:h-8 rounded-full border-2 transition-transform hover:scale-110 shadow-lg relative",
-                                                aura.color,
-                                                activeAura === aura.id ? "border-amber-400 scale-110" : aura.border
-                                            )}
-                                            title={aura.label}
-                                        >
-                                            {activeAura === aura.id && (
-                                                <div className="absolute inset-0 rounded-full border border-amber-400/50 animate-ping" />
-                                            )}
-                                        </button>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </div>
 
                     {/* Salida Sagrada */}
@@ -192,6 +155,49 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                         </div>
                     </div>
                 </div>
+
+                {/* Fixed Overlay for mobile, absolute panel for desk */}
+                <AnimatePresence>
+                    {showAuras && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className={cn(
+                                "fixed md:absolute z-[110] glass-panel shadow-2xl flex md:flex-col gap-3 p-4 rounded-[2.5rem]",
+                                "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2", // Mobile float above dock
+                                "md:top-1/2 md:bottom-auto md:left-full md:ml-6 md:-translate-y-1/2 md:translate-x-0"  // Desktop aligned with dock
+                            )}
+                        >
+                            {[
+                                { id: 'deep-space', label: 'Deep Space', color: 'bg-slate-900', border: 'border-slate-700' },
+                                { id: 'zen-stone', label: 'Stone Zen', color: 'bg-neutral-800', border: 'border-neutral-600' },
+                                { id: 'astral-turquoise', label: 'Cyan Astral', color: 'bg-cyan-900', border: 'border-cyan-700' },
+                                { id: 'mystic-lilac', label: 'Lila Místico', color: 'bg-purple-900', border: 'border-purple-700' },
+                                { id: 'naos-red', label: 'Rojo NAOS', color: 'bg-red-900', border: 'border-red-700' },
+                                { id: 'temple-gold', label: 'Dorado Templo', color: 'bg-yellow-900', border: 'border-yellow-700' }
+                            ].map((aura) => (
+                                <button
+                                    key={aura.id}
+                                    onClick={() => {
+                                        setAura(aura.id as AuraType);
+                                        setShowAuras(false);
+                                    }}
+                                    className={cn(
+                                        "w-7 h-7 md:w-8 md:h-8 rounded-full border-2 transition-transform hover:scale-110 shadow-lg relative",
+                                        aura.color,
+                                        activeAura === aura.id ? "border-amber-400 scale-110" : aura.border
+                                    )}
+                                    title={aura.label}
+                                >
+                                    {activeAura === aura.id && (
+                                        <div className="absolute inset-0 rounded-full border border-amber-400/50 animate-ping" />
+                                    )}
+                                </button>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </nav>
 
             {/* Rendered OUTSIDE the nav to avoid z-index stacking context trapping */}
