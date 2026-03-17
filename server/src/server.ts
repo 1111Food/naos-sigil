@@ -17,6 +17,7 @@ process.on('unhandledRejection', (reason, promise) => {
 import fs from 'fs';
 import path from 'path';
 
+/*
 // DEBUG REDIRECTION
 import util from 'util';
 const logFile = fs.createWriteStream(path.join(process.cwd(), 'debug_server.log'), { flags: 'a' });
@@ -25,6 +26,7 @@ const formatArgs = (args: any[]) => args.map(arg => typeof arg === 'object' ? ut
 console.log = (...args) => logFile.write(`[LOG] ${new Date().toISOString()} ${formatArgs(args)}\n`);
 console.error = (...args) => logFile.write(`[ERROR] ${new Date().toISOString()} ${formatArgs(args)}\n`);
 console.warn = (...args) => logFile.write(`[WARN] ${new Date().toISOString()} ${formatArgs(args)}\n`);
+*/
 
 const start = async () => {
     try {
