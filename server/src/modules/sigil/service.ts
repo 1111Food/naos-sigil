@@ -5,7 +5,6 @@ import { SigilState, UserProfile } from '../../types';
 import { EnergyService } from '../energy/service';
 import { UserService } from '../user/service';
 import { ProfileConsolidator } from '../user/profileConsolidator';
-import { createClient } from '@supabase/supabase-js';
 import { SIGIL_SYSTEM_PROMPT, BASE_IDENTITY, PREMIUM_PROMPT, CUSTODIO_PROMPT, GUARDIAN_SYSTEM_PROMPT, USE_AWARENESS_PROMPT } from './prompts';
 import { NAOS_SYSTEM_PROMPT } from '../../config/aiPrompts';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
@@ -13,7 +12,7 @@ import { MayanCalculator } from '../../modules/maya/calculator';
 import { CoherenceService } from '../coherence/service';
 import { ArchetypeEngine } from '../user/archetypeEngine';
 import { CodexService } from '../codex/service';
-const supabase = createClient(config.SUPABASE_URL || '', config.SUPABASE_ANON_KEY || '');
+import { supabase } from '../../lib/supabase';
 
 // Mock DB
 const stateStore: Record<string, SigilState> = {};

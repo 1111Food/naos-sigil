@@ -5,12 +5,10 @@ import { ChineseAstrology } from '../../utils/chineseAstrology';
 import { MayanCalculator, NAWALES } from '../../utils/mayaCalculator';
 import { NumerologyService } from '../../modules/numerology/service';
 import { AstrologyService } from '../astrology/astroService';
-import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { UserService } from './service';
 import { ArchetypeEngine, ArchetypeResult } from './archetypeEngine';
-
-const supabase = createClient(config.SUPABASE_URL || '', config.SUPABASE_ANON_KEY || '');
+import { supabase } from '../../lib/supabase';
 
 export interface NaosIdentitySynthesis {
     arquetipo?: {

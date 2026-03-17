@@ -3,11 +3,11 @@ async function test() {
     let out = "";
     for (let i = 0; i < 10; i++) {
         try {
-            const res = await fetch('https://naos-backend.onrender.com/api/chat', {
+            const res = await fetch('https://naos-backend.onrender.com/api/naos-code', {
                 method: 'OPTIONS',
                 headers: {
                     'Origin': 'https://naos-sigil.vercel.app',
-                    'Access-Control-Request-Method': 'POST',
+                    'Access-Control-Request-Method': 'GET',
                     'Access-Control-Request-Headers': 'Content-Type,Authorization'
                 }
             });
@@ -21,6 +21,6 @@ async function test() {
         }
         await new Promise(r => setTimeout(r, 5000));
     }
-    fs.writeFileSync('cors_test_live_loop.json', JSON.stringify({ log: out }, null, 2), 'utf-8');
+    fs.writeFileSync('cors_test_live_naos.json', JSON.stringify({ log: out }, null, 2), 'utf-8');
 }
 test();

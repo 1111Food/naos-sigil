@@ -7,16 +7,13 @@ import { AstrologyService } from '../astrology/astroService';
 import { GeocodingService } from './geocoding';
 import { NumerologyService } from '../numerology/service';
 import { FengShuiService } from '../astrology/fengshui';
-import { createClient } from '@supabase/supabase-js';
 import { config } from '../../config/env';
 import { MayanCalculator } from '../../utils/mayaCalculator';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
+import { supabase } from '../../lib/supabase';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const PROFILES_FILE = path.join(DATA_DIR, 'profiles.json');
-
-// Supabase Init
-const supabase = createClient(config.SUPABASE_URL || '', config.SUPABASE_ANON_KEY || '');
 
 export class UserService {
     private static profilesCache: Record<string, UserProfile> = {};
