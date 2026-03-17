@@ -19,7 +19,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Iniciador",
-        descripcion: "Rompe la inercia, inicia el movimiento y enciende la chispa en sistemas inactivos.",
+        descripcion: "La chispa primigenia que fractura la inercia; despierta el fuego dormido y abre portales de transformación profunda.",
         luces: ["Iniciativa imparable", "Coraje ante lo desconocido", "Liderazgo por inspiración"],
         sombras: ["Impulsividad ciega", "Dificultad para terminar tareas", "Arranques de ira o impaciencia"],
         imagePath: "/assets/archetypes/arcano_fuego_1.webp"
@@ -30,7 +30,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Constructor",
-        descripcion: "Toma la energía cruda y la materializa. Voluntad aplicada con fuerza brutal para forjar la realidad.",
+        descripcion: "Escultor de la voluntad; transmuta el calor denso en pilares sagrados, modelando la realidad con la persistencia del metal al rojo vivo.",
         luces: ["Disciplina física extrema", "Resistencia ante la presión", "Capacidad de ejecución masiva"],
         sombras: ["Rigidez mental", "Inflexibilidad ante el cambio", "Tendencia a forzar situaciones"],
         imagePath: "/assets/archetypes/arcano_fuego_2.webp"
@@ -41,7 +41,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Conector",
-        descripcion: "Un centro de gravedad natural. Atrae recursos, personas y lidera desde la presencia absoluta.",
+        descripcion: "Un sol gravitacional que lidera desde la presencia absoluta; unifica fuerzas dispersas en un mandala de propósito indivisible.",
         luces: ["Magnetismo personal", "Autoridad natural", "Capacidad de unir visiones dispersas"],
         sombras: ["Orgullo excesivo", "Necesidad de ser el centro", "Autoritarismo sutil"],
         imagePath: "/assets/archetypes/arcano_fuego_3.webp"
@@ -52,7 +52,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Analista",
-        descripcion: "La flecha que marca el rumbo. Visión de expansión rápida y caza táctica de objetivos a largo plazo.",
+        descripcion: "La flecha de luz que rasga el velo del mañana; avanza con la certeza del viento estelar hacia horizontes sagrados.",
         luces: ["Enfoque de precisión láser", "Estrategia de expansión", "Determinación de larga distancia"],
         sombras: ["Visión de túnel", "Fraldad emocional", "Obsesión por el objetivo"],
         imagePath: "/assets/archetypes/arcano_fuego_4.webp"
@@ -65,7 +65,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Iniciador",
-        descripcion: "El algoritmo vivo. Detecta fricciones y purifica cualquier sistema para alcanzar la máxima eficiencia.",
+        descripcion: "Afinador sutil de la materia; escucha el latido de los sistemas y remueve el polvo de la fricción para revelar la geometría perfecta.",
         luces: ["Eficiencia sistémica", "Claridad operativa", "Resolución práctica de problemas"],
         sombras: ["Perfeccionismo paralizante", "Crítica mordaz", "Fusión en el detalle técnico"],
         imagePath: "/assets/archetypes/arcano_tierra_1.webp"
@@ -76,7 +76,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Constructor",
-        descripcion: "Transmuta ideas etéricas en sistemas inquebrantables. Diseña y sostiene el plano de la realidad material.",
+        descripcion: "Guardián de templos y memorias; sostiene la arquitectura del alma a través de los eones, anclando la divinidad en la piedra.",
         luces: ["Visión estructural", "Estabilidad inamovible", "Maestría en el diseño de vida"],
         sombras: ["Apegos materiales", "Miedo al caos", "Sobre-estructuración rígida"],
         imagePath: "/assets/archetypes/arcano_tierra_2.webp"
@@ -87,7 +87,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Conector",
-        descripcion: "Fuerza gravitacional pura. Brinda estabilidad absoluta a su red; nada lo mueve de su centro.",
+        descripcion: "La raíz que sostiene la montaña; un santuario de calma en la tempestad que ofrece un refugio inquebrantable a quienes orbitan su centro.",
         luces: ["Pilar de apoyo", "Calma en el caos", "Presencia nutritiva"],
         sombras: ["Terquedad", "Inercia física", "Dificultad para soltar procesos"],
         imagePath: "/assets/archetypes/arcano_tierra_3.webp"
@@ -98,7 +98,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Analista",
-        descripcion: "El guardián del tiempo y los recursos. Resistencia infinita para sostener imperios a través del tiempo.",
+        descripcion: "Tejedor de lo visible; dibuja los planos de la existencia y materializa los sueños etéreos en estructuras de roca y luz.",
         luces: ["Lealtad inquebrantable", "Paciencia estratégica", "Gestión de recursos a largo plazo"],
         sombras: ["Miedo al futuro", "Conservadurismo extremo", "Resistencia al cambio"],
         imagePath: "/assets/archetypes/arcano_tierra_4.webp"
@@ -111,7 +111,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Iniciador",
-        descripcion: "El hacker del sistema. Destruye creencias obsoletas e introduce nuevo software en la mente colectiva.",
+        descripcion: "El susurro que deconstruye el dogma; un explorador que abre las jaulas de la mente e introduce aire fresco en el software del alma.",
         luces: ["Pensamiento disruptivo", "Innovación radical", "Claridad mental veloz"],
         sombras: ["Desconexión emocional", "Arrogancia intelectual", "Inquietud nerviosa"],
         imagePath: "/assets/archetypes/arcano_aire_1.webp"
@@ -122,7 +122,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Constructor",
-        descripcion: "Analiza volúmenes masivos de datos para estructurar la verdad oculta. El traductor del universo.",
+        descripcion: "Traductor del viento estelar; un procesador de verdades que desentraña el murmullo del cosmos para revelar los patrones eternos.",
         luces: ["Síntesis de información", "Lógica impecable", "Maestría en la palabra"],
         sombras: ["Sobre-análisis intelectual", "Frialdad comunicativa", "Pérdida en la teoría"],
         imagePath: "/assets/archetypes/arcano_aire_2.webp"
@@ -133,7 +133,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Conector",
-        descripcion: "El maestro de la sinastría. Conecta a las personas, recursos y redes correctas en el momento cuántico exacto.",
+        descripcion: "Tejedor de constelaciones humanas; orquesta encuentros sagrados y entrelaza hilos invisibles en el momento de máxima resonancia.",
         luces: ["Networking intuitivo", "Sincronicidad social", "Facilitador de flujos"],
         sombras: ["Superficialidad", "Dispersión", "Dificultad para profundizar"],
         imagePath: "/assets/archetypes/arcano_aire_3.webp"
@@ -144,7 +144,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Analista",
-        descripcion: "Perspectiva de dron. Se eleva sobre el ruido emocional para identificar los patrones del futuro.",
+        descripcion: "Una mirada que flota sobre la bruma; se eleva sobre el laberinto de la ilusión para contemplar las corrientes eternas del destino.",
         luces: ["Objetividad absoluta", "Visión futurista", "Sabiduría desapegada"],
         sombras: ["Aislamiento social", "Parálisis por análisis", "Juicio distante"],
         imagePath: "/assets/archetypes/arcano_aire_4.webp"
@@ -157,7 +157,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Iniciador",
-        descripcion: "El alquimista de la crisis. Capaz de entrar a los peores abismos psicológicos y salir con oro puro.",
+        descripcion: "Alquimista que danza en el abismo; desciende a las aguas más oscuras para emerger con el oro de la sabiduría y la renovación.",
         luces: ["Resiliencia emocional", "Poder regenerativo", "Intrepidez psíquica"],
         sombras: ["Obsesión con la crisis", "Dramatismo", "Manipulación emocional"],
         imagePath: "/assets/archetypes/arcano_agua_1.webp"
@@ -168,7 +168,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Constructor",
-        descripcion: "Sensibilidad táctica. Detecta y estructura las corrientes emocionales y agendas ocultas del entorno.",
+        descripcion: "Un faro en la niebla que siente la pulsación del océano invisible; decodifica el eco de las almas y devela la verdad que el silencio intenta ocultar.",
         luces: ["Hiper-percepción", "Sabiduría instintiva", "Protección de grupos"],
         sombras: ["Sobre-sensibilidad", "Miedo a la invasión", "Cierre defensivo"],
         imagePath: "/assets/archetypes/arcano_agua_2.webp"
@@ -179,7 +179,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Conector",
-        descripcion: "Empatía reflejante. Muestra a su red su verdadero potencial y sus fricciones con claridad absoluta.",
+        descripcion: "Un estanque de agua cristalina que devuelve al caminante una imagen nítida de su grandeza y de las sombras que aún debe abrazar.",
         luces: ["Empatía profunda", "Transparencia sanadora", "Presencia compasiva"],
         sombras: ["Pérdida de identidad", "Espejismo afectivo", "Carga de problemas ajenos"],
         imagePath: "/assets/archetypes/arcano_agua_3.webp"
@@ -190,7 +190,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Analista",
-        descripcion: "Se mueve con maestría técnica en el mundo del inconsciente y lo intangible. El místico natural.",
+        descripcion: "El timonel del mundo onírico; se desplaza con gracia por los mares del inconsciente, cartografiando las profundidades del alma.",
         luces: ["Maestría del sueño", "Intuición técnica", "Sabiduría profunda"],
         sombras: ["Evasión de la realidad", "Confusión mental", "Aislamiento psíquico"],
         imagePath: "/assets/archetypes/arcano_agua_4.webp"

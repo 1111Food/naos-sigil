@@ -202,36 +202,36 @@ export class NaosCompilerService {
         
         const templates: Record<string, string[]> = {
             interfaz_social: [
-                `Proyectas una presencia de ${role} bajo la influencia de ${sign}. Tu interacción social está marcada por la búsqueda de equilibrio entre tu instinto de ${animal} y tu rol arquitectónico.`,
-                `Te manifiestas en el mundo como un ${role} consciente. Tu máscara social equilibra la fuerza del ${animal} con la precisión de tus coordenadas de nacimiento.`
+                `Proyectas un aura de ${role} bajo la mirada de ${sign}. Tu danza social es un puente entre tu instinto de ${animal} y tu esencia sagrada.`,
+                `Te manifiestas como un ${role} despierto. Tu máscara social equilibra la marea del ${animal} con la luz de tus coordenadas celestiales.`
             ],
             nucleo_interno: [
-                `En tu centro habita el poder del ${archetype.nombre}. Tu motor interno procesa la realidad a través de la frecuencia ${archetype.frecuencia}, impulsando tu evolución constante.`,
-                `Tu núcleo está definido por el arquetipo ${archetype.nombre}. Operas bajo una lógica de ${archetype.descripcion} consolidando tu poder personal.`
+                `En tu centro habita el susurro del ${archetype.nombre}. Tu corazón late con la frecuencia ${archetype.frecuencia}, impulsando tu despertar constante.`,
+                `Tu núcleo es un santuario del arquetipo ${archetype.nombre}. Operas bajo la sabiduría de que el amor y la verdad consolidan tu poder.`
             ],
             patron_sombra: [
-                `Tu sombra emerge cuando la energía del ${animal} se desborda o se reprime. El desafío es integrar los impulsos reactivos para que el ${role} mantenga el mando.`,
-                `El patrón de sombra se activa ante la falta de coherencia. La tensión entre tu naturaleza de ${animal} y tu propósito de ${role} marca tu umbral de crecimiento.`
+                `Tu sombra emerge cuando la marea del ${animal} inunda el faro. El desafío es abrazar el caos para que el ${role} encuentre su luz.`,
+                `El patrón de sombra se activa ante la desconexión. La tensión entre tu fuego instintivo de ${animal} y tu misión de ${role} es tu crisol de crecimiento.`
             ],
             direccion_vital: [
-                `Tu camino está trazado hacia la maestría del arquetipo ${archetype.nombre}. Cada paso que das refuerza tu rol de ${role} en la arquitectura del nuevo paradigma.`,
-                `Avanzas hacia una manifestación ígnea de tu propósito. La dirección de tu vida está alineada con la frecuencia ${archetype.frecuencia} y tu misión constructiva.`
+                `Tu camino está trazado hacia la cúspide del ${archetype.nombre}. Cada paso es un eco de tu rol de ${role} en la gran sinfonía del universo.`,
+                `Avanzas hacia una expresión sagrada de tu ser. Tu destino florece al compás de la frecuencia ${archetype.frecuencia} y tu arte constructivo.`
             ],
             tension_evolutiva: [
-                `La tensión surge al balancear tu instinto y tu consciencia. Como ${role}, tu evolución depende de cómo transmutas la energía del ${animal} en estructuras sólidas.`,
-                `Evolucionas mediante la resolución de la paradoja interna. Tu frecuencia ${archetype.frecuencia} te exige una síntesis constante de tus facultades innatas.`
+                `La tensión es el violín de tu alma. Como ${role}, evolucionas al transmutar la fuerza del ${animal} en cantos de luz y armonía.`,
+                `Evolucionas al sanar la paradoja interna. Tu frecuencia ${archetype.frecuencia} te invita a una síntesis amorosa de tus dones innatos.`
             ],
             alquimia_vinculos: [
-                `En tus relaciones, actúas como un espejo de la frecuencia ${archetype.frecuencia}. Buscas alquimia con otros iniciadores para potenciar tu alcance como ${role}.`,
-                `Tus vínculos son laboratorios de crecimiento. Como ${archetype.nombre}, atraes espejos que desafían y expanden tu visión del mundo.`
+                `En tus relaciones actúas como un espejo de la frecuencia ${archetype.frecuencia}. Buscas destilar amor y verdad con otros caminantes.`,
+                `Tus vínculos son lagos de espejo. Como ${archetype.nombre}, atraes almas que te recuerdan tu divinidad y expanden tu visión.`
             ],
             arquitectura_entorno: [
-                `Diseñas tu espacio para que resuene con el elemento ${archetype.elemento}. Tu entorno debe ser un santuario que potencie tu capacidad de ${role}.`,
-                `Tu arquitectura personal requiere orden y propósito. Creas entornos que actúan como amplificadores de tu frecuencia base ${archetype.frecuencia}.`
+                `Tu espacio es un templo para el elemento ${archetype.elemento}. Crea un santuario de paz y belleza que eleve y sostenga tu espíritu de ${role}.`,
+                `Tu entorno requiere paz y propósito sagrado. Diseñas nidos que actúan como amplificadores de tu frecuencia base ${archetype.frecuencia}.`
             ],
             umbral_manifestacion: [
-                `Tu umbral de éxito se expande cuando actúas con la coherencia del ${archetype.nombre}. La manifestación es el resultado natural de tu alineación solar.`,
-                `Manifiestas con facilidad cuando tu rol de ${role} y tu instinto de ${animal} operan en sincronía total bajo el código NAOS.`
+                `Tu abundancia florece cuando actúas en sincronicidad con el ${archetype.nombre}. La vida se despliega sin esfuerzo ante tu luz.`,
+                `Manifiestas con gracia cuando tu rol de ${role} y la marea del ${animal} son una sola canción bajo el cielo de NAOS.`
             ]
         };
 
@@ -309,8 +309,9 @@ export class NaosCompilerService {
         const apiKey = config.GOOGLE_API_KEY;
         const url = `https://generativelanguage.googleapis.com/${this.API_VERSION}/models/${this.TARGET_MODEL}:generateContent?key=${apiKey}`;
 
-        const systemPrompt = `Eres el Compilador NAOS v2.7. Tu función es consolidar una identidad arquitectónica.
+        const systemPrompt = `Eres el Compilador NAOS v2.7. Tu función es consolidar una identidad arquitectónica de forma poética y mística.
 El usuario es: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
+Evita tecnicismos excesivos (no uses "algoritmo", "fricción", "optimizar" o "paradigmas"). Usa un tono evocador, místico y fluido para describir las interfaces del alma humana.
 Responde ÚNICAMENTE en JSON con los 8 bloques de interfaces narrativas.
 CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital', 'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'.`;
 

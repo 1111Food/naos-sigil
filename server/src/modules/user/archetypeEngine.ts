@@ -37,30 +37,31 @@ export class ArchetypeEngine {
 
     private static ARCHETYPE_MATRIX: Record<string, Record<number, { nombre: string, desc: string }>> = {
         'fuego': {
-            1: { nombre: "El Catalizador", desc: "Propulsor de la chispa original; rompe la inercia sistémica para iniciar ciclos de evolución rápida y transformación absoluta." },
-            2: { nombre: "El Forjador", desc: "Arquitecto de la voluntad; transmuta la energía cruda en estructuras de poder mediante la aplicación de fuerza táctica y persistencia." },
-            3: { nombre: "El Regente Central", desc: "Centro de gravedad soberano; lidera desde la presencia absoluta, unificador de recursos y nodos en torno a un propósito superior." },
-            4: { nombre: "El Vector", desc: "Navegante de la expansión; identifica y caza objetivos estratégicos a largo plazo mediante una visión cinemática del futuro." }
+            1: { nombre: "El Catalizador", desc: "La chispa primigenia que fractura la inercia; despierta el fuego dormido y abre portales de transformación profunda." },
+            2: { nombre: "El Forjador", desc: "Escultor de la voluntad; transmuta el calor denso en pilares sagrados, modelando la realidad con la persistencia del metal al rojo vivo." },
+            3: { nombre: "El Regente Central", desc: "Un sol gravitacional que lidera desde la presencia absoluta; unifica fuerzas dispersas en un mandala de propósito indivisible." },
+            4: { nombre: "El Vector", desc: "La flecha de luz que rasga el velo del mañana; avanza con la certeza del viento estelar hacia horizontes sagrados." }
         },
         'tierra': {
-            1: { nombre: "El Optimizador", desc: "Algoritmo de eficiencia pura; purifica sistemas complejos detectando fricciones invisibles para alcanzar la perfección operativa." },
-            2: { nombre: "El Custodio", desc: "Guardián del tiempo y explorador de la consciencia; sostiene imperios a través de los eones mientras protege la frecuencia original." },
-            3: { nombre: "El Ancla", desc: "Estabilidad gravitacional; actúa como el punto fijo en la tormenta, brindando seguridad inquebrantable a toda su red de influencia." },
-            4: { nombre: "El Arquitecto", desc: "Maestro de la manifestación; diseña y sostiene los planos de la realidad material, unificando lo etérico con lo tangible." }
+            1: { nombre: "El Optimizador", desc: "Afinador sutil de la materia; escucha el latido de los sistemas y remueve el polvo de la fricción para revelar la geometría perfecta." },
+            2: { nombre: "El Custodio", desc: "Guardián de templos y memorias; sostiene la arquitectura del alma a través de los eones, anclando la divinidad en la piedra." },
+            3: { nombre: "El Ancla", desc: "La raíz que sostiene la montaña; un santuario de calma en la tempestad que ofrece un refugio inquebrantable a quienes orbitan su centro." },
+            4: { nombre: "El Arquitecto", desc: "Tejedor de lo visible; dibuja los planos de la existencia y materializa los sueños etéreos en estructuras de roca y luz." }
         },
         'aire': {
-            1: { nombre: "El Ingeniero de Paradigmas", desc: "Hacker de paradigmas; deconstruye creencias obsoletas para programar nuevas realidades en el software de la mente colectiva." },
-            2: { nombre: "El Decodificador", desc: "Traductor de la verdad oculta; procesa volúmenes masivos de datos para revelar la arquitectura subyacente del universo." },
-            3: { nombre: "El Nodo", desc: "Maestro de la sinastría cuántica; orquesta conexiones vitales entre personas y recursos en el momento exacto de máxima coherencia." },
-            4: { nombre: "El Observador", desc: "Perspectiva de alta frecuencia; se eleva sobre el ruido emocional para identificar las corrientes tectónicas del mañana." }
+            1: { nombre: "El Ingeniero de Paradigmas", desc: "El susurro que deconstruye el dogma; un explorador que abre las jaulas de la mente e introduce aire fresco en el software del alma." },
+            2: { nombre: "El Decodificador", desc: "Traductor del viento estelar; un procesador de verdades que desentraña el murmullo del cosmos para revelar los patrones eternos." },
+            3: { nombre: "El Nodo", desc: "Tejedor de constelaciones humanas; orquesta encuentros sagrados y entrelaza hilos invisibles en el momento de máxima resonancia." },
+            4: { nombre: "El Observador", desc: "Una mirada que flota sobre la bruma; se eleva sobre el laberinto de la ilusión para contemplar las corrientes eternas del destino." }
         },
         'agua': {
-            1: { nombre: "El Transmutador", desc: "Alquimista del abismo; capaz de descender a las profundidades de la crisis para extraer el oro del aprendizaje y la evolución." },
-            2: { nombre: "El Sismógrafo", desc: "Sensor de corrientes invisibles; detecta y estructura agendas ocultas y mareas emocionales con una precisión táctica infalible." },
-            3: { nombre: "El Espejo", desc: "Reflector de potencial; devuelve al entorno una imagen nítida de su propia grandeza y de las fricciones que impiden su expansión." },
-            4: { nombre: "El Navegante", desc: "Maestro del inconsciente; se desplaza con pericia técnica por los océanos de lo intangible, cartografiando el alma humana." }
+            1: { nombre: "El Transmutador", desc: "Alquimista que danza en el abismo; desciende a las aguas más oscuras para emerger con el oro de la sabiduría y la renovación." },
+            2: { nombre: "El Sismógrafo", desc: "Un faro en la niebla que siente la pulsación del océano invisible; decodifica el eco de las almas y devela la verdad que el silencio intenta ocultar." },
+            3: { nombre: "El Espejo", desc: "Un estanque de agua cristalina que devuelve al caminante una imagen nítida de su grandeza y de las sombras que aún debe abrazar." },
+            4: { nombre: "El Navegante", desc: "El timonel del mundo onírico; se desplaza con gracia por los mares del inconsciente, cartografiando las profundidades del alma." }
         }
     };
+
 
     static calculate(profile: any): ArchetypeResult {
         try {
