@@ -70,6 +70,8 @@ export const StrategicCard: React.FC<StrategicCardProps> = ({
                         backgroundImage: `url("${backImageUrl}")`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
+                        backgroundColor: '#141416',
+                        border: '1px solid rgba(255,255,255,0.05)',
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden',
                         transform: 'rotateY(0deg)',
@@ -112,6 +114,13 @@ export const StrategicCard: React.FC<StrategicCardProps> = ({
                             />
                         </>
                     )}
+
+                    {/* Text Label Fallback */}
+                    <div className="absolute inset-x-0 bottom-0 pt-10 pb-4 flex items-center justify-center bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                        <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-amber-50/90 text-center px-2">
+                            {arcanaName}
+                        </span>
+                    </div>
                 </motion.div>
             </motion.div>
         </div>
