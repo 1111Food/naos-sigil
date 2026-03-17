@@ -5,7 +5,8 @@ import { config } from '../config/env';
 import path from 'path';
 
 const TICK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
-const MCP_SERVER_PATH = path.join(__dirname, '../mcp/naos-mcp-server.ts');
+const isProd = __dirname.includes('dist') || process.env.NODE_ENV === 'production';
+const MCP_SERVER_PATH = path.join(__dirname, `../mcp/naos-mcp-server.${isProd ? 'js' : 'ts'}`);
 
 const genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY || '');
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
