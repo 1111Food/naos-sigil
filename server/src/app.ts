@@ -35,17 +35,15 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     });
     */
 
-    app.addHook('onRequest', (request, reply, done) => {
+    app.addHook('onRequest', async (request, reply) => {
         reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
         reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Profile-Id, x-profile-id');
         reply.header('Access-Control-Allow-Credentials', 'true');
 
         if (request.method === 'OPTIONS') {
-            reply.status(204).send();
-            return; // Aborts without done(), stopping Fastify chain
+            return reply.status(204).send();
         }
-        done();
     });
 
     app.get('/health', async (request, reply) => {
