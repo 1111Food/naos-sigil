@@ -74,7 +74,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             // Buscamos todas las preferencias activas
             const { data: tunings, error } = await supabase
                 .from('coherence_tunings')
-                .select('user_id, aspect, module_type, cron_schedule, last_triggered_at')
+                .select('user_id, aspect, module_type, cron_schedule, last_triggered_at, profiles(astrology)')
                 .eq('is_active', true);
 
             if (error) throw error;
@@ -92,7 +92,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     const [hh, mm] = time.trim().split(':');
                     if (!hh || !mm) continue;
 
-                    const userOffset = -6; // Fallback para Guatemala (UTC-6)
+                    const userOffset = t.profiles?.astrology?.timezone_offset ?? -6; // Fallback para Guatemala (UTC-6)
                     const scheduledToday = new Date(now);
                     scheduledToday.setUTCHours(parseInt(hh, 10) - userOffset, parseInt(mm, 10), 0, 0);
 

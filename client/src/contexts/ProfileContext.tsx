@@ -161,6 +161,24 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }, [user]);
 
+    // Auto-Calibración de Timezone para soporte global
+    useEffect(() => {
+        if (profile) {
+            const currentOffset = new Date().getTimezoneOffset() / -60;
+            const savedOffset = profile.astrology?.timezone_offset;
+
+            if (savedOffset !== currentOffset) {
+                console.log("🛡️ Calibrando Timezone Offset a:", currentOffset);
+                updateProfile({
+                    astrology: {
+                        ...(profile.astrology || {}),
+                        timezone_offset: currentOffset
+                    }
+                }).catch(err => console.error("Error calibrating timezone:", err));
+            }
+        }
+    }, [profile, updateProfile]);
+
     // appReady = Auth is settled AND (either no user OR profile is settled)
     const appReady = !authLoading && (!user || !profileLoading);
 
