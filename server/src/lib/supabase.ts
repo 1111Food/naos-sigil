@@ -2,7 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import { config } from '../config/env';
 
 if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
-    throw new Error('Supabase configuration missing in environment variables');
+    console.error('⚠️ CRITICAL: Supabase configuration missing. DB features will fail.');
 }
 
-export const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+export const supabase = createClient(
+    config.SUPABASE_URL || 'https://placeholder-dont-crash.supabase.co',
+    config.SUPABASE_ANON_KEY || 'placeholder-dont-crash'
+);
