@@ -33,12 +33,14 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         preflightContinue: false
     });
 
-    app.options('/api/*', async (request, reply) => {
-        reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
-        reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Profile-Id, x-profile-id');
-        reply.header('Access-Control-Allow-Credentials', 'true');
-        return reply.status(204).send();
+    app.addHook('onRequest', async (request, reply) => {
+        if (request.method === 'OPTIONS') {
+            reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
+            reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Profile-Id, x-profile-id');
+            reply.header('Access-Control-Allow-Credentials', 'true');
+            return reply.status(204).send();
+        }
     });
 
     app.get('/health', async (request, reply) => {
