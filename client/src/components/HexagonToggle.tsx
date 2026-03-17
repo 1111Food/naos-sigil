@@ -19,14 +19,14 @@ export const HexagonToggle: React.FC<HexagonToggleProps> = ({ checked, onClick, 
     };
 
     return (
-        <div
+        <button
             onClick={(e) => { e.stopPropagation(); onClick(); }}
             className={cn(
-                "relative flex-shrink-0 w-16 h-16 flex items-center justify-center transition-all duration-300 cursor-pointer group",
+                "relative flex-shrink-0 w-16 h-16 flex items-center justify-center transition-all duration-300 cursor-pointer group focus:outline-none",
                 checked ? "scale-100" : "scale-100 opacity-80 hover:opacity-100 hover:scale-110"
             )}
         >
-            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full overflow-visible">
+            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
                 <path
                     d="M50 0 L93.3 25 V75 L50 100 L6.7 75 V25 Z"
                     fill="currentColor"
@@ -48,6 +48,6 @@ export const HexagonToggle: React.FC<HexagonToggleProps> = ({ checked, onClick, 
                     <div className="w-2 h-2 bg-black rounded-full shadow-white" />
                 </motion.div>
             )}
-        </div>
+        </button>
     );
 };
