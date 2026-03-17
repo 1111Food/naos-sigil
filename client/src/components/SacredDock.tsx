@@ -48,7 +48,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                 "bottom-0 left-0 right-0 h-auto px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] glass-panel rounded-t-[3rem] md:rounded-full border-t border-white/5 md:border-none",
                 "md:left-8 md:top-1/2 md:-translate-y-1/2 md:bottom-auto md:right-auto md:h-auto md:max-h-[700px] md:px-4 md:py-8 md:glass-panel shadow-2xl"
             )}>
-                <div className="flex md:flex-col items-center justify-around md:justify-center gap-4 md:gap-4 py-3 md:py-0">
+                <div className="flex md:flex-col items-center justify-start md:justify-center gap-2 md:gap-4 py-3 md:py-0 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full px-2">
                     {items.map((item) => {
                         const isActive = activeView === item.id;
                         return (

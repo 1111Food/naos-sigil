@@ -391,7 +391,7 @@ function App() {
 
                     <button
                       onClick={handleLogout}
-                      className="p-2 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all group"
+                      className="hidden md:flex p-2 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all group"
                       title="Cerrar Sesión"
                     >
                       <LogOut size={12} className="group-hover:-translate-x-0.5 transition-transform" />
@@ -402,7 +402,7 @@ function App() {
             )}
 
             {/* MAIN CONTENT WRAPPER */}
-            <main className={`flex-1 w-full max-w-6xl mx-auto transition-all duration-1000 ${activeView !== 'WELCOME_BACK' ? 'p-4 md:p-10 md:pl-32 pb-40 md:pb-10 pt-24 pb-safe' : ''}`}>
+            <main className={`flex-1 w-full max-w-6xl mx-auto transition-all duration-1000 ${activeView !== 'WELCOME_BACK' ? 'p-4 md:p-10 md:pl-32 pb-40 md:pb-10 pt-32 md:pt-24 pb-safe' : ''}`}>
 
               {activeView === 'WELCOME_BACK' ? (
                 // Full screen for Welcome
