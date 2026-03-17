@@ -49,13 +49,6 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.options('/api/chat', async (req, reply) => {
-        reply.header('Access-Control-Allow-Origin', 'https://naos-sigil.vercel.app');
-        reply.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Profile-Id, x-profile-id');
-        reply.header('Access-Control-Allow-Credentials', 'true');
-        return reply.status(204).send();
-    });
 
     // Chat
     app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
