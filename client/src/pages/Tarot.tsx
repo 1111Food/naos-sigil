@@ -430,6 +430,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                             id={i} isRevealed={false} isSelected={selectedCards.includes(i)}
                                             onClick={() => handleCardSelect(i)}
                                             className={selectedCards.includes(i) ? "opacity-20 translate-y-2" : ""}
+                                            type={selectedEngine}
                                         />
                                     </div>
                                 ))}
@@ -466,7 +467,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                 {reading?.cards.map((card: any, idx: number) => (
                                     <div key={idx} className="flex flex-col items-center gap-6 w-52">
                                         <div className="w-52 h-80">
-                                            <StrategicCard id={card.id} name={card.name} isRevealed={true} />
+                                            <StrategicCard id={card.id} name={card.name} isRevealed={true} type={selectedEngine} />
                                         </div>
                                     </div>
                                 ))}

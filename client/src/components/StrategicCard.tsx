@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { NAOS_ARCHETYPES } from '../constants/archetypeData';
 
 interface StrategicCardProps {
     id: number;
@@ -9,6 +10,7 @@ interface StrategicCardProps {
     isSelected?: boolean;
     onClick?: () => void;
     className?: string;
+    type?: 'ARCANOS' | 'ARQUETIPOS';
 }
 
 const SUPABASE_BASE_URL = 'https://avaikhukgugvcocwedsz.supabase.co/storage/v1/object/public/tarot-assets/';
@@ -27,9 +29,10 @@ export const StrategicCard: React.FC<StrategicCardProps> = ({
     isRevealed = false,
     isSelected = false,
     onClick,
-    className
+    className,
+    type = 'ARCANOS'
 }) => {
-    const arcanaName = (name || ARCANA_NAMES[id] || "Arcano").trim();
+    const arcanaName = (name || (type === 'ARQUETIPOS' ? NAOS_ARCHETYPES[id]?.nombre : ARCANA_NAMES[id]) || "Arcano").trim();
 
     let filename = `arcano-${id}.jpg (${arcanaName}).jpg`;
 
@@ -38,8 +41,12 @@ export const StrategicCard: React.FC<StrategicCardProps> = ({
     if (id === 6) filename = "arcano-6.jpg (Los Enamorados).jpg";
 
     // Encode URI component to handle spaces and the 'ñ' in Ermitaño correctly for HTTP requests
-    const imageUrl = `${SUPABASE_BASE_URL}${encodeURIComponent(filename)}`;
-    const backImageUrl = `${SUPABASE_BASE_URL}arcano-back.jpg`;
+    let imageUrl = `${SUPABASE_BASE_URL}${encodeURIComponent(filename)}`;
+    const backImageUrl = `/assets/arcano-back.jpg`;
+
+    if (type === 'ARQUETIPOS' && NAOS_ARCHETYPES[id]?.imagePath) {
+        imageUrl = NAOS_ARCHETYPES[id].imagePath; // Use local assets for archetypes
+    }
 
     return (
         <div className={cn("relative w-full h-full perspective-1000", className)}>
