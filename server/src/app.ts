@@ -24,7 +24,8 @@ export const buildApp = async (): Promise<FastifyInstance> => {
             'http://127.0.0.1:5174',
             'http://127.0.0.1:5175',
             'http://192.168.1.72:5174',
-            'https://naos-platform.vercel.app'
+            'https://naos-platform.vercel.app',
+            'https://naos-sigil.vercel.app'
         ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Profile-Id', 'x-profile-id'],
