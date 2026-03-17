@@ -4,6 +4,7 @@ import { Player } from '@remotion/player';
 import { TempleAura } from '../remotion/TempleAura';
 import { motion } from 'framer-motion';
 import { useEnergy } from '../hooks/useEnergy';
+import { cn } from '../lib/utils';
 import { useCoherence } from '../hooks/useCoherence';
 import { useProfile } from '../hooks/useProfile';
 import { supabase } from '../lib/supabase';
@@ -20,6 +21,14 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     const { score, volatility } = useCoherence();
     const { profile } = useProfile();
     const { energy } = useEnergy();
+    
+    // El Templo Dormido (Onboarding State)
+    const [isDormant, setIsDormant] = React.useState(true);
+
+    React.useEffect(() => {
+        const hasSeen = localStorage.getItem('has_seen_identity');
+        setIsDormant(!hasSeen);
+    }, []);
 
     const { playSound } = useSound();
     // Focused block state removed for Protocol/Lab as they now navigate directly.
@@ -103,7 +112,11 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     <div className="relative p-6 rounded-[2rem] glass-card hover:border-white/10 transition-all aura-zen-white:hover:border-black/20">
                         <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-amber-500/20 blur-2xl rounded-full" />
                         <p className="text-lg md:text-xl font-serif italic theme-aware-text leading-relaxed transition-colors">
-                            {energy?.guidance ? `"${energy.guidance}"` : "Sincronizando frecuencias natales..."}
+                            {isDormant ? (
+                                "Tus coordenadas han sido procesadas. Entra a tu Código de Identidad para revelar tus Arquetipos y despertar el Templo."
+                            ) : (
+                                energy?.guidance ? `"${energy.guidance}"` : "Sincronizando frecuencias natales..."
+                            )}
                         </p>
                         <div className="mt-4 flex items-center justify-center gap-3 opacity-20 group-hover:opacity-60 transition-opacity aura-zen-white:opacity-10 aura-zen-white:group-hover:opacity-40">
                             <div className="h-[0.5px] w-4 bg-current" />
@@ -138,7 +151,10 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
 
                 {/* THE OVERLAPPING PUZZLE CONTAINER */}
                 <div className="relative w-full aspect-square max-w-[800px] mx-auto my-0 md:my-12">
-                    <div className="absolute top-0 left-0 w-[55.5%] h-[55.5%] z-30">
+                    <div className={cn(
+                        "absolute top-0 left-0 w-[55.5%] h-[55.5%] z-30 transition-all duration-1000",
+                        isDormant && "animate-pulse"
+                    )}>
                         <BentoBlock
                             position="top-left"
                             title="CÓDIGO DE IDENTIDAD"
@@ -148,7 +164,10 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                             onClick={() => { playSound('click'); onSelectFeature('IDENTITY_NEXUS'); }}
                         />
                     </div>
-                    <div className="absolute top-0 right-0 w-[55.5%] h-[55.5%] z-10">
+                    <div className={cn(
+                        "absolute top-0 right-0 w-[55.5%] h-[55.5%] z-10 transition-all duration-1000",
+                        isDormant && "grayscale opacity-30 blur-[1px] pointer-events-none"
+                    )}>
                         <BentoBlock
                             position="top-right"
                             title="ORÁCULO"
@@ -159,7 +178,10 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                         />
                     </div>
 
-                    <div className="absolute bottom-0 left-0 w-[55.5%] h-[55.5%] z-20">
+                    <div className={cn(
+                        "absolute bottom-0 left-0 w-[55.5%] h-[55.5%] z-20 transition-all duration-1000",
+                        isDormant && "grayscale opacity-30 blur-[1px] pointer-events-none"
+                    )}>
                         <BentoBlock
                             position="bottom-left"
                             title="PROTOCOLOS 21 Y 90"
@@ -169,7 +191,10 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                             onClick={() => { playSound('click'); onSelectFeature('PROTOCOL21'); }}
                         />
                     </div>
-                    <div className="absolute bottom-0 right-0 w-[55.5%] h-[55.5%] z-10">
+                    <div className={cn(
+                        "absolute bottom-0 right-0 w-[55.5%] h-[55.5%] z-10 transition-all duration-1000",
+                        isDormant && "grayscale opacity-30 blur-[1px] pointer-events-none"
+                    )}>
                         <BentoBlock
                             position="bottom-right"
                             title="LABORATORIO ELEMENTAL"
