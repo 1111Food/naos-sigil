@@ -134,7 +134,7 @@ export class DailyOracleEngine {
         }
 
         // --- 2. Nahual ---
-        const userNahual = userPillars.mayan?.nawal;
+        const userNahual = userPillars.mayan?.nawal_maya || userPillars.mayan?.kicheName || userPillars.mayan?.nawal;
         const dayNahual = dayPillars.mayan.nahual;
 
         if (userNahual === dayNahual) {
@@ -222,7 +222,7 @@ export class DailyOracleEngine {
 
         // --- 2. NAHUAL (Peso 0.40) ---
         let nahualRes = 0; let nahualFric = 0; let nahualAct = 0;
-        const userNahual = userPillars.mayan?.nawal;
+        const userNahual = userPillars.mayan?.nawal_maya || userPillars.mayan?.kicheName || userPillars.mayan?.nawal;
         const dayNahual = dayPillars.mayan.nahual;
 
         if (userNahual === dayNahual) {

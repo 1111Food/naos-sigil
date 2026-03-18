@@ -58,11 +58,22 @@ export class DailyOracleCron {
                 const coherence = DailyOracleEngine.calculateCoherenceLevel(discipline, energy, clarity);
 
                 // 2. Map user base pillars
+                const elements = user.astrology?.elements;
+                let dominantElement = "None";
+                if (elements) {
+                    const entries = Object.entries(elements);
+                    if (entries.length > 0) {
+                        const maxEntry = entries.reduce((a: any, b: any) => (b[1] as number) > (a[1] as number) ? b : a);
+                        if ((maxEntry[1] as number) > 0) {
+                            dominantElement = maxEntry[0].charAt(0).toUpperCase() + maxEntry[0].slice(1);
+                        }
+                    }
+                }
+
                 const userPillars = {
                     numerology: user.numerology,
                     mayan: user.mayan,
-                    // Elements can be mapped further if astrology object is loaded correctly
-                    astrology: { element: user.astrology?.elements?.dominant || user.astrology?.elements?.sun || "None" } 
+                    astrology: { element: dominantElement } 
                 };
 
                 // 3. Scoring
