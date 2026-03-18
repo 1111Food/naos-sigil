@@ -25,18 +25,26 @@ export const EtherBackground: React.FC = () => {
     useEffect(() => {
         if (isLowPerformance) return;
 
-        // 1. Duración inicial de movimiento (5 segundos)
-        const timer = setTimeout(() => setIsSettled(true), 5000);
+        let idleTimer: ReturnType<typeof setTimeout>;
 
-        // 2. Reactivación periódica (Cada 3 minutos, flotar 5s y volver a pausar)
-        const interval = setInterval(() => {
+        const wakeUp = () => {
             setIsSettled(false);
-            setTimeout(() => setIsSettled(true), 5000);
-        }, 180000); 
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                setIsSettled(true);
+            }, 5000); // Duración de caída
+        };
+
+        // Activación inicial
+        wakeUp();
+
+        // Escuchadores de eventos para interactividad
+        const events = ['scroll', 'touchstart', 'click', 'mousemove'];
+        events.forEach(event => window.addEventListener(event, wakeUp, { passive: true }));
 
         return () => {
-            clearTimeout(timer);
-            clearInterval(interval);
+            clearTimeout(idleTimer);
+            events.forEach(event => window.removeEventListener(event, wakeUp));
         };
     }, [isLowPerformance]);
 
