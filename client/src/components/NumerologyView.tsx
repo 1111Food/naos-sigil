@@ -255,7 +255,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
 
                     <div
                         ref={scrollContainerRef}
-                        className="lg:overflow-y-auto p-4 space-y-2 custom-scrollbar flex-1 scroll-smooth"
+                        className="lg:overflow-y-auto p-4 pb-24 lg:pb-4 space-y-2 custom-scrollbar flex-1 scroll-smooth"
                     >
                         {[
                             { l: 'A', t: 'Karma (Mes)', d: 'Tu tarea pendiente de otras vidas.', v: data.pinaculo?.a },

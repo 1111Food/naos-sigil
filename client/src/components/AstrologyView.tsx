@@ -528,7 +528,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                     <div className="h-[1px] w-full mt-2 bg-gradient-to-r from-white/10 via-white/5 to-transparent"></div>
                 </div>
 
-                <div className="flex-1 lg:overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                <div className="flex-1 lg:overflow-y-auto pr-2 pb-24 lg:pb-0 space-y-3 custom-scrollbar">
                     {displayList.map((body: any, idx: number) => {
                         const planetInfo = PLANETS_LIB[body.key] || { name: body.name, archetype: 'Arquetipo', mission: '...', question: '...' };
                         const signInfo = SIGNS_LIB[body.signName] || { name: body.signDisplay, style: 'con su esencia' };
