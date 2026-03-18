@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { usePerformance } from '../context/PerformanceContext';
 
 const ZODIAC_SYMBOLS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
 const NUMBERS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22'];
@@ -18,6 +19,27 @@ interface FloatingItem {
 }
 
 export const EtherBackground: React.FC = () => {
+    const { isLowPerformance } = usePerformance();
+    const [isSettled, setIsSettled] = useState(false);
+
+    useEffect(() => {
+        if (isLowPerformance) return;
+
+        // 1. Duración inicial de movimiento (5 segundos)
+        const timer = setTimeout(() => setIsSettled(true), 5000);
+
+        // 2. Reactivación periódica (Cada 3 minutos, flotar 5s y volver a pausar)
+        const interval = setInterval(() => {
+            setIsSettled(false);
+            setTimeout(() => setIsSettled(true), 5000);
+        }, 180000); 
+
+        return () => {
+            clearTimeout(timer);
+            clearInterval(interval);
+        };
+    }, [isLowPerformance]);
+
     const symbols = useMemo(() => {
         const items: FloatingItem[] = [];
         const pool = [...ZODIAC_SYMBOLS, ...ZODIAC_SYMBOLS, ...NUMBERS];
@@ -41,6 +63,8 @@ export const EtherBackground: React.FC = () => {
         return items;
     }, []);
 
+    if (isLowPerformance) return null;
+
     return (
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 select-none">
             {/* Base Ether Gradient removed to show Global Auras */}
@@ -54,7 +78,7 @@ export const EtherBackground: React.FC = () => {
                 {symbols.map((item) => (
                     <div
                         key={item.id}
-                        className="absolute theme-aware-symbol blur-[0.3px] font-serif animate-float-particle mix-blend-screen aura-zen-white:mix-blend-normal"
+                        className={`absolute theme-aware-symbol blur-[0.3px] font-serif animate-float-particle mix-blend-screen aura-zen-white:mix-blend-normal ${isSettled ? 'pause-animations' : ''}`}
                         style={{
                             left: item.left,
                             top: item.top,

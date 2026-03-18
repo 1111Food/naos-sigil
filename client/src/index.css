@@ -499,3 +499,17 @@ body.aura-zen-white nav.fixed .lucide {
     opacity: 0;
   }
 }
+
+/* --- Performance Optimization (Sofia 2) --- */
+.pause-animations {
+  animation-play-state: paused !important;
+}
+
+.group:hover .pause-animations {
+  animation-play-state: running !important;
+}
+
+.low-performance .animate-pulse,
+.low-performance .animate-pulse-slow {
+  animation: none !important;
+}

@@ -1,11 +1,12 @@
 import React, { useState, memo } from 'react';
-import { Home, Users, User, LogOut, Volume2, VolumeX, Aperture, Send, Bot } from 'lucide-react';
+import { Home, Users, User, LogOut, Volume2, VolumeX, Aperture, Send, Bot, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
+import { usePerformance } from '../context/PerformanceContext';
 
 interface SacredDockProps {
     activeView: string;
@@ -15,6 +16,7 @@ interface SacredDockProps {
 
 export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavigate, onLogout }) => {
     const { activeAura, setAura } = useTheme();
+    const { isLowPerformance, togglePerformanceMode } = usePerformance();
     const [showAuras, setShowAuras] = useState(false);
     const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
     const [isSigilSettingsOpen, setIsSigilSettingsOpen] = useState(false);
@@ -49,7 +51,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                 "bottom-0 left-0 right-0 h-auto px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] glass-panel rounded-t-[3rem] md:rounded-full border-t border-white/5 md:border-none",
                 "md:left-8 md:top-1/2 md:-translate-y-1/2 md:bottom-auto md:right-auto md:h-auto md:max-h-[700px] md:px-4 md:py-8 md:glass-panel shadow-2xl"
             )}>
-                <div className="flex md:flex-col items-center justify-start md:justify-center gap-2 md:gap-4 py-3 md:py-0 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full px-2">
+                <div className="flex md:flex-col items-center justify-around md:justify-center gap-2 md:gap-4 py-3 md:py-0 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full px-2">
                     {items.map((item) => {
                         const isActive = activeView === item.id;
                         return (
@@ -120,6 +122,23 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                             <Aperture className={cn(
                                 "w-5 h-5 md:w-6 md:h-6 transition-all duration-500",
                                 showAuras ? "text-cyan-400 rotate-90" : "text-white/40 group-hover:text-cyan-400"
+                            )} />
+                        </button>
+                    </div>
+
+                    {/* Performance Toggle (Batería) */}
+                    <div className="relative flex justify-center md:mb-2">
+                        <button
+                            onClick={togglePerformanceMode}
+                            className={cn(
+                                "p-2 md:p-3 rounded-full border transition-all duration-300 group",
+                                isLowPerformance ? "bg-amber-500/20 border-amber-500/40 text-amber-400" : "bg-white/5 border-white/10 hover:bg-white/10 text-white/30 hover:text-amber-400"
+                            )}
+                            title={isLowPerformance ? "Modo Alto Rendimiento" : "Modo Batería (Bajo Rendimiento)"}
+                        >
+                            <Zap className={cn(
+                                "w-5 h-5 md:w-6 md:h-6 transition-all duration-500",
+                                isLowPerformance ? "animate-pulse" : "group-hover:rotate-12"
                             )} />
                         </button>
                     </div>

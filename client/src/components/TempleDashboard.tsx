@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sun, Wind, MessageCircle, Flower2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTimeBasedMode } from '../hooks/useTimeBasedMode';
@@ -10,6 +10,12 @@ interface TempleDashboardProps {
 
 export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeature, activeFeature }) => {
     const timeMode = useTimeBasedMode();
+    const [isSettled, setIsSettled] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setIsSettled(true), 5000);
+        return () => clearTimeout(timer);
+    }, []);
 
     const buttons = [
         { id: 'TAROT', label: 'Tarot Sí o No', icon: Flower2, color: 'text-rose-400', bg: 'bg-rose-400/10' },
@@ -38,7 +44,7 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                                 <img
                                     src="/sigil-day.png"
                                     alt="Sigil Anthropos Solar"
-                                    className="w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(245,158,11,0.3)] animate-float"
+                                    className={`w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(245,158,11,0.3)] animate-float ${isSettled ? 'pause-animations' : ''}`}
                                 />
                             </div>
                         ) : (
@@ -47,7 +53,7 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                                 <img
                                     src="/sigil-night.png"
                                     alt="Sigil Anthropos Nocturno"
-                                    className="w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(6,182,212,0.3)] animate-float"
+                                    className={`w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(6,182,212,0.3)] animate-float ${isSettled ? 'pause-animations' : ''}`}
                                 />
                             </div>
                         )}
