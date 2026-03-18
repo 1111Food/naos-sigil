@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, X, ArrowLeft, Loader2, Trash2, Building2, Workflow, ShieldAlert, Cpu, Zap, Target, Brain, Sparkles } from 'lucide-react';
+import { Users, Plus, X, ArrowLeft, Loader2, Trash2, Edit, Building2, Workflow, ShieldAlert, Cpu, Zap, Target, Brain, Sparkles } from 'lucide-react';
 import { RosterService } from '../services/rosterService';
 import type { RosterProfile } from '../services/rosterService';
 import { API_BASE_URL, getAuthHeaders } from '../lib/api';
@@ -22,6 +22,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
     const [newMember, setNewMember] = useState<Partial<RosterProfile>>({
         name: '', birthDate: '', birthTime: '12:00', birthCountry: '', birthState: '', birthCity: '', roleLabel: 'Miembro'
     });
+    const [editingMember, setEditingMember] = useState<RosterProfile | null>(null);
 
     useEffect(() => {
         loadRoster();
@@ -39,6 +40,19 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
             console.error(err.message);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleUpdateMember = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingMember?.id) return;
+        try {
+            const updated = await RosterService.updateProfile(editingMember.id, editingMember);
+            setRoster(prev => prev.map(m => m.id === updated.id ? updated : m));
+            setSelectedMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
+            setEditingMember(null);
+        } catch (err: any) {
+            alert(err.message);
         }
     };
 
@@ -208,10 +222,10 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
 
                             {[
                                 { key: 'sinergia_global', label: 'Sinergia del Ensamble', icon: Zap },
-                                { key: 'liderazgo_distribuido', label: 'Arquitectura de Poder', icon: Target },
-                                { key: 'friccion_operativa', label: 'Fricción Sistémica', icon: ShieldAlert },
+                                { key: 'friccion_operativa', label: 'Fricciones Sistémicas', icon: ShieldAlert },
+                                { key: 'liderazgo_distribuido', label: 'Estructura de Poder', icon: Target },
                                 { key: 'flujo_informacion', label: 'Flujo de Datos', icon: Brain },
-                                { key: 'veredicto_arquitecto', label: 'Veredicto NAOS', icon: Sparkles }
+                                { key: 'veredicto_arquitecto', label: 'Veredicto del Arquitecto', icon: Sparkles }
                             ].map((item) => (
                                 <div key={item.key} className="bg-white/5 p-5 rounded-xl border text-left border-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
                                     <div className="flex items-center gap-2 mb-2">
@@ -314,12 +328,22 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                     </p>
                                     <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1">{member.roleLabel}</p>
                                 </div>
-                                <button
-                                    onClick={(e) => handleDeleteMember(member.id!, e)}
-                                    className="w-8 h-8 rounded bg-red-500/5 text-red-400/50 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 transition-all"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setEditingMember(member); }}
+                                        className="w-8 h-8 rounded bg-blue-500/5 text-blue-400/50 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-blue-500/20 hover:text-blue-400 transition-all"
+                                        title="Editar"
+                                    >
+                                        <Edit size={14} />
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleDeleteMember(member.id!, e)}
+                                        className="w-8 h-8 rounded bg-red-500/5 text-red-400/50 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 transition-all"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
                             </div>
                         ))
                     )}
@@ -342,10 +366,17 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                     animate={{ scale: 1, opacity: 1 }}
                                     exit={{ scale: 0, opacity: 0 }}
                                     key={`sel-${m.id}`}
-                                    className="px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-300 text-xs flex items-center gap-2 font-bold"
+                                    className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-300 text-xs flex items-center gap-2 font-bold flex-shrink-0"
                                 >
-                                    <div className="w-4 h-4 rounded-full bg-blue-400/20 flex items-center justify-center text-[10px]">{i + 1}</div>
-                                    {m.name}
+                                    <div className="w-4 h-4 rounded-full bg-blue-400/20 flex items-center justify-center text-[10px] flex-shrink-0">{i + 1}</div>
+                                    <span className="truncate max-w-[80px]">{m.name}</span>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); toggleSelection(m); }} 
+                                        className="hover:text-white text-blue-300/40 p-0.5 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center"
+                                        title="Deseleccionar"
+                                    >
+                                        <X size={12} />
+                                    </button>
                                 </motion.div>
                             ))}
                         </AnimatePresence>
@@ -368,6 +399,28 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                     </button>
                 </div>
             </div>
+            {editingMember && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-panel w-full max-w-md p-6 rounded-3xl z-10 border border-white/10 relative">
+                        <h3 className="text-lg font-serif text-white mb-6">Editar Perfil</h3>
+                        <form onSubmit={handleUpdateMember} className="space-y-4">
+                            <input required type="text" placeholder="Nombre" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm" value={editingMember.name} onChange={e => setEditingMember({ ...editingMember, name: e.target.value })} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col">
+                                    <label className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Fecha</label>
+                                    <input required type="date" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm" value={editingMember.birthDate} onChange={e => setEditingMember({ ...editingMember, birthDate: e.target.value })} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Hora</label>
+                                    <input type="time" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm" value={editingMember.birthTime} onChange={e => setEditingMember({ ...editingMember, birthTime: e.target.value })} />
+                                </div>
+                            </div>
+                            <button type="submit" className="w-full bg-blue-500/20 text-blue-300 border border-blue-500/30 p-2 rounded uppercase text-[10px] font-bold">Guardar</button>
+                            <button type="button" onClick={() => setEditingMember(null)} className="w-full bg-white/5 text-white/60 p-2 rounded text-xs">Cancelar</button>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

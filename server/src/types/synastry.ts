@@ -84,4 +84,17 @@ export interface SynastryReport {
         mayan: number;
         chinese: number;
     };
+    dynamicVector?: {
+        dominanceLevel: string;
+        communicationStyle: string;
+        emotionalStability: string;
+        conflictPattern: string;
+    };
+    structuralRisk?: {
+        riskLevel: string;
+        riskType: string[];
+        warning: string;
+    };
+    actionPlan?: string;
+    levelLabel?: string;
 }

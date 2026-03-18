@@ -11,6 +11,17 @@ export interface RosterProfile {
     roleLabel?: string;
 }
 
+const mapFromDB = (item: any): RosterProfile => ({
+    id: item.id,
+    name: item.name,
+    birthDate: item.birth_date,
+    birthTime: item.birth_time,
+    birthCity: item.birth_city,
+    birthState: item.birth_state,
+    birthCountry: item.birth_country,
+    roleLabel: item.role_label
+});
+
 export const RosterService = {
     // Add a new profile to the roster
     addProfile: async (profileData: RosterProfile): Promise<RosterProfile> => {
@@ -26,7 +37,7 @@ export const RosterService = {
         }
 
         const data = await response.json();
-        return data.data;
+        return mapFromDB(data.data);
     },
 
     // Get all profiles for the current user
@@ -40,17 +51,7 @@ export const RosterService = {
         }
 
         const data = await response.json();
-        // Map snake_case from DB to camelCase for frontend
-        return data.data.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            birthDate: item.birth_date,
-            birthTime: item.birth_time,
-            birthCity: item.birth_city,
-            birthState: item.birth_state,
-            birthCountry: item.birth_country,
-            roleLabel: item.role_label
-        }));
+        return data.data.map(mapFromDB);
     },
 
     // Update an existing profile
@@ -76,7 +77,7 @@ export const RosterService = {
         }
 
         const data = await response.json();
-        return data.data;
+        return mapFromDB(data.data);
     },
 
     // Delete a profile from the roster

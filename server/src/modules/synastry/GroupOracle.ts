@@ -30,17 +30,23 @@ export class GroupOracle {
             OBJETIVO: Predecir su rendimiento operativo, sinergia ejecutiva y fricciones de comunicación.
             
             REGLAS ESTRICTAS:
-            1. PROHIBIDO usar lenguaje romántico, sentimental o místico íntimo.
-            2. Tono clínico, estratégico, asertivo y de consultoría B2B ('Arquitectura Organizacional'). El equipo es una "Máquina Operativa".
-            3. Responde estrictamente con un JSON válido usando estas claves (máximo 4 líneas por clave).
-            4. Utiliza el concepto de "Fuego" (Iniciativa), "Tierra" (Ejecución), "Aire" (Estrategia) y "Agua" (Cohesión).
+            1. PROHIBIDO usar lenguaje místico, astronómico o esotérico (no hables de "energías de fuego", sino de "alta iniciativa/empuje").
+            2. Tono clínico, estratégico, asertivo y de consultoría B2B. Enfocado en productividad.
+            3. EXPANDE EL ANÁLISIS: Se requieren respuestas extensas, detalladas y profundas por cada clave (mínimo 5-6 líneas de prosa).
+            4. Responde estrictamente con un JSON válido usando estas claves tradicionales:
+            
+            Equivalencias Operativas de Elementos:
+            - Fuego: Iniciativa, Velocidad, Toma de Riesgo.
+            - Tierra: Materialización, Ejecución, Estructura, Métricas.
+            - Aire: Estrategia, Innovación, Análisis, Planificación.
+            - Agua: Cohesión, Empatía, Adaptabilidad, Cultura.
             
             {
-                "sinergia_global": "Análisis macro de la cohesión del ensamble. Eficiencia sistémica.",
-                "friccion_operativa": "Puntos de ruptura técnica y cuellos de botella emocionales/intelectuales.",
-                "liderazgo_distribuido": "Mapeo de la Arquitectura de Poder. Quién sostiene la estructura y quién impulsa el movimiento.",
-                "flujo_informacion": "Optimización de la comunicación interna y protocolos de resolución de crisis.",
-                "veredicto_arquitecto": "Dictamen final del Arquitecto NAOS para optimizar el rendimiento de esta Máquina Humana."
+                "sinergia_global": "Análisis macro detallado de la cohesión sistémica y el engranaje del equipo.",
+                "friccion_operativa": "Cuellos de botella profundos, puntos de ruptura técnica y desencuentros operativos.",
+                "liderazgo_distribuido": "Mapeo de la Arquitectura de Poder. Quién sostiene la estructura y quién impulsa la aceleración.",
+                "flujo_informacion": "Protocolos de comunicación interna, flujo de datos y resolución de crisis.",
+                "veredicto_arquitecto": "Dictamen final y extenso del Arquitecto NAOS para optimizar el rendimiento grupal."
             }
         `;
 
@@ -59,7 +65,20 @@ export class GroupOracle {
 
             if (!response.ok) throw new Error("Gemini Offline");
             const data = await response.json();
-            return JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
+            const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!textResult) {
+                console.warn("⚠️ Group Oracle: No response text, using fallback");
+                return this.getFallback();
+            }
+
+            const parsed = JSON.parse(textResult);
+            if (Object.keys(parsed).length === 0 || !parsed.diagnostico) {
+                console.warn("⚠️ Group Oracle: Empty or old key format, using fallback");
+                return this.getFallback();
+            }
+
+            return parsed;
         } catch (error) {
             console.warn("⚠️ Group Oracle Synthesis failed, using fallback", error);
             return this.getFallback();
@@ -68,11 +87,11 @@ export class GroupOracle {
 
     private static getFallback() {
         return {
-            sinergia_global: "El ensamble operativo muestra un engranaje funcional con distribución estándar de cargas cognitivas.",
-            friccion_operativa: "Posibles cuellos de botella en la transición entre la planificación estratégica y la materialización táctica.",
-            liderazgo_distribuido: "Estructura de poder centralizada que requiere delegación activa para evitar saturación sistémica.",
-            flujo_informacion: "Canales de comunicación estables, aunque susceptibles a ruido térmico en situaciones de crisis.",
-            veredicto_arquitecto: "Se requiere incorporar un catalizador externo enfocado en la ejecución pura (Tierra) para estabilizar el momentum."
+            sinergia_global: "El ensamble operativo muestra un engranaje funcional con alta capacidad de planificación, aunque con un ritmo de ejecución pausado. Existe una buena base para la colaboración sinérgica si se equilibran las fuerzas impulsoras.",
+            friccion_operativa: "Decisiones lentas por exceso de análisis (parálisis por análisis) generan cuellos de botella en la salida a producción. Se percibe resistencia al cambio rápido y fricciones en la asignación de roles directivos.",
+            liderazgo_distribuido: "Mapeo revela una arquitectura de poder centralizada en el ala estratégica. Falta delegación activa hacia las áreas de materialización táctica para evitar saturación de mandos medios.",
+            flujo_informacion: "Canales de comunicación estables para el diseño, pero deficientes en la retroalimentación de crisis. Es necesario implementar auditorías de comunicación para estabilizar el flujo de datos.",
+            veredicto_arquitecto: "Se requiere incorporar un rol catalizador enfocado en la ejecución pura (Tierra) para acelerar el 'time-to-market' y equilibrar la balanza analítica del ensamble actual."
         };
     }
 }

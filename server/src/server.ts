@@ -2,6 +2,7 @@ import { buildApp } from './app';
 import { config } from './config/env';
 import { startDaemon } from './agent/consciousness-loop';
 import { initTelegramBot } from './modules/sigil/telegramService';
+import { DailyOracleCron } from './modules/oracle/DailyOracleCron';
 
 // Global error handlers to prevent hanging processes
 process.on('uncaughtException', (err) => {
@@ -54,6 +55,9 @@ const start = async () => {
         startDaemon().catch(err => {
             console.error("🔥 Agent Loop failed to start:", err);
         });
+
+        // AWAKEN THE DAILY ORACLE DAEMON (5:00 AM)
+        DailyOracleCron.scheduleDaemon();
 
     } catch (err: any) {
         if (err.code === 'EADDRINUSE') {

@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
+import { SigilSettingsModal } from './SigilSettingsModal';
 
 interface SacredDockProps {
     activeView: string;
@@ -16,6 +17,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
     const { activeAura, setAura } = useTheme();
     const [showAuras, setShowAuras] = useState(false);
     const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
+    const [isSigilSettingsOpen, setIsSigilSettingsOpen] = useState(false);
 
     const [audioState, setAudioState] = useState(() => {
         const saved = localStorage.getItem('naos_audio_prefs');
@@ -37,7 +39,6 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
 
     const items = [
         { id: 'TEMPLE', icon: Home, label: 'Templo', color: 'text-amber-400' },
-        { id: 'SYNASTRY', icon: Users, label: 'Vínculos', color: 'text-rose-400' },
         { id: 'PROFILE', icon: User, label: 'Perfil', color: 'text-purple-400' },
     ];
 
@@ -120,15 +121,15 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                     )}
 
                     {/* Vibración de Naos y Conexión Telegram */}
-                    <div className="flex md:flex-col items-center gap-2 md:gap-4 p-0 md:p-4 md:border-l border-white/5 md:ml-0 md:mt-4">
-                        {/* Botón Telegram */}
+                    <div className="flex md:flex-col items-center gap-2 md:gap-4 p-0 md:p-4 pr-6 md:pr-4 md:border-l border-white/5 md:ml-0 md:mt-4">
+                        {/* Botón Ajustes de Sigil */}
                         <button
-                            onClick={() => setIsTelegramModalOpen(true)}
+                            onClick={() => setIsSigilSettingsOpen(true)}
                             className="p-3 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-cyan-400 hover:border-cyan-500/30 transition-all relative group"
                         >
-                            <Send size={24} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform md:w-4 md:h-4" />
+                            <Aperture size={24} className="group-hover:rotate-90 transition-transform duration-500 md:w-4 md:h-4" />
                             <span className="hidden md:block absolute left-full ml-4 px-3 py-1 bg-black/80 border border-white/10 rounded-lg text-[8px] uppercase tracking-widest text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                Sincronizar Telegram
+                                Ajustes del Sigil
                             </span>
                         </button>
 
@@ -204,6 +205,15 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
             <TelegramConnectModal
                 isOpen={isTelegramModalOpen}
                 onClose={() => setIsTelegramModalOpen(false)}
+            />
+
+            <SigilSettingsModal
+                isOpen={isSigilSettingsOpen}
+                onClose={() => setIsSigilSettingsOpen(false)}
+                onOpenTelegram={() => {
+                    setIsSigilSettingsOpen(false); // Close settings
+                    setIsTelegramModalOpen(true);  // Open Telegram modal
+                }}
             />
         </>
     );

@@ -16,13 +16,21 @@ export class SynastryEngine {
             chinese: this.calculateChineseScore(this.getChineseA(profileA), pillarsB.chinese)
         };
         const { indices, explanations, labels } = this.generatePremiumIndices(profileA, pillarsB, pillarScores, weights, type, firstNameA, firstNameB);
-        const score = Math.round((pillarScores.western * weights.pillars.western) + (pillarScores.numerology * weights.pillars.numerology) + (pillarScores.mayan * weights.pillars.mayan) + (pillarScores.chinese * weights.pillars.chinese));
+        
+        const { coreScore, level } = this.calculateUnifiedCompatibility(pillarScores, type);
+        const dynamicVector = this.calculateDynamicVector(profileA.astrology!, pillarsB.astrology);
+        const structuralRisk = this.calculateStructuralRisk(coreScore, dynamicVector, pillarScores.mayan);
+        const { actionPlan } = this.generateActionPlan(structuralRisk, dynamicVector);
 
         return {
-            score,
+            score: coreScore,
+            levelLabel: level,
             indices,
             explanations,
             labels,
+            dynamicVector,
+            structuralRisk,
+            actionPlan,
             A_StrongCompatibilities: this.extractStrengths(indices, type, firstNameA, firstNameB),
             B_PotentialTensions: this.extractTensions(indices, pillarScores, firstNameA, firstNameB),
             C_GrowthAreas: this.extractGrowth(indices, firstNameA, firstNameB),
@@ -90,31 +98,31 @@ export class SynastryEngine {
             const marsVenus = Math.round((getAspect('mars', 'venus') + getAspect('venus', 'mars')) / 2);
             const elementAffinity = this.checkElementCompatibility(astroA.elements, astroB.elements) * 100;
             sexual_erotic = Math.round((marsVenus * 0.7) + (elementAffinity * 0.3));
-            exp_sexual = `El Magnetismo surge al alquimizar el voltaje entre el Marte de ${nameA} y el Venus de ${nameB}, modulado por la afinidad térmica de sus naturalezas base.`;
+            exp_sexual = `El Magnetismo surge al alquimizar el voltaje entre el Marte de ${nameA} y el Venus de ${nameB} (${marsVenus}%). Modulado por la afinidad térmica de sus naturalezas base (Elementos: ${elementAffinity}%).`;
         } else if (isBusiness) {
             lbl_sexual = "Sinergia Creadora";
             const marsJup = Math.round((getAspect('mars', 'jupiter') + getAspect('jupiter', 'mars')) / 2);
             const elementAffinity = this.checkElementCompatibility(astroA.elements, astroB.elements) * 100;
             sexual_erotic = Math.round((marsJup * 0.7) + (elementAffinity * 0.3));
-            exp_sexual = `La Sinergia Creadora evalúa el empuje expansivo (Júpiter) frente a la capacidad de ejecución (Marte) entre ${nameA} y ${nameB}, dictando su velocidad al materializar proyectos.`;
+            exp_sexual = `La Sinergia Creadora evalúa el empuje expansivo (Júpiter) frente a la capacidad de ejecución (Marte) entre ${nameA} y ${nameB} (${marsJup}%), dictando su velocidad al materializar proyectos (Elementos: ${elementAffinity}%).`;
         } else if (isParental) {
             lbl_sexual = "Contención y Nutrición";
             const moonJup = Math.round((getAspect('moon', 'jupiter') + getAspect('jupiter', 'moon')) / 2);
             const elementAffinity = this.checkElementCompatibility(astroA.elements, astroB.elements) * 100;
             sexual_erotic = Math.round((moonJup * 0.7) + (elementAffinity * 0.3));
-            exp_sexual = `La Contención evalúa el flujo protector entre la Luna de ${nameA} y el manto protector de ${nameB}, base fundamental para el desarrollo seguro dentro del sistema familiar.`;
+            exp_sexual = `La Contención evalúa el flujo protector entre la Luna de ${nameA} y el manto protector de ${nameB} (${moonJup}%), base fundamental para el desarrollo seguro dentro del sistema familiar (Elementos: ${elementAffinity}%).`;
         } else if (isAmistad) {
             lbl_sexual = "Afinidad Electiva";
             const mercJup = Math.round((getAspect('mercury', 'jupiter') + getAspect('jupiter', 'mercury')) / 2);
             const elementAffinity = this.checkElementCompatibility(astroA.elements, astroB.elements) * 100;
             sexual_erotic = Math.round((mercJup * 0.7) + (elementAffinity * 0.3));
-            exp_sexual = `La Afinidad Electiva mide la capacidad de expandir horizontes intelectuales y sociales (Júpiter) mediante la comunicación fluida (Mercurio) entre ${nameA} y ${nameB}.`;
+            exp_sexual = `La Afinidad Electiva mide la capacidad de expandir horizontes intelectuales y sociales (Júpiter) mediante la comunicación fluida (Mercurio) entre ${nameA} y ${nameB} (${mercJup}%) (Elementos: ${elementAffinity}%).`;
         } else {
             lbl_sexual = "Fricción Lúdica";
             const uranusMerc = Math.round((getAspect('uranus', 'mercury') + getAspect('mercury', 'uranus')) / 2);
             const elementAffinity = this.checkElementCompatibility(astroA.elements, astroB.elements) * 100;
             sexual_erotic = Math.round((uranusMerc * 0.7) + (elementAffinity * 0.3));
-            exp_sexual = `La Fricción Lúdica refleja la asombrosa capacidad química entre el intelecto de ${nameA} y la espontaneidad de ${nameB} para romper el hielo y estimular la diversión pura.`;
+            exp_sexual = `La Fricción Lúdica refleja la asombrosa capacidad química entre el intelecto de ${nameA} y la espontaneidad de ${nameB} (${uranusMerc}%) para romper el hielo y estimular la diversión (Elementos: ${elementAffinity}%).`;
         }
 
         // 2. intellectual_mercurial
@@ -123,25 +131,25 @@ export class SynastryEngine {
             const mercSat = Math.round((getAspect('mercury', 'saturn') + getAspect('saturn', 'mercury')) / 2);
             const numScore = pillarScores.numerology;
             intellectual_mercurial = Math.round((mercSat * 0.5) + (numScore * 0.5));
-            exp_intellectual = `La Visión Estratégica revela si la estructura mental combina la ejecución (Saturno) con agilidad táctica (Mercurio), optimizando el Sendero Místico de ${nameA} (${numA.lifePathNumber || 'X'}) y el de ${nameB} (${numB.lifePathNumber || 'Y'}).`;
+            exp_intellectual = `La Visión Estratégica revela si la estructura mental combina la ejecución (Saturno) con agilidad táctica (Mercurio) (${mercSat}%), optimizando el Sendero Místico de ambos (Numerología: ${numScore}%).`;
         } else if (isParental) {
             lbl_intellectual = "Guía y Transmisión";
             const mercJup = Math.round((getAspect('mercury', 'jupiter') + getAspect('jupiter', 'mercury')) / 2);
             const numScore = pillarScores.numerology;
             intellectual_mercurial = Math.round((mercJup * 0.5) + (numScore * 0.5));
-            exp_intellectual = `La Guía evalúa la capacidad de transferir sabiduría (Júpiter) mediante el diálogo (Mercurio) entre ${nameA} y ${nameB}, alineando sus propósitos de vida numerológicos.`;
+            exp_intellectual = `La Guía evalúa la capacidad de transferir sabiduría (Júpiter) mediante el diálogo (Mercurio) entre ${nameA} y ${nameB} (${mercJup}%), alineando sus propósitos de vida (Numerología: ${numScore}%).`;
         } else if (isAmistad) {
             lbl_intellectual = "Sintonía de Ideas";
             const mercMerc = getAspect('mercury', 'mercury');
             const numScore = pillarScores.numerology;
             intellectual_mercurial = Math.round((mercMerc * 0.5) + (numScore * 0.5));
-            exp_intellectual = `La Sintonía de Ideas nace de la conexión directa entre los Mercurios de ${nameA} y ${nameB}, facilitando un entendimiento mutuo que trasciende las palabras.`;
+            exp_intellectual = `La Sintonía de Ideas nace de la conexión directa entre los Mercurios de ${nameA} y ${nameB} (${mercMerc}%), facilitando un entendimiento mutuo que trasciende las palabras (Numerología: ${numScore}%).`;
         } else {
             lbl_intellectual = "Estrategia Mental";
             const mercMerc = getAspect('mercury', 'mercury');
             const numScore = pillarScores.numerology;
             intellectual_mercurial = Math.round((mercMerc * 0.5) + (numScore * 0.5));
-            exp_intellectual = `La Estrategia Mental nace de la interconexión geométrica entre el Mercurio analítico de ${nameA} y el intelecto de ${nameB}, fusionada con la fricción de sus Senderos de Vida (${numA.lifePathNumber || 'X'} y ${numB.lifePathNumber || 'Y'}).`;
+            exp_intellectual = `La Estrategia Mental nace de la interconexión geométrica entre el Mercurio analítico de ${nameA} y el de ${nameB} (${mercMerc}%), fusionada con la vibración de sus Senderos de Vida (Numerología: ${numScore}%).`;
         }
 
         // 3. emotional_lunar
@@ -150,25 +158,25 @@ export class SynastryEngine {
             const sunSat = Math.round((getAspect('sun', 'saturn') + getAspect('saturn', 'sun')) / 2);
             const mayanScore = pillarScores.mayan;
             emotional_lunar = Math.round((sunSat * 0.6) + (mayanScore * 0.4));
-            exp_emotional = `La Confianza Operativa evalúa la solidez de los acuerdos en el tiempo cruzando el Sol y Saturno mutuo, sostenida por la compatibilidad de sus firmas Maya (${mayaA.nawal} de ${nameA} con ${mayaB.nawal} de ${nameB}).`;
+            exp_emotional = `La Confianza Operativa evalúa la solidez de los acuerdos en el tiempo cruzando el Sol y Saturno mutuo (${sunSat}%), sostenida por la compatibilidad de sus firmas Maya (${mayaA.nawal} y ${mayaB.nawal}) (${mayanScore}%).`;
         } else if (isParental) {
             lbl_emotional = "Vínculo de Sangre";
             const moonMoon = getAspect('moon', 'moon');
             const mayanScore = pillarScores.mayan;
             emotional_lunar = Math.round((moonMoon * 0.6) + (mayanScore * 0.4));
-            exp_emotional = `El Vínculo de Sangre mide la sincronización subconsciente profunda entre las lunas de ${nameA} y ${nameB}, validado por sus arquetipos nahuales en el Tzolkin.`;
+            exp_emotional = `El Vínculo de Sangre mide la sincronización subconsciente profunda entre las Lunas de ${nameA} y ${nameB} (${moonMoon}%), validado por sus arquetipos nahuales en el Tzolkin (${mayanScore}%).`;
         } else if (isAmistad) {
             lbl_emotional = "Resonancia Fraterna";
             const moonVen = Math.round((getAspect('moon', 'venus') + getAspect('venus', 'moon')) / 2);
             const mayanScore = pillarScores.mayan;
             emotional_lunar = Math.round((moonVen * 0.6) + (mayanScore * 0.4));
-            exp_emotional = `La Resonancia Fraterna evalúa la comodidad y el afecto desinteresado entre ${nameA} y ${nameB}, validado por la armonía de sus sellos Mayas.`;
+            exp_emotional = `La Resonancia Fraterna evalúa la comodidad y el afecto desinteresado (Luna-Venus: ${moonVen}%), validado por la armonía de sus sellos Mayas (${mayanScore}%).`;
         } else {
             lbl_emotional = "Gravedad Emocional";
             const lunarMatch = Math.round((getAspect('moon', 'moon') + getAspect('moon', 'sun')) / 2);
             const mayanScore = pillarScores.mayan;
             emotional_lunar = Math.round((lunarMatch * 0.6) + (mayanScore * 0.4));
-            exp_emotional = `La Gravedad se sintetiza al cruzar el resplandor Solar de ${nameA} con la profunda resonancia Lunar de ${nameB}, entrelazada con el destino cósmico entre sus nahuales (${mayaA.nawal} y ${mayaB.nawal}).`;
+            exp_emotional = `La Gravedad se sintetiza al cruzar el resplandor Sol-Luna de ${nameA} y ${nameB} (${lunarMatch}%), entrelazada con el destino cósmico entre sus nahuales (${mayaA.nawal} y ${mayaB.nawal}) (${mayanScore}%).`;
         }
 
         // 4. karmic_saturnian
@@ -177,10 +185,10 @@ export class SynastryEngine {
         const chinScore = pillarScores.chinese;
         karmic_saturnian = Math.round((saturnMatch * 0.5) + (chinScore * 0.5));
         exp_karmic = isBusiness ?
-            `La Arquitectura de Riesgos define cómo la estructura de ${nameA} maneja la restricción de ${nameB} (Saturno), influenciada enormemente por la compatibilidad de sus signos orientales (${chinA.animal} y ${chinB.animal}).` :
+            `La Arquitectura de Riesgos define cómo la estructura maneja la restricción (Saturno: ${saturnMatch}%), influenciada por la compatibilidad oriental (${chinA.animal}-${chinB.animal}: ${chinScore}%).` :
             isParental ?
-                `El Legado Estructural mide la disciplina y las lecciones generacionales que ${nameA} transfiere o recibe de ${nameB}, bajo la influencia de sus ciclos orientales.` :
-                `La Fricción Kármica calcula el peso de la restricción recíproca entre el severo Saturno de ${nameA} frente a la voluntad de ${nameB}, condicionada por la milenaria danza entre sus signos orientales (${chinA.animal} frente a ${chinB.animal}).`;
+                `El Legado Estructural mide la disciplina y las lecciones generacionales (Saturno: ${saturnMatch}%), bajo la influencia oriental (${chinA.animal}-${chinB.animal}: ${chinScore}%).` :
+                `La Fricción Kármica calcula el peso de la restricción recíproca (Saturno: ${saturnMatch}%), condicionada por la danza oriental (${chinA.animal} frente a ${chinB.animal}) (${chinScore}%).`;
 
         // 5. spiritual_neptunian
         lbl_spiritual = isBusiness ? "Adaptabilidad Disruptiva" : isParental ? "Conexión Ancestral" : "Integración Psíquica";
@@ -188,22 +196,22 @@ export class SynastryEngine {
         const masterBonus = (([11, 22, 33].includes(numA.lifePathNumber || 0) || [11, 22, 33].includes(numB.lifePathNumber || 0)) ? 20 : 0);
         spiritual_neptunian = Math.min(Math.round(nepMatch + masterBonus), 100);
         exp_spiritual = isBusiness ?
-            `La Adaptabilidad Disruptiva señala la capacidad conjunta inexplorada para innovar frente a lo impredecible (Urano) sin que la sociedad comercial colapse, potenciada por decodificaciones numéricas.` :
+            `La Adaptabilidad Disruptiva señala la capacidad para innovar frente a lo impredecible (Urano-Neptuno: ${nepMatch}%), potenciada por vibraciones numéricas (+${masterBonus}%).` :
             isParental ?
-                `La Conexión Ancestral explora los hilos invisibles y el propósito espiritual transgeneracional entre ${nameA} y ${nameB}, revelado por Neptuno y sus vibraciones numéricas maestras.` :
-                `La Integración cuantifica el acceso a esferas transpersonales cruzando la disrupción Uraniana de ${nameA} y el velo de Neptuno de ${nameB}, catalizado fuertemente por sus resonancias maestras.`;
+                `La Conexión Ancestral explora los hilos invisibles y el propósito espiritual transgeneracional (Neptuno: ${nepMatch}%), potenciado por vibraciones numéricas (+${masterBonus}%).` :
+                `La Integración cuantifica el acceso a esferas transpersonales cruzando Urano y Neptuno (${nepMatch}%), catalizado por resonancias maestras (+${masterBonus}%).`;
 
         // 6. action_martial
         lbl_action = isBusiness ? "Pulso Ejecutivo" : isParental ? "Autoridad y Respeto" : isAmistad ? "Aventura Conjunta" : "Dinámica de Poder";
         const martialPower = Math.round((getAspect('mars', 'pluto') + getAspect('sun', 'mars') + getAspect('pluto', 'mars')) / 3) || 50;
         action_martial = Math.round((martialPower + sexual_erotic) / 2);
         exp_action = isBusiness ?
-            `El Pulso Ejecutivo mapea la capacidad de empuje conjunto, evaluando quién lidera la iniciativa bajo presión entre ${nameA} (Plutón) y ${nameB} (Marte).` :
+            `El Pulso Ejecutivo mapea la capacidad de empuje conjunto evalúando Plutón-Marte (${martialPower}%) (Energía: ${sexual_erotic}%).` :
             isParental ?
-                `La Autoridad y Respeto define el equilibrio de límites y voluntad entre ${nameA} y ${nameB}, dictando la jerarquía natural del sistema familiar.` :
+                `La Autoridad y Respeto define el equilibrio de límites y voluntad de empuje (${martialPower}%), dictando la jerarquía familiar (Energía: ${sexual_erotic}%).` :
                 isAmistad ?
-                    `La Aventura Conjunta mide el impulso para emprender acciones y experiencias nuevas entre ${nameA} y ${nameB}, equilibrando la iniciativa de ambos.` :
-                    `La Dinámica de Poder mapea los vectores de dominación evaluando el imponente Plutón de ${nameA} frente a la fuerza reactiva del Marte de ${nameB}, dictando matemáticamente quién contiene la estructura durante las presiones críticas.`;
+                    `La Aventura Conjunta mide el impulso para emprender acciones nuevas (${martialPower}%), equilibrando la iniciativa (Energía: ${sexual_erotic}%).` :
+                    `La Dinámica de Poder mapea los vectores de dominación Plutón-Marte (${martialPower}%), dictando quién contiene la estructura (Energía: ${sexual_erotic}%).`;
 
         return {
             indices: {
@@ -265,5 +273,103 @@ export class SynastryEngine {
     }
     private static extractGrowth(indices: any, nameA: string, nameB: string): any[] {
         return [{ key: 'CALIB_RITMOS', label: `Calibración de ritmos entre el empuje de ${nameA} y la resistencia de ${nameB}` }];
+    }
+
+    // Prompt 18: Motor de Compatibilidad Unificada (CoreScore)
+    public static calculateUnifiedCompatibility(pillarScores: any, type: RelationshipType) {
+        let weights = { western: 0.25, numerology: 0.25, mayan: 0.25, chinese: 0.25 };
+
+        if (type === RelationshipType.ROMANTIC) {
+            weights = { western: 0.40, mayan: 0.30, numerology: 0.15, chinese: 0.15 };
+        } else if (type === RelationshipType.BUSINESS) {
+            weights = { western: 0.25, numerology: 0.25, mayan: 0.25, chinese: 0.25 };
+        } else {
+            // Grupal o Amistad
+            weights = { mayan: 0.35, chinese: 0.25, western: 0.20, numerology: 0.20 };
+        }
+
+        const coreScore = Math.round(
+            (pillarScores.western * weights.western) +
+            (pillarScores.numerology * weights.numerology) +
+            (pillarScores.mayan * weights.mayan) +
+            (pillarScores.chinese * weights.chinese)
+        );
+
+        let level = "ALTA FRICCIÓN";
+        if (coreScore >= 80) level = "ALTA COMPATIBILIDAD";
+        else if (coreScore >= 60) level = "COMPATIBILIDAD FUNCIONAL";
+        else if (coreScore >= 40) level = "COMPATIBILIDAD INESTABLE";
+
+        return { coreScore, level };
+    }
+
+    // Prompt 19: Vector de Dinámica de Relación
+    public static calculateDynamicVector(astroA: any, astroB: any) {
+        // Marte vs Marte - Dominance
+        const aspectMartial = this.calculateAspectScore(astroA.mars?.absDegree ?? 0, astroB.mars?.absDegree ?? 0);
+        let dominanceLevel = "MEDIO";
+        if (aspectMartial >= 0.85) dominanceLevel = "ALTO";
+        if (aspectMartial <= 0.4 && aspectMartial > 0.15) dominanceLevel = "BAJO";
+
+        // Mercurio vs Mercurio - Comunicación
+        const aspectMerc = this.calculateAspectScore(astroA.mercury?.absDegree ?? 0, astroB.mercury?.absDegree ?? 0);
+        let communicationStyle = "MIXTA";
+        if (aspectMerc >= 0.85) communicationStyle = "FLUIDA";
+        if (aspectMerc <= 0.4) communicationStyle = "DIFICIL";
+
+        // Luna vs Luna - Estabilidad
+        const aspectMoon = this.calculateAspectScore(astroA.moon?.absDegree ?? 0, astroB.moon?.absDegree ?? 0);
+        let emotionalStability = "VARIABLE";
+        if (aspectMoon >= 0.85) emotionalStability = "ESTABLE";
+        if (aspectMoon <= 0.4) emotionalStability = "VOLÁTIL";
+
+        // Saturno vs Saturno - Conflicto
+        let conflictPattern = "CICLICO";
+        if (aspectMartial <= 0.4 || aspectMoon <= 0.4) conflictPattern = "DESTRUCTIVO";
+        else if (aspectMoon >= 0.85) conflictPattern = "CONSTRUCTIVO";
+
+        return { dominanceLevel, communicationStyle, emotionalStability, conflictPattern };
+    }
+
+    // Prompt 20: Riesgo Estructural
+    public static calculateStructuralRisk(coreScore: number, dynamicVector: any, mayanScore: number) {
+        let riskLevel = "BAJO";
+        const riskType: string[] = [];
+        let warning = "Flujo relacional armónico.";
+
+        if (coreScore < 50) {
+            riskLevel = "ALTO";
+            riskType.push("estructural");
+            warning = "Incompatibilidad de base estructural alta.";
+        }
+
+        if (dynamicVector.communicationStyle === "DIFICIL") {
+            if (riskLevel !== "ALTO") riskLevel = "MEDIO";
+            riskType.push("comunicación");
+            warning = "Riesgo de malentendidos y fricción intelectual.";
+        }
+
+        if (dynamicVector.emotionalStability === "VOLÁTIL" || mayanScore <= 40) {
+            if (riskLevel !== "ALTO") riskLevel = "MEDIO";
+            riskType.push("emocional");
+            warning = "Alta volatilidad subconsciente. Evitar dependencias.";
+        }
+
+        return { riskLevel, riskType, warning };
+    }
+
+    // Prompt 21: Recomendación Práctica (Action Plan)
+    public static generateActionPlan(risk: any, dynamic: any) {
+        let actionPlan = "Fomentar la colaboración directa en áreas de sinergia.";
+
+        if (risk.riskLevel === "ALTO") {
+            actionPlan = "Definir límites claros y separar roles operativos para evitar choque de velocidades.";
+        } else if (dynamic.communicationStyle === "DIFICIL") {
+            actionPlan = "Establecer protocolos de comunicación escrita y pausas de verificación mutua.";
+        } else if (dynamic.dominanceLevel === "ALTO" && risk.riskType.includes("estructural")) {
+            actionPlan = "Evitar decisiones conjuntas críticas sin un mediador o marco de reglas fijas.";
+        }
+
+        return { actionPlan };
     }
 }
