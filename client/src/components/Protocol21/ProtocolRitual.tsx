@@ -56,7 +56,7 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
     const Icon = step.icon;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#050505] px-6 overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center bg-[#050505] px-4 overflow-y-auto py-12">
             {/* Background Particle-like Glow */}
             <div className="absolute inset-0 cursor-pointer" onClick={onComplete}>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-950/20 blur-[120px] rounded-full animate-pulse-slow" />

@@ -1,5 +1,5 @@
 import React, { useState, memo } from 'react';
-import { Home, Users, User, LogOut, Volume2, VolumeX, Aperture, Send } from 'lucide-react';
+import { Home, Users, User, LogOut, Volume2, VolumeX, Aperture, Send, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
@@ -92,8 +92,23 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                     {/* Separador */}
                     <div className="hidden md:block w-8 h-px bg-white/10 my-2" />
 
-                    {/* Aura Theme Control */}
+                    {/* Ajustes de Sigil (Sigil Settings) */}
                     <div className="relative flex justify-center md:mt-auto md:mb-2">
+                        <button
+                            onClick={() => setIsSigilSettingsOpen(true)}
+                            className={cn(
+                                "p-2 md:p-3 rounded-full border transition-all duration-300 group bg-white/5 border-white/10 hover:bg-white/10 text-white/30 hover:text-cyan-400"
+                            )}
+                            title="Ajustes del Sigil"
+                        >
+                            <Bot className={cn(
+                                "w-5 h-5 md:w-6 md:h-6 transition-all duration-500 group-hover:rotate-12"
+                            )} />
+                        </button>
+                    </div>
+
+                    {/* Aura Theme Control (Colores) */}
+                    <div className="relative flex justify-center md:mb-2">
                         <button
                             onClick={() => setShowAuras(!showAuras)}
                             className={cn(
@@ -107,43 +122,19 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                                 showAuras ? "text-cyan-400 rotate-90" : "text-white/40 group-hover:text-cyan-400"
                             )} />
                         </button>
-
                     </div>
 
-                    {/* Salida Sagrada */}
-                    {onLogout && (
-                        <button
-                            onClick={onLogout}
-                            className="flex flex-col md:flex-row items-center gap-1 p-3 rounded-xl md:rounded-full transition-all duration-300 hover:bg-red-500/10 group relative md:mt-auto"
-                        >
-                            <LogOut className="w-6 h-6 md:w-5 md:h-5 text-white/20 group-hover:text-red-400 transition-colors" />
-                        </button>
-                    )}
-
-                    {/* Vibración de Naos y Conexión Telegram */}
-                    <div className="flex md:flex-col items-center gap-2 md:gap-4 p-0 md:p-4 pr-6 md:pr-4 md:border-l border-white/5 md:ml-0 md:mt-4">
-                        {/* Botón Ajustes de Sigil */}
-                        <button
-                            onClick={() => setIsSigilSettingsOpen(true)}
-                            className="p-3 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-cyan-400 hover:border-cyan-500/30 transition-all relative group"
-                        >
-                            <Aperture size={24} className="group-hover:rotate-90 transition-transform duration-500 md:w-4 md:h-4" />
-                            <span className="hidden md:block absolute left-full ml-4 px-3 py-1 bg-black/80 border border-white/10 rounded-lg text-[8px] uppercase tracking-widest text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                Ajustes del Sigil
-                            </span>
-                        </button>
-
+                    {/* Mute Toggle (Sonido) */}
+                    <div className="relative flex justify-center md:mb-2 group">
                         <button
                             onClick={toggleMute}
-                            className="p-3 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-amber-400 transition-all relative group"
+                            className="p-2 md:p-3 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-amber-400 transition-all"
+                            title={audioState.isMuted ? 'Activar Vibración' : 'Silenciar'}
                         >
-                            {audioState.isMuted ? <VolumeX size={24} className="md:w-4 md:h-4" /> : <Volume2 size={24} className="md:w-4 md:h-4" />}
-                            <span className="hidden md:block absolute left-full ml-4 px-3 py-1 bg-black/80 border border-white/10 rounded-lg text-[8px] uppercase tracking-widest text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                                {audioState.isMuted ? 'Activar Vibración' : 'Silenciar'}
-                            </span>
+                            {audioState.isMuted ? <VolumeX className="w-5 h-5 md:w-5 md:h-5" /> : <Volume2 className="w-5 h-5 md:w-5 md:h-5" />}
                         </button>
 
-                        <div className="hidden md:flex items-center group relative">
+                        <div className="hidden md:group-hover:flex items-center absolute left-full ml-4 top-1/2 -translate-y-1/2 bg-black/80 border border-white/10 rounded-lg p-2 z-50">
                             <input
                                 type="range"
                                 min="0"
@@ -151,10 +142,23 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                                 step="0.01"
                                 value={audioState.volume}
                                 onChange={handleVolumeChange}
-                                className="w-20 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-amber-500/50 hover:accent-amber-500 transition-all origin-left rotate-0 md:-rotate-90 md:absolute md:bottom-12 md:-left-6"
+                                className="w-20 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-amber-500/50 hover:accent-amber-500 transition-all"
                             />
                         </div>
                     </div>
+
+                    {/* Salida Sagrada (Logout) */}
+                    {onLogout && (
+                        <div className="relative flex justify-center md:mt-auto">
+                            <button
+                                onClick={onLogout}
+                                className="p-2 md:p-3 rounded-xl md:rounded-full transition-all duration-300 hover:bg-red-500/10 group"
+                                title="Salir"
+                            >
+                                <LogOut className="w-5 h-5 md:w-5 md:h-5 text-white/20 group-hover:text-red-400 transition-colors" />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Fixed Overlay for mobile, absolute panel for desk */}
