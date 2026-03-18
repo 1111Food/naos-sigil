@@ -22,6 +22,18 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     const { profile } = useProfile();
     const { energy } = useEnergy();
     
+    // Viewport dimensions for responsive player
+    const [viewport, setViewport] = React.useState({ 
+        width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
+        height: typeof window !== 'undefined' ? window.innerHeight : 1080 
+    });
+
+    React.useEffect(() => {
+        const handleResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // El Templo Dormido (Onboarding State)
     const [isDormant, setIsDormant] = React.useState(true);
 
@@ -93,7 +105,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                 <Player
                     component={TempleAura}
                     durationInFrames={900}
-                    compositionWidth={1920} compositionHeight={1080} fps={60}
+                    compositionWidth={viewport.width} compositionHeight={viewport.height} fps={60}
                     style={{ ...playerStyle, background: 'transparent' }}
                     autoPlay loop controls={false}
                     inputProps={playerProps}
