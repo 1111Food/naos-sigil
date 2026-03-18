@@ -7,7 +7,7 @@ import { BreathingEngine } from '../components/BreathingEngine';
 import { useSound } from '../hooks/useSound';
 
 // --- Ritual States ---
-type RitualState = 'INVOCATION' | 'CALIBRATION' | 'BREATHING' | 'ENGINE_SELECTION' | 'SPREAD_SELECTION' | 'CARD_SELECTION' | 'REVELATION' | 'INTERPRETATION' | 'CLOSING';
+type RitualState = 'INVOCATION' | 'CALIBRATION' | 'BREATH_SELECTION' | 'BREATHING' | 'ENGINE_SELECTION' | 'SPREAD_SELECTION' | 'CARD_SELECTION' | 'REVELATION' | 'INTERPRETATION' | 'CLOSING';
 type SpreadType = 'ONE_CARD' | 'THREE_CARD' | 'COMPASS' | 'YES_NO' | 'CELTIC'; // Keep CELTIC in type but remove from UI if needed, or just replace
 type OracleState = 'LOADING' | 'VOCAL' | 'SILENT';
 
@@ -54,6 +54,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
     const [selectedCards, setSelectedCards] = useState<number[]>([]);
     const [reading, setReading] = useState<any>(null);
     const [bypassedCoherence, setBypassedCoherence] = useState(false);
+    const [selectedBreath, setSelectedBreath] = useState<'WATER_CALM' | 'EARTH_GROUND' | 'FIRE_ACTIVATE' | 'AIR_FLOW'>('AIR_FLOW');
     const { playSound } = useSound();
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
@@ -308,7 +309,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                 <button
                                     onClick={() => {
                                         setBypassedCoherence(false);
-                                        setRitualState('BREATHING');
+                                        setRitualState('BREATH_SELECTION');
                                     }}
                                     className="px-8 py-4 rounded-full bg-red-900/10 border border-red-500/20 text-red-100 hover:bg-red-900/20 hover:border-red-500/40 transition-all uppercase tracking-[0.2em] text-[10px] flex items-center gap-3 group"
                                 >
@@ -328,6 +329,65 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                         </motion.div>
                     )}
 
+                    {/* 1.55 BREATH SELECTION (NEW) */}
+                    {ritualState === 'BREATH_SELECTION' && (
+                        <motion.div
+                            key="breath-selection" variants={pageVariants} initial="initial" animate="in" exit="out"
+                            className="w-full max-w-xl text-center space-y-12 mt-10"
+                        >
+                            <div className="space-y-4">
+                                <h1 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">Elige tu Frecuencia</h1>
+                                <div className="w-12 h-[1px] bg-red-500/20 mx-auto" />
+                                <p className={cn(THEME.textSoft, "text-sm lowercase tracking-widest")}>Kit de Respuesta Rápida (S.O.S)</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                                <button
+                                    onClick={() => { setSelectedBreath('WATER_CALM'); setRitualState('BREATHING'); playSound('click'); }}
+                                    className="p-6 rounded-2xl bg-cyan-900/10 border border-cyan-500/20 text-cyan-100 hover:bg-cyan-900/20 hover:border-cyan-500/40 transition-all flex flex-col items-center gap-2"
+                                >
+                                    <span className="text-xl">💧</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">Calmarme</span>
+                                    <span className="text-[9px] text-cyan-300/60">Agua</span>
+                                </button>
+
+                                <button
+                                    onClick={() => { setSelectedBreath('FIRE_ACTIVATE'); setRitualState('BREATHING'); playSound('click'); }}
+                                    className="p-6 rounded-2xl bg-amber-900/10 border border-amber-500/20 text-amber-100 hover:bg-amber-900/20 hover:border-amber-500/40 transition-all flex flex-col items-center gap-2"
+                                >
+                                    <span className="text-xl">🔥</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">Activarme</span>
+                                    <span className="text-[9px] text-amber-300/60">Fuego</span>
+                                </button>
+
+                                <button
+                                    onClick={() => { setSelectedBreath('EARTH_GROUND'); setRitualState('BREATHING'); playSound('click'); }}
+                                    className="p-6 rounded-2xl bg-emerald-900/10 border border-emerald-500/20 text-emerald-100 hover:bg-emerald-900/20 hover:border-emerald-500/40 transition-all flex flex-col items-center gap-2"
+                                >
+                                    <span className="text-xl">🌱</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">Concretar</span>
+                                    <span className="text-[9px] text-emerald-300/60">Tierra</span>
+                                </button>
+
+                                <button
+                                    onClick={() => { setSelectedBreath('AIR_FLOW'); setRitualState('BREATHING'); playSound('click'); }}
+                                    className="p-6 rounded-2xl bg-violet-900/10 border border-violet-500/20 text-violet-100 hover:bg-violet-900/20 hover:border-violet-500/40 transition-all flex flex-col items-center gap-2"
+                                >
+                                    <span className="text-xl">🎐</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">Fluir</span>
+                                    <span className="text-[9px] text-violet-300/60">Aire</span>
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => { setBypassedCoherence(true); setRitualState('ENGINE_SELECTION'); }}
+                                className="text-white/20 hover:text-white/40 text-[9px] uppercase tracking-[0.3em] transition-colors mt-4"
+                            >
+                                Saltar Sintonización
+                            </button>
+                        </motion.div>
+                    )}
+
                     {/* 1.6 BREATHING RITUAL */}
                     {ritualState === 'BREATHING' && (
                         <motion.div
@@ -335,7 +395,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             className="w-full flex flex-col items-center justify-center space-y-8"
                         >
                             <BreathingEngine
-                                technique="AIR_FLOW"
+                                technique={selectedBreath}
                                 onComplete={() => {
                                     setTimeout(() => setRitualState('ENGINE_SELECTION'), 1000);
                                 }}
