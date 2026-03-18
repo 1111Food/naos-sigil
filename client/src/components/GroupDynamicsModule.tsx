@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, X, ArrowLeft, Loader2, Trash2, Edit, Building2, Workflow, ShieldAlert, Cpu, Zap, Target, Brain, Sparkles } from 'lucide-react';
+import { Users, Plus, X, ArrowLeft, Loader2, Trash2, Edit, Building2, Workflow, ShieldAlert, Cpu, Zap, Target, Brain, Sparkles, ChevronDown } from 'lucide-react';
 import { RosterService } from '../services/rosterService';
 import type { RosterProfile } from '../services/rosterService';
 import { API_BASE_URL, getAuthHeaders } from '../lib/api';
@@ -16,6 +16,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
     const [isLoading, setIsLoading] = useState(true);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [report, setReport] = useState<any>(null);
+    const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
     // Form for new roster member
     const [showAddForm, setShowAddForm] = useState(false);
@@ -227,12 +228,38 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                 { key: 'flujo_informacion', label: 'Flujo de Datos', icon: Brain },
                                 { key: 'veredicto_arquitecto', label: 'Veredicto del Arquitecto', icon: Sparkles }
                             ].map((item) => (
-                                <div key={item.key} className="bg-white/5 p-5 rounded-xl border text-left border-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <item.icon size={10} className="text-blue-300/40" />
-                                        <p className="text-[9px] uppercase tracking-widest text-blue-300/60 font-bold">{item.label}</p>
+                                <div 
+                                    key={item.key} 
+                                    onClick={() => setExpandedKey(expandedKey === item.key ? null : item.key)}
+                                    className="bg-white/5 p-4 rounded-xl border text-left border-white/5 relative overflow-hidden group hover:bg-white/10 transition-all cursor-pointer mb-3 last:mb-0"
+                                >
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <item.icon size={12} className="text-blue-300/60" />
+                                            <p className="text-[10px] uppercase tracking-widest text-blue-300 font-bold">{item.label}</p>
+                                        </div>
+                                        <motion.div
+                                            animate={{ rotate: expandedKey === item.key ? 180 : 0 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <ChevronDown size={14} className="text-white/40 group-hover:text-white/80" />
+                                        </motion.div>
                                     </div>
-                                    <p className="text-white/80 text-sm italic font-light leading-relaxed">{report.synthesis[item.key]}</p>
+                                    <AnimatePresence initial={false}>
+                                        {expandedKey === item.key && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2, ease: "easeInOut" }}
+                                                className="overflow-hidden pt-3 border-t border-white/5 mt-2"
+                                            >
+                                                <p className="text-white/80 text-sm italic font-light leading-relaxed">
+                                                    {report.synthesis[item.key]}
+                                                </p>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             ))}
                         </div>

@@ -31,9 +31,17 @@ export class GroupOracle {
             
             REGLAS ESTRICTAS:
             1. PROHIBIDO usar lenguaje místico, astronómico o esotérico (no hables de "energías de fuego", sino de "alta iniciativa/empuje").
-            2. Tono clínico, estratégico, asertivo y de consultoría B2B. Enfocado en productividad.
-            3. EXPANDE EL ANÁLISIS: Se requieren respuestas extensas, detalladas y profundas por cada clave (mínimo 5-6 líneas de prosa).
-            4. Responde estrictamente con un JSON válido usando estas claves tradicionales:
+            2. PROHIBIDO usar los nombres de los elementos en el cuerpo principal de las descripciones (no digas "necesitamos Aire"). Describe la CONDUCTA OPERATIVA asociada para que sea entendida por cualquier persona:
+               - Aire ➡️ Personas estratégicas, fluidas, con ideación y versatilidad.
+               - Fuego ➡️ Perfiles enérgicos, proactivos, con alta iniciativa y toma de riesgos.
+               - Tierra ➡️ Perfiles estables, estructurados, enfocados en ejecución y métricas.
+               - Agua ➡️ Personas empáticas, flexibles, adaptables y con inteligencia emocional.
+            3. TRADUCE NÚMEROS A ATRIBUTOS: Si la matemática sugiere requerir un número (ej. 8 u 8), descríbelo por sus rasgos operativos corporativos (8 ➡️ Poder ejecutivo, expansión de métricas, corporativo; 9 ➡️ Visión global, cierre de ciclos, humanitario).
+            4. TIPS DE RECLUTAMIENTO (HR): Al recomendar perfiles, agrega siempre un **TIP práctico** indicando qué signos zodiacales tradicionales filtrar para encontrar ese talento. Ej: "TIP RECLUTAMIENTO: Buscar candidatos con Sol o Ascendente en signos de aire (Géminis, Libra, Acuario)".
+            5. NOTA TÉCNICA DE REFERENCIA: Al final de la descripción, agrega una frase corta: "Estas características corresponden a una alta frecuencia del componente [Nombre del Elemento]".
+            6. Tono clínico, estratégico, asertivo y de consultoría B2B. Enfocado en productividad.
+            7. EXPANDE EL ANÁLISIS: Respuestas extensas, detalladas y profundas (mínimo 6 líneas de prosa).
+            8. Responde estrictamente con un JSON válido usando estas claves tradicionales:
             
             Equivalencias Operativas de Elementos:
             - Fuego: Iniciativa, Velocidad, Toma de Riesgo.
