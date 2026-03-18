@@ -140,7 +140,7 @@ const DetailCardModal = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: 
             >
                 <motion.div
                     initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                    className="bg-[#0a0a1f] border border-purple-500/30 w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl relative"
+                    className="bg-[#0a0a1f] border border-purple-500/30 w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl shadow-2xl relative custom-scrollbar"
                     onClick={e => e.stopPropagation()}
                 >
                     {/* Header con gradiente */}
@@ -168,7 +168,7 @@ const DetailCardModal = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: 
                         </button>
                     </div>
 
-                    <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    <div className="p-6 space-y-6">
                         {/* Main Content */}
                         <div className="space-y-4">
                             {data.content.map((item: any, i: number) => (
