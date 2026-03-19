@@ -38,7 +38,7 @@ export const CoherenceCore: React.FC = () => {
             onClick={() => setShowDetail(true)}
         >
             {/* Mirror of Stability - SVG Core */}
-            <div className="relative w-64 h-64 flex items-center justify-center">
+            <div className="relative w-52 h-52 flex items-center justify-center">
 
                 {/* Background Glow */}
                 <motion.div
@@ -160,7 +160,7 @@ export const CoherenceCore: React.FC = () => {
                 </AnimatePresence>
 
                 {/* Stability Label */}
-                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
                     <span className="font-serif italic text-white/40 tracking-widest text-xs uppercase">
                         {isHigh ? "Espejo Sincronizado" : isLow ? "Espejo Inestable" : "Espejo en Equilibrio"}
                     </span>

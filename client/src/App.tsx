@@ -429,9 +429,32 @@ function App() {
                       {profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || 'Viajero'}
                     </span>
                     <div className="w-px h-2 bg-white/10" />
-                    <span className="text-blue-400/80 font-bold">
-                      Elemento: Agua
-                    </span>
+                    {(() => {
+                      const sign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign;
+                      const getElement = (s: string) => {
+                        const map: Record<string, { name: string, color: string }> = {
+                          'Aries': { name: 'Fuego', color: 'text-rose-400' },
+                          'Leo': { name: 'Fuego', color: 'text-rose-400' },
+                          'Sagitario': { name: 'Fuego', color: 'text-rose-400' },
+                          'Tauro': { name: 'Tierra', color: 'text-emerald-400' },
+                          'Virgo': { name: 'Tierra', color: 'text-emerald-400' },
+                          'Capricornio': { name: 'Tierra', color: 'text-emerald-400' },
+                          'Géminis': { name: 'Aire', color: 'text-cyan-400' },
+                          'Libra': { name: 'Aire', color: 'text-cyan-400' },
+                          'Acuario': { name: 'Aire', color: 'text-cyan-400' },
+                          'Cáncer': { name: 'Agua', color: 'text-blue-400' },
+                          'Escorpio': { name: 'Agua', color: 'text-blue-400' },
+                          'Piscis': { name: 'Agua', color: 'text-blue-400' },
+                        };
+                        return map[s] || { name: 'Agua', color: 'text-blue-400' };
+                      };
+                      const info = getElement(sign || '');
+                      return (
+                        <span className={`${info.color}/80 font-bold`}>
+                          Elemento: {info.name}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="hidden md:block w-px h-3 bg-white/10" />
                   <div className="flex items-center gap-2 max-w-[280px] md:max-w-md overflow-hidden">

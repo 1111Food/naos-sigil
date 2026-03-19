@@ -239,7 +239,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                         <div className="absolute -inset-12 border border-cyan-500/20 rounded-full animate-spin-slow pointer-events-none drop-shadow-[0_0_15px_rgba(6,182,212,0.3)] border-t-cyan-300" />
                         <div className="absolute -inset-6 border border-fuchsia-500/10 rounded-full animate-[spin_10s_linear_infinite_reverse] pointer-events-none drop-shadow-[0_0_15px_rgba(217,70,239,0.3)] border-b-fuchsia-400" />
 
-                        <div className="relative w-72 h-72 rounded-full glass-panel flex items-center justify-center shadow-2xl overflow-hidden group-hover:border-cyan-400/40 transition-all duration-700 p-8 text-center group-hover:shadow-cyan-400/20">
+                        <div className="relative w-56 h-56 rounded-full glass-panel flex items-center justify-center shadow-2xl overflow-hidden group-hover:border-cyan-400/40 transition-all duration-700 p-8 text-center group-hover:shadow-cyan-400/20">
                             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-transparent to-fuchsia-500/10 opacity-60 group-hover:opacity-100 transition-opacity duration-700" />
                             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
 
