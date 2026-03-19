@@ -178,6 +178,11 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                         <div className="absolute inset-0 rounded-full bg-white/5 scale-0 group-hover:scale-100 transition-transform duration-500" />
 
                         <span className="text-4xl font-light text-primary font-serif tracking-widest relative z-10">{report.score}</span>
+                        {synthesis?.subtitulo_score && (
+                            <span className="text-[8px] italic text-amber-400 font-serif mt-1 relative z-10 text-center max-w-[120px] leading-tight">
+                                {synthesis.subtitulo_score}
+                            </span>
+                        )}
                         <span className="text-[7px] uppercase tracking-[0.4em] text-secondary mt-2 relative z-10 group-hover:text-white transition-colors">Info</span>
                     </motion.div>
                 </div>
@@ -194,6 +199,50 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                     </div>
                 </div>
             </div>
+
+            {/* Actionable Narrative Blocks Section */}
+            {synthesis && synthesis.diagnostico && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+                >
+                    {/* Diagnóstico */}
+                    <div className="md:col-span-2 glass-panel relative overflow-hidden flex flex-col justify-center p-6 bg-black/40 border border-white/5 rounded-3xl">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-cyan-500/30" />
+                        <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-cyan-400 mb-3">Diagnóstico del Vínculo</h4>
+                        <p className="font-serif italic text-lg md:text-xl text-primary leading-relaxed">
+                            "{synthesis.diagnostico}"
+                        </p>
+                    </div>
+
+                    {/* Riesgo */}
+                    <div className="glass-panel border-rose-500/10 bg-rose-500/5 relative overflow-hidden flex flex-col justify-center p-6 rounded-3xl">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-rose-500/40" />
+                        <div className="flex items-center gap-2 mb-3">
+                            <ShieldAlert size={14} className="text-rose-400" />
+                            <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-rose-400">Punto de Riesgo</h4>
+                        </div>
+                        <p className="text-xs text-secondary leading-relaxed font-light">
+                            {synthesis.riesgo}
+                        </p>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="md:col-span-3 glass-panel p-6 bg-black/40 border border-white/5 rounded-3xl">
+                        <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-400 mb-4 border-b border-white/5 pb-2">Estrategias de Coherencia (Acciones)</h4>
+                        <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {synthesis.acciones?.map((action: string, i: number) => (
+                                <li key={i} className="flex gap-3 items-start text-xs text-secondary leading-relaxed bg-white/3 p-4 rounded-2xl border border-white/5">
+                                    <span className="text-amber-500 font-serif font-bold text-sm">0{i+1}.</span>
+                                    <span className="font-light">{action}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </motion.div>
+            )}
 
             {/* Indices: 6 Pillars */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -388,6 +437,20 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                     <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-white/20" />Umbral +30d</span>
                 </div>
             </div>
+
+            {/* Traducción Simple Footer */}
+            {synthesis?.traduccion_simple && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="max-w-2xl mx-auto text-center border-t border-white/5 pt-8 mt-12 mb-4"
+                >
+                    <span className="text-[8px] uppercase tracking-[0.3em] text-secondary/60">Canalización Simple</span>
+                    <p className="font-serif italic text-primary/80 mt-2 text-base max-w-lg mx-auto leading-relaxed">
+                        "{synthesis.traduccion_simple}"
+                    </p>
+                </motion.div>
+            )}
 
             <div className="flex justify-center pt-8">
                 <button

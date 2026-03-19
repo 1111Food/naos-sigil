@@ -53,12 +53,16 @@ export class SynastryOracle {
             ESTRUCTURA DE NARRATIVA:
             1. Identifica la configuración técnica de los pilares.
             2. Tradúcela a un impacto psicológico real basándote en sus arquetipos.
-            3. Finaliza con el propósito evolutivo de esa fricción o fluidez para este par específico.
-            
-            {
-                "sintesis_global": "Análisis elegante de la esencia del vínculo entre ${nameA} y ${nameB} basado en sus arquetipos (máx 5 líneas).",
-                "dinamica_poder": "Cómo interactúan sus arquetipos operativos. Quién sostiene la estructura y quién la expande.",
-                "alerta_temporal": "Consejo ESTRATÉGICO Y ACCIONABLE para HOY basado en sus arquetipos y la relación ${type}.",
+            3. Finaliza con el propósito evolutivo de esa fricción o fluidez para est            {
+                "subtitulo_score": "Frase corta interpretativa del porcentaje de compatibilidad (máx 10 palabras). Ej: 'Alta sinergia con potencial estable'",
+                "diagnostico": "Texto de 2–4 líneas que explique la dinámica principal del vínculo, identificando fortaleza y fricción principal de manera clara, no mística.",
+                "acciones": [
+                    "Recomendación 1: Verbo + Acción + Contexto (máx 12 palabras)",
+                    "Recomendación 2: ...",
+                    "Recomendación 3: ..."
+                ],
+                "riesgo": "1 párrafo corto (máx 2 líneas) explicando qué puede fallar y en qué contexto ocurre.",
+                "traduccion_simple": "1 sola frase clara y directa en lenguaje cotidiano, sin términos técnicos (máx 15 palabras).",
                 "explicaciones_pilares": {
                     "sexual_erotic": "Narrativa sobre la sinergia creadora entre estos dos arquetipos.",
                     "intellectual_mercurial": "Narrativa sobre la estrategia mental y decodificación mutua.",
@@ -96,9 +100,15 @@ export class SynastryOracle {
 
     private static getFallback() {
         return {
-            sintesis_global: "La arquitectura de este vínculo muestra una resonancia estructural sólida. Los arquetipos sugieren un flujo constante entre la voluntad y la emoción.",
-            dinamica_poder: "Se detecta un equilibrio dinámico donde la fricción evolutiva actúa como motor de crecimiento mutuo.",
-            alerta_temporal: "Mantengan la transparencia en los objetivos compartidos durante el próximo ciclo de Venus.",
+            subtitulo_score: "Resonancia estructural detectada.",
+            diagnostico: "La arquitectura de este vínculo muestra compatibilidad base. Se detecta un flujo constante entre la voluntad y la emoción.",
+            acciones: [
+                "Mantener transparencia en objetivos compartidos",
+                "Establecer roles claros de liderazgo",
+                "Evitar discusiones bajo presión emocional"
+            ],
+            riesgo: "Choque de velocidades en la toma de decisiones críticas.",
+            traduccion_simple: "Se entienden bien, pero deben coordinar el ritmo.",
             explicaciones_pilares: {
                 "sexual_erotic": "La sinergia base se mantiene en un estado de latencia operativa, esperando un catalizador externo.",
                 "intellectual_mercurial": "La comunicación fluye por canales convencionales, con potencial de profundización táctica.",
