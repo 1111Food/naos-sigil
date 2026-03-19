@@ -18,7 +18,11 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
     const { playSound } = useSound();
 
     React.useEffect(() => {
-        localStorage.setItem('has_seen_identity', 'true');
+        const seen = localStorage.getItem('has_seen_identity');
+        if (!seen) {
+            setExplainerType('IDENTITY_COMPLETE');
+            localStorage.setItem('has_seen_identity', 'true');
+        }
     }, []);
 
     const options = [

@@ -251,50 +251,63 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                 </div>
 
                 <div className="w-full max-w-5xl mt-2 sm:mt-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 w-full items-stretch">
-                        <StatCard
-                            label="ARQUETIPO NAOS"
-                            value={archName}
-                            delay={0.1}
-                            image={arcanoImage}
-                            assetType="none"
-                            highlight
-                            isArchetypeCard
-                            archColor={profile?.naosIdentityCode?.arquetipo?.elemento}
-                            onClick={() => setQuickIntel(getQuickIntelData("ARQUETIPO NAOS"))}
-                        />
-                        <StatCard
-                            label="ENERGÍA MAYA"
-                            value={nahuatl}
-                            delay={0.2}
-                            image={getNahualImage(nahualId)}
-                            nahualId={nahualId}
-                            assetType="nahual"
-                            onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA MAYA"))}
-                        />
-                        <StatCard
-                            label="ENERGÍA NUMÉRICA"
-                            value={essence}
-                            delay={0.3}
-                            isNeonNumber
-                            onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA NUMÉRICA"))}
-                        />
-                        <StatCard
-                            label="SOL ASTRAL"
-                            value={sunSign}
-                            delay={0.4}
-                            image={getZodiacImage(sunSign)}
-                            assetType="zodiac"
-                            onClick={() => setQuickIntel(getQuickIntelData("SOL ASTRAL"))}
-                        />
-                        <StatCard
-                            label="ENERGÍA ORIENTAL"
-                            value={chineseSign}
-                            delay={0.5}
-                            image={getChineseZodiacImage(animal)}
-                            assetType="chinese"
-                            onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA ORIENTAL"))}
-                        />
+                    <div className="flex flex-col md:flex-row items-stretch justify-center gap-3 sm:gap-4 w-full">
+                        {/* Flanco Izquierdo: Maya & Números */}
+                        <div className="grid grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4 w-full md:w-1/4 items-stretch">
+                            <StatCard
+                                label="ENERGÍA MAYA"
+                                value={nahuatl}
+                                delay={0.2}
+                                image={getNahualImage(nahualId)}
+                                nahualId={nahualId}
+                                assetType="nahual"
+                                onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA MAYA"))}
+                            />
+                            <StatCard
+                                label="ENERGÍA NUMÉRICA"
+                                value={essence}
+                                delay={0.3}
+                                isNeonNumber
+                                onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA NUMÉRICA"))}
+                            />
+                        </div>
+
+                        {/* Nodo Central: Arquetipo */}
+                        <div className="w-full md:w-2/4 flex items-stretch justify-center">
+                            <div className="w-full max-w-sm flex items-stretch">
+                                <StatCard
+                                    label="ARQUETIPO NAOS"
+                                    value={archName}
+                                    delay={0.1}
+                                    image={arcanoImage}
+                                    assetType="none"
+                                    highlight
+                                    isArchetypeCard
+                                    archColor={profile?.naosIdentityCode?.arquetipo?.elemento}
+                                    onClick={() => setQuickIntel(getQuickIntelData("ARQUETIPO NAOS"))}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Flanco Derecho: Astral & Oriental */}
+                        <div className="grid grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4 w-full md:w-1/4 items-stretch">
+                            <StatCard
+                                label="SOL ASTRAL"
+                                value={sunSign}
+                                delay={0.4}
+                                image={getZodiacImage(sunSign)}
+                                assetType="zodiac"
+                                onClick={() => setQuickIntel(getQuickIntelData("SOL ASTRAL"))}
+                            />
+                            <StatCard
+                                label="ENERGÍA ORIENTAL"
+                                value={chineseSign}
+                                delay={0.5}
+                                image={getChineseZodiacImage(animal)}
+                                assetType="chinese"
+                                onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA ORIENTAL"))}
+                            />
+                        </div>
                     </div>
                 </div>
 

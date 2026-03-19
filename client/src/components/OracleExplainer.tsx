@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Target, Zap, Shield, Heart, Users, Compass, BookOpen, Eye, Info, X, ChevronRight, RefreshCw } from 'lucide-react';
+import { Sparkles, Target, Zap, Shield, Heart, Users, Compass, BookOpen, Eye, Info, X, ChevronRight, RefreshCw, ArrowLeft } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
 import { useEffect } from 'react';
@@ -167,33 +167,47 @@ const CONTENT = {
         ]
     },
     IDENTITY_COMPLETE: {
-        title: 'Código Completo',
-        subtitle: "Navegación Profunda",
-        color: "text-blue-400",
-        gradient: 'from-blue-500/20 via-indigo-500/10 to-transparent',
-        border: "border-blue-500/30",
-        icon: Shield,
+        title: 'El Código de Identidad',
+        subtitle: "Alquimia de Escuelas",
+        color: "text-cyan-400",
+        gradient: 'from-cyan-500/20 via-blue-500/10 to-transparent',
+        border: "border-cyan-500/30",
+        icon: Info,
         steps: [
             {
                 number: "01",
-                title: "Navegación Intuitiva",
-                description: "Un módulo de pestañas que permite aislar y decodificar cada pilar de tu herencia estelar y numérica.",
+                title: "Astrología Occidental",
+                description: "Analizamos tu Sol, Luna y Ascendente para descifrar tu núcleo radiante, instinto y máscara social.",
                 icon: Compass,
-                iconColor: "text-blue-400"
+                iconColor: "text-rose-400"
             },
             {
                 number: "02",
-                title: "Estructura Dinámica",
-                description: "Accede a interpretaciones profundas, decanatos, casas y regentes asignados a cada nodo de tu ser.",
-                icon: Shield,
-                iconColor: "text-indigo-400"
+                title: "Numerología Evolutiva",
+                description: "Calculamos tu Sendero de Vida y Pináculo para entender los ciclos y vibraciones maestras de tu destino.",
+                icon: Target,
+                iconColor: "text-amber-400"
             },
             {
                 number: "03",
-                title: "Re-Cálculo en Vivo",
-                description: "Usa el recálculo analítico si actualizas tu perfil para re-compilar el tensor de datos sin demora.",
-                icon: RefreshCw,
+                title: "Matriz Maya",
+                description: "Integramos la Fuerza del Nawal y Tonos de la cuenta larga para sincronizar tu vibración cósmica.",
+                icon: Shield,
+                iconColor: "text-emerald-400"
+            },
+            {
+                number: "04",
+                title: "Zodiaco Oriental",
+                description: "Revelamos el instinto y sabiduría de tu Tótem para equilibrar tu energía con el entorno de la Tierra.",
+                icon: Users,
                 iconColor: "text-purple-400"
+            },
+            {
+                number: "05",
+                title: "El Arquetipo NAOS",
+                description: "La fusión cuántica. El Sigil condensa las 4 escuelas en tu Esencia Primordial maestra habilitada.",
+                icon: Sparkles,
+                iconColor: "text-cyan-400"
             }
         ]
     },
@@ -253,9 +267,11 @@ const CONTENT = {
         ]
     }
 };
+
 // @ts-ignore
 export const OracleExplainer: React.FC<OracleExplainerProps> = ({ type, onClose }) => {
     const { playSound } = useSound();
+    const [currentIndex, setCurrentIndex] = React.useState(0);
 
     useEffect(() => {
         playSound('transition');
@@ -263,6 +279,25 @@ export const OracleExplainer: React.FC<OracleExplainerProps> = ({ type, onClose 
 
     const data = CONTENT[type];
     const Icon = data.icon;
+    const isCarousel = type === 'IDENTITY_COMPLETE';
+    const totalSteps = data.steps.length;
+
+    const handleNext = () => {
+        if (currentIndex < totalSteps - 1) {
+            playSound('click');
+            setCurrentIndex(currentIndex + 1);
+        } else {
+            playSound('click');
+            onClose();
+        }
+    };
+
+    const handlePrev = () => {
+        if (currentIndex > 0) {
+            playSound('click');
+            setCurrentIndex(currentIndex - 1);
+        }
+    };
 
     return (
         <motion.div
@@ -277,7 +312,7 @@ export const OracleExplainer: React.FC<OracleExplainerProps> = ({ type, onClose 
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.95, y: 20 }}
                 className={cn(
-                    "relative w-full max-w-4xl glass-panel border p-8 md:p-12 overflow-hidden rounded-[3.5rem] bg-black/40 shadow-2xl",
+                    "relative w-full max-w-2xl max-h-[85vh] overflow-y-auto glass-panel border p-8 md:p-12 rounded-[3.5rem] bg-black/40 shadow-2xl flex flex-col",
                     data.border
                 )}
                 onClick={(e) => e.stopPropagation()}
@@ -292,61 +327,121 @@ export const OracleExplainer: React.FC<OracleExplainerProps> = ({ type, onClose 
                     <X size={20} />
                 </button>
 
-                <div className="flex flex-col items-center text-center mb-12 space-y-4">
+                <div className="flex flex-col items-center text-center mb-8 space-y-4">
                     <div className={cn("p-4 rounded-full bg-white/5 border border-white/10 mb-2", data.color)}>
-                        <Icon size={32} />
+                        <Icon size={24} />
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-serif italic text-white/90">
+                    <h2 className="text-2xl md:text-3xl font-serif italic text-white/90">
                         {data.title}
                     </h2>
-                    <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparentmx-auto" />
-                    <p className="text-xs uppercase tracking-[0.3em] text-white/40 font-black">
+                    <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent mx-auto" />
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-black">
                         {data.subtitle}
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                    {data.steps.map((step, i) => {
-                        const StepIcon = step.icon;
-                        return (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.2, duration: 0.6 }}
-                                className="group relative p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all flex flex-col items-center text-center space-y-4 h-full justify-start"
+                {isCarousel ? (
+                    <div className="flex-1 flex flex-col items-center justify-center relative w-full">
+                        {/* Progress Dots */}
+                        <div className="flex gap-2 mb-6">
+                            {data.steps.map((_: any, i: number) => (
+                                <div 
+                                    key={i} 
+                                    className={cn(
+                                        "w-2 h-2 rounded-full transition-all duration-300",
+                                        i === currentIndex ? "bg-cyan-400 w-4" : "bg-white/10"
+                                    )} 
+                                />
+                            ))}
+                        </div>
+
+                        {/* Slide Card */}
+                        <div className="group relative p-8 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all flex flex-col items-center text-center space-y-6 w-full max-w-md min-h-[160px] justify-center">
+                            <div className="absolute top-4 right-4 text-2xl font-black text-white/5 font-mono group-hover:text-white/10 transition-colors">
+                                {data.steps[currentIndex].number}
+                            </div>
+                            
+                            <div className={cn("p-4 rounded-full bg-white/5 border border-white/5", data.steps[currentIndex].iconColor)}>
+                                {React.createElement(data.steps[currentIndex].icon, { size: 32 })}
+                            </div>
+
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-serif italic tracking-wider text-white/90">
+                                    {data.steps[currentIndex].title}
+                                </h3>
+                                <p className="text-[14px] text-white/60 leading-relaxed font-light">
+                                    {data.steps[currentIndex].description}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Navigation Controls */}
+                        <div className="flex items-center gap-4 mt-8">
+                            <button
+                                onClick={handlePrev}
+                                disabled={currentIndex === 0}
+                                className={cn(
+                                    "p-3 rounded-full border border-white/10 transition-all",
+                                    currentIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-white/5 text-white"
+                                )}
                             >
-                                <div className="absolute top-4 right-4 text-2xl font-black text-white/5 font-mono group-hover:text-white/10 transition-colors">
-                                    {step.number}
-                                </div>
-                                
-                                <div className={cn("p-3 rounded-2xl bg-white/5 border border-white/5", step.iconColor)}>
-                                    <StepIcon size={24} />
-                                </div>
+                                <ArrowLeft size={16} />
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                className="flex items-center gap-2 px-8 py-3 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-[11px] uppercase tracking-widest font-black hover:bg-cyan-500/30 transition-all"
+                            >
+                                <span>{currentIndex === totalSteps - 1 ? 'Iniciar' : 'Siguiente'}</span>
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10 flex-1">
+                        {data.steps.map((step: any, i: number) => {
+                            const StepIcon = step.icon;
+                            return (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.2, duration: 0.6 }}
+                                    className="group relative p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all flex flex-col items-center text-center space-y-4 h-full justify-start"
+                                >
+                                    <div className="absolute top-4 right-4 text-2xl font-black text-white/5 font-mono group-hover:text-white/10 transition-colors">
+                                        {step.number}
+                                    </div>
+                                    
+                                    <div className={cn("p-3 rounded-2xl bg-white/5 border border-white/5", step.iconColor)}>
+                                        <StepIcon size={24} />
+                                    </div>
 
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-bold tracking-wider text-white/90 uppercase">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-[13px] text-white/60 leading-relaxed">
-                                        {step.description}
-                                    </p>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-lg font-bold tracking-wider text-white/90 uppercase">
+                                            {step.title}
+                                        </h3>
+                                        <p className="text-[13px] text-white/60 leading-relaxed">
+                                            {step.description}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                )}
 
-                <div className="pt-12 text-center">
-                    <button
-                        onClick={onClose}
-                        className={cn(
-                            "px-8 py-3 rounded-full border border-white/10 text-[11px] uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/5 transition-all"
-                        )}
-                    >
-                        Entendido
-                    </button>
-                </div>
+                {!isCarousel && (
+                    <div className="pt-12 text-center">
+                        <button
+                            onClick={onClose}
+                            className={cn(
+                                "px-8 py-3 rounded-full border border-white/10 text-[11px] uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/5 transition-all"
+                            )}
+                        >
+                            Entendido
+                        </button>
+                    </div>
+                )}
             </motion.div>
         </motion.div>
     );
