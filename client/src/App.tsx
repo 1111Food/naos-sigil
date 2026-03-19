@@ -422,7 +422,7 @@ function App() {
 
             {/* FOOTER */}
             {activeView !== 'LANDING' && activeView !== 'ONBOARDING' && activeView !== 'CHAT' && activeView !== 'WELCOME_BACK' && (
-              <footer className="fixed bottom-0 left-0 right-0 p-4 md:p-6 z-40 pointer-events-none md:pl-40 pb-24 md:pb-6">
+              <footer className="fixed bottom-0 left-0 right-0 p-4 md:p-6 z-40 pointer-events-none md:pl-40 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6">
                 <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-8 text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-white/40 pointer-events-auto bg-black/40 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none py-3 px-6 rounded-full border border-white/5 md:border-0 shadow-2xl md:shadow-none">
                   <div className="flex items-center gap-3">
                     <span className="text-amber-500/80 font-medium">

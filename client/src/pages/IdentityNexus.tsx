@@ -48,7 +48,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={() => { playSound('click'); onBack(); }}
-                className="absolute top-0 left-6 flex items-center gap-2 text-white/40 hover:text-white transition-colors group"
+                className="fixed top-[calc(1rem+env(safe-area-inset-top))] left-6 flex items-center gap-2 text-white/40 hover:text-white transition-colors group z-50"
             >
                 <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                 <span className="text-[10px] uppercase tracking-[0.3em] font-black">Regresar al Templo</span>

@@ -168,10 +168,10 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                         </div>
                         
                         <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-transparent to-black/60 pointer-events-none" />
-
+                        
                         <motion.button
                             onClick={() => { playSound('click'); onBack(); }}
-                            className="absolute top-12 left-6 flex items-center gap-2 text-secondary hover:text-primary transition-colors group z-10"
+                            className="fixed top-[calc(1rem+env(safe-area-inset-top))] left-6 flex items-center gap-2 text-secondary hover:text-primary transition-colors group z-50"
                         >
                             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                             <span className="text-[10px] uppercase tracking-[0.3em] font-black">Regresar al Templo</span>
