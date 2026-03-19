@@ -81,8 +81,17 @@ export const NaosVibrationEngine: React.FC = () => {
             count++;
             if (count >= steps) {
                 clearInterval(timer);
-                if (dayTarget > 0) tryPlay(dayAudioRef.current);
-                if (nightTarget > 0) tryPlay(nightAudioRef.current);
+                if (dayTarget > 0) {
+                    tryPlay(dayAudioRef.current);
+                } else {
+                    dayAudioRef.current?.pause();
+                }
+                
+                if (nightTarget > 0) {
+                    tryPlay(nightAudioRef.current);
+                } else {
+                    nightAudioRef.current?.pause();
+                }
             }
         }, interval);
 
@@ -106,6 +115,17 @@ export const NaosVibrationEngine: React.FC = () => {
             events.forEach(evt => window.removeEventListener(evt, interaction));
         };
     }, [mode, controls.isMuted]);
+
+    // Corte de Audio instantáneo/rápido para iOS (Asegura pause() antes de background suspend)
+    useEffect(() => {
+        if (controls.isMuted) {
+            const t = setTimeout(() => {
+                dayAudioRef.current?.pause();
+                nightAudioRef.current?.pause();
+            }, 200);
+            return () => clearTimeout(t);
+        }
+    }, [controls.isMuted]);
 
     // Registro Global para SacredDock
     useEffect(() => {
