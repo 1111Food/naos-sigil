@@ -18,6 +18,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
     const { playSound } = useSound();
 
     React.useEffect(() => {
+        window.scrollTo(0, 0);
         const seen = localStorage.getItem('has_seen_identity');
         if (!seen) {
             setExplainerType('IDENTITY_COMPLETE');

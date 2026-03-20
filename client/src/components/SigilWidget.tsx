@@ -16,11 +16,17 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
 
-    // Filter messages for the widget (only sigil/guardian role)
-    // We actually use a local state for the widget chat to avoid mixing with main chat
     const [messages, setMessages] = useState<{ role: 'user' | 'sigil', text: string }[]>([
         { role: 'sigil', text: `Acceso concedido, Luis. Como Cáncer que eres, las llaves del Templo están listas. ¿A dónde deseas navegar?` }
     ]);
+
+    const chatRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (isOpen && chatRef.current) {
+            chatRef.current.scrollTop = 0;
+        }
+    }, [isOpen]);
 
     // Handle External Notifications (e.g., Save Success)
     React.useEffect(() => {
@@ -76,7 +82,7 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
 
             {/* Chat Window */}
             <div className={`pointer-events-auto bg-black/95 backdrop-blur-2xl border border-red-500/20 rounded-3xl w-[85vw] md:w-80 mb-4 overflow-hidden transition-all duration-300 origin-top-right shadow-[0_0_30px_rgba(255,0,0,0.2)] ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 h-0 overflow-hidden'}`}>
-                <div className="p-4 h-64 overflow-y-auto flex flex-col gap-3">
+                <div ref={chatRef} className="p-4 h-64 overflow-y-auto flex flex-col gap-3">
                     {messages.map((m, i) => (
                         <div key={i} className={`text-xs p-3 rounded-xl max-w-[80%] ${m.role === 'sigil' ? 'bg-white/10 self-start text-white' : 'bg-primary/20 self-end text-primary-foreground'}`}>
                             {m.text}
