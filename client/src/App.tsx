@@ -4,7 +4,7 @@ import { ChatInterface } from './components/ChatInterface';
 import { LandingScreen } from './components/LandingScreen';
 import { WelcomeBackView } from './pages/WelcomeBackView';
 import { AdminView } from './pages/AdminView';
-import { OnboardingForm } from './components/OnboardingForm';
+// OnboardingForm removed
 import { Home } from './pages/Home';
 import { SacredDock } from './components/SacredDock';
 import { EvolutionView } from './pages/EvolutionView';
@@ -204,8 +204,8 @@ function App() {
     }
   };
 
-  const handleOnboardingComplete = (data: any) => {
-    console.log(`App: Ritual Completed for ${data.name}. Entering Temple.`);
+  const handleOnboardingComplete = (data: any = null) => {
+    console.log(`App: Ritual Completed for ${data?.name || 'User'}. Entering Temple.`);
     refreshProfile();
     setActiveView('TEMPLE');
   };
@@ -268,14 +268,11 @@ function App() {
           </div>
         );
       case 'ONBOARDING':
-        return <OnboardingForm onComplete={handleOnboardingComplete} />;
+        return <OnboardingInitiation onComplete={() => handleOnboardingComplete()} />;
       case 'TEMPLE':
         return (
           <>
             <Home onSelectFeature={navigateWithRitual} />
-            {profile && !profile.onboarding_completed && (
-              <OnboardingInitiation onComplete={refreshProfile} />
-            )}
           </>
         );
 
