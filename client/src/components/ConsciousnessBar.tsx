@@ -21,6 +21,11 @@ export const ConsciousnessBar: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center gap-1 w-full max-w-[180px]">
+            {profile?.plan_type === 'premium' && (
+                <div className="text-[7px] uppercase tracking-[0.25em] font-black text-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.4)] mb-0.5">
+                    Modo Arquitecto
+                </div>
+            )}
             <div className="flex justify-between w-full text-[9px] uppercase tracking-wider text-white/50 px-0.5">
                 <span className="flex items-center gap-1 font-bold text-cyan-400">
                     <Sparkles className="w-2.5 h-2.5" /> {level}

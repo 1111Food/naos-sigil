@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, ShieldAlert } from 'lucide-react';
+import { PlanSelectionView } from './PlanSelectionView';
 
 interface UpgradeModalProps {
     isOpen: boolean;
@@ -39,14 +40,19 @@ const FEATURE_CONTENT = {
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, feature, onClose }) => {
     const content = FEATURE_CONTENT[feature] || FEATURE_CONTENT.sigil;
     const Icon = content.icon;
+    const [showPlans, setShowPlans] = useState(false);
+
+    const handleSelectPlan = (plan: 'monthly' | 'yearly') => {
+        // 🧪 TODO: Pass to Payment Provider (PayPal)
+        alert(`Plan Seleccionado: Modo Arquitecto [${plan === 'monthly' ? '$11.11' : '$88'}]. Confirmar y activar.`);
+        onClose();
+    };
 
     return (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
                     onClick={onClose}
                 >
@@ -63,36 +69,45 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, feature, onC
                             <X className="w-4 h-4" />
                         </button>
 
-                        {/* Icon Glow */}
-                        <div className="relative mt-2 p-4 rounded-full bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
-                            <Icon className="w-6 h-6 text-cyan-400" />
-                        </div>
+                        {!showPlans ? (
+                            <>
+                                {/* Icon Glow */}
+                                <div className="relative mt-2 p-4 rounded-full bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+                                    <Icon className="w-6 h-6 text-cyan-400" />
+                                </div>
 
-                        {/* Text */}
-                        <div className="flex flex-col gap-2">
-                            <h2 className="text-base font-serif italic tracking-wide text-white/90">
-                                {content.title}
-                            </h2>
-                            <p className="text-xs text-white/60 leading-relaxed px-2">
-                                {content.body}
-                            </p>
-                        </div>
+                                {/* Text */}
+                                <div className="flex flex-col gap-2">
+                                    <h2 className="text-base font-serif italic tracking-wide text-white/90">
+                                        {content.title}
+                                    </h2>
+                                    <p className="text-xs text-white/60 leading-relaxed px-2">
+                                        {content.body}
+                                    </p>
+                                </div>
 
-                        {/* CTAs */}
-                        <div className="flex flex-col gap-2 w-full pt-2">
-                            <button 
-                                onClick={() => { alert("Redirigiendo a activación..."); onClose(); }}
-                                className="w-full py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                            >
-                                Activar Modo Arquitecto
-                            </button>
-                            <button 
-                                onClick={onClose}
-                                className="w-full py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-xs text-white/60 transition-all"
-                            >
-                                Seguir explorando
-                            </button>
-                        </div>
+                                {/* CTAs */}
+                                <div className="flex flex-col gap-2 w-full pt-2">
+                                    <button 
+                                        onClick={() => setShowPlans(true)}
+                                        className="w-full py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                                    >
+                                        Activar Modo Arquitecto
+                                    </button>
+                                    <button 
+                                        onClick={onClose}
+                                        className="w-full py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-xs text-white/60 transition-all"
+                                    >
+                                        Seguir explorando
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <PlanSelectionView 
+                                onBack={() => setShowPlans(false)} 
+                                onSelectPlan={handleSelectPlan} 
+                            />
+                        )}
                     </motion.div>
                 </motion.div>
             )}
