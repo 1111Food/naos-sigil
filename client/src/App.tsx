@@ -15,6 +15,7 @@ import { EtherBackground } from './components/EtherBackground';
 import { IdentityAltar } from './components/IdentityAltar';
 import { Guardian } from './components/Guardian';
 import { GuardianProvider } from './contexts/GuardianContext';
+import { UpgradeProvider } from './contexts/UpgradeContext';
 import { OnboardingInitiation } from './components/OnboardingInitiation';
 import { FloatingLaboratorio } from './components/FloatingLaboratorio';
 import { SigilBubble } from './components/SigilBubble';
@@ -323,7 +324,8 @@ function App() {
   // --- MAIN LAYOUT ---
   return (
     <GuardianProvider>
-      <WisdomProvider>
+      <UpgradeProvider>
+        <WisdomProvider>
         <div className="min-h-screen text-foreground font-sans selection:bg-primary/30 overflow-x-hidden relative">
           <AtmosphereEngine />
           <EtherBackground />
@@ -497,7 +499,8 @@ function App() {
 
           </div>
         </div>
-      </WisdomProvider>
+        </WisdomProvider>
+      </UpgradeProvider>
     </GuardianProvider>
   );
 }

@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { IntentionWidget } from '../components/IntentionWidget';
 import { BentoBlock } from '../components/BentoBlock';
 import { useSound } from '../hooks/useSound';
+import { useUpgrade } from '../contexts/UpgradeContext';
 import { ProfileSelector } from '../components/ProfileSelector';
 
 interface HomeProps {
@@ -21,7 +22,8 @@ interface HomeProps {
 
 export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     const { score, volatility } = useCoherence();
-    const { profile } = useProfile();
+    const { profile, loading } = useProfile();
+    const { triggerUpgrade } = useUpgrade();
     const { energy } = useEnergy();
     const { isSettled } = usePerformance();
     const playerRef = React.useRef<PlayerRef>(null);
@@ -142,7 +144,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     className="w-full text-center cursor-pointer group"
                     onClick={() => { 
                         if (!isPremium) {
-                            alert("Disponible en modo Arquitecto (Premium)");
+                            triggerUpgrade('sigil');
                             return;
                         }
                         playSound('click'); 
@@ -229,7 +231,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                             clipPath="url(#puzzle-protocol)"
                             pathData="M 0,0.1 H 0.4 C 0.4,0.2 0.6,0.2 0.6,0.1 H 0.9 V 0.4 C 1,0.4 1,0.6 0.9,0.6 V 1 H 0 Z"
                             locked={!isPremium}
-                            onClick={() => { playSound('click'); onSelectFeature('PROTOCOL21'); }}
+                            onClick={() => { playSound('click'); if (!isPremium) triggerUpgrade('protocol'); else onSelectFeature('PROTOCOL21'); }}
                         />
                     </div>
                     <div className={cn(
@@ -243,7 +245,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                             clipPath="url(#puzzle-evolution)"
                             pathData="M 0.1,0.1 H 0.4 C 0.4,0 0.6,0 0.6,0.1 H 1 V 1 H 0.1 V 0.6 C 0.2,0.6 0.2,0.4 0.1,0.4 Z"
                             locked={!isPremium}
-                            onClick={() => { playSound('click'); onSelectFeature('ELEMENTAL_LAB'); }}
+                            onClick={() => { playSound('click'); if (!isPremium) triggerUpgrade('evolution'); else onSelectFeature('ELEMENTAL_LAB'); }}
                         />
                     </div>
                 </div>

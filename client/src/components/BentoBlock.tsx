@@ -65,10 +65,9 @@ export const BentoBlock: React.FC<BentoBlockProps> = memo(({ title, accent, stat
                 transition: { duration: 0.5, ease: 'easeOut' }
             } : {}}
             className={cn(
-                "relative w-full h-full group transition-all duration-700 flex flex-col items-center justify-center",
-                locked ? "cursor-not-allowed" : "cursor-pointer"
+                "relative w-full h-full group transition-all duration-700 flex flex-col items-center justify-center cursor-pointer"
             )}
-            onClick={!locked ? onClick : undefined}
+            onClick={onClick}
         >
             <div
                 className={`absolute inset-0 glass-card ${bgAccents[accent]} ${glows[accent]} transition-all duration-700`}

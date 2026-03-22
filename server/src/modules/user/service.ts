@@ -133,8 +133,18 @@ export class UserService {
     }
 
     static async updateProfile(userId: string, data: Partial<UserProfile>): Promise<UserProfile> {
-        let current = await this.getProfile(userId);
-        let updated = { ...current, ...data };
+        let baseProfile: any = {};
+        let dbRow: any = null;
+        try {
+            const { data: row } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+            if (row) {
+                dbRow = row;
+                baseProfile = row.profile_data || {};
+            }
+        } catch (e) { }
+
+        let current = await this.getProfile(userId); // still needed for returning merged state at end
+        let updated = { ...baseProfile, ...data }; // operates on raw to save correctly below
 
         // Geography LOCK
         const locationChanged = (data.birthCity && data.birthCity !== current.birthCity) ||
@@ -172,7 +182,7 @@ export class UserService {
             await supabase.from('profiles').upsert(payload);
         }
 
-        return updated;
+        return await this.getProfile(userId);
     }
 
     static async addSubProfile(userId: string, data: any): Promise<UserProfile> {
