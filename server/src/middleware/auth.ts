@@ -47,8 +47,8 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
             .single();
 
         const plan = profile?.plan_type || 'free';
-        // Map plan_type to 'premium' according to your rule condition
-        const userRole = plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free';
+        // Map plan_type to 'premium' or 'admin' according to backend strict rule
+        const userRole = plan === 'admin' ? 'admin' : (plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free');
 
         (request as any).user = {
             id: user.id,
@@ -68,5 +68,14 @@ export const validatePremium = async (request: FastifyRequest, reply: FastifyRep
     // STRICT RBAC CHECK
     if (!user || (user.role !== "premium" && user.role !== "admin")) {
         return reply.status(403).send({ error: "Access denied or AI restricted feature" });
+    }
+};
+
+export const validateAdmin = async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = (request as any).user;
+    
+    // STRICT ADMIN CHECK
+    if (!user || user.role !== "admin") {
+        return reply.status(403).send({ error: "Access denied: Admin restricted feature" });
     }
 };

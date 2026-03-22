@@ -3,6 +3,7 @@ import { ArrowLeft, LogOut, MapPin } from 'lucide-react';
 import { ChatInterface } from './components/ChatInterface';
 import { LandingScreen } from './components/LandingScreen';
 import { WelcomeBackView } from './pages/WelcomeBackView';
+import { AdminView } from './pages/AdminView';
 import { OnboardingForm } from './components/OnboardingForm';
 import { Home } from './pages/Home';
 import { SacredDock } from './components/SacredDock';
@@ -44,7 +45,7 @@ import { WisdomOverlay } from './components/WisdomOverlay';
 
 // Global Wisdom Wrapper to access context safely
 // --- TYPES (v9.12) ---
-type ViewState = 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR';
+type ViewState = 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR' | 'ADMIN';
 
 // Global Wisdom Wrapper to access context safely
 const WisdomManager = () => {
@@ -126,6 +127,18 @@ function App() {
       setActiveView('ONBOARDING');
     }
   }, [user, profile, isAppFullyReady, activeView]);
+
+  // 4. ADMIN ROUTE DETECT
+  useEffect(() => {
+    if (window.location.pathname === '/admin') {
+      if ((profile as any)?.plan_type === 'admin') {
+        if (activeView !== 'ADMIN') setActiveView('ADMIN');
+      } else if ((profile as any)?.plan_type) { 
+        console.log("🚫 Admin Guard: Deny.");
+        window.location.href = '/'; 
+      }
+    }
+  }, [profile, activeView]);
 
 
   // --- HANDLERS ---
@@ -300,6 +313,8 @@ function App() {
         return <OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
       case 'SYNASTRY':
         return <OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
+      case 'ADMIN':
+        return <AdminView />;
       default:
         return <Home onSelectFeature={(feat) => setActiveView(feat as ViewState)} activeFeature={activeView} />;
     }
@@ -313,9 +328,9 @@ function App() {
           <AtmosphereEngine />
           <EtherBackground />
           <NaosVibrationEngine />
-          <Guardian view={activeView} onOpenChat={() => setActiveView('CHAT')} />
+          <Guardian view={activeView as any} onOpenChat={() => setActiveView('CHAT')} />
           <FloatingLaboratorio onNavigate={navigateWithRitual} />
-          <SigilBubble activeView={activeView} onNavigate={navigateWithRitual} />
+          <SigilBubble activeView={activeView as any} onNavigate={navigateWithRitual} />
           <LanguagePromptBanner />
           <DevPlanToggle />
 
@@ -423,7 +438,7 @@ function App() {
 
             {/* DOCK */}
             {activeView !== 'LANDING' && activeView !== 'LOGIN' && activeView !== 'WELCOME_BACK' && (
-              <SacredDock activeView={activeView} onNavigate={setActiveView} onLogout={handleLogout} />
+              <SacredDock activeView={activeView as any} onNavigate={setActiveView as any} onLogout={handleLogout} />
             )}
 
             {/* FOOTER */}

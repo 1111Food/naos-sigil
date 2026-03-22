@@ -8,6 +8,7 @@ import { synastryRoutesV2 } from './modules/synastry/synastry.routes';
 import { coherenceRoutes } from './routes/coherence';
 import { rankingRoutes } from './routes/ranking';
 import rosterRoutes from './modules/roster/roster.routes';
+import { adminRoutes } from './modules/admin/admin.routes';
 
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
@@ -38,6 +39,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     await app.register(rankingRoutes, { prefix: '/api/ranking' });
     await app.register(synastryRoutesV2, { prefix: '/api/synastry' });
     await app.register(rosterRoutes);
+    await app.register(adminRoutes, { prefix: '/api/admin' });
 
     return app;
 };
