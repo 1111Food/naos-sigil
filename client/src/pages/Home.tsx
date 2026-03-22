@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { IntentionWidget } from '../components/IntentionWidget';
 import { BentoBlock } from '../components/BentoBlock';
 import { useSound } from '../hooks/useSound';
+import { ProfileSelector } from '../components/ProfileSelector';
 
 interface HomeProps {
     onSelectFeature: (feature: any, payload?: any) => void;
@@ -113,6 +114,11 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
 
     return (
         <div className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans text-white transition-colors duration-1000 ${isBunkerMode ? 'bg-red-950/20' : 'bg-transparent'}`}>
+            
+            {/* 0. PROFILE SELECTOR FLOOR */}
+            <div className="absolute top-6 right-6 z-[100]">
+                <ProfileSelector />
+            </div>
 
             {/* 1. BACKGROUND ENGINE */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-40">

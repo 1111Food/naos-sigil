@@ -59,32 +59,41 @@ export class UserService {
 
             if (data && !error) {
                 const baseProfile = (data.profile_data || {}) as Partial<UserProfile>;
+                
+                // multi-profile resolution
+                let activeSub: any = null;
+                if (baseProfile.sub_profiles && baseProfile.active_sub_profile_id) {
+                    activeSub = baseProfile.sub_profiles.find(p => p.id === baseProfile.active_sub_profile_id);
+                }
+
                 const dbProfile: UserProfile = {
                     ...baseProfile,
                     id: data.id,
-                    name: data.full_name || data.name || baseProfile.name || 'Viajero cosmico',
+                    name: activeSub?.name || data.full_name || data.name || baseProfile.name || 'Viajero cosmico',
                     guardian_notes: data.guardian_notes || baseProfile.guardian_notes || undefined,
-                    birthDate: data.birth_date || baseProfile.birthDate || '',
-                    birthTime: data.birth_time || baseProfile.birthTime || '',
-                    birthCity: data.birth_location || baseProfile.birthCity || '',
-                    astrology: data.astrology || data.natal_chart || baseProfile.astrology || undefined,
-                    numerology: data.numerology || baseProfile.numerology || undefined,
-                    mayan: data.mayan || baseProfile.mayan || undefined,
-                    nawal_maya: data.nawal_maya || baseProfile.nawal_maya || undefined,
-                    chinese_animal: data.chinese_animal || baseProfile.chinese_animal || undefined,
-                    chinese_element: data.chinese_element || baseProfile.chinese_element || undefined,
-                    chinese_birth_year: data.chinese_birth_year || baseProfile.chinese_birth_year || undefined,
-                    sigil_url: data.sigil_url || baseProfile.sigil_url || undefined,
-                    coordinates: baseProfile.coordinates || { lat: 14.6349, lng: -90.5069 },
-                    utcOffset: baseProfile.utcOffset !== undefined ? baseProfile.utcOffset : -6,
-                    birthPlace: baseProfile.birthPlace || '',
-                    birthState: baseProfile.birthState || '',
-                    birthCountry: baseProfile.birthCountry || 'Guatemala',
+                    birthDate: activeSub?.birthDate || data.birth_date || baseProfile.birthDate || '',
+                    birthTime: activeSub?.birthTime || data.birth_time || baseProfile.birthTime || '',
+                    birthCity: activeSub?.birthCity || data.birth_location || baseProfile.birthCity || '',
+                    astrology: activeSub?.astrology || data.astrology || data.natal_chart || baseProfile.astrology || undefined,
+                    numerology: activeSub?.numerology || baseProfile.numerology || undefined,
+                    mayan: activeSub?.mayan || baseProfile.mayan || undefined,
+                    nawal_maya: activeSub?.nawal_maya || baseProfile.nawal_maya || undefined,
+                    chinese_animal: activeSub?.chinese_animal || baseProfile.chinese_animal || undefined,
+                    chinese_element: activeSub?.chinese_element || baseProfile.chinese_element || undefined,
+                    chinese_birth_year: activeSub?.chinese_birth_year || baseProfile.chinese_birth_year || undefined,
+                    sigil_url: activeSub?.sigil_url || baseProfile.sigil_url || undefined,
+                    coordinates: activeSub?.coordinates || baseProfile.coordinates || { lat: 14.6349, lng: -90.5069 },
+                    utcOffset: activeSub?.utcOffset !== undefined ? activeSub.utcOffset : (baseProfile.utcOffset !== undefined ? baseProfile.utcOffset : -6),
+                    birthPlace: activeSub?.birthPlace || baseProfile.birthPlace || '',
+                    birthState: activeSub?.birthState || baseProfile.birthState || '',
+                    birthCountry: activeSub?.birthCountry || baseProfile.birthCountry || 'Guatemala',
                     subscription: baseProfile.subscription || { plan: 'FREE', features: [] },
                     plan_type: data.plan_type || baseProfile.plan_type || 'free',
                     usage_level: data.usage_level || baseProfile.usage_level || 'normal',
                     daily_interactions: data.daily_interactions || baseProfile.daily_interactions || 0,
-                    onboarding_completed: data.onboarding_completed || baseProfile.onboarding_completed || false
+                    onboarding_completed: data.onboarding_completed || baseProfile.onboarding_completed || false,
+                    active_sub_profile_id: baseProfile.active_sub_profile_id,
+                    sub_profiles: baseProfile.sub_profiles
                 };
                 this.profilesCache[userId] = dbProfile;
                 return dbProfile;
@@ -164,6 +173,49 @@ export class UserService {
         }
 
         return updated;
+    }
+
+    static async addSubProfile(userId: string, data: any): Promise<UserProfile> {
+        const current = await this.getProfile(userId);
+        const subProfiles = current.sub_profiles || [];
+
+        const limitCount = current.plan_type === 'premium' || current.plan_type === 'premium_plus' || current.plan_type === 'admin' ? 3 : 1;
+        if (1 + subProfiles.length >= limitCount) {
+            throw new Error(`Profile limit reached for plan ${current.plan_type}.`);
+        }
+
+        const newSub = {
+            id: Math.random().toString(36).substring(2, 9),
+            ...data
+        };
+
+        const updatedSubs = [...subProfiles, newSub];
+        return await this.updateProfile(userId, { sub_profiles: updatedSubs });
+    }
+
+    static async editSubProfile(userId: string, subId: string, data: any): Promise<UserProfile> {
+        const current = await this.getProfile(userId);
+        const subProfiles = current.sub_profiles || [];
+
+        const updatedSubs = subProfiles.map(p => p.id === subId ? { ...p, ...data } : p);
+        return await this.updateProfile(userId, { sub_profiles: updatedSubs });
+    }
+
+    static async deleteSubProfile(userId: string, subId: string): Promise<UserProfile> {
+        const current = await this.getProfile(userId);
+        const subProfiles = current.sub_profiles || [];
+
+        const updatedSubs = subProfiles.filter(p => p.id !== subId);
+        const payload: Partial<UserProfile> = { sub_profiles: updatedSubs };
+        if (current.active_sub_profile_id === subId) {
+            payload.active_sub_profile_id = undefined;
+        }
+        return await this.updateProfile(userId, payload);
+    }
+
+    static async switchProfile(userId: string, subId: string | undefined): Promise<UserProfile> {
+        // subId === undefined means switch to Master Profile
+        return await this.updateProfile(userId, { active_sub_profile_id: subId });
     }
 
     static getRawState() { return this.profilesCache; }

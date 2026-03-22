@@ -93,7 +93,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
 
     // Chat
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
         const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
         const userId = (req as any).user_id;
 
@@ -366,5 +366,42 @@ export async function apiRoutes(app: FastifyInstance) {
             console.error("🔥 Protocol Evolution Error:", e);
             return reply.status(500).send({ error: e.message });
         }
+    });
+
+    // Multi-Profile Management
+    app.post<{ Body: any }>('/api/user/profiles', { preHandler: [validateUser] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        try {
+            return await UserService.addSubProfile(userId, req.body);
+        } catch (e: any) {
+            return reply.status(400).send({ error: e.message });
+        }
+    });
+
+    app.put<{ Params: { id: string }, Body: any }>('/api/user/profiles/:id', { preHandler: [validateUser] }, async (req, reply) => {
+         const userId = (req as any).user_id;
+         try {
+             return await UserService.editSubProfile(userId, req.params.id, req.body);
+         } catch (e: any) {
+             return reply.status(400).send({ error: e.message });
+         }
+    });
+
+    app.delete<{ Params: { id: string } }>('/api/user/profiles/:id', { preHandler: [validateUser] }, async (req, reply) => {
+         const userId = (req as any).user_id;
+         try {
+             return await UserService.deleteSubProfile(userId, req.params.id);
+         } catch (e: any) {
+             return reply.status(400).send({ error: e.message });
+         }
+    });
+
+    app.post<{ Body: { active_sub_profile_id?: string } }>('/api/user/profiles/switch', { preHandler: [validateUser] }, async (req, reply) => {
+         const userId = (req as any).user_id;
+         try {
+             return await UserService.switchProfile(userId, req.body.active_sub_profile_id);
+         } catch (e: any) {
+             return reply.status(400).send({ error: e.message });
+         }
     });
 }

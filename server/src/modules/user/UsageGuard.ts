@@ -58,16 +58,23 @@ export class UsageGuardService {
     }
 
     static async checkLimit(userId: string, action: keyof typeof LIMITS): Promise<{ ok: boolean, message?: string }> {
+        const { data } = await supabase.from('profiles').select('plan_type').eq('id', userId).maybeSingle();
+        const planType = data?.plan_type || 'free';
+
         const stats = await this.getStats(userId);
         
         let count = 0;
         let limit = LIMITS[action];
         let actionLabel = "esta acción";
-        
-        if (action === 'tarot') { count = stats.tarot_draw_count; actionLabel = "Tarot"; }
+
+        if (action === 'sigil') {
+            limit = planType === 'premium' || planType === 'premium_plus' || planType === 'admin' ? 20 : 3;
+            count = stats.sigil_messages_count;
+            actionLabel = "mensajes de Sigil";
+        }
+        else if (action === 'tarot') { count = stats.tarot_draw_count; actionLabel = "Tarot"; }
         else if (action === 'synastry_dual') { count = stats.synastry_dual_count; actionLabel = "Sinastría Dual"; }
         else if (action === 'synastry_group') { count = stats.synastry_group_count; actionLabel = "Sinastría Grupal"; }
-        else if (action === 'sigil') { count = stats.sigil_messages_count; actionLabel = "mensajes de Sigil"; }
         else if (action === 'naos_code') { count = stats.naos_code_count; actionLabel = "Código de Identidad"; }
 
         if (count >= limit) {

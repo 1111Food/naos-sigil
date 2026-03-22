@@ -2,6 +2,30 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
+export interface SubProfile {
+    id: string;
+    name: string;
+    email?: string;
+    nickname?: string;
+    birthDate: string;
+    birthTime: string;
+    birthCity?: string;
+    birthCountry?: string;
+    birthPlace?: string;
+    birthState?: string;
+    location?: { name: string };
+    astrology?: any;
+    numerology?: any;
+    fengShui?: any;
+    mayan?: any;
+    nawal_maya?: string;
+    nawal_tono?: number;
+    chinese_animal?: string;
+    chinese_element?: string;
+    chinese_birth_year?: number;
+    sigil_url?: string;
+}
+
 export interface UserProfile {
     id: string; // Authenticated User UUID
     name: string;
@@ -35,6 +59,8 @@ export interface UserProfile {
         features: string[];
     };
     naosIdentityCode?: any;
+    active_sub_profile_id?: string;
+    sub_profiles?: SubProfile[];
 }
 
 interface ProfileContextType {
@@ -53,6 +79,7 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 const mapProfileData = (data: any): UserProfile => {
     return {
         ...data,
+        ...(data.profile_data || {}),
         email: data.email,
         birthDate: data.birth_date,
         birthTime: data.birth_time,

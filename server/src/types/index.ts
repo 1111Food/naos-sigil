@@ -4,6 +4,33 @@ export interface SubscriptionStatus {
     features: string[];
 }
 
+export interface SubProfile {
+    id: string;
+    name: string;
+    nickname?: string;
+    birthDate: string; // ISO Date
+    birthTime: string; // HH:mm
+    birthPlace?: string;
+    birthCity?: string;
+    birthState?: string;
+    birthCountry?: string;
+    utcOffset?: number;
+    coordinates?: {
+        lat: number;
+        lng: number;
+    };
+    astrology?: AstrologyProfile;
+    numerology?: NumerologyProfile;
+    fengShui?: FengShuiProfile;
+    mayan?: MayanNawal;
+    nawal_maya?: string;
+    nawal_tono?: number;
+    chinese_animal?: string;
+    chinese_element?: string;
+    chinese_birth_year?: number;
+    sigil_url?: string;
+}
+
 export interface UserProfile {
     id: string;
     name: string;
@@ -21,7 +48,7 @@ export interface UserProfile {
         lng: number;
     };
     subscription: SubscriptionStatus;
-    plan_type: 'free' | 'premium' | 'premium_plus';
+    plan_type: 'free' | 'premium' | 'premium_plus' | 'admin';
     usage_level: 'normal' | 'frequent' | 'intensive';
     daily_interactions: number;
     guardian_notes?: string;
@@ -42,6 +69,8 @@ export interface UserProfile {
     dominant_intent?: 'fitness' | 'consciousness' | 'productivity' | 'creativity' | 'none';
     onboarding_completed?: boolean;
     cached_identity_context?: string;
+    active_sub_profile_id?: string;
+    sub_profiles?: SubProfile[];
 }
 
 export interface MayanNawal {
