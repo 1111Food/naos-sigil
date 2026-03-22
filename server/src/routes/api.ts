@@ -344,7 +344,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // 21/90 Protocols
-    app.post<{ Body: { protocolId: string, dayNumber: number, notes?: string } }>('/api/protocols/seal-day', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { protocolId: string, dayNumber: number, notes?: string } }>('/api/protocols/seal-day', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const token = (req as any).token;
         try {
@@ -356,7 +356,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.post<{ Body: { protocolId: string } }>('/api/protocols/evolve', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { protocolId: string } }>('/api/protocols/evolve', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const token = (req as any).token;
         try {

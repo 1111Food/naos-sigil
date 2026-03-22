@@ -1,5 +1,7 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
+import { Lock } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 interface BentoBlockProps {
     title: string;
@@ -15,9 +17,10 @@ interface BentoBlockProps {
     clipPath: string;
     pathData: string;
     position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    locked?: boolean;
 }
 
-export const BentoBlock: React.FC<BentoBlockProps> = memo(({ title, accent, status, summary, cta, onClick, secondaryAction, clipPath, pathData, position = 'top-left' }) => {
+export const BentoBlock: React.FC<BentoBlockProps> = memo(({ title, accent, status, summary, cta, onClick, secondaryAction, clipPath, pathData, position = 'top-left', locked = false }) => {
     const glows = {
         cyan: 'hover:shadow-[0_0_60px_-20px_rgba(30,64,175,0.6)] border-blue-400/30',
         magenta: 'hover:shadow-[0_0_60px_-20px_rgba(139,92,246,0.6)] border-purple-400/30',
@@ -56,13 +59,16 @@ export const BentoBlock: React.FC<BentoBlockProps> = memo(({ title, accent, stat
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            whileHover={{
+            whileHover={!locked ? {
                 scale: 1.02,
                 zIndex: 50,
                 transition: { duration: 0.5, ease: 'easeOut' }
-            }}
-            className="relative w-full h-full group transition-all duration-700 cursor-pointer flex flex-col items-center justify-center"
-            onClick={onClick}
+            } : {}}
+            className={cn(
+                "relative w-full h-full group transition-all duration-700 flex flex-col items-center justify-center",
+                locked ? "cursor-not-allowed" : "cursor-pointer"
+            )}
+            onClick={!locked ? onClick : undefined}
         >
             <div
                 className={`absolute inset-0 glass-card ${bgAccents[accent]} ${glows[accent]} transition-all duration-700`}
@@ -154,6 +160,16 @@ export const BentoBlock: React.FC<BentoBlockProps> = memo(({ title, accent, stat
                     </div>
                 )}
             </div>
+
+            {/* LOCKED OVERLAY */}
+            {locked && (
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px]" style={{ clipPath }}>
+                    <Lock className="w-6 h-6 text-amber-500/80 mb-2 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-[0.2em] font-black text-amber-500/70 text-center px-4">
+                        Disponible en modo Arquitecto (Premium)
+                    </span>
+                </div>
+            )}
         </motion.div>
     );
 });

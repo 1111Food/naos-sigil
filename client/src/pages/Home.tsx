@@ -25,6 +25,8 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     const { isSettled } = usePerformance();
     const playerRef = React.useRef<PlayerRef>(null);
 
+    const isPremium = (profile as any)?.plan_type === 'premium' || (profile as any)?.plan_type === 'admin';
+
     React.useEffect(() => {
         if (!playerRef.current) return;
         if (isSettled) {
@@ -132,7 +134,14 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
                     className="w-full text-center cursor-pointer group"
-                    onClick={() => { playSound('click'); onSelectFeature('CHAT'); }}
+                    onClick={() => { 
+                        if (!isPremium) {
+                            alert("Disponible en modo Arquitecto (Premium)");
+                            return;
+                        }
+                        playSound('click'); 
+                        onSelectFeature('CHAT'); 
+                    }}
                 >
                     <div className="relative p-6 rounded-[2rem] glass-card hover:border-white/10 transition-all aura-zen-white:hover:border-black/20">
                         <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-amber-500/20 blur-2xl rounded-full" />
@@ -213,6 +222,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                             accent="emerald"
                             clipPath="url(#puzzle-protocol)"
                             pathData="M 0,0.1 H 0.4 C 0.4,0.2 0.6,0.2 0.6,0.1 H 0.9 V 0.4 C 1,0.4 1,0.6 0.9,0.6 V 1 H 0 Z"
+                            locked={!isPremium}
                             onClick={() => { playSound('click'); onSelectFeature('PROTOCOL21'); }}
                         />
                     </div>
@@ -226,6 +236,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                             accent="orange"
                             clipPath="url(#puzzle-evolution)"
                             pathData="M 0.1,0.1 H 0.4 C 0.4,0 0.6,0 0.6,0.1 H 1 V 1 H 0.1 V 0.6 C 0.2,0.6 0.2,0.4 0.1,0.4 Z"
+                            locked={!isPremium}
                             onClick={() => { playSound('click'); onSelectFeature('ELEMENTAL_LAB'); }}
                         />
                     </div>
