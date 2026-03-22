@@ -14,6 +14,8 @@ export const config = {
     ASTROLOGY_API_KEY: process.env.ASTROLOGY_API_KEY,
     ASTROLOGY_API_ENDPOINT: process.env.ASTROLOGY_API_ENDPOINT || 'https://json.astrologyapi.com/v1',
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+    ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY || '',
+    ELEVENLABS_VOICE_ID: process.env.ELEVENLABS_VOICE_ID || 'pNIn7v95S7XRE96R9rY0' // Default / placeholder ID
 };
 
 // Debug log (masked)

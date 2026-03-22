@@ -77,6 +77,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
     const [activeExplanation, setActiveExplanation] = useState<{ key: string, label: string, text: string, icon: any, color: string } | null>(null);
     const [glossaryEntry, setGlossaryEntry] = useState<{ title: string, description: string } | null>(null);
     const [showGuide, setShowGuide] = useState(false);
+    const [isOrigenExpanded, setIsOrigenExpanded] = useState(false);
 
     // AI Explanations mapping for the 6 pillars
     const getDeepExplanations = () => synthesis?.explicaciones_pilares || report.explanations || {};
@@ -241,6 +242,68 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                             ))}
                         </ul>
                     </div>
+                </motion.div>
+            )}
+
+            {/* Prompt Bloque 2: Cómo se calculó esto (Collapsable) */}
+            {synthesis && synthesis.origen_calculo && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="glass-panel p-6 bg-black/40 border border-white/5 rounded-3xl max-w-5xl mx-auto"
+                >
+                    <button 
+                        onClick={() => setIsOrigenExpanded(!isOrigenExpanded)}
+                        className="w-full flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.3em] text-purple-400 mb-2 pb-2 border-b border-white/5 group"
+                    >
+                        <span>Cómo se calculó esto</span>
+                        <motion.div
+                            animate={{ rotate: isOrigenExpanded ? 180 : 0 }}
+                            className="text-white/40 group-hover:text-white transition-colors"
+                        >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </motion.div>
+                    </button>
+
+                    <AnimatePresence>
+                        {isOrigenExpanded && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="overflow-hidden"
+                            >
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                                    {synthesis.origen_calculo.astrologia && (
+                                        <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
+                                            <span className="text-purple-400 font-bold block mb-1">Astrología</span>
+                                            <p className="italic">"{synthesis.origen_calculo.astrologia}"</p>
+                                        </div>
+                                    )}
+                                    {synthesis.origen_calculo.numerologia && (
+                                        <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
+                                            <span className="text-purple-400 font-bold block mb-1">Numerología</span>
+                                            <p className="italic">"{synthesis.origen_calculo.numerologia}"</p>
+                                        </div>
+                                    )}
+                                    {synthesis.origen_calculo.maya && (
+                                        <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
+                                            <span className="text-purple-400 font-bold block mb-1">Maya</span>
+                                            <p className="italic">"{synthesis.origen_calculo.maya}"</p>
+                                        </div>
+                                    )}
+                                    {/* Prompt Bloque 2: China Option */}
+                                    <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
+                                        <span className="text-purple-400 font-bold block mb-1">China</span>
+                                        <p className="italic">"{synthesis.origen_calculo.china || "Comparación de signos anuales y elementos."}"</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             )}
 

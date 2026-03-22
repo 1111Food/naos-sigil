@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wind, Flame, Check, Waves, Mountain, Clock, Sparkles, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Wind, Flame, Check, Waves, Mountain, Clock, Sparkles, RotateCcw, Brain } from 'lucide-react';
 import { BreathingEngine } from '../components/BreathingEngine';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../hooks/useProfile';
@@ -48,6 +48,8 @@ const ELEMENT_THEMES = {
         border: 'border-fuchsia-500/50 hover:bg-fuchsia-500/10'
     }
 };
+
+
 
 interface SanctuaryProps {
     onBack: () => void;
@@ -557,8 +559,8 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                             />
                         )}
 
-                        <div className="absolute bottom-12 w-full flex justify-center">
-                            <button onClick={finishBreathwork} className="text-[10px] uppercase tracking-widest text-white/20 hover:text-white/50 bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm transition-colors">
+                        <div className="relative mt-8 w-full flex justify-center z-10">
+                            <button onClick={finishBreathwork} className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 bg-white/10 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm transition-colors">
                                 Saltar Respiración
                             </button>
                         </div>
@@ -591,12 +593,14 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                             </>
                         )}
 
-                        <button
-                            onClick={finishMeditation}
-                            className="absolute bottom-12 px-8 py-3 rounded-full border border-white/10 hover:bg-white/5 text-white/50 hover:text-white transition-all text-xs uppercase tracking-widest"
-                        >
-                            Siguiente Paso
-                        </button>
+                        <div className="relative mt-12 w-full flex justify-center z-10">
+                            <button
+                                onClick={finishMeditation}
+                                className="px-8 py-3 rounded-full border border-white/10 hover:bg-white/5 text-white/50 hover:text-white transition-all text-xs uppercase tracking-widest"
+                            >
+                                Siguiente Paso
+                            </button>
+                        </div>
                     </motion.div>
                 )}
 
@@ -628,12 +632,14 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                             </>
                         )}
 
-                        <button
-                            onClick={finishAnchor}
-                            className="absolute bottom-12 px-8 py-3 rounded-full bg-white/10 border border-white/20 text-white transition-all text-xs uppercase tracking-widest font-black"
-                        >
-                            Sellar Ritual
-                        </button>
+                        <div className="relative mt-12 w-full flex justify-center z-10">
+                            <button
+                                onClick={finishAnchor}
+                                className="px-8 py-3 rounded-full bg-white/10 border border-white/20 text-white transition-all text-xs uppercase tracking-widest font-black"
+                            >
+                                Sellar Ritual
+                            </button>
+                        </div>
                     </motion.div>
                 )}
 
@@ -645,9 +651,81 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                         className="flex-1 flex flex-col items-center justify-center z-30 p-6 text-center w-full"
                     >
                         <h2 className="text-4xl font-serif text-white italic mb-2">Ciclo Completado</h2>
-                        <p className="text-white/40 text-sm uppercase tracking-widest mb-12 flex items-center gap-2 justify-center">
+                        <p className="text-white/40 text-sm uppercase tracking-widest mb-8 flex items-center gap-2 justify-center">
                             <Clock size={14} /> Tiempo Total: <span className="text-white">{formatTime(elapsedTime)}</span>
                         </p>
+
+                        {/* SCIENTIFIC BIOMETRIC FEEDBACK EXCLUSIVO (BILLION DOLLAR LAYOUT) */}
+                        {getActivePath() && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 30, scale: 0.95, filter: 'blur(10px)' }} 
+                                animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                                transition={{ type: "spring", damping: 20, delay: 0.2 }}
+                                className="p-6 rounded-2xl bg-black/40 border border-white/10 w-full max-w-md backdrop-blur-md mb-6 text-left relative overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.02)]"
+                            >
+                                {/* Diagnostic Laser Sweep Scan Line */}
+                                <motion.div 
+                                    className={cn("absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent to-transparent opacity-60 z-20", 
+                                        ritualState.element === 'FIRE' ? 'via-orange-400' :
+                                        ritualState.element === 'WATER' ? 'via-cyan-400' :
+                                        ritualState.element === 'EARTH' ? 'via-emerald-400' : 'via-fuchsia-400'
+                                    )}
+                                    animate={{ top: ['-10%', '110%'] }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                />
+                                
+                                <div className="space-y-5 relative z-10">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <motion.div
+                                                animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
+                                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                                className="p-1.5 rounded-lg bg-white/5 border border-white/10"
+                                            >
+                                                <Brain size={18} className={ELEMENT_THEMES[ritualState.element || 'WATER'].color} />
+                                            </motion.div>
+                                            <div>
+                                                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/90">Impacto Biométrico</span>
+                                                <span className="block text-[8px] text-white/40 font-mono tracking-widest mt-0.5">ESTADO: COMPLETO (100%)</span>
+                                            </div>
+                                        </div>
+                                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                                    </div>
+
+                                    {getActivePath()?.breath.scientificImpact && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, x: -15 }} 
+                                            animate={{ opacity: 1, x: 0 }} 
+                                            transition={{ delay: 0.4, ease: "easeOut" }}
+                                            className="space-y-1"
+                                        >
+                                            <h3 className={cn("text-[11px] font-serif italic", ELEMENT_THEMES[ritualState.element || 'WATER'].color)}>
+                                                Modulación Diafragmática: {getActivePath()?.breath.label}
+                                            </h3>
+                                            <p className="text-white/80 text-sm max-w-sm leading-relaxed font-light">
+                                                {getActivePath()?.breath.scientificImpact}
+                                            </p>
+                                        </motion.div>
+                                    )}
+
+                                    {getActivePath()?.meditation.scientificImpact && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, x: -15 }} 
+                                            animate={{ opacity: 1, x: 0 }} 
+                                            transition={{ delay: 0.7, ease: "easeOut" }}
+                                            className="pt-4 border-t border-white/5 space-y-1"
+                                        >
+                                            <h3 className={cn("text-[11px] font-serif italic", ELEMENT_THEMES[ritualState.element || 'WATER'].color)}>
+                                                Ajuste Neuro-Cognitivo: {getActivePath()?.meditation.title}
+                                            </h3>
+                                            <p className="text-white/80 text-sm max-w-sm leading-relaxed font-light">
+                                                {getActivePath()?.meditation.scientificImpact}
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
 
                         <div className="p-8 rounded-2xl bg-white/5 border border-white/10 w-full max-w-md backdrop-blur-md">
                             <p className="text-white/80 mb-8 border-b border-white/5 pb-6">¿Lograste tu objetivo con esta práctica?</p>

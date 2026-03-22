@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Player } from '@remotion/player';
+import { Player, type PlayerRef } from '@remotion/player';
 import { TempleAura } from '../remotion/TempleAura';
 import { motion } from 'framer-motion';
 import { useEnergy } from '../hooks/useEnergy';
 import { cn } from '../lib/utils';
 import { useCoherence } from '../hooks/useCoherence';
 import { useProfile } from '../hooks/useProfile';
+import { usePerformance } from '../context/PerformanceContext';
 import { supabase } from '../lib/supabase';
 import { IntentionWidget } from '../components/IntentionWidget';
 import { BentoBlock } from '../components/BentoBlock';
@@ -21,6 +22,17 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     const { score, volatility } = useCoherence();
     const { profile } = useProfile();
     const { energy } = useEnergy();
+    const { isSettled } = usePerformance();
+    const playerRef = React.useRef<PlayerRef>(null);
+
+    React.useEffect(() => {
+        if (!playerRef.current) return;
+        if (isSettled) {
+            playerRef.current.pause();
+        } else {
+            playerRef.current.play();
+        }
+    }, [isSettled]);
     
     // Viewport dimensions for responsive player
     const [viewport, setViewport] = React.useState({ 
@@ -103,6 +115,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
             {/* 1. BACKGROUND ENGINE */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
                 <Player
+                    ref={playerRef}
                     component={TempleAura}
                     durationInFrames={900}
                     compositionWidth={viewport.width} compositionHeight={viewport.height} fps={60}

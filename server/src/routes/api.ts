@@ -13,10 +13,28 @@ import { CoherenceService } from '../modules/coherence/service';
 import { NaosCompilerService } from '../modules/user/naosCompiler.service';
 import { ProtocolService } from '../modules/protocol/service';
 import { UsageGuardService } from '../modules/user/UsageGuard';
+import { sendProactiveMessage } from '../modules/sigil/telegramService';
+
+import { TTSService } from '../modules/sigil/ttsService';
 
 const sigilService = new SigilService();
 
 export async function apiRoutes(app: FastifyInstance) {
+
+    // Serve Cached TTS Audio file buffer
+    app.get<{ Params: { hash: string } }>('/api/sigil/audio/:hash', async (req, reply) => {
+        const { hash } = req.params;
+        const tts = new TTSService();
+        const audioPath = tts.getAudioPath(hash);
+
+        if (!audioPath) {
+            return reply.status(404).send({ error: "Audio no encontrado" });
+        }
+
+        const fs = require('fs');
+        const buffer = fs.readFileSync(audioPath);
+        return reply.type('audio/mpeg').send(buffer);
+    });
 
     app.get('/api/test-supabase', async (req, reply) => {
         console.log("🧪 Manual Test: Attempting Real Insert to Supabase...");
@@ -52,8 +70,8 @@ export async function apiRoutes(app: FastifyInstance) {
 
 
     // Chat
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
-        const { message, localTimestamp, oracleState, role } = req.body;
+    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
+        const { message, localTimestamp, oracleState, role, energyContext } = req.body;
         const userId = (req as any).user_id;
 
         // 🛡️ UsageGuard Limit Check
@@ -63,9 +81,14 @@ export async function apiRoutes(app: FastifyInstance) {
         }
 
         try {
-            const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role);
+            const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext);
+
+            // Generate TTS Audio Buffer for the response
+            const tts = new TTSService();
+            const { hash } = await tts.generateVoice(res);
+
             await UsageGuardService.incrementUsage(userId, 'sigil');
-            return res;
+            return { text: res, audioUrl: `/api/sigil/audio/${hash}` };
         } catch (error: any) {
             console.error("🔥 SIGIL ERROR:", error);
 
@@ -89,6 +112,33 @@ export async function apiRoutes(app: FastifyInstance) {
                 error: "La red estelar está inestable. Revisa tu conexión mística.",
                 details: error.message
             });
+        }
+    });
+
+    // Prompt 5: Lab Session Trigger
+    app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { preHandler: [validateUser] }, async (req, reply) => {
+        const { element } = req.body;
+        const userId = (req as any).user_id;
+
+        try {
+            const { data: user, error } = await supabase
+                .from('profiles')
+                .select('telegram_chat_id')
+                .eq('id', userId)
+                .single();
+
+            if (error || !user?.telegram_chat_id) {
+                return reply.status(400).send({ error: "Telegram no vinculado" });
+            }
+
+            const promptContext = `[SESIÓN LABORATORIO]: El usuario ha iniciado una práctica de ${element}. Genera una instrucción mística de 1-2 líneas para su respiración.`;
+            const message = await sigilService.processMessage(userId, promptContext);
+            
+            await sendProactiveMessage(user.telegram_chat_id, message);
+            return { status: 'ok', sent: true };
+        } catch (e: any) {
+            console.error("🔥 LAB TRIGGER ERROR:", e);
+            return reply.status(500).send({ error: e.message });
         }
     });
 

@@ -151,3 +151,27 @@ export const sendProactiveMessage = async (
         return false;
     }
 }
+
+export const sendProactiveVoice = async (
+    telegramChatId: string,
+    audioBuffer: Buffer,
+    message?: string
+): Promise<boolean> => {
+    if (!bot && config.TELEGRAM_BOT_TOKEN) {
+        initTelegramBot();
+    }
+
+    if (!bot) {
+        console.warn("⚠️ Cannot send Telegram Voice. Bot is offline.");
+        return false;
+    }
+
+    try {
+        await bot.telegram.sendVoice(telegramChatId, { source: audioBuffer }, { caption: message });
+        console.log(`[TELEGRAM] 🔊 Mensaje de voz enviado al ID: ${telegramChatId}`);
+        return true;
+    } catch (e) {
+        console.error(`[TELEGRAM] ❌ Error enviando voz a ${telegramChatId}:`, e);
+        return false;
+    }
+}

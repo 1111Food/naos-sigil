@@ -249,28 +249,94 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                     </div>
                 </div>
             </header>
+            {/* Warning de día no cerrado */}
+            {activeProtocol.current_day > 1 && !dailyLogs.some(l => l.day_number === activeProtocol.current_day - 1) && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 }}
+                    className="max-w-md mx-auto mt-6 px-5 py-2.5 bg-red-950/20 border border-red-500/20 rounded-full text-center text-red-400 text-[10px] uppercase tracking-widest backdrop-blur-md flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.05)]"
+                >
+                    <Shield size={12} className="text-red-500 animate-pulse" />
+                    El ciclo quedó incompleto ayer
+                </motion.div>
+            )}
 
             {/* Daily Synchrony Quote (Active Cycle) */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 2, ease: "easeOut" }}
-                className="max-w-2xl mx-auto px-6 pt-10 pb-2 text-center"
+                className="max-w-2xl mx-auto px-6 pt-8 pb-2 text-center"
             >
                 <p className="font-serif italic text-white/50 text-sm md:text-base tracking-wide drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
                     "{getDailySynchronyQuote()}"
                 </p>
             </motion.div>
 
-            <main className="max-w-3xl mx-auto px-6 py-6 space-y-10">
+            <main className="max-w-2xl mx-auto px-6 py-6 space-y-8">
+                {/* Dynamic Progress Indicator */}
+                {(() => {
+                    const target = activeProtocol.target_days || 21;
+                    const percentage = (activeProtocol.current_day / target) * 100;
+                    const isHigh = percentage >= 70;
+                    const isMid = percentage >= 30 && percentage < 70;
+
+                    return (
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ 
+                                scale: 1, 
+                                opacity: 1,
+                                boxShadow: [
+                                    "0 0 20px rgba(6,182,212,0.05)", 
+                                    "0 0 35px rgba(6,182,212,0.15)", 
+                                    "0 0 20px rgba(6,182,212,0.05)"
+                                ]
+                            }}
+                            transition={{ 
+                                scale: { duration: 0.8, ease: "easeOut" },
+                                opacity: { duration: 0.8 },
+                                boxShadow: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                            }}
+                            className="bg-gradient-to-r from-cyan-950/10 to-transparent border border-white/5 p-5 rounded-2xl relative overflow-hidden backdrop-blur-md"
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <div>
+                                    <span className="text-[9px] uppercase tracking-[0.2em] text-cyan-400 font-black">Integración del Sello</span>
+                                    <p className="text-[10px] text-white/30 tracking-wider">Frecuencia en resonancia</p>
+                                </div>
+                                <span className={cn(
+                                    "text-lg font-black font-mono transition-all duration-1000",
+                                    isHigh ? "text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse" : isMid ? "text-cyan-400/80" : "text-white/40"
+                                )}>
+                                    {Math.round(percentage)}%
+                                </span>
+                            </div>
+                            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <motion.div 
+                                    initial={{ width: 0 }} 
+                                    key={percentage} // Forces animation key triggers on Day complete
+                                    animate={{ width: `${percentage}%` }}
+                                    transition={{ duration: 1.5, ease: "backOut" }}
+                                    className={cn(
+                                        "h-full bg-cyan-500 rounded-full transition-shadow duration-1000",
+                                        isHigh ? "shadow-[0_0_30px_rgba(6,182,212,1)] bg-cyan-400" : isMid ? "shadow-[0_0_15px_rgba(6,182,212,0.5)]" : "shadow-[0_0_5px_rgba(6,182,212,0.2)] bg-cyan-600"
+                                    )}
+                                />
+                            </div>
+                        </motion.div>
+                    );
+                })()}
+
                 {/* 21-Day Progress Grid */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between px-2">
                         <span className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-serif">Alineación del Sello</span>
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-amber-500/70 font-black">Día {activeProtocol.current_day} / 21</span>
+                        <span className="text-[10px] uppercase tracking-[0.3em] text-amber-500/70 font-black">Día {activeProtocol.current_day} / {activeProtocol.target_days || 21}</span>
                     </div>
                     <div className="grid grid-cols-7 gap-3">
-                        {Array.from({ length: 21 }).map((_, i) => {
+                        {Array.from({ length: activeProtocol.target_days || 21 }).map((_, i) => {
                             const dayNum = i + 1;
                             const isCompleted = dailyLogs.some(log => log.day_number === dayNum && log.is_completed);
                             const isCurrent = dayNum === activeProtocol.current_day;

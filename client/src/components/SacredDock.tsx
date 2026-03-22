@@ -1,12 +1,11 @@
 import React, { useState, memo } from 'react';
-import { Home, Users, User, LogOut, Volume2, VolumeX, Aperture, Send, Bot, Zap } from 'lucide-react';
+import { Home, User, LogOut, Volume2, VolumeX, Aperture, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
-import { usePerformance } from '../context/PerformanceContext';
 
 interface SacredDockProps {
     activeView: string;
@@ -16,7 +15,6 @@ interface SacredDockProps {
 
 export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavigate, onLogout }) => {
     const { activeAura, setAura } = useTheme();
-    const { isLowPerformance, togglePerformanceMode } = usePerformance();
     const [showAuras, setShowAuras] = useState(false);
     const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
     const [isSigilSettingsOpen, setIsSigilSettingsOpen] = useState(false);
@@ -122,23 +120,6 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                             <Aperture className={cn(
                                 "w-5 h-5 md:w-6 md:h-6 transition-all duration-500",
                                 showAuras ? "text-cyan-400 rotate-90" : "text-white/40 group-hover:text-cyan-400"
-                            )} />
-                        </button>
-                    </div>
-
-                    {/* Performance Toggle (Batería) */}
-                    <div className="relative flex justify-center md:mb-2">
-                        <button
-                            onClick={togglePerformanceMode}
-                            className={cn(
-                                "p-2 md:p-3 rounded-full border transition-all duration-300 group",
-                                isLowPerformance ? "bg-amber-500/20 border-amber-500/40 text-amber-400" : "bg-white/5 border-white/10 hover:bg-white/10 text-white/30 hover:text-amber-400"
-                            )}
-                            title={isLowPerformance ? "Modo Alto Rendimiento" : "Modo Batería (Bajo Rendimiento)"}
-                        >
-                            <Zap className={cn(
-                                "w-5 h-5 md:w-6 md:h-6 transition-all duration-500",
-                                isLowPerformance ? "animate-pulse" : "group-hover:rotate-12"
                             )} />
                         </button>
                     </div>

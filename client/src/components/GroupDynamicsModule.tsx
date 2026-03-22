@@ -264,6 +264,42 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                             ))}
                         </div>
                     </div>
+
+                    {/* Prompt 5: B2B Roles & Risks (NAOS TEAMS) */}
+                    {report.synthesis && report.synthesis.roles_sugeridos && (
+                        <div className="mt-8 pt-8 border-t border-blue-500/20 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-white/5 p-6 rounded-2xl border border-white/5 space-y-3">
+                                <h4 className="text-[10px] uppercase tracking-widest text-cyan-400 font-bold flex items-center gap-2">
+                                    <Users size={14} /> Roles Sugeridos
+                                </h4>
+                                <div className="space-y-2 text-xs text-white/80 font-light">
+                                    <p><strong className="text-white">Liderazgo:</strong> {report.synthesis.roles_sugeridos.liderazgo}</p>
+                                    <p><strong className="text-white">Ejecución:</strong> {report.synthesis.roles_sugeridos.ejecucion}</p>
+                                    <p><strong className="text-white">Creación:</strong> {report.synthesis.roles_sugeridos.creacion}</p>
+                                </div>
+                            </div>
+
+                            {report.synthesis.alerta_riesgo && (
+                                <div className="bg-rose-500/10 p-6 rounded-2xl border border-rose-500/20 space-y-2 flex flex-col justify-center">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldAlert size={14} className="text-rose-400" />
+                                        <h4 className="text-[10px] uppercase tracking-widest text-rose-400 font-bold">Alerta de Riesgo</h4>
+                                    </div>
+                                    <p className="text-xs text-white/80 font-light leading-relaxed">{report.synthesis.alerta_riesgo}</p>
+                                </div>
+                            )}
+
+                            {report.synthesis.accion_recomendada && (
+                                <div className="bg-blue-500/10 p-6 rounded-2xl border border-blue-500/20 space-y-2 flex flex-col justify-center">
+                                    <div className="flex items-center gap-2">
+                                        <Target size={14} className="text-blue-400" />
+                                        <h4 className="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Acción Recomendada</h4>
+                                    </div>
+                                    <p className="text-xs text-white/80 font-light leading-relaxed">{report.synthesis.accion_recomendada}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );

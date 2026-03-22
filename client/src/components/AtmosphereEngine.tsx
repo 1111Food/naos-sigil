@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useProfile } from '../contexts/ProfileContext';
 import { useCoherence } from '../hooks/useCoherence';
+import { usePerformance } from '../context/PerformanceContext';
 
 // Particle definition
 interface Particle {
@@ -58,9 +59,15 @@ const MODES = {
 export const AtmosphereEngine: React.FC = () => {
     const { profile } = useProfile();
     const { score } = useCoherence();
+    const { isSettled } = usePerformance();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const particlesRef = useRef<Particle[]>([]);
     const requestRef = useRef<number>(0);
+    const isSettledRef = useRef(isSettled);
+
+    useEffect(() => {
+        isSettledRef.current = isSettled;
+    }, [isSettled]);
 
     const currentIntent = profile?.dominant_intent || 'none';
     const config = MODES[currentIntent as keyof typeof MODES] || MODES.none;
@@ -100,6 +107,10 @@ export const AtmosphereEngine: React.FC = () => {
         };
 
         const animate = (time: number) => {
+            if (isSettledRef.current) {
+                requestRef.current = requestAnimationFrame(animate);
+                return; // Freeze Canvas in place
+            }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (particlesRef.current.length < targetCount) {

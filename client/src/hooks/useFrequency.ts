@@ -109,14 +109,24 @@ export const useFrequency = () => {
 
         if (!isAtmosphereEnabled) {
             // ============================================
-            // BRANCH A: ONDA PURA (Mathematical Synthesis)
+            // BRANCH A: ONDA PURA (Binaural Beat Entrainment)
             // ============================================
-            // Create a rich droning sound using 3 oscillators (Fundamental, Sub, fifth)
-            const osc1 = ctx.createOscillator(); // Fundamental
-            osc1.type = 'sine';
-            osc1.frequency.value = baseHz;
+            // Create stereoscopic separation for Binaural Beats (4Hz Detune)
+            const oscLeft = ctx.createOscillator();
+            oscLeft.type = 'sine';
+            oscLeft.frequency.value = baseHz;
 
-            const osc2 = ctx.createOscillator(); // Sub-octave for body
+            const oscRight = ctx.createOscillator();
+            oscRight.type = 'sine';
+            oscRight.frequency.value = baseHz + 4; // 4Hz offset for Theta Brainwave Flow
+
+            const pannerLeft = ctx.createStereoPanner();
+            pannerLeft.pan.value = -1;
+            
+            const pannerRight = ctx.createStereoPanner();
+            pannerRight.pan.value = 1;
+
+            const osc2 = ctx.createOscillator(); // Sub-octave for body (center)
             osc2.type = 'triangle';
             osc2.frequency.value = baseHz / 2;
 
@@ -124,26 +134,29 @@ export const useFrequency = () => {
             osc3.type = 'sine';
             osc3.frequency.value = baseHz * 1.5;
 
-            // Create an LFO to modulate the gain slightly (creates a "breathing" / vibrating effect)
+            // Create LFO to modulate gain (creates breathing wave)
             const lfo = ctx.createOscillator();
             lfo.type = 'sine';
-            lfo.frequency.value = 0.1; // Very slow wave (10 seconds per cycle)
+            lfo.frequency.value = 0.1; // Slow 10s wave
 
             const lfoGain = ctx.createGain();
-            lfoGain.gain.value = 0.2; // Depth of the modulation
+            lfoGain.gain.value = 0.15; // Depth of breathing
 
             lfo.connect(lfoGain);
 
-            // Mix oscillators into a dedicated Carrier Gain (so we don't squash the MP3 later)
             const carrierGain = ctx.createGain();
-            carrierGain.gain.value = 1.0;
             carrierGain.connect(masterGain);
 
-            const mixGain1 = ctx.createGain(); mixGain1.gain.value = 0.5;
-            const mixGain2 = ctx.createGain(); mixGain2.gain.value = 0.3; // triangle is louder
-            const mixGain3 = ctx.createGain(); mixGain3.gain.value = 0.1; // fifth is quiet
+            const mixGain1 = ctx.createGain(); mixGain1.gain.value = 0.4;
+            const mixGain2 = ctx.createGain(); mixGain2.gain.value = 0.25;
+            const mixGain3 = ctx.createGain(); mixGain3.gain.value = 0.1;
 
-            osc1.connect(mixGain1);
+            // Stereoscopic connection
+            oscLeft.connect(pannerLeft);
+            oscRight.connect(pannerRight);
+            pannerLeft.connect(mixGain1);
+            pannerRight.connect(mixGain1); // Combine fundamental into same master gain trigger
+
             osc2.connect(mixGain2);
             osc3.connect(mixGain3);
 
@@ -151,17 +164,16 @@ export const useFrequency = () => {
             mixGain2.connect(carrierGain);
             mixGain3.connect(carrierGain);
 
-            // Apply LFO specifically to carrier gain so the pulsing doesn't kill the MP3 volume
             lfoGain.connect(carrierGain.gain);
 
-            // Start all oscillators
-            osc1.start();
+            oscLeft.start();
+            oscRight.start();
             osc2.start();
             osc3.start();
             lfo.start();
 
-            oscillatorsRef.current = [osc1, osc2, osc3];
-            if(!lfoRef.current) lfoRef.current = lfo;
+            oscillatorsRef.current = [oscLeft, oscRight, osc2, osc3];
+            if (!lfoRef.current) lfoRef.current = lfo;
 
         } else {
             // ============================================

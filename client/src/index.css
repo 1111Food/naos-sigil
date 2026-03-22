@@ -513,3 +513,18 @@ body.aura-zen-white nav.fixed .lucide {
 .low-performance .animate-pulse-slow {
   animation: none !important;
 }
+
+/* --- Blur Reductions --- */
+.low-performance * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.low-performance .glass-card {
+  background: rgba(20, 20, 22, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.low-performance .glass-panel {
+  background: rgba(10, 10, 12, 0.95) !important;
+}

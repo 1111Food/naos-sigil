@@ -63,6 +63,11 @@ export class SynastryOracle {
                 ],
                 "riesgo": "1 párrafo corto (máx 2 líneas) explicando qué puede fallar y en qué contexto ocurre.",
                 "traduccion_simple": "1 sola frase clara y directa en lenguaje cotidiano, sin términos técnicos (máx 15 palabras).",
+                "origen_calculo": {
+                    "astrologia": "1 línea explicando el origen astral (Ej: Tu Luna en X genera tensión con su Marte en Y)",
+                    "numerologia": "1 línea explicando la correspondencia numérica (Ej: Tu 7 y su 5)",
+                    "maya": "1 línea explicando la afinidad de nahuales"
+                },
                 "explicaciones_pilares": {
                     "sexual_erotic": "Narrativa sobre la sinergia creadora entre estos dos arquetipos.",
                     "intellectual_mercurial": "Narrativa sobre la estrategia mental y decodificación mutua.",

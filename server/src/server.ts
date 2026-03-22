@@ -3,6 +3,7 @@ import { config } from './config/env';
 import { startDaemon } from './agent/consciousness-loop';
 import { initTelegramBot } from './modules/sigil/telegramService';
 import { DailyOracleCron } from './modules/oracle/DailyOracleCron';
+import { NotificationEngine } from './modules/notifications/NotificationEngine';
 
 // Global error handlers to prevent hanging processes
 process.on('uncaughtException', (err) => {
@@ -58,6 +59,9 @@ const start = async () => {
 
         // AWAKEN THE DAILY ORACLE DAEMON (5:00 AM)
         DailyOracleCron.scheduleDaemon();
+
+        // AWAKEN THE NOTIFICATION ENGINE (PROACTIVE REMINDERS)
+        NotificationEngine.scheduleDaemon();
 
     } catch (err: any) {
         if (err.code === 'EADDRINUSE') {

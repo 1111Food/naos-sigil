@@ -15,6 +15,8 @@ import { IdentityAltar } from './components/IdentityAltar';
 import { Guardian } from './components/Guardian';
 import { GuardianProvider } from './contexts/GuardianContext';
 import { OnboardingInitiation } from './components/OnboardingInitiation';
+import { FloatingLaboratorio } from './components/FloatingLaboratorio';
+import { SigilBubble } from './components/SigilBubble';
 
 import { StatusBadge } from './components/StatusBadge';
 import { DevPlanToggle } from './components/DevPlanToggle';
@@ -268,7 +270,7 @@ function App() {
       case 'TAROT':
         return <Tarot onBack={() => setActiveView('TEMPLE')} />;
       case 'CHAT':
-        return <ChatInterface />;
+        return <ChatInterface onNavigate={setActiveView} />;
       case 'SANCTUARY':
         return <Sanctuary onBack={() => setActiveView('TEMPLE')} initialRitual={activeRitual} />;
       case 'PROFILE':
@@ -311,6 +313,8 @@ function App() {
           <EtherBackground />
           <NaosVibrationEngine />
           <Guardian view={activeView} onOpenChat={() => setActiveView('CHAT')} />
+          <FloatingLaboratorio onNavigate={navigateWithRitual} />
+          <SigilBubble />
           <DevPlanToggle />
 
           <div className="relative z-10 min-h-screen flex flex-col animate-in fade-in duration-1000">

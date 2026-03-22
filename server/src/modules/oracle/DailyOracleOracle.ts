@@ -32,19 +32,16 @@ ${context.toneProfile === 'BALANCED' ? 'Tono Claro y equilibrado entre diagnóst
 
 🔮 Lectura NAOS — Hoy
 
-Energía del día:
-[Breve descripción mística/técnica, máx 1 línea]
+DIAGNÓSTICO DEL DÍA:
+[Breve descripción mística/técnica de la energía de hoy, máx 1 línea]
 
-Interacción contigo:
-[Cómo resuena con el usuario, máx 2 líneas]
+FUERZA ACTIVA:
+[Cómo resuena con el usuario y dónde empujar hoy, máx 2 líneas]
 
-Riesgo:
+RIESGO:
 [Qué vigilar hoy, ej: impulsividad, fatiga, máx 1 línea]
 
-Oportunidad:
-[Dónde apretar el acelerador hoy, máx 1 línea]
-
-Acción NAOS:
+ACCIÓN CONCRETA:
 [La única tarea de Bio-Hacking o conducta para hoy, ej: 10 mins Respiración de Fuego]
         `;
 

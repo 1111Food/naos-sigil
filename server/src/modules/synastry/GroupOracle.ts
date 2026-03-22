@@ -54,7 +54,14 @@ export class GroupOracle {
                 "friccion_operativa": "Cuellos de botella profundos, puntos de ruptura técnica y desencuentros operativos.",
                 "liderazgo_distribuido": "Mapeo de la Arquitectura de Poder. Quién sostiene la estructura y quién impulsa la aceleración.",
                 "flujo_informacion": "Protocolos de comunicación interna, flujo de datos y resolución de crisis.",
-                "veredicto_arquitecto": "Dictamen final y extenso del Arquitecto NAOS para optimizar el rendimiento grupal."
+                "veredicto_arquitecto": "Dictamen final y extenso del Arquitecto NAOS para optimizar el rendimiento grupal.",
+                "roles_sugeridos": {
+                    "ejecucion": "Quién ejecuta (Nombre)",
+                    "liderazgo": "Quién lidera (Nombre)",
+                    "creacion": "Quién crea (Nombre)"
+                },
+                "alerta_riesgo": "Descripción breve del riesgo operativo del ensamble (máx 15 palabras).",
+                "accion_recomendada": "Acción estratégica para balancear al equipo (máx 15 palabras)."
             }
         `;
 

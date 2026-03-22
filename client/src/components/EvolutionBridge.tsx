@@ -45,23 +45,25 @@ export const EvolutionBridge: React.FC<EvolutionBridgeProps> = ({ isOpen, onEvol
                         </motion.div>
 
                         <div className="space-y-6 max-w-2xl">
-                            <motion.h1
+                             <motion.h1
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.4 }}
                                 className="text-3xl md:text-5xl font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-cyan-200 tracking-tight"
                             >
-                                INERCIA ENTRÓPICA ROTA
+                                UMBRAL COMPLETADO
                             </motion.h1>
 
                             <motion.p
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.5 }}
-                                className="text-lg md:text-xl text-white/70 font-sans font-light leading-relaxed"
+                                className="text-lg md:text-xl text-white/90 font-sans font-light leading-relaxed max-w-lg mx-auto"
                             >
-                                Has completado 21 días. La neuroplasticidad ha forjado el hábito en tu mente.
-                                Pero un hábito sin consolidación es frágil. 21 días crean la chispa; 90 días construyen el estilo de vida y la identidad permanente.
+                                Has sostenido coherencia durante 21 ciclos.
+                                Ahora puedes convertir esto en tu nueva identidad.
+                                <br />
+                                <span className="text-amber-400 font-serif italic text-base mt-4 block">"21 días no es motivación. Es evidencia."</span>
                             </motion.p>
 
                             <motion.div

@@ -10,6 +10,7 @@ interface Message {
     sender: 'user' | 'sigil';
     timestamp: string;
     isHistory?: boolean;
+    audioUrl?: string;
 }
 
 interface SynastryEntry {

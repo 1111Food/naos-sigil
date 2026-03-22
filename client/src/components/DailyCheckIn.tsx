@@ -64,6 +64,9 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
         gratitude: false
     });
 
+    const [floatingText, setFloatingText] = useState<{ id: number; x: number; y: number; text: string }[]>([]);
+    const [shakeCount, setShakeCount] = useState(0);
+
     // Load today's checks from localStorage if any
     const todayStr = new Date().toISOString().split('T')[0];
     useEffect(() => {
@@ -86,11 +89,18 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
         playSound(newState ? 'success' : 'click');
     };
 
-    const handleComplete = async () => {
+    const handleComplete = async (e: React.MouseEvent) => {
+        const checkedCount = Object.values(checks).filter(Boolean).length;
+        
+        if (checkedCount < 3) {
+            setShakeCount(prev => prev + 1);
+            playSound('click'); // Reject sound or click
+            return;
+        }
+
         if (!note.trim() || isCompletedToday) return;
         setCompleting(true);
         try {
-            // Include pillars in the note or save them separately if we had the field
             const pillarsSummary = Object.entries(checks)
                 .filter(([_, val]) => val)
                 .map(([key, _]) => key.toUpperCase())
@@ -104,13 +114,21 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
             // Sync with Guardian Context
             await saveRituals(currentDay, checks as any);
 
+            const rewards = ["+3 Disciplina", "Día Validado", "Racha Sostenida"];
+            const randomText = rewards[Math.floor(Math.random() * rewards.length)];
+
+            // Trigger floating dopamine score
+            const clickX = e.clientX || window.innerWidth / 2;
+            const clickY = e.clientY || window.innerHeight / 2;
+            setFloatingText([{ id: Date.now(), x: clickX, y: clickY, text: randomText }]);
+
             playSound('success');
             setNote('');
 
             if (onSuccess) {
                 setTimeout(() => {
                     onSuccess();
-                }, 1000);
+                }, 1200);
             }
         } catch (e) {
             console.error(e);
@@ -243,19 +261,49 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                             />
                         </div>
 
-                        <button
-                            disabled={!note.trim() || completing}
-                            onClick={handleComplete}
-                            className={cn(
-                                "w-full py-4 rounded-full font-bold uppercase tracking-widest text-sm transition-all flex items-center justify-center gap-2 relative overflow-hidden group",
-                                note.trim()
-                                    ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]"
-                                    : "bg-white/5 text-white/20 cursor-not-allowed border border-white/5"
-                            )}
+                        {/* Minimum pillars warning */}
+                        {Object.values(checks).filter(Boolean).length < 3 && (
+                            <p className="text-center text-[10px] text-amber-500/80 uppercase tracking-widest font-mono">
+                                🔒 Se requieren al menos 3 pilares para sellar el día
+                            </p>
+                        )}
+
+                        <motion.div
+                            animate={shakeCount > 0 ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+                            transition={{ duration: 0.4 }}
                         >
-                            {note.trim() && <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />}
-                            <span className="relative z-10">{completing ? "Sellando..." : "Sellar Día"}</span>
-                        </button>
+                            <button
+                                disabled={!note.trim() || completing}
+                                onClick={handleComplete}
+                                className={cn(
+                                    "w-full py-4 rounded-full font-bold uppercase tracking-widest text-sm transition-all flex items-center justify-center gap-2 relative overflow-hidden group",
+                                    note.trim() && Object.values(checks).filter(Boolean).length >= 3
+                                        ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]"
+                                        : "bg-white/5 text-white/20 cursor-not-allowed border border-white/5"
+                                )}
+                            >
+                                {note.trim() && <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />}
+                                <span className="relative z-10">{completing ? "Sellando..." : "Sellar Día"}</span>
+                            </button>
+                        </motion.div>
+
+                        {/* Floating Action Rewards */}
+                        <AnimatePresence>
+                            {floatingText.map(item => (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 1, y: 0, scale: 0.8 }}
+                                    animate={{ opacity: 0, y: -80, scale: 1.5 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 1.2, ease: "easeOut" }}
+                                    onAnimationComplete={() => setFloatingText([])}
+                                    style={{ left: item.x - 40, top: item.y - 120 }}
+                                    className="fixed pointer-events-none z-[9999] text-amber-500 font-serif italic text-xl drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"
+                                >
+                                    {item.text}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 )}
             </div>

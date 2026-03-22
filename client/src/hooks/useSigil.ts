@@ -70,10 +70,10 @@ export function useSigil(userName?: string, energyContext?: any) {
                 throw new Error(`Error ${response.status}`);
             }
 
-            const data = await response.text();
+            const data = await response.json();
 
             // Sanitización inmediata frontend
-            const sanitizedData = data
+            const sanitizedData = (data.text || '')
                 .replace(/\bhla\b/gi, 'Saludos')
                 .replace(/hla,/gi, 'Saludos,')
                 .replace(/conooimiento/gi, 'conocimiento');
@@ -82,7 +82,13 @@ export function useSigil(userName?: string, energyContext?: any) {
             if (retryCount === 0) {
                 addGlobalMessage({ id: `u-${now}`, text, sender: 'user' });
             }
-            addGlobalMessage({ id: `s-${Date.now()}`, text: sanitizedData, sender: 'sigil' });
+            
+            addGlobalMessage({ 
+                id: `s-${Date.now()}`, 
+                text: sanitizedData, 
+                sender: 'sigil',
+                audioUrl: data.audioUrl 
+            });
 
         } catch (err) {
             console.error("Sigil Connection Error:", err);

@@ -39,7 +39,7 @@ export class SigilService {
         return stateStore[userId];
     }
 
-    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false): Promise<string> {
+    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any): Promise<string> {
         console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}`);
 
         try {
@@ -335,11 +335,29 @@ export class SigilService {
     ${userEnergyContext}
     ${dailyEnergyContext}
     
+    ${energyContext?.protocol_status ? `
+    [ESTADO DEL PROTOCOLO DE CONSOLIDACIÓN (21-90)]
+    Día Actual: ${energyContext.protocol_status.day} / ${energyContext.protocol_status.target}
+    Fase Actual: ${energyContext.protocol_status.status === 'awaiting_evolution' ? 'UMBRAL DE ASCENSIÓN' : 'ACTIVO'}
+    Alerta: ${energyContext.protocol_status.protocol_warning ? "⚠️ EL CICLO QUEDÓ INCOMPLETO AYER. Exige disciplina y consistencia de inmediato en tu respuesta." : "Sintonía estable."}
+    ` : ''}
+    
     [ADAPTACIÓN DE CONCIENCIA - EL LENTE]
     ${consciousnessContext}
     ${regulationContext || ''}
     ${coherenceContextTag}
     
+    [ESTRUCTURA DE RESPUESTA OBLIGATORIA (4 CAPAS)]
+    Debes responder SIEMPRE estructurando tu mensaje en estos 4 bloques exactos:
+    1. DIAGNÓSTICO REAL: Qué está pasando (sin suavizar) y qué dinámica energética se detecta.
+    2. FUERZA ACTIVA: Qué está a favor del usuario y qué puede aprovechar hoy.
+    3. RIESGO / FRICCIÓN: Qué lo puede sabotear o qué patrón repetitivo debe vigilar.
+    4. ACCIÓN CONCRETA: 1 a 3 acciones específicas para hoy (Nada abstracto).
+    - Restricción: Máximo 2-3 líneas por bloque. Lenguaje directo, sin relleno espiritual. Prohibido sonar genérico.
+    
+    [MEMORIA DE PATRONES]
+    Si las notas del Guardián inyectadas mencionan un patrón recurrente (procrastinación, evasión), incluye una referencia sutil: "He detectado que este patrón ya ha aparecido antes en tus decisiones...". (Máximo 1 vez cada 3 interacciones).
+
     [ESTADO DE COHERENCIA ACTUAL]
     ${architectContext}
     

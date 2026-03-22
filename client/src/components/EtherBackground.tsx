@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { usePerformance } from '../context/PerformanceContext';
 
 const ZODIAC_SYMBOLS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
@@ -19,40 +19,13 @@ interface FloatingItem {
 }
 
 export const EtherBackground: React.FC = () => {
-    const { isLowPerformance } = usePerformance();
-    const [isSettled, setIsSettled] = useState(false);
-
-    useEffect(() => {
-        if (isLowPerformance) return;
-
-        let idleTimer: ReturnType<typeof setTimeout>;
-
-        const wakeUp = () => {
-            setIsSettled(false);
-            clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => {
-                setIsSettled(true);
-            }, 5000); // Duración de caída
-        };
-
-        // Activación inicial
-        wakeUp();
-
-        // Escuchadores de eventos para interactividad
-        const events = ['scroll', 'touchstart', 'click', 'mousemove'];
-        events.forEach(event => window.addEventListener(event, wakeUp, { passive: true }));
-
-        return () => {
-            clearTimeout(idleTimer);
-            events.forEach(event => window.removeEventListener(event, wakeUp));
-        };
-    }, [isLowPerformance]);
+    const { isLowPerformance, isSettled } = usePerformance();
 
     const symbols = useMemo(() => {
         const items: FloatingItem[] = [];
         const pool = [...ZODIAC_SYMBOLS, ...ZODIAC_SYMBOLS, ...NUMBERS];
 
-        for (let i = 0; i < 48; i++) {
+        for (let i = 0; i < 80; i++) {
             const size = 0.5 + Math.random() * 1.5;
             items.push({
                 id: i,

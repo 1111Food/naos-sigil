@@ -34,6 +34,9 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
         birthCountry: profile?.birthCountry || '',
     });
 
+    const [isDecoding, setIsDecoding] = useState(false);
+    const [decodingText, setDecodingText] = useState("");
+
     // CHECK: Identity Altar Mode
     if (profile?.name && !isEditing) {
         return (
@@ -105,6 +108,25 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
             }
 
             await refreshProfile();
+
+            // Prompt Bloque 1: Secuencia de Revelación
+            setIsDecoding(true);
+            setDecodingText("Decodificando arquitectura...");
+            await new Promise(r => setTimeout(r, 400));
+            setDecodingText("Sincronizando patrones...");
+            await new Promise(r => setTimeout(r, 400));
+            setDecodingText("Estabilizando frecuencia...");
+            await new Promise(r => setTimeout(r, 400));
+
+            // TTS (Speech Synthesis)
+            if ('speechSynthesis' in window) {
+                const msg = new SpeechSynthesisUtterance("Acceso concedido. Tu estructura ha sido interpretada. Este es tu código base.");
+                msg.lang = 'es-ES';
+                msg.rate = 0.9;
+                window.speechSynthesis.speak(msg);
+            }
+
+            setIsDecoding(false);
             onComplete(fullProfile);
 
         } catch (err) {
@@ -332,6 +354,37 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 </p>
                             </div>
                         </form>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Prompt Bloque 1: Secuencia de Revelación */}
+            <AnimatePresence>
+                {isDecoding && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/90 backdrop-blur-3xl z-[500] flex flex-col items-center justify-center space-y-8"
+                    >
+                        <motion.div 
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="w-24 h-24 rounded-full border border-cyan-500/30 border-t-cyan-400 flex items-center justify-center relative shadow-[0_0_50px_rgba(6,182,212,0.2)]"
+                        >
+                            <div className="absolute inset-3 rounded-full border border-cyan-500/10 border-b-cyan-300 animate-spin" />
+                        </motion.div>
+                        
+                        <motion.p 
+                            key={decodingText}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="text-cyan-200 font-serif italic text-base tracking-wide drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                        >
+                            {decodingText}
+                        </motion.p>
                     </motion.div>
                 )}
             </AnimatePresence>

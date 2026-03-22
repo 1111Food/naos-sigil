@@ -5,6 +5,8 @@ type PerformanceMode = 'high' | 'low';
 interface PerformanceContextType {
     mode: PerformanceMode;
     isLowPerformance: boolean;
+    isIdle: boolean;
+    isSettled: boolean;
     setPerformanceMode: (mode: PerformanceMode) => void;
     togglePerformanceMode: () => void;
 }
@@ -25,17 +27,70 @@ export const PerformanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return isMobileDefault() ? 'low' : 'high';
     });
 
+    const [isIdle, setIsIdle] = useState(false);
+    const [isSettled, setIsSettled] = useState(false);
     const isLowPerformance = mode === 'low';
 
-    // 3. Effect to apply CSS class to body
+    // 2b. Global Static Frame Settle Cycle (7s fall / 5m sleep)
     useEffect(() => {
-        if (isLowPerformance) {
-            document.documentElement.classList.add('low-performance');
-        } else {
-            document.documentElement.classList.remove('low-performance');
-        }
+        if (isLowPerformance) return;
+
+        let freezeTimer: ReturnType<typeof setTimeout>;
+
+        const runCycle = () => {
+            setIsSettled(false);
+            freezeTimer = setTimeout(() => {
+                setIsSettled(true);
+            }, 10000); // 10s active fall
+        };
+
+        runCycle();
+
+        const intervalTimer = setInterval(() => {
+            runCycle();
+        }, 5 * 60 * 1000); // 5 minutes interval
+
+        return () => {
+            clearTimeout(freezeTimer);
+            clearInterval(intervalTimer);
+        };
+    }, [isLowPerformance]);
+
+    // 3. Idle detection (5s without interaction)
+    useEffect(() => {
+        let timeoutId: number;
+
+        const resetIdle = () => {
+            setIsIdle(false);
+            window.clearTimeout(timeoutId);
+            timeoutId = window.setTimeout(() => {
+                setIsIdle(true);
+            }, 5000); // 5 seconds threshold
+        };
+
+        const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+        events.forEach(event => window.addEventListener(event, resetIdle));
+
+        resetIdle(); // Start timer
+
+        return () => {
+            events.forEach(event => window.removeEventListener(event, resetIdle));
+            window.clearTimeout(timeoutId);
+        };
+    }, []);
+
+    // 4. Effect to apply CSS class to body
+    useEffect(() => {
+        const classes = document.documentElement.classList;
+        
+        if (isLowPerformance) classes.add('low-performance');
+        else classes.remove('low-performance');
+
+        if (isIdle) classes.add('is-idle');
+        else classes.remove('is-idle');
+
         localStorage.setItem('naos_performance_mode', mode);
-    }, [mode, isLowPerformance]);
+    }, [mode, isLowPerformance, isIdle]);
 
     const setPerformanceMode = (newMode: PerformanceMode) => {
         setMode(newMode);
@@ -46,7 +101,7 @@ export const PerformanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     return (
-        <PerformanceContext.Provider value={{ mode, isLowPerformance, setPerformanceMode, togglePerformanceMode }}>
+        <PerformanceContext.Provider value={{ mode, isLowPerformance, isIdle, isSettled, setPerformanceMode, togglePerformanceMode }}>
             {children}
         </PerformanceContext.Provider>
     );

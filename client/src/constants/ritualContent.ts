@@ -3,6 +3,8 @@ export interface RitualStep {
     title: string;
     copy: string;
     description?: string; // Deep explanation for the Info Modal
+    scientificImpact?: string; // Biological benefit (e.g., HRV gain)
+    neuroEffect?: string; // Brain logic benefit
     durationSeconds: number;
 }
 
@@ -13,7 +15,9 @@ export interface ElementRitual {
         id: string;
         label: string;
         copy: string;
-        description?: string; // Deep explanation for the Info Modal
+        description?: string; 
+        scientificImpact?: string;
+        neuroEffect?: string;
         technique: 'WATER_CALM' | 'EARTH_GROUND' | 'FIRE_ACTIVATE' | 'AIR_FLOW' | 'BHASTRIKA' | 'BOX' | 'COHERENCE' | 'UJJAYI' | 'NADI' | 'BUMBLEBEE' | 'HYPEROX' | 'INTERMITTENT';
         durationSeconds: number;
     };
@@ -31,6 +35,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Respiración de Fuego',
                 copy: 'Enciende tu centro de mando.',
                 description: 'La respiración de fuego activa el sistema nervioso simpático, aumentando la temperatura corporal y la circulación sanguínea. Ideal para generar energía inmediata y despertar la voluntad de acción antes de enfrentar desafíos importantes.',
+                scientificImpact: 'Estimula la glándula suprarrenal liberando adrenalina controlada. Eleva la VO2 Max y temperatura central.',
+                neuroEffect: 'Empuja oxígeno a la corteza prefrontal disipando la niebla mental aguda.',
                 technique: 'FIRE_ACTIVATE',
                 durationSeconds: 120
             },
@@ -39,6 +45,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Arquitectura del Deseo',
                 copy: 'Visualiza tu objetivo como una estructura de luz pura. Aliméntala con tu pulsación.',
                 description: 'Esta práctica utiliza la energía vital generada previamente para enfocar la mente en un único objetivo claro. Al concentrar el "fuego interno", transformamos la intención difusa en un láser de manifestación directa.',
+                scientificImpact: 'Entrenamiento neuro-cognitivo de foco sostenido.',
+                neuroEffect: 'Inhibe la red por defecto (DMN) favoreciendo la red de atención ejecutiva.',
                 durationSeconds: 180
             },
             anchor: {
@@ -57,6 +65,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Fuelle de Bhastrika',
                 copy: 'Aviva el fuego interno con el fuelle de tus pulmones.',
                 description: 'Bhastrika es una técnica yógica ancestral que purifica los canales de energía (nadis) mediante inhalaciones y exhalaciones forzadas. Actúa como un fuelle que limpia toxinas físicas y mentales, elevando dramáticamente la energía pránica.',
+                scientificImpact: 'Hiperventilación rítmica que alcaliniza el pH sanguíneo.',
+                neuroEffect: 'Provoca un reset sináptico temporal cortando bucles de sobre-pensamiento.',
                 technique: 'BHASTRIKA',
                 durationSeconds: 120
             },
@@ -65,6 +75,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Trataka (Candela)',
                 copy: 'Fija tu mirada en la llama eterna. Deja que consuma tus pensamientos.',
                 description: 'Meditación Trataka con enfoque en el elemento fuego. Al sostener la mirada fija (preferiblemente en una vela real o imaginada), se aquieta la mente discursiva, estimulando la glándula pineal y la concentración profunda (Dharana).',
+                scientificImpact: 'Estimulación propioceptiva visual y lumínica cortical.',
+                neuroEffect: 'Induce producción incremental de melatonina y serotonina pineal.',
                 durationSeconds: 180
             },
             anchor: {
@@ -83,6 +95,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Hiper-Oxigenación',
                 copy: 'Satura tu sangre de energía vital.',
                 description: 'Inspirada en el método de Wim Hof, esta técnica hiperventila controladamente el sistema, alcalinizando la sangre temporalmente y suprimiendo la alarma de CO2. Produce un estado de euforia, alerta y resistencia física extrema.',
+                scientificImpact: 'Saturación alveolar de O2 con supresión de alarma de CO2.',
+                neuroEffect: 'Shock de dopamina y adrenalina para resistencia cognitiva extrema.',
                 technique: 'HYPEROX',
                 durationSeconds: 120
             },
@@ -91,6 +105,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Focus Laser',
                 copy: 'Elimina toda distracción. Tu mente es un rayo que atraviesa cualquier obstáculo.',
                 description: 'Entrenamiento neuro-cognitivo de alta intensidad. Utilizando la química alterada de la respiración previa, esta sintonización programa al cerebro para ignorar estímulos irrelevantes y enfocar el 100% de la atención en una métrica clave.',
+                scientificImpact: 'Optimización de RAM cognitiva prefrontal.',
+                neuroEffect: 'Activa la red Salience Network ignorando ruidos perceptivos.',
                 durationSeconds: 180
             },
             anchor: {
@@ -111,6 +127,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Respiración de Tierra',
                 copy: 'Ancla tu energía al campo gravitatorio.',
                 description: 'Técnica de respiración enfocada en exhalaciones prolongadas para activar el sistema parasimpático. Esta práctica reduce inmediatamente el cortisol vital para bajar de la mente al cuerpo y encontrar estabilidad en medio del caos.',
+                scientificImpact: 'Activa la respuesta vagal reduciendo el ritmo cardíaco. Despresuriza el diafragma.',
+                neuroEffect: 'Frena la hiper-excitabilidad de la amígdala combatiendo el cortisol en sangre.',
                 technique: 'EARTH_GROUND',
                 durationSeconds: 120
             },
@@ -119,6 +137,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Densidad Cuántica',
                 copy: 'Siente tu peso. Tus proyectos tienen raíces profundas e inamovibles.',
                 description: 'Visualización de enraizamiento profundo. Mueve la conciencia desde el neocórtex hacia la base de la columna (chakra raíz), programando al subconsciente para percibir seguridad, paciencia y estructura a largo plazo.',
+                scientificImpact: 'Baja la frecuencia simpática de ondas beta altas.',
+                neuroEffect: 'Ancla la consciencia en zonas somatosensoriales bajando ruidos cognitivos.',
                 durationSeconds: 180
             },
             anchor: {
@@ -137,6 +157,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Frecuencia de Bhramari',
                 copy: 'Siente la vibración de la tierra en tu centro óseo.',
                 description: 'Conocida como la respiración de la abeja. El zumbido constante crea una vibración física que masajea el cerebro y el sistema nervioso, disolviendo el estrés agudo y conectando con la frecuencia resonante de la tierra.',
+                scientificImpact: 'Resonancia craneal que estimula la producción de óxido nítrico.',
+                neuroEffect: 'Vibración mecánica que induce ondas Alfa lentas (8-12Hz) en el tálamo.',
                 technique: 'BUMBLEBEE',
                 durationSeconds: 120
             },
@@ -145,6 +167,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Raíces del Mundo',
                 copy: 'Tus pies se funden con el suelo. Eres una montaña inamovible frente al tiempo.',
                 description: 'Práctica meditativa de permanencia. Se basa en observar la lentitud y la inmutabilidad de los elementos geológicos para silenciar la urgencia y la prisa psicológica del ego moderno.',
+                scientificImpact: 'Reducción de consumo metabólico basal.',
+                neuroEffect: 'Induce estabilidad estructural reduciendo la ansiedad de anticipación.',
                 durationSeconds: 180
             },
             anchor: {
@@ -163,6 +187,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Box Breathing 4x4',
                 copy: 'Estabiliza tu sistema nervioso central.',
                 description: 'Técnica táctica (utilizada por operadores de fuerzas especiales) que ecualiza el ritmo cardíaco. Inhalar, retener, exhalar y retener (4 segundos cada uno) balancea perfectamente el sistema simpático y parasimpático.',
+                scientificImpact: 'Ecualización barorrefleja simpático-parasimpático.',
+                neuroEffect: 'Gatilla un Baseline de calma vigilante bajo presión táctica.',
                 technique: 'BOX',
                 durationSeconds: 120
             },
@@ -191,6 +217,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Respiración de Agua',
                 copy: 'Limpia el ruido y fluye.',
                 description: 'Respiración balanceada (ej. 4 segundos inhalar, 4 exhalar) sin retenciones. Funciona como un flujo continuo que iguala las entradas y salidas de energía, ideal para resetear el estado emocional cuando hay sobreestimulación.',
+                scientificImpact: 'Despresuriza la tensión torácica induciendo un ritmo cardíaco balanceado.',
+                neuroEffect: 'Desactiva el lóbulo parietal posterior bajando la hiper-vigilancia situacional.',
                 technique: 'WATER_CALM',
                 durationSeconds: 120
             },
@@ -199,6 +227,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Fluidez Estratégica',
                 copy: 'Observa los obstáculos como piedras en un río. Rodéalos sin esfuerzo.',
                 description: 'Práctica de visualización de fluidez. Entrena la mente para no chocar de frente con la resistencia (personas, situaciones técnicas complejas), sino buscar la ruta de menor fricción y continuar avanzando.',
+                scientificImpact: 'Induce estabilidad emocional y reduce marcadores de estrés.',
+                neuroEffect: 'Fomenta la adaptabilidad cognitiva frente a la frustración reactiva.',
                 durationSeconds: 180
             },
             anchor: {
@@ -217,6 +247,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Océano Ujjayi',
                 copy: 'Escucha el oleaje sagrado en tu garganta.',
                 description: 'Técnica de respiración victoriosa (Ujjayi). Al contraer suavemente la glotis, se crea un sonido oceánico que ancla la mente y calienta el aire antes de que entre a los pulmones, generando una calma profunda y enfocada.',
+                scientificImpact: 'Estimulación del seno carotídeo, desencadenando caída de presión arterial.',
+                neuroEffect: 'El sonido de fricción actúa como un "ancla auditiva" para introspección profunda.',
                 technique: 'UJJAYI',
                 durationSeconds: 120
             },
@@ -225,6 +257,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'El Templo de la Cascada',
                 copy: 'El agua lava tu historia. Quedas puro/a y transparente como el cristal.',
                 description: 'Meditación de purificación profunda. Utiliza el arquetipo del agua cayendo constantemente para lavar adherencias mentales, culpas o narrativas pasadas que ya no sirven a tu arquitectura actual.',
+                scientificImpact: 'Facilita la transición a ondas cerebrales Theta (4-8Hz).',
+                neuroEffect: 'Limpia la memoria de trabajo de bucles emocionales no resueltos.',
                 durationSeconds: 180
             },
             anchor: {
@@ -251,6 +285,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Detox Cognitivo',
                 copy: 'Limpia la caché mental. Deja ir los procesos que consumen tu ancho de banda.',
                 description: 'Protocolo para liberar RAM mental. Se identifican tareas abiertas en segundo plano (preocupaciones, correos pendientes) y se visualizan cerrándose activamente, deteniendo la filtración de energía cognitiva.',
+                scientificImpact: 'Reduce la sobrecarga de memoria de trabajo (RAM cognitiva).',
+                neuroEffect: 'Disminuye la actividad en el giro cingulado anterior reduciendo el estrés anticipatorio.',
                 durationSeconds: 180
             },
             anchor: {
@@ -271,6 +307,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Respiración de Aire',
                 copy: 'Clarifica tu espectro mental.',
                 description: 'Inhalaciones prolongadas seguidas de exhalaciones rápidas. Esta mecánica oxigena rápidamente el cerebro, disipando la niebla mental (brain fog) y preparando el terreno para la toma de decisiones complejas.',
+                scientificImpact: 'Expansión de volumen tidal pulmonar y optimización de intercambio gaseoso.',
+                neuroEffect: 'Alerta receptores colinérgicos mejorando la sinapsis y la memoria de trabajo.',
                 technique: 'AIR_FLOW',
                 durationSeconds: 120
             },
@@ -279,6 +317,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Perspectiva de Águila',
                 copy: 'Eleva tu visión. Observa el patrón completo desde el vacío.',
                 description: 'Entrenamiento de disociación constructiva. Te enseña a desapegarte emocionalmente del problema inmediato para observar la arquitectura completa del sistema desde un punto de vista panorámico.',
+                scientificImpact: 'Fomenta la desensibilización emocional somática.',
+                neuroEffect: 'Activa la corteza cingulada posterior induciendo visión panorámica y desapego táctico.',
                 durationSeconds: 180
             },
             anchor: {
@@ -297,6 +337,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Limpieza Nadi Shodhana',
                 copy: 'Equilibra tus canales de luz y vacía el aire estancado.',
                 description: 'Respiración alterna por las fosas nasales. Balancea los hemisferios cerebrales (lógico/intuitivo) y limpia los canales energéticos sutiles (nadis), induciendo un estado de profundo centramiento y ecuanimidad.',
+                scientificImpact: 'Balancea la termorregulación y la tensión de las fosas nasales (Ciclo Nasal).',
+                neuroEffect: 'Sincroniza el cuerpo calloso reconectando hemisferios lógico y creativo.',
                 technique: 'NADI',
                 durationSeconds: 120
             },
@@ -305,6 +347,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Silencio en las Alturas',
                 copy: 'Eres el cielo que observa las nubes pasar. Nada te encadena.',
                 description: 'Práctica de Vipassana (visión clara). Desarrolla la capacidad de observar los pensamientos como eventos meteorológicos temporales en la vastedad de tu conciencia, sin identificarte con ellos.',
+                scientificImpact: 'Reduce la respuesta autonómica ante pensamientos intrusivos.',
+                neuroEffect: 'Aumenta el grosor cortical en áreas de auto-regulación emocional (Ínsula).',
                 durationSeconds: 180
             },
             anchor: {
@@ -323,6 +367,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 label: 'Ciclo Intermitente',
                 copy: 'Desafía tu umbral de oxígeno y expande tu capacidad.',
                 description: 'Entrenamiento hipóxico intermitente. La retención de aire controlada adapta el cuerpo a funcionar con menos oxígeno, mejorando la resistencia celular y obligando al cerebro a optimizar sus recursos energéticos.',
+                scientificImpact: 'Adaptación hipóxica que induce resistencia modular eritropoyética.',
+                neuroEffect: 'Incrementa el BDNF motivando la sinaptogénesis y flexibilidad cognitiva.',
                 technique: 'AIR_FLOW',
                 durationSeconds: 120
             },
@@ -331,6 +377,8 @@ export const RITUAL_LIBRARY: Record<'WATER' | 'FIRE' | 'EARTH' | 'AIR', ElementR
                 title: 'Visión Periférica',
                 copy: 'Expande tu foco. Capta la información sutil que otros ignoran.',
                 description: 'Suavizar la mirada para estimular la visión periférica desactiva el circuito de "pelear o huir" (conectado a la visión foveal enfocada) e induce un estado de alerta relajada, ideal para el pensamiento lateral y la creatividad.',
+                scientificImpact: 'Desactiva el foco foveal de estrés simpático.',
+                neuroEffect: 'Estimula el procesamiento de la corriente dorsal de visión espacial.',
                 durationSeconds: 180
             },
             anchor: {

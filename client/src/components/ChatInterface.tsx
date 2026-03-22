@@ -7,15 +7,30 @@ import { useProfile } from '../hooks/useProfile';
 import { useEnergy } from '../hooks/useEnergy';
 import { cn } from '../lib/utils';
 
-export function ChatInterface() {
+import { useProtocol21 } from '../hooks/useProtocol21';
+
+interface ChatInterfaceProps {
+    onNavigate?: (view: 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR') => void;
+}
+
+export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
     const { profile } = useProfile();
     const { dynamicScore, regulationBoost } = useEnergy();
+    const { activeProtocol, dailyLogs } = useProtocol21();
+
+    const isWarningDay = activeProtocol && activeProtocol.current_day > 1 && !dailyLogs.some(l => l.day_number === activeProtocol.current_day - 1);
 
     const energyContext = {
         updated_energy_score: dynamicScore,
         regulation_today: regulationBoost,
-        last_sanctuary_element: 'UNKNOWN', // Ideally we fetch this from last session if needed
-        post_session_state: 'UNKNOWN'
+        last_sanctuary_element: 'UNKNOWN',
+        post_session_state: 'UNKNOWN',
+        protocol_status: activeProtocol ? {
+            day: activeProtocol.current_day,
+            target: activeProtocol.target_days || 21,
+            status: activeProtocol.status,
+            protocol_warning: isWarningDay
+        } : null
     };
 
     const { messages, sendMessage, loading, isHistoryLoading } = useSigil(profile?.name, energyContext);
@@ -128,9 +143,31 @@ export function ChatInterface() {
                                     {msg.role === 'user' ? (
                                         <p className="text-white/70 italic font-serif text-lg">{parsedText}</p>
                                     ) : (
-                                        <div className="text-amber-50/90 text-[15px] md:text-[17px] leading-loose font-light tracking-wide">
-                                            <TypewriterText text={parsedText} skipAnimation={msg.isHistory} />
-                                        </div>
+                                            <div className="text-amber-50/90 text-[15px] md:text-[17px] leading-loose font-light tracking-wide">
+                                                <TypewriterText text={parsedText} skipAnimation={msg.isHistory} />
+                                                
+                                                {msg.role === 'assistant' && (parsedText.includes('ACCIÓN CONCRETA') || parsedText.includes('Acción Concreta')) && (
+                                                    <motion.button 
+                                                        initial={{ opacity: 0, y: 5 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: 1 }}
+                                                        onClick={() => {
+                                                            try {
+                                                                const tasks = JSON.parse(localStorage.getItem('sigil_tasks') || '[]');
+                                                                tasks.push({ text: parsedText.split('ACCIÓN CONCRETA')[1]?.substring(0, 100) || parsedText.substring(0, 100), date: new Date().toLocaleDateString() });
+                                                                localStorage.setItem('sigil_tasks', JSON.stringify(tasks));
+                                                                alert("Acción guardada como tarea de hoy.");
+                                                            } catch (e) {
+                                                                console.error(e);
+                                                            }
+                                                        }}
+                                                        className="mt-4 flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 rounded-xl text-[10px] uppercase tracking-widest text-amber-400 hover:text-white transition-all font-black shadow-[0_0_20px_rgba(245,158,11,0.05)]"
+                                                    >
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                                        Guardar como tarea de hoy
+                                                    </motion.button>
+                                                )}
+                                            </div>
                                     )}
                                 </div>
                             </div>
@@ -155,6 +192,37 @@ export function ChatInterface() {
 
             {/* Ceremonial Input Area (Glass Console) */}
             <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-3xl px-4 z-40">
+                {/* Prompt 3: Active Coach Banner */}
+                <AnimatePresence>
+                    {isWarningDay && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className="p-4 rounded-2xl bg-[#090909]/80 border border-amber-500/20 backdrop-blur-xl mb-3 flex flex-col items-center text-center gap-3 shadow-[0_10px_40px_-5px_rgba(245,158,11,0.1)]"
+                        >
+                            <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                <p className="text-amber-200 text-xs font-serif italic">Tu sistema está perdiendo disciplina. ¿Vas a cerrar el día o lo dejamos caer?</p>
+                            </div>
+                            <div className="flex gap-2 w-full">
+                                <button 
+                                    onClick={() => onNavigate && onNavigate('PROTOCOL21')}
+                                    className="flex-1 py-2.5 rounded-xl bg-amber-500 text-black text-[10px] uppercase font-bold tracking-wider hover:bg-amber-400 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                                >
+                                    Cerrar Día Ahora
+                                </button>
+                                <button 
+                                    onClick={() => onNavigate && onNavigate('SANCTUARY')}
+                                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 text-[10px] uppercase tracking-widest hover:bg-white/10 hover:text-white transition-colors"
+                                >
+                                    Ir a Santuario
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <form onSubmit={handleSubmit} className="relative group">
                     {/* Glass Container */}
                     <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-amber-500/30 group-focus-within:shadow-[0_0_50px_rgba(212,175,55,0.1)]" />
