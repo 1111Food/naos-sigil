@@ -5,6 +5,7 @@ import { PINNACLE_INTERPRETATIONS, PINNACLE_POSITIONS } from '../data/pinnacleDa
 import { cn } from '../lib/utils';
 import { useGuardianState } from '../contexts/GuardianContext';
 import { useActiveProfile } from '../hooks/useActiveProfile';
+import { useSubscription } from '../hooks/useSubscription';
 import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 
@@ -14,13 +15,21 @@ interface NumerologyViewProps {
 }
 
 export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile }) => {
-    const [selectedPosition, setSelectedPosition] = useState<{ id: string, title: string, number: number } | null>(null);
+    const [expandedItem, setExpandedItem] = useState<string | null>(null);
+    const [showDeepInsight, setShowDeepInsight] = useState<string | null>(null);
     const [activeCode, setActiveCode] = useState<string | null>(null);
     const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const { trackEvent } = useGuardianState();
+    
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
+    const { status: subscription } = useSubscription(!overrideProfile);
+
+    const isPremium = overrideProfile
+        ? true
+        : (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 
     // Logic for Profile Injection
     const profile = overrideProfile || activeProfile;
@@ -43,7 +52,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
     const handleOpenModal = (id: string, title: string, number: any) => {
         if (number === undefined || number === null || number === '?') return;
         const numValue = Number(number);
-        setSelectedPosition({ id, title, number: numValue });
+        setExpandedItem(expandedItem === id ? null : id);
 
         // Track event for Oracle Memory
         trackEvent('PINNACLE', {
@@ -55,6 +64,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
 
     const scrollToCode = (label: string) => {
         setActiveCode(label);
+        setExpandedItem(label); // Auto expand on click from Graph
         const target = listRefs.current[label];
         if (target && scrollContainerRef.current) {
             target.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -274,127 +284,122 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                             { l: 'Q', t: 'Ser Inferior Heredado', d: 'Carga ancestral no resuelta.', v: data.pinaculo?.q },
                             { l: 'R', t: 'Ser Inferior Consciente', d: 'Defectos que conoces pero no cambias.', v: data.pinaculo?.r },
                             { l: 'S', t: 'Ser Inferior Latente', d: 'El enemigo oculto final.', v: data.pinaculo?.s },
-                        ].map((item, idx) => (
-                            <div
-                                key={idx}
-                                ref={el => { listRefs.current[item.l] = el; }}
-                                onClick={() => handleOpenModal(item.l, item.t, item.v)}
-                                className={cn(
-                                    "group p-4 rounded-2xl bg-white/5 border border-white/5 transition-all cursor-pointer relative",
-                                    (item.v !== undefined && item.v !== null && item.v !== '?')
-                                        ? "hover:bg-purple-500/10 hover:border-purple-500/30"
-                                        : "opacity-50 cursor-not-allowed",
-                                    activeCode === item.l && "ring-2 ring-purple-500 bg-purple-500/20 border-purple-500/50 scale-[1.02] z-10 shadow-[0_0_20px_rgba(168,85,247,0.3)]"
-                                )}
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-black border border-white/20 flex items-center justify-center text-xs font-bold text-white group-hover:bg-purple-500 group-hover:border-purple-400 transition-colors">
-                                            {item.l}
+                        ].map((item, idx) => {
+                            const numValue = Number(item.v);
+                            const interp = PINNACLE_INTERPRETATIONS[numValue];
+                            const isExpanded = expandedItem === item.l;
+
+                            return (
+                                <div
+                                    key={idx}
+                                    ref={el => { listRefs.current[item.l] = el; }}
+                                    onClick={() => handleOpenModal(item.l, item.t, item.v)}
+                                    className={cn(
+                                        "group p-4 rounded-2xl bg-white/5 border border-white/5 transition-all cursor-pointer relative",
+                                        (item.v !== undefined && item.v !== null && item.v !== '?')
+                                            ? "hover:bg-purple-500/10 hover:border-purple-500/30"
+                                            : "opacity-50 cursor-not-allowed",
+                                        activeCode === item.l && "ring-2 ring-purple-500 bg-purple-500/20 border-purple-500/50 scale-[1.02] z-10 shadow-[0_0_20px_rgba(168,85,247,0.3)]",
+                                        isExpanded && "bg-purple-900/40 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                                    )}
+                                >
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-black border border-white/20 flex items-center justify-center text-xs font-bold text-white group-hover:bg-purple-500 group-hover:border-purple-400 transition-colors">
+                                                {item.l}
+                                            </div>
+                                            <span className="text-sm font-bold text-violet-400 group-hover:text-violet-300 transition-colors">{item.t}</span>
                                         </div>
-                                        <span className="text-sm font-bold text-violet-400 group-hover:text-violet-300 transition-colors">{item.t}</span>
-                                    </div>
-                                    <div className="w-10 aspect-[3/4] rounded-lg border border-purple-500/20 overflow-hidden bg-black/40 flex items-center justify-center flex-shrink-0 group-hover:border-purple-500/40 transition-all">
-                                        <NeonNumber
-                                            value={item.v ?? '?'}
-                                            color="fuchsia"
-                                            isFullCard={true}
-                                            className="w-full h-full"
-                                        />
-                                    </div>
-                                </div>
-                                <p className="text-xs text-white/50 pl-11 leading-relaxed border-l-2 border-white/10 ml-4">
-                                    {item.d}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Revelation Modal */}
-            <AnimatePresence>
-                {selectedPosition && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedPosition(null)}
-                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-2xl bg-black/60 border border-yellow-500/20 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[85vh]"
-                        >
-                            {/* Decorative Gold Corners */}
-                            <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-yellow-500/10 rounded-tl-[2.5rem]" />
-                            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-yellow-500/10 rounded-br-[2.5rem]" />
-
-                            <button
-                                onClick={() => setSelectedPosition(null)}
-                                className="absolute top-6 right-6 p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all z-10"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-
-                            <div className="space-y-6 flex-shrink-0 mb-6">
-                                <div>
-                                    <span className="text-[10px] uppercase tracking-[0.3em] text-yellow-500/50 font-bold mb-2 block">Revelación del Pináculo</span>
-                                    <h2 className="text-3xl md:text-4xl font-serif text-white">{selectedPosition.title}</h2>
-                                </div>
-
-                                <div className="py-4 border-y border-white/5">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-24 aspect-[3/4] rounded-xl border border-amber-500/30 overflow-hidden shadow-2xl bg-black/40 flex-shrink-0">
+                                        <div className="w-10 aspect-[3/4] rounded-lg border border-purple-500/20 overflow-hidden bg-black/40 flex items-center justify-center flex-shrink-0 group-hover:border-purple-500/40 transition-all">
                                             <NeonNumber
-                                                value={selectedPosition.number}
-                                                color="amber"
+                                                value={item.v ?? '?'}
+                                                color="fuchsia"
                                                 isFullCard={true}
                                                 className="w-full h-full"
                                             />
                                         </div>
-                                        <div>
-                                            <div className="text-[10px] uppercase tracking-wider text-white/30">Arquetipo Maestro</div>
-                                            <div className="text-xl font-serif text-white/90">
-                                                {PINNACLE_INTERPRETATIONS[selectedPosition.number]?.archetype || "El Buscador del Misterio"}
-                                            </div>
-                                        </div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div className="overflow-y-auto pr-4 custom-scrollbar space-y-8 flex-1">
-                                {PINNACLE_INTERPRETATIONS[selectedPosition.number] && (
-                                    <div className="space-y-6">
-                                        <p className="text-xl leading-relaxed text-yellow-400/90 font-serif italic border-l-2 border-yellow-500/30 pl-4 mb-8">
-                                            Al encontrarse en tu <span className="font-bold text-white">{PINNACLE_POSITIONS[selectedPosition.id]?.title || selectedPosition.title}</span>, {PINNACLE_POSITIONS[selectedPosition.id]?.context || "esta frecuencia actúa sobre tu código de identidad"}.
-                                        </p>
-
-                                        {PINNACLE_INTERPRETATIONS[selectedPosition.number].blocks.map((block, i) => (
-                                            <p key={i} className="text-lg leading-relaxed text-white/80 font-serif text-justify first-letter:text-4xl first-letter:font-bold first-letter:mr-2 first-letter:float-left first-letter:text-yellow-500/60">
-                                                {block}
-                                            </p>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {!PINNACLE_INTERPRETATIONS[selectedPosition.number] && (
-                                    <p className="text-lg leading-relaxed text-white/80 font-serif italic text-justify">
-                                        La sabiduría para esta posición aún se encuentra velada bajo el manto del misterio. Sigo explorando tu vibración.
+                                    <p className="text-xs text-white/50 pl-11 leading-relaxed border-l-2 border-white/10 ml-4">
+                                        {item.d}
                                     </p>
-                                )}
 
-                                <div className="pt-6 flex justify-center pb-4">
-                                    <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+                                    {/* Expanded Contents */}
+                                    <AnimatePresence>
+                                        {isExpanded && interp && (
+                                            <motion.div 
+                                                initial={{ height: 0, opacity: 0 }} 
+                                                animate={{ height: 'auto', opacity: 1 }} 
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="mt-4 pt-4 border-t border-white/10 text-sm text-white/70 overflow-hidden"
+                                            >
+                                                <div className="mb-4">
+                                                    <p className="text-[11px] text-purple-300/70 uppercase tracking-widest font-bold mb-2">Arquetipo Maestro</p>
+                                                    <p className="text-sm font-serif text-white/90 leading-relaxed italic border-l-2 border-purple-500/40 pl-3">
+                                                        "{interp.archetype}"
+                                                    </p>
+                                                </div>
+
+                                                <div className="space-y-3 mb-4">
+                                                    {interp.blocks.map((block, i) => (
+                                                        <p key={i} className="text-xs leading-relaxed text-white/80 font-serif text-justify">
+                                                            {block}
+                                                        </p>
+                                                    ))}
+                                                </div>
+
+                                                {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
+                                                <div
+                                                    className={`mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg ${isPremium ? 'cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]' : 'opacity-80'}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (!isPremium) {
+                                                            alert('🔒 Función Premium\n\nDesbloquea el análisis sintético de tu pináculo con el plan Creador.');
+                                                        } else {
+                                                            setShowDeepInsight(showDeepInsight === item.l ? null : item.l);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className="flex items-center gap-2 text-amber-400 mb-1">
+                                                        <div className="w-3.5 h-3.5 flex items-center justify-center">⚡</div>
+                                                        <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">Interpretación Profunda</span>
+                                                        {isPremium && (
+                                                            <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight === item.l ? 'rotate-90' : ''}`} />
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[9px] text-white/40 font-medium">{isPremium ? 'Toca para descubrir la síntesis evolutiva de tu número.' : 'Desbloquea la síntesis evolutiva de tu alma.'}</p>
+
+                                                    <AnimatePresence>
+                                                        {isPremium && showDeepInsight === item.l && (
+                                                            <motion.div
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                className="mt-4 pt-4 border-t border-purple-500/30 overflow-hidden"
+                                                            >
+                                                                <div className="space-y-4 text-white/90 leading-relaxed">
+                                                                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                                                                        <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">El Núcleo</h4>
+                                                                        <p className="text-lg italic font-medium">
+                                                                            "La frecuencia {numValue} actuando en tu {PINNACLE_POSITIONS[item.l]?.title || item.t}"
+                                                                        </p>
+                                                                        <p className="text-white/70 italic text-sm mt-3 pt-3 border-t border-purple-500/10 leading-relaxed">
+                                                                            {PINNACLE_POSITIONS[item.l]?.context}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
-                            </div>
-                        </motion.div>
+                            );
+                        })}
                     </div>
-                )}
-            </AnimatePresence>
+                </div>
+            </div>
         </div>
     );
 };
