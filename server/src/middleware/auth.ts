@@ -38,9 +38,35 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         // Inject user_id into the request for downstream use
         (request as any).user_id = user.id;
         (request as any).token = token;
+
+        // --- RBAC INJECTION (Consolidated Prompts) ---
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan_type')
+            .eq('id', user.id)
+            .single();
+
+        const plan = profile?.plan_type || 'free';
+        // Map plan_type to 'premium' according to your rule condition
+        const userRole = plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free';
+
+        (request as any).user = {
+            id: user.id,
+            role: userRole
+        };
+
     } catch (error: any) {
         console.error(`🔥 [AUTH_CRASH] Request ${requestId} | Error:`, error.message);
         const status = error.message === 'SUPABASE_AUTH_TIMEOUT' ? 504 : 401;
         return reply.status(status).send({ error: `Auth Error: ${error.message}` });
+    }
+};
+
+export const validatePremium = async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = (request as any).user;
+    
+    // STRICT RBAC CHECK
+    if (!user || (user.role !== "premium" && user.role !== "admin")) {
+        return reply.status(403).send({ error: "Access denied or AI restricted feature" });
     }
 };

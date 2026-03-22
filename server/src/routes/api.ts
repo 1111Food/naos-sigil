@@ -8,7 +8,7 @@ import { NumerologyService } from '../modules/numerology/service';
 import { UserProfile } from '../types';
 
 import { supabase } from '../lib/supabase';
-import { validateUser } from '../middleware/auth';
+import { validateUser, validatePremium } from '../middleware/auth';
 import { CoherenceService } from '../modules/coherence/service';
 import { NaosCompilerService } from '../modules/user/naosCompiler.service';
 import { ProtocolService } from '../modules/protocol/service';
@@ -93,7 +93,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
 
     // Chat
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
         const userId = (req as any).user_id;
 
@@ -155,7 +155,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Prompt 5: Lab Session Trigger
-    app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const { element } = req.body;
         const userId = (req as any).user_id;
 
@@ -270,7 +270,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.get('/api/naos-code', { preHandler: [validateUser] }, async (req, reply) => {
+    app.get('/api/naos-code', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const forceRefresh = (req.query as any).refresh === 'true';
 
