@@ -39,9 +39,9 @@ export class SigilService {
         return stateStore[userId];
     }
 
-    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any): Promise<string> {
-        console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}`);
-
+    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any, language: string = 'es', geo?: { country: string, region: string }): Promise<string> {
+        console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}, Lang: ${language}, Geo: ${geo?.region}`);
+        
         try {
             // Cronos Wisdom: Analyze local time context
             const localDate = localTimestamp ? new Date(localTimestamp) : new Date();
@@ -317,7 +317,23 @@ export class SigilService {
     ${NAOS_SYSTEM_PROMPT}
     
     ──────────────────────────
-    IDIOMA: Responde SIEMPRE en Español Latinoamericano correcto, fluido y sin errores gramaticales.
+    OUTPUT_LANGUAGE: ${language}
+    
+    INSTRUCTION:
+    You must respond ONLY in the specified language.
+    
+    If language = "es":
+    - Respond in Spanish Latinoamericano
+    - Maintain tone: precise, strategic, structured
+    
+    If language = "en":
+    - Respond in English
+    - Maintain tone: precise, strategic, structured
+    
+    DO NOT:
+    - Mix languages
+    - Translate mid-response
+    ──────────────────────────
     
     ${rolePrompt}
     
@@ -361,7 +377,21 @@ export class SigilService {
     [ESTADO DE COHERENCIA ACTUAL]
     ${architectContext}
     
-    [DIRECTIVA MAESTRA DE TONO - PRIORIDAD ABSOLUTA]
+    [DIRECTIVA MAESTRA DE TONO SEGÚN REGIÓN]
+    USER_REGION: ${geo?.region || 'global'}
+    
+    If region = "north_america":
+    - Be direct, efficient, action-oriented. Prioritize execution over reflection. Use clear, short sentences.
+    
+    If region = "latam":
+    - Allow emotional depth. Include reflective tone. Maintain warmth but still structured.
+    
+    If region = "europe":
+    - Be analytical and philosophical. Reduce mystical tone. Focus on reasoning and patterns.
+    
+    If region = "global":
+    - Default balanced tone.
+    
     ${coherenceToneInstruction}
 
     ${awarenessContext}

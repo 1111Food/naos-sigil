@@ -8,6 +8,7 @@ import { CoherenceProvider } from './context/CoherenceContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { PerformanceProvider } from './context/PerformanceContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 
 // Global Fetch Interceptor for 401 Graceful Degradation - TEMPORARILY DISABLED TO STOP REDIRECT LOOP
 const originalFetch = window.fetch;
@@ -22,9 +23,11 @@ createRoot(document.getElementById('root')!).render(
         <PerformanceProvider>
           <AuthProvider>
             <ProfileProvider>
-              <CoherenceProvider>
-                <App />
-              </CoherenceProvider>
+              <LanguageProvider>
+                <CoherenceProvider>
+                  <App />
+                </CoherenceProvider>
+              </LanguageProvider>
             </ProfileProvider>
           </AuthProvider>
         </PerformanceProvider>

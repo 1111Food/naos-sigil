@@ -16,10 +16,33 @@ import { UsageGuardService } from '../modules/user/UsageGuard';
 import { sendProactiveMessage } from '../modules/sigil/telegramService';
 
 import { TTSService } from '../modules/sigil/ttsService';
+const geoip = require('geoip-lite');
+
+function detectRegionFromIP(ip: string) {
+    // For localhost loopbacks, default to standard US IP so geoip returns viable results for testing
+    const cleanIp = ip === '::1' || ip === '127.0.0.1' ? '142.250.190.46' : ip; 
+    const geo = geoip.lookup(cleanIp);
+
+    if (!geo) return { country: "unknown", region: "global" };
+
+    const country = geo.country;
+    let region = "global";
+
+    if (["US", "CA"].includes(country)) region = "north_america";
+    else if (["GT", "MX", "AR", "CO", "PE", "CL", "ES"].includes(country)) region = "latam";
+    else if (["FR", "DE", "IT", "NL", "SE", "UK"].includes(country)) region = "europe";
+
+    return { country, region };
+}
 
 const sigilService = new SigilService();
 
 export async function apiRoutes(app: FastifyInstance) {
+
+    // 🗺️ GeoIP Middleware
+    app.addHook('preHandler', async (req: any) => {
+        req.userGeo = detectRegionFromIP(req.ip);
+    });
 
     // Serve Cached TTS Audio file buffer
     app.get<{ Params: { hash: string } }>('/api/sigil/audio/:hash', async (req, reply) => {
@@ -70,8 +93,8 @@ export async function apiRoutes(app: FastifyInstance) {
 
 
     // Chat
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
-        const { message, localTimestamp, oracleState, role, energyContext } = req.body;
+    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
+        const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
         const userId = (req as any).user_id;
 
         // 🛡️ UsageGuard Limit Check
@@ -81,13 +104,25 @@ export async function apiRoutes(app: FastifyInstance) {
         }
 
         try {
-            const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext);
+            const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo);
 
             // Generate TTS Audio Buffer for the response
             const tts = new TTSService();
-            const { hash, buffer } = await tts.generateVoice(res);
+            const { hash, buffer } = await tts.generateVoice(res, (req as any).userGeo?.region || 'global');
 
             await UsageGuardService.incrementUsage(userId, 'sigil');
+
+            // 📊 Usage Logs Analytics (Prompt 13)
+            supabase.from('usage_logs').insert({
+                user_id: userId,
+                country: (req as any).userGeo?.country || 'unknown',
+                region: (req as any).userGeo?.region || 'global',
+                language: language || 'es',
+                endpoint: '/api/chat'
+            }).then(({ error }) => {
+                if (error) console.error("⚠️ [Analytics] Failed to log usage:", error);
+            });
+
             return { 
                 text: res, 
                 audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined 

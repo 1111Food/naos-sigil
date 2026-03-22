@@ -16,6 +16,7 @@
     "cross-env": "^10.1.0",
     "dotenv": "^16.6.1",
     "fastify": "^5.1.0",
+    "geoip-lite": "^2.0.1",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {

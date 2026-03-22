@@ -3,6 +3,7 @@ import { Home, User, LogOut, Volume2, VolumeX, Aperture, Bot } from 'lucide-reac
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
@@ -15,6 +16,7 @@ interface SacredDockProps {
 
 export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavigate, onLogout }) => {
     const { activeAura, setAura } = useTheme();
+    const { language, setLanguage } = useLanguage();
     const [showAuras, setShowAuras] = useState(false);
     const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
     const [isSigilSettingsOpen, setIsSigilSettingsOpen] = useState(false);
@@ -121,6 +123,17 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                                 "w-5 h-5 md:w-6 md:h-6 transition-all duration-500",
                                 showAuras ? "text-cyan-400 rotate-90" : "text-white/40 group-hover:text-cyan-400"
                             )} />
+                        </button>
+                    </div>
+
+                    {/* Selector de Idioma (ES / EN) */}
+                    <div className="relative flex justify-center md:mb-2">
+                        <button
+                            onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+                            className="p-2 md:p-3 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-cyan-400 transition-all flex items-center justify-center font-bold text-[10px] w-9 h-9 md:w-11 md:h-11"
+                            title={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+                        >
+                            {language === 'es' ? 'ES' : 'EN'}
                         </button>
                     </div>
 

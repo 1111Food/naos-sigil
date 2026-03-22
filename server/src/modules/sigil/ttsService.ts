@@ -13,21 +13,21 @@ export class TTSService {
         }
     }
 
-    private getHash(text: string): string {
-        return crypto.createHash('md5').update(text).digest('hex');
+    private getHash(text: string, region: string): string {
+        return crypto.createHash('md5').update(text + region).digest('hex');
     }
 
     /**
      * Converts Sigil text message to an audio buffer using ElevenLabs,
      * caching on local filesystem to optimize quotas and loads.
      */
-    public async generateVoice(text: string): Promise<{ buffer: Buffer | null, hash: string }> {
-        const hash = this.getHash(text);
+    public async generateVoice(text: string, region: string = 'global'): Promise<{ buffer: Buffer | null, hash: string }> {
+        const hash = this.getHash(text, region);
         const cachePath = path.join(CACHE_DIR, `${hash}.mp3`);
 
         // 1. Check Cache
         if (fs.existsSync(cachePath)) {
-            console.log(`🔊 [TTS] Cache HIT for hash [${hash}]`);
+            console.log(`🔊 [TTS] Cache HIT for hash [${hash}] (Region: ${region})`);
             const buffer = fs.readFileSync(cachePath);
             return { buffer, hash };
         }
@@ -43,24 +43,44 @@ export class TTSService {
 
         console.log(`🔊 [TTS] Generating audio via ElevenLabs for hash [${hash}]...`);
 
+        let speed = 1.0;
+        if (region === 'north_america') speed = 1.05;
+        else if (region === 'latam') speed = 0.95;
+
+        const buildPayload = (includeSpeed: boolean) => ({
+            text,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: {
+                stability: 0.85,
+                similarity_boost: 0.8,
+                style: 0.0,
+                use_speaker_boost: true,
+                ...(includeSpeed ? { speed } : {})
+            }
+        });
+
         try {
-            const response = await fetch(apiURL, {
+            let response = await fetch(apiURL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'xi-api-key': config.ELEVENLABS_API_KEY
                 },
-                body: JSON.stringify({
-                    text,
-                    model_id: "eleven_multilingual_v2",
-                    voice_settings: {
-                        stability: 0.85,
-                        similarity_boost: 0.8,
-                        style: 0.0,
-                        use_speaker_boost: true
-                    }
-                })
+                body: JSON.stringify(buildPayload(true))
             });
+
+            // Fallback for speed configuration if ElevenLabs API refuses speed parameter
+            if (!response.ok) {
+                console.warn(`⚠️ [TTS] ElevenLabs rejected speed payload, retrying standard mode...`);
+                response = await fetch(apiURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'xi-api-key': config.ELEVENLABS_API_KEY
+                    },
+                    body: JSON.stringify(buildPayload(false))
+                });
+            }
 
             if (!response.ok) {
                 const errText = await response.text();

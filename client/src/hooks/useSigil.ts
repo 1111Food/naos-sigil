@@ -1,7 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { endpoints, getAuthHeaders } from '../lib/api';
 import { useGuardianState } from '../contexts/GuardianContext';
+import { useLanguage } from '../contexts/LanguageContext';
+
 export function useSigil(userName?: string, energyContext?: any) {
+    const { language } = useLanguage();
     const { oracleState, addMessage: addGlobalMessage, isHistoryLoading } = useGuardianState();
 
     const getWelcomeMessage = useCallback(() => {
@@ -58,7 +61,8 @@ export function useSigil(userName?: string, energyContext?: any) {
                     localTimestamp: new Date().toISOString(),
                     oracleState,
                     energyContext,
-                    role
+                    role,
+                    language
                 })
             });
 
