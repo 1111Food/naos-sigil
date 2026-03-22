@@ -4,7 +4,11 @@ import { useCoherence } from '../hooks/useCoherence';
 import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
 
-export const SigilBubble: React.FC = () => {
+interface SigilBubbleProps {
+    onNavigate?: (view: any, payload?: any) => void;
+}
+
+export const SigilBubble: React.FC<SigilBubbleProps> = ({ onNavigate }) => {
     const { score, trend } = useCoherence();
     const { playSound } = useSound();
     const [message, setMessage] = React.useState<string | null>(null);
@@ -47,7 +51,9 @@ export const SigilBubble: React.FC = () => {
                         <button 
                             onClick={() => {
                                 setMessage(null);
-                                // Set window location or open active contextual actions if desired
+                                if (onNavigate) {
+                                    onNavigate('SANCTUARY', { type: 'BREATH', techId: 'water-1' });
+                                }
                             }}
                             className="px-4 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400 text-[8px] font-bold uppercase tracking-widest text-white hover:bg-cyan-500/30 transition-all"
                         >

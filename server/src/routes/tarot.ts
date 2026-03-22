@@ -154,6 +154,19 @@ export async function tarotRoutes(app: FastifyInstance) {
         const userId = (request as any).user_id;
         const { intention, cards, engine, summary } = request.body as any;
 
+        const authHeader = request.headers.authorization;
+        const { config } = require('../config/env');
+        const { createClient } = require('@supabase/supabase-js');
+
+        const supabaseClient = createClient(
+            config.SUPABASE_URL || 'https://placeholder-dont-crash.supabase.co',
+            config.SUPABASE_ANON_KEY || 'placeholder-dont-crash',
+            {
+                auth: { persistSession: false, autoRefreshToken: false },
+                global: { headers: { Authorization: authHeader || '' } }
+            }
+        );
+
         if (!intention || !cards || !engine || !summary) {
             return reply.status(400).send({ error: "Datos incompletos para sellar el ritual." });
         }
@@ -162,7 +175,7 @@ export async function tarotRoutes(app: FastifyInstance) {
             console.log(`💾 [RITUAL_SAVE] Inicia sellado para usuario: ${userId}`);
             
             // FIFO Logic: Get counts
-            const { count, error: countError } = await supabase
+            const { count, error: countError } = await supabaseClient
                 .from('rituals_history')
                 .select('*', { count: 'exact', head: true })
                 .eq('user_id', userId);
@@ -177,7 +190,7 @@ export async function tarotRoutes(app: FastifyInstance) {
             // If we have 3 or more, delete the oldest
             if (count && count >= 3) {
                 console.log("♻️ [RITUAL_SAVE] Límite FIFO alcanzado (3). Eliminando el más antiguo...");
-                const { data: oldest, error: findOldestError } = await supabase
+                const { data: oldest, error: findOldestError } = await supabaseClient
                     .from('rituals_history')
                     .select('id')
                     .eq('user_id', userId)
@@ -190,7 +203,7 @@ export async function tarotRoutes(app: FastifyInstance) {
                 }
 
                 if (oldest && oldest.length > 0) {
-                    const { error: deleteError } = await supabase
+                    const { error: deleteError } = await supabaseClient
                         .from('rituals_history')
                         .delete()
                         .eq('id', oldest[0].id);
@@ -205,7 +218,7 @@ export async function tarotRoutes(app: FastifyInstance) {
 
             // Insert new record
             console.log("📝 [RITUAL_SAVE] Insertando nuevo ritual...");
-            const { data, error: insertError } = await supabase
+            const { data, error: insertError } = await supabaseClient
                 .from('rituals_history')
                 .insert([{
                     user_id: userId,

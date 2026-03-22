@@ -314,7 +314,7 @@ function App() {
           <NaosVibrationEngine />
           <Guardian view={activeView} onOpenChat={() => setActiveView('CHAT')} />
           <FloatingLaboratorio onNavigate={navigateWithRitual} />
-          <SigilBubble />
+          <SigilBubble onNavigate={navigateWithRitual} />
           <DevPlanToggle />
 
           <div className="relative z-10 min-h-screen flex flex-col animate-in fade-in duration-1000">
