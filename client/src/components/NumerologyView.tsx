@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Hash, X } from 'lucide-react';
+import { Hash, X, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PINNACLE_INTERPRETATIONS, PINNACLE_POSITIONS } from '../data/pinnacleData';
 import { cn } from '../lib/utils';
