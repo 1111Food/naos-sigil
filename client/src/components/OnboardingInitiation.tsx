@@ -18,7 +18,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
 
     useEffect(() => {
         // Poetic sequence for the 4 schools
-        setFullMessage("Bienvenido al Templo de Naos.\n\nTu arquitectura está siendo trazada a través de las cuatro grandes escuelas:\n\n✦ El Cosmos Astral y su diseño celeste.\n✦ La Vibración Numérica de tu esencia.\n✦ El Nawal Maya de tu cuenta larga.\n✦ El Tótem Oriental de tu instinto animal.\n\nSincronizando frecuencias...");
+        setFullMessage("Bienvenido al Templo de Naos.\n\nTu arquitectura está siendo trazada a través de las cuatro grandes escuelas:\n\n✦ El Cosmos Astral y su diseño celeste.\n✦ La Vibración Numérica de tu esencia.\n✦ El Nawal Maya de tu cuenta larga.\n✦ El Tótem Oriental de tu instinto animal.\n\n✨ El Sigil ha evolucionado: Ahora puede comunicarse contigo en voz alta.\n\nSincronizando frecuencias...");
         setLoading(false);
     }, []);
 

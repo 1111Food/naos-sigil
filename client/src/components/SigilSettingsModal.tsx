@@ -82,9 +82,13 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                         <X size={20}/>
                     </button>
 
-                    <div className="flex items-center gap-2 mb-6">
+                    <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="w-5 h-5 text-cyan-400 mystic-pulse" />
                         <h3 className="text-lg font-light tracking-wider uppercase text-cyan-100">Configuración del Sigil</h3>
+                    </div>
+
+                    <div className="text-[10px] text-cyan-400/90 mb-6 bg-cyan-500/10 p-3 rounded-xl border border-cyan-500/20 flex items-center gap-2">
+                         <span>✨ <span className="font-bold">Módulo de Voz Activado:</span> El Sigil ahora puede comunicarse contigo verbalmente en la aplicación.</span>
                     </div>
 
                     <div className="space-y-6">
