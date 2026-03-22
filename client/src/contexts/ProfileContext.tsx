@@ -166,6 +166,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
             // Explicitly handle complex objects and field mapping
             if (data.name) payload.full_name = data.name;
+            if ((data as any).birthDate) payload.birth_date = (data as any).birthDate;
+            if ((data as any).birthTime) payload.birth_time = (data as any).birthTime;
+            if ((data as any).birthCity) payload.birth_city = (data as any).birthCity;
             if (data.astrology) payload.astrology = data.astrology;
             if (data.numerology) payload.numerology = data.numerology;
             if (data.mayan) payload.mayan = data.mayan;

@@ -147,7 +147,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                         className="relative z-10 flex flex-col items-center text-center max-w-sm px-4"
                     >
                         <p className="text-base md:text-lg font-serif italic text-white/90 leading-relaxed">
-                            "NAOS no te dará respuestas… te enseñará a leer tu propia energía"
+                            "NAOS no te dará respuestas… te enseñará el camino"
                         </p>
                     </motion.div>
                 )}
@@ -162,7 +162,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                         className="relative z-10 w-full max-w-sm p-6 rounded-[2rem] bg-black/60 border border-cyan-500/20 backdrop-blur-xl flex flex-col items-center gap-5 shadow-[0_0_40px_rgba(6,182,212,0.1)]"
                     >
                         <h2 className="text-xs uppercase tracking-[0.3em] text-cyan-400 font-bold mb-1">
-                            Tu Trazado Humano
+                            Coordenadas para crear tu avatar
                         </h2>
                         <form onSubmit={handleProfileSubmit} className="flex flex-col gap-3 w-full">
                             <input
