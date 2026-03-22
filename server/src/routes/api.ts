@@ -125,7 +125,8 @@ export async function apiRoutes(app: FastifyInstance) {
 
             return { 
                 text: res, 
-                audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined 
+                audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined,
+                audioBase64: buffer ? buffer.toString('base64') : undefined
             };
         } catch (error: any) {
             console.error("🔥 SIGIL ERROR:", error);

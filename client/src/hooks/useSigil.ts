@@ -92,7 +92,8 @@ export function useSigil(userName?: string, energyContext?: any) {
                 id: `s-${Date.now()}`, 
                 text: sanitizedData, 
                 sender: 'sigil',
-                audioUrl: data.audioUrl 
+                audioUrl: data.audioUrl,
+                audioBase64: data.audioBase64 
             });
 
         } catch (err) {

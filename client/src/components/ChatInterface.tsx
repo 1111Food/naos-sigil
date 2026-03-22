@@ -54,10 +54,12 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
     useEffect(() => {
         if (!messages.length) return;
         const lastMessage = messages[messages.length - 1];
-        if (lastMessage && lastMessage.role === 'model' && lastMessage.audioUrl && !lastMessage.isHistory) {
+        if (lastMessage && lastMessage.role === 'model' && (lastMessage.audioUrl || lastMessage.audioBase64) && !lastMessage.isHistory) {
             const isVoiceEnabled = localStorage.getItem('naos_sigil_voice_enabled') !== 'false';
             if (isVoiceEnabled) {
-                const audio = new Audio(`${API_BASE_URL}${lastMessage.audioUrl}`);
+                const audio = lastMessage.audioBase64 
+                    ? new Audio(`data:audio/mpeg;base64,${lastMessage.audioBase64}`)
+                    : new Audio(`${API_BASE_URL}${lastMessage.audioUrl}`);
                 audio.play().catch(err => console.warn("Audio autoplay blocked or failed:", err));
             }
         }
