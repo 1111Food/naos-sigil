@@ -489,13 +489,13 @@
     "birthCountry": "Guatemala",
     "subscription": {
       "plan": "PREMIUM",
-      "validUntil": "2026-04-21T23:02:33.431Z",
       "features": [
         "basic_chat",
         "daily_energy",
         "tarot_spreads",
         "full_chart"
-      ]
+      ],
+      "validUntil": "2026-04-21T23:02:33.431Z"
     },
     "chinese_animal": "Tigre",
     "guardian_notes": "Usuario (Luis Alfredo): Busca guía para cerrar negocios. Se identifica impulsividad como riesgo. Se recomienda meditar hoy (Tierra) y actuar mañana (Fuego). Mercurio retrógrado influye en comunicación. Frecuencia ígnea alta.\n",
@@ -520,5 +520,277 @@
       "umbral_manifestacion": "Tu abundancia florece cuando actúas en sincronicidad con el El Arquitecto. La vida se despliega sin esfuerzo ante tu luz."
     },
     "onboarding_completed": true
+  },
+  "cc334799-2e7d-4d8c-87d5-a6ca49e9b96d": {
+    "id": "cc334799-2e7d-4d8c-87d5-a6ca49e9b96d",
+    "name": "Luis HerreraLuis Herrera",
+    "mayan": {
+      "tone": 12,
+      "meaning": "Perro, Ley, Justicia",
+      "mission": "Misión de Tz'i': Perro, Ley, Justicia. Expandir la conciencia a través de El guardián de la ley material y espiritual.",
+      "glyphUrl": "/nawales/tzi'.svg",
+      "toneName": "Kab'lajuj (12) - Entendimiento, Totalidad",
+      "kicheName": "Tz'i'",
+      "challenges": "Desafío: Integrar la sombra de Tz'i' y usar su energía para construir, no para destruir.",
+      "nawal_maya": "Tz'i'",
+      "nawal_tono": 12,
+      "description": "El guardián de la ley material y espiritual. Fidelidad, justicia y autoridad. Guía en el camino de la vida."
+    },
+    "astrology": {
+      "houses": [
+        {
+          "sign": "Aries",
+          "house": 1,
+          "degree": 13.004850229195142,
+          "absDegree": 13.004850229195142
+        },
+        {
+          "sign": "Taurus",
+          "house": 2,
+          "degree": 13.004850229195142,
+          "absDegree": 43.00485022919514
+        },
+        {
+          "sign": "Gemini",
+          "house": 3,
+          "degree": 13.004850229195142,
+          "absDegree": 73.00485022919514
+        },
+        {
+          "sign": "Cancer",
+          "house": 4,
+          "degree": 13.004850229195142,
+          "absDegree": 103.00485022919514
+        },
+        {
+          "sign": "Leo",
+          "house": 5,
+          "degree": 13.004850229195142,
+          "absDegree": 133.00485022919514
+        },
+        {
+          "sign": "Virgo",
+          "house": 6,
+          "degree": 13.004850229195142,
+          "absDegree": 163.00485022919514
+        },
+        {
+          "sign": "Libra",
+          "house": 7,
+          "degree": 13.004850229195142,
+          "absDegree": 193.00485022919514
+        },
+        {
+          "sign": "Scorpio",
+          "house": 8,
+          "degree": 13.004850229195142,
+          "absDegree": 223.00485022919514
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 9,
+          "degree": 13.004850229195142,
+          "absDegree": 253.00485022919514
+        },
+        {
+          "sign": "Capricorn",
+          "house": 10,
+          "degree": 13.004850229195142,
+          "absDegree": 283.00485022919514
+        },
+        {
+          "sign": "Aquarius",
+          "house": 11,
+          "degree": 13.004850229195142,
+          "absDegree": 313.00485022919514
+        },
+        {
+          "sign": "Pisces",
+          "house": 12,
+          "degree": 13.004850229195142,
+          "absDegree": 343.00485022919514
+        }
+      ],
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Capricorn",
+          "house": 9,
+          "degree": 11.07,
+          "absDegree": 281.0690633854152,
+          "retrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Pisces",
+          "house": 11,
+          "degree": 7.26,
+          "absDegree": 337.26330619032956,
+          "retrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Capricorn",
+          "house": 10,
+          "degree": 25.59,
+          "absDegree": 295.59202823178407,
+          "retrograde": true
+        },
+        {
+          "name": "Venus",
+          "sign": "Aquarius",
+          "house": 10,
+          "degree": 6.19,
+          "absDegree": 306.1898362747683,
+          "retrograde": true
+        },
+        {
+          "name": "Mars",
+          "sign": "Sagittarius",
+          "house": 8,
+          "degree": 10.18,
+          "absDegree": 250.1755963079849,
+          "retrograde": false
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Cancer",
+          "house": 3,
+          "degree": 5.12,
+          "absDegree": 95.11519526845386,
+          "retrograde": true
+        },
+        {
+          "name": "Saturn",
+          "sign": "Capricorn",
+          "house": 10,
+          "degree": 15.69,
+          "absDegree": 285.68694128371015,
+          "retrograde": false
+        },
+        {
+          "name": "Uranus",
+          "sign": "Capricorn",
+          "house": 9,
+          "degree": 5.8,
+          "absDegree": 275.79927772338027,
+          "retrograde": false
+        },
+        {
+          "name": "Neptune",
+          "sign": "Capricorn",
+          "house": 9,
+          "degree": 12.05,
+          "absDegree": 282.04707377540865,
+          "retrograde": false
+        },
+        {
+          "name": "Pluto",
+          "sign": "Scorpio",
+          "house": 8,
+          "degree": 17.1,
+          "absDegree": 227.10090579128956,
+          "retrograde": false
+        }
+      ],
+      "elements": {
+        "air": 1,
+        "fire": 1,
+        "earth": 5,
+        "water": 3
+      },
+      "ascendant": 13.004850229195142,
+      "midheaven": 279.7602198036095,
+      "modalities": {
+        "fixed": 2,
+        "mutable": 2,
+        "cardinal": 6
+      },
+      "timezone_offset": -6
+    },
+    "birthCity": "",
+    "birthDate": "1990-01-01",
+    "birthTime": "12:00:00",
+    "plan_type": "free",
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "nawal_maya": "12 Tz'i'",
+    "numerology": {
+      "pinaculo": {
+        "a": 1,
+        "b": 1,
+        "c": 1,
+        "d": 3,
+        "e": 2,
+        "f": 2,
+        "g": 4,
+        "h": 3,
+        "i": 4,
+        "j": 8,
+        "o": 0,
+        "p": 0,
+        "q": 0,
+        "r": 0,
+        "s": 0
+      },
+      "nameNumber": 7,
+      "lifePathNumber": 3
+    },
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "usage_level": "normal",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "PREMIUM",
+      "features": [
+        "basic_chat",
+        "daily_energy",
+        "tarot_spreads",
+        "full_chart"
+      ],
+      "validUntil": "2026-04-13T20:54:42.940Z"
+    },
+    "chinese_animal": "Serpiente",
+    "guardian_notes": {},
+    "chinese_element": "Tierra",
+    "chinese_birth_year": 1989,
+    "daily_interactions": 0,
+    "onboarding_completed": true
+  },
+  "971f5275-3f49-4d4f-a55d-4538a1ebd295": {
+    "id": "971f5275-3f49-4d4f-a55d-4538a1ebd295",
+    "name": "Viajero cosmico",
+    "guardian_notes": {},
+    "birthDate": "",
+    "birthTime": "",
+    "birthCity": "",
+    "astrology": {
+      "timezone_offset": -6
+    },
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "PREMIUM",
+      "validUntil": "2026-04-21T23:22:45.687Z",
+      "features": [
+        "basic_chat",
+        "daily_energy",
+        "tarot_spreads",
+        "full_chart"
+      ]
+    },
+    "plan_type": "free",
+    "usage_level": "normal",
+    "daily_interactions": 0,
+    "onboarding_completed": false
   }
 }

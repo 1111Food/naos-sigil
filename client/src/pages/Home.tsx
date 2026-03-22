@@ -13,7 +13,6 @@ import { IntentionWidget } from '../components/IntentionWidget';
 import { BentoBlock } from '../components/BentoBlock';
 import { useSound } from '../hooks/useSound';
 import { useUpgrade } from '../contexts/UpgradeContext';
-import { ProfileSelector } from '../components/ProfileSelector';
 import { ConsciousnessBar } from '../components/ConsciousnessBar';
 import { LegalView } from '../components/LegalView';
 
@@ -133,12 +132,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                 <ConsciousnessBar />
             </div>
 
-            {/* 0. PROFILE SELECTOR FLOOR */}
-            <div className="absolute top-6 right-6 z-[100]">
-                <ProfileSelector />
-            </div>
-
-            {/* 1. BACKGROUND ENGINE */}
+            {/* 01. BACKGROUND ENGINE */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
                 <Player
                     ref={playerRef}

@@ -69,7 +69,7 @@ function App() {
   const { energy } = useEnergy();
   const { user, signOut, signInAnonymously } = useAuth();
   const { profile, appReady: profileReady, refreshProfile } = useProfile();
-  const { status, upgrade } = useSubscription();
+  const { status } = useSubscription();
 
   const [activeView, setActiveView] = useState<ViewState>('LANDING');
   const [activeRitual, setActiveRitual] = useState<{ type: 'BREATH' | 'MEDITATION', techId: string } | undefined>(undefined);
@@ -403,11 +403,6 @@ function App() {
 
                   <div className="flex items-center gap-2">
                     <PWAInstallButton />
-                    {status?.plan === 'FREE' && (
-                      <button onClick={() => upgrade()} className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-amber-500/60 hover:text-amber-500 transition-colors">
-                        Ascender
-                      </button>
-                    )}
 
                     <button
                       onClick={handleLogout}

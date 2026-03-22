@@ -8,6 +8,7 @@ import { useTranslation } from '../i18n/translations';
 import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
+import { ProfileSelector } from './ProfileSelector';
 
 interface SacredDockProps {
     activeView: string;
@@ -54,6 +55,13 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                 "md:left-8 md:top-1/2 md:-translate-y-1/2 md:bottom-auto md:right-auto md:h-auto md:max-h-[700px] md:px-4 md:py-8 md:glass-panel shadow-2xl"
             )}>
                 <div className="flex md:flex-col items-center justify-around md:justify-center gap-2 md:gap-4 py-3 md:py-0 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full px-2">
+                    
+                    {/* Profile Selector (Desktop Only to avoid crowding bottom rail) */}
+                    <div className="hidden md:block mb-1 -translate-x-1 scale-90">
+                        <ProfileSelector />
+                    </div>
+                    <div className="hidden md:block w-8 h-px bg-white/10 my-1" />
+
                     {items.map((item) => {
                         const isActive = activeView === item.id;
                         return (
@@ -61,7 +69,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                                 key={item.id}
                                 onClick={() => onNavigate(item.id)}
                                 className={cn(
-                                    "flex flex-col md:flex-row items-center gap-1.5 p-3.5 rounded-2xl md:rounded-full transition-all duration-700 group relative",
+                                    "flex flex-col md:flex-row items-center gap-1.5 p-3.5 rounded-full transition-all duration-700 group relative",
                                     isActive ? "bg-white/10 scale-110 mystic-glow" : "hover:bg-white/5 opacity-40 hover:opacity-100"
                                 )}
                             >
@@ -85,7 +93,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
 
                                 {isActive && (
                                     <div className={cn(
-                                        "absolute inset-0 rounded-xl md:rounded-full blur-lg opacity-10 md:opacity-20 animate-pulse",
+                                        "absolute inset-0 rounded-full blur-lg opacity-10 md:opacity-20 animate-pulse",
                                         item.color.replace('text-', 'bg-')
                                     )} />
                                 )}
