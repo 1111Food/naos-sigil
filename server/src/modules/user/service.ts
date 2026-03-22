@@ -60,6 +60,25 @@ export class UserService {
             if (data && !error) {
                 const baseProfile = (data.profile_data || {}) as Partial<UserProfile>;
                 
+                // 📊 DOPAMINE ENGINE: Consciousness Points
+                let meditationCount = 0;
+                try {
+                    const { count } = await supabase
+                        .from('meditation_sessions')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', userId);
+                    meditationCount = count || 0;
+                } catch (e) {
+                    console.error("Consciousness points count failed:", e);
+                }
+
+                const score = meditationCount * 10; // 10 pts per session
+                let level = 'Iniciado';
+                if (score >= 1000) level = 'Arquitecto';
+                else if (score >= 500) level = 'Maestro';
+                else if (score >= 200) level = 'Practicante';
+                else if (score >= 50) level = 'Adepto';
+
                 // multi-profile resolution
                 let activeSub: any = null;
                 if (baseProfile.sub_profiles && baseProfile.active_sub_profile_id) {
@@ -93,7 +112,9 @@ export class UserService {
                     daily_interactions: data.daily_interactions || baseProfile.daily_interactions || 0,
                     onboarding_completed: data.onboarding_completed || baseProfile.onboarding_completed || false,
                     active_sub_profile_id: baseProfile.active_sub_profile_id,
-                    sub_profiles: baseProfile.sub_profiles
+                    sub_profiles: baseProfile.sub_profiles,
+                    consciousness_level: level,
+                    consciousness_points: score
                 };
                 this.profilesCache[userId] = dbProfile;
                 return dbProfile;

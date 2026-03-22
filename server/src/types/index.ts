@@ -71,6 +71,8 @@ export interface UserProfile {
     cached_identity_context?: string;
     active_sub_profile_id?: string;
     sub_profiles?: SubProfile[];
+    consciousness_level?: string;
+    consciousness_points?: number;
 }
 
 export interface MayanNawal {

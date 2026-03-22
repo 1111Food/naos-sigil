@@ -58,9 +58,12 @@ export interface UserProfile {
         plan: 'FREE' | 'PREMIUM';
         features: string[];
     };
+    plan_type?: 'free' | 'premium' | 'admin';
     naosIdentityCode?: any;
     active_sub_profile_id?: string;
-    sub_profiles?: SubProfile[];
+    sub_profiles?: any[];
+    consciousness_level?: string;
+    consciousness_points?: number;
 }
 
 interface ProfileContextType {

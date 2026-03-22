@@ -14,6 +14,7 @@ import { BentoBlock } from '../components/BentoBlock';
 import { useSound } from '../hooks/useSound';
 import { useUpgrade } from '../contexts/UpgradeContext';
 import { ProfileSelector } from '../components/ProfileSelector';
+import { ConsciousnessBar } from '../components/ConsciousnessBar';
 
 interface HomeProps {
     onSelectFeature: (feature: any, payload?: any) => void;
@@ -117,6 +118,11 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     return (
         <div className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans text-white transition-colors duration-1000 ${isBunkerMode ? 'bg-red-950/20' : 'bg-transparent'}`}>
             
+            {/* 00. LEFTSIDE: PROGRESSION BAR */}
+            <div className="absolute top-6 left-6 z-[100]">
+                <ConsciousnessBar />
+            </div>
+
             {/* 0. PROFILE SELECTOR FLOOR */}
             <div className="absolute top-6 right-6 z-[100]">
                 <ProfileSelector />
