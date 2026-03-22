@@ -3,7 +3,9 @@ import path from 'path';
 import crypto from 'crypto';
 import { config } from '../../config/env';
 
-const CACHE_DIR = path.join(process.cwd(), 'tts-cache');
+const CACHE_DIR = process.env.NODE_ENV === 'production' 
+    ? '/tmp/tts-cache' 
+    : path.join(process.cwd(), 'tts-cache');
 
 export class TTSService {
 

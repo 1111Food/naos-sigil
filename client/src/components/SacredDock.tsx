@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../i18n/translations';
 import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
@@ -17,6 +18,7 @@ interface SacredDockProps {
 export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavigate, onLogout }) => {
     const { activeAura, setAura } = useTheme();
     const { language, setLanguage } = useLanguage();
+    const { t } = useTranslation();
     const [showAuras, setShowAuras] = useState(false);
     const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
     const [isSigilSettingsOpen, setIsSigilSettingsOpen] = useState(false);
@@ -40,8 +42,8 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
     };
 
     const items = [
-        { id: 'TEMPLE', icon: Home, label: 'Templo', color: 'text-amber-400' },
-        { id: 'PROFILE', icon: User, label: 'Perfil', color: 'text-purple-400' },
+        { id: 'TEMPLE', icon: Home, label: t('temple'), color: 'text-amber-400' },
+        { id: 'PROFILE', icon: User, label: t('profile'), color: 'text-purple-400' },
     ];
 
     return (

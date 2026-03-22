@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Clock, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../i18n/translations';
 
 interface SigilSettingsModalProps {
     isOpen: boolean;
@@ -11,6 +12,7 @@ interface SigilSettingsModalProps {
 }
 
 export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, onClose, onOpenTelegram }) => {
+    const { t } = useTranslation();
     const [time, setTime] = useState('08:00');
     const [saving, setSaving] = useState(false);
     const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => {
@@ -84,18 +86,18 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
 
                     <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="w-5 h-5 text-cyan-400 mystic-pulse" />
-                        <h3 className="text-lg font-light tracking-wider uppercase text-cyan-100">Configuración del Sigil</h3>
+                        <h3 className="text-lg font-light tracking-wider uppercase text-cyan-100">{t('sigil_settings')}</h3>
                     </div>
 
                     <div className="text-[10px] text-cyan-400/90 mb-6 bg-cyan-500/10 p-3 rounded-xl border border-cyan-500/20 flex items-center gap-2">
-                         <span>✨ <span className="font-bold">Módulo de Voz Activado:</span> El Sigil ahora puede comunicarse contigo verbalmente en la aplicación.</span>
+                         <span>✨ <span className="font-bold">{t('sigil_voice_active_msg')}:</span> {t('sigil_voice_active_desc')}</span>
                     </div>
 
                     <div className="space-y-6">
                         {/* Section 1: Horario */}
                         <div className="space-y-2">
                             <label className="text-xs uppercase tracking-wider font-semibold text-white/50 flex items-center gap-1">
-                                <Clock size={14}/> Hora de Lectura Diaria
+                                <Clock size={14}/> {t('daily_reading_time')}
                             </label>
                             <input 
                                 type="time" 
@@ -103,28 +105,28 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                                 onChange={(e) => setTime(e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500/50"
                             />
-                            <p className="text-[10px] text-white/30">Define a qué hora deseas que el oráculo despache su sabiduría a tu Telegram.</p>
+                            <p className="text-[10px] text-white/30">{t('daily_reading_desc')}</p>
                         </div>
 
                         {/* Section 2: Telegram */}
                         <div className="space-y-2">
-                            <label className="text-xs uppercase tracking-wider font-semibold text-white/50">Canales de Despacho</label>
+                            <label className="text-xs uppercase tracking-wider font-semibold text-white/50">{t('dispatch_channels')}</label>
                             <button 
                                 onClick={onOpenTelegram}
                                 className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 hover:border-cyan-500/30 rounded-xl transition-all group"
                             >
                                 <div className="flex items-center gap-3">
                                     <Send size={20} className="text-cyan-400 group-hover:scale-110 transition-transform"/>
-                                    <span className="text-sm font-light text-white/80">Vincular Telegram</span>
+                                    <span className="text-sm font-light text-white/80">{t('link_telegram')}</span>
                                 </div>
-                                <span className="text-xs text-cyan-400/50">Abrir</span>
+                                <span className="text-xs text-cyan-400/50">{t('open')}</span>
                             </button>
                         </div>
 
                         {/* Section 3: Voz del Sigil */}
                         <div className="space-y-2">
                             <label className="text-xs uppercase tracking-wider font-semibold text-white/50 flex items-center gap-1">
-                                <Sparkles size={14} className="text-cyan-400"/> Voz en Aplicación (Beta)
+                                <Sparkles size={14} className="text-cyan-400"/> {t('voice_in_app')}
                             </label>
                             <button 
                                 onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
@@ -132,7 +134,7 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                             >
                                 <div className="flex items-center gap-3">
                                     <Sparkles size={20} className={isVoiceEnabled ? "text-cyan-400" : "text-white/20"}/>
-                                    <span className="text-sm font-light text-white/80">Lectura de Respuestas</span>
+                                    <span className="text-sm font-light text-white/80">{t('voice_toggle_label')}</span>
                                 </div>
                                 <div className={cn(
                                     "w-10 h-5 rounded-full p-1 transition-colors duration-300",
@@ -144,16 +146,16 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                                     )} />
                                 </div>
                             </button>
-                            <p className="text-[10px] text-white/30">Habilita que el Sigil reproduzca sus respuestas en voz alta frente a eventos críticos.</p>
+                            <p className="text-[10px] text-white/30">{t('voice_toggle_desc')}</p>
                         </div>
                     </div>
 
                     <div className="mt-8 flex gap-3">
                         <button onClick={onClose} className="flex-1 p-3 rounded-xl border border-white/5 text-white/60 hover:bg-white/5 transition-all text-sm font-light">
-                            Cancelar
+                            {t('cancel')}
                         </button>
                         <button onClick={handleSave} className="flex-1 p-3 rounded-xl bg-cyan-500/20 border border-cyan-500/20 text-cyan-100 hover:bg-cyan-500/30 transition-all text-sm font-semibold">
-                            {saving ? 'Guardando...' : 'Guardar'}
+                            {saving ? t('saving') : t('save')}
                         </button>
                     </div>
                 </motion.div>
