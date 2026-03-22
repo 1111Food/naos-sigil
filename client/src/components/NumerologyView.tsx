@@ -333,18 +333,13 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                 className="mt-4 pt-4 border-t border-white/10 text-sm text-white/70 overflow-hidden"
                                             >
                                                 <div className="mb-4">
-                                                    <p className="text-[11px] text-purple-300/70 uppercase tracking-widest font-bold mb-2">Arquetipo Maestro</p>
+                                                    <p className="text-[11px] text-purple-300/70 uppercase tracking-widest font-bold mb-2">El Núcleo</p>
                                                     <p className="text-sm font-serif text-white/90 leading-relaxed italic border-l-2 border-purple-500/40 pl-3">
-                                                        "{interp.archetype}"
+                                                        "La frecuencia {numValue} actuando en tu {PINNACLE_POSITIONS[item.l]?.title || item.t}"
                                                     </p>
-                                                </div>
-
-                                                <div className="space-y-3 mb-4">
-                                                    {interp.blocks.map((block, i) => (
-                                                        <p key={i} className="text-xs leading-relaxed text-white/80 font-serif text-justify">
-                                                            {block}
-                                                        </p>
-                                                    ))}
+                                                    <p className="text-xs text-white/70 mt-2 pl-3 leading-relaxed border-l-2 border-white/10">
+                                                        {PINNACLE_POSITIONS[item.l]?.context}
+                                                    </p>
                                                 </div>
 
                                                 {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
@@ -366,7 +361,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                             <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight === item.l ? 'rotate-90' : ''}`} />
                                                         )}
                                                     </div>
-                                                    <p className="text-[9px] text-white/40 font-medium">{isPremium ? 'Toca para descubrir la síntesis evolutiva de tu número.' : 'Desbloquea la síntesis evolutiva de tu alma.'}</p>
+                                                    <p className="text-[9px] text-white/40 font-medium">{isPremium ? 'Toca para descubrir el arquetipo y detalle maestro.' : 'Desbloquea la síntesis evolutiva de tu alma.'}</p>
 
                                                     <AnimatePresence>
                                                         {isPremium && showDeepInsight === item.l && (
@@ -378,13 +373,17 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                             >
                                                                 <div className="space-y-4 text-white/90 leading-relaxed">
                                                                     <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                                                                        <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">El Núcleo</h4>
+                                                                        <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">Arquetipo Maestro</h4>
                                                                         <p className="text-lg italic font-medium">
-                                                                            "La frecuencia {numValue} actuando en tu {PINNACLE_POSITIONS[item.l]?.title || item.t}"
+                                                                            "{interp.archetype}"
                                                                         </p>
-                                                                        <p className="text-white/70 italic text-sm mt-3 pt-3 border-t border-purple-500/10 leading-relaxed">
-                                                                            {PINNACLE_POSITIONS[item.l]?.context}
-                                                                        </p>
+                                                                    </div>
+                                                                    <div className="space-y-3">
+                                                                        {interp.blocks.map((block, i) => (
+                                                                            <p key={i} className="text-xs leading-relaxed text-white/80 font-serif text-justify">
+                                                                                {block}
+                                                                            </p>
+                                                                        ))}
                                                                     </div>
                                                                 </div>
                                                             </motion.div>
