@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Clock, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { cn } from '../lib/utils';
 
 interface SigilSettingsModalProps {
     isOpen: boolean;
@@ -12,6 +13,9 @@ interface SigilSettingsModalProps {
 export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, onClose, onOpenTelegram }) => {
     const [time, setTime] = useState('08:00');
     const [saving, setSaving] = useState(false);
+    const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => {
+        return localStorage.getItem('naos_sigil_voice_enabled') === 'true';
+    });
 
     useEffect(() => {
         if (!isOpen) return;
@@ -44,6 +48,8 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                     .eq('id', user.id);
                 if (error) throw error;
             }
+            localStorage.setItem('naos_sigil_voice_enabled', isVoiceEnabled ? 'true' : 'false');
+            window.dispatchEvent(new Event('sigil_voice_preference_changed'));
             onClose();
         } catch (err: any) {
             console.error("Error saving oracle time:", err);
@@ -109,6 +115,32 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                                 </div>
                                 <span className="text-xs text-cyan-400/50">Abrir</span>
                             </button>
+                        </div>
+
+                        {/* Section 3: Voz del Sigil */}
+                        <div className="space-y-2">
+                            <label className="text-xs uppercase tracking-wider font-semibold text-white/50 flex items-center gap-1">
+                                <Sparkles size={14} className="text-cyan-400"/> Voz en Aplicación (Beta)
+                            </label>
+                            <button 
+                                onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
+                                className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 hover:border-cyan-500/30 rounded-xl transition-all group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Sparkles size={20} className={isVoiceEnabled ? "text-cyan-400" : "text-white/20"}/>
+                                    <span className="text-sm font-light text-white/80">Lectura de Respuestas</span>
+                                </div>
+                                <div className={cn(
+                                    "w-10 h-5 rounded-full p-1 transition-colors duration-300",
+                                    isVoiceEnabled ? "bg-cyan-500/40" : "bg-white/10"
+                                )}>
+                                    <div className={cn(
+                                        "w-3 h-3 rounded-full bg-white transition-transform duration-300",
+                                        isVoiceEnabled && "translate-x-5"
+                                    )} />
+                                </div>
+                            </button>
+                            <p className="text-[10px] text-white/30">Habilita que el Sigil reproduzca sus respuestas en voz alta frente a eventos críticos.</p>
                         </div>
                     </div>
 

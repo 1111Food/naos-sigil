@@ -8,6 +8,7 @@ import { useEnergy } from '../hooks/useEnergy';
 import { cn } from '../lib/utils';
 
 import { useProtocol21 } from '../hooks/useProtocol21';
+import { API_BASE_URL } from '../lib/api';
 
 interface ChatInterfaceProps {
     onNavigate?: (view: 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR') => void;
@@ -47,6 +48,19 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    // Sigil Auto-Speak Trigger
+    useEffect(() => {
+        if (!messages.length) return;
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.role === 'model' && lastMessage.audioUrl && !lastMessage.isHistory) {
+            const isVoiceEnabled = localStorage.getItem('naos_sigil_voice_enabled') === 'true';
+            if (isVoiceEnabled) {
+                const audio = new Audio(`${API_BASE_URL}${lastMessage.audioUrl}`);
+                audio.play().catch(err => console.warn("Audio autoplay blocked or failed:", err));
+            }
+        }
     }, [messages]);
 
     useEffect(() => {

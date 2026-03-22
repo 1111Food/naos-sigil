@@ -159,12 +159,7 @@ export const CoherenceCore: React.FC = () => {
                     )}
                 </AnimatePresence>
 
-                {/* Stability Label */}
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                    <span className="font-serif italic text-white/40 tracking-widest text-xs uppercase">
-                        {isHigh ? "Espejo Sincronizado" : isLow ? "Espejo Inestable" : "Espejo en Equilibrio"}
-                    </span>
-                </div>
+
             </div>
 
             <CoherenceDetailOverlay

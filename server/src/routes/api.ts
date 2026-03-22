@@ -85,10 +85,13 @@ export async function apiRoutes(app: FastifyInstance) {
 
             // Generate TTS Audio Buffer for the response
             const tts = new TTSService();
-            const { hash } = await tts.generateVoice(res);
+            const { hash, buffer } = await tts.generateVoice(res);
 
             await UsageGuardService.incrementUsage(userId, 'sigil');
-            return { text: res, audioUrl: `/api/sigil/audio/${hash}` };
+            return { 
+                text: res, 
+                audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined 
+            };
         } catch (error: any) {
             console.error("🔥 SIGIL ERROR:", error);
 
