@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Player, type PlayerRef } from '@remotion/player';
 import { TempleAura } from '../remotion/TempleAura';
 import { motion } from 'framer-motion';
@@ -15,6 +15,7 @@ import { useSound } from '../hooks/useSound';
 import { useUpgrade } from '../contexts/UpgradeContext';
 import { ProfileSelector } from '../components/ProfileSelector';
 import { ConsciousnessBar } from '../components/ConsciousnessBar';
+import { LegalView } from '../components/LegalView';
 
 interface HomeProps {
     onSelectFeature: (feature: any, payload?: any) => void;
@@ -114,6 +115,15 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
 
     const playerProps = React.useMemo(() => ({ score }), [score]);
     const playerStyle = React.useMemo(() => ({ width: '100%', height: '100%', objectFit: 'cover' as const, filter: isBunkerMode ? 'hue-rotate(320deg) saturate(0.8)' : 'none' }), [isBunkerMode]);
+    
+    // ⚖️ Legal States
+    const [isLegalOpen, setIsLegalOpen] = useState(false);
+    const [legalType, setLegalType] = useState<'terms' | 'privacy' | 'disclaimer'>('terms');
+
+    const handleLegalOpen = (type: 'terms' | 'privacy' | 'disclaimer') => {
+        setLegalType(type);
+        setIsLegalOpen(true);
+    };
 
     return (
         <div className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans text-white transition-colors duration-1000 ${isBunkerMode ? 'bg-red-950/20' : 'bg-transparent'}`}>
@@ -259,9 +269,22 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                 <div className="flex justify-center w-full">
                     <IntentionWidget />
                 </div>
+
+                {/* ⚖️ Legal Footer */}
+                <div className="flex justify-center gap-4 text-white/30 text-[8px] tracking-widest uppercase font-sans font-medium mt-6 mb-2 z-50">
+                    <button onClick={() => handleLegalOpen('terms')} className="hover:text-cyan-400 transition-colors">Términos</button>
+                    <span>•</span>
+                    <button onClick={() => handleLegalOpen('privacy')} className="hover:text-cyan-400 transition-colors">Privacidad</button>
+                    <span>•</span>
+                    <button onClick={() => handleLegalOpen('disclaimer')} className="hover:text-cyan-400 transition-colors">Disclaimer</button>
+                </div>
             </main>
 
-            {/* 4. INTERACTIVE FOCUS OVERLAY - MODAL LOGIC REMOVED FOR PROTOCOL/LAB */}
+            <LegalView 
+                isOpen={isLegalOpen} 
+                onClose={() => setIsLegalOpen(false)} 
+                type={legalType} 
+            />
         </div>
     );
 };

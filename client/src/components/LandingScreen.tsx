@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTimeBasedMode } from '../hooks/useTimeBasedMode';
 import { SlideToEnter } from './SlideToEnter';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LegalView } from './LegalView';
 
 interface LandingScreenProps {
     onEnter: () => void;
@@ -14,6 +15,15 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 }) => {
     const timeMode = useTimeBasedMode();
     const [isEntering, setIsEntering] = useState(false);
+    
+    // ⚖️ Legal States
+    const [isLegalOpen, setIsLegalOpen] = useState(false);
+    const [legalType, setLegalType] = useState<'terms' | 'privacy' | 'disclaimer'>('terms');
+
+    const handleLegalOpen = (type: 'terms' | 'privacy' | 'disclaimer') => {
+        setLegalType(type);
+        setIsLegalOpen(true);
+    };
 
     const handleUnlock = () => {
         setIsEntering(true);
@@ -23,7 +33,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black overflow-hidden">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black overflow-hidden border-top">
             {/* Tunnel Animation Overlay */}
             <AnimatePresence>
                 {isEntering && (
@@ -49,10 +59,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 mb-6 backdrop-blur-xl relative overflow-hidden shadow-[0_0_30px_rgba(255,255,255,0.05)]">
                     <video
                         src={timeMode === 'DAY' ? '/Guardian-Day.mp4' : '/Guardian-Night.mp4'}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
+                        autoPlay loop muted playsInline
                         className="w-full h-full object-cover rounded-full transition-transform duration-500 scale-[1.3]"
                         style={{
                             mixBlendMode: 'screen',
@@ -88,9 +95,20 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 </div>
             </div>
 
-            <div className="absolute bottom-8 text-white/30 text-[10px] tracking-widest uppercase font-serif italic opacity-50">
-                Presencia Digital • Conciencia Artificial
+            {/* ⚖️ Legal Footer */}
+            <div className="absolute bottom-8 flex gap-4 text-white/30 text-[9px] tracking-widest uppercase font-sans font-medium z-10">
+                <button onClick={() => handleLegalOpen('terms')} className="hover:text-cyan-400 transition-colors">Términos</button>
+                <span>•</span>
+                <button onClick={() => handleLegalOpen('privacy')} className="hover:text-cyan-400 transition-colors">Privacidad</button>
+                <span>•</span>
+                <button onClick={() => handleLegalOpen('disclaimer')} className="hover:text-cyan-400 transition-colors">Disclaimer</button>
             </div>
+
+            <LegalView
+                isOpen={isLegalOpen}
+                onClose={() => setIsLegalOpen(false)}
+                type={legalType}
+            />
         </div>
     );
 };
