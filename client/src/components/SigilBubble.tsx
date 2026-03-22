@@ -5,27 +5,50 @@ import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
 
 interface SigilBubbleProps {
+    activeView?: string;
     onNavigate?: (view: any, payload?: any) => void;
 }
 
-export const SigilBubble: React.FC<SigilBubbleProps> = ({ onNavigate }) => {
+export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate }) => {
     const { score, trend } = useCoherence();
     const { playSound } = useSound();
     const [message, setMessage] = React.useState<string | null>(null);
+    const hasTriggeredRef = React.useRef(false);
+
+    // Keep track of latest values without resetting the idle countdown timer
+    const scoreRef = React.useRef(score);
+    const trendRef = React.useRef(trend);
+    
+    React.useEffect(() => { scoreRef.current = score; }, [score]);
+    React.useEffect(() => { trendRef.current = trend; }, [trend]);
 
     React.useEffect(() => {
+        if (activeView !== 'TEMPLE' || hasTriggeredRef.current) {
+            if (activeView !== 'TEMPLE') {
+                setMessage(null); // Clear message if leaving Temple
+            }
+            return;
+        }
+
         const timer = setTimeout(() => {
-            if (score && score < 60) {
+            if (hasTriggeredRef.current) return;
+
+            const currScore = scoreRef.current;
+            const currTrend = trendRef.current;
+
+            if (currScore && currScore < 60) {
                 setMessage("Tu sistema muestra fricción. ¿Deseas estabilizarte?");
                 playSound('success');
-            } else if (trend === 'down') {
+                hasTriggeredRef.current = true;
+            } else if (currTrend === 'down') {
                 setMessage("Frecuencia bajando. Es hora de regular tu estado.");
                 playSound('success');
+                hasTriggeredRef.current = true;
             }
-        }, 5000);
+        }, 15000); // 15 seconds idle trigger
 
         return () => clearTimeout(timer);
-    }, [score, trend, playSound]);
+    }, [activeView, playSound]);
 
     if (!message) return null;
 
