@@ -86,17 +86,15 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                         <X size={20}/>
                     </button>
 
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                            <Sparkles className="w-5 h-5 text-cyan-400 mystic-pulse" />
-                            <h3 className="text-lg font-light tracking-wider uppercase text-cyan-100">{t('sigil_settings')}</h3>
-                        </div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <Sparkles className="w-5 h-5 text-cyan-400 mystic-pulse" />
+                        <h3 className="text-lg font-light tracking-wider uppercase text-cyan-100">{t('sigil_settings')}</h3>
                         <button 
                             onClick={() => setShowExplainer(true)}
-                            className="p-1.5 rounded-full hover:bg-white/10 text-cyan-400/80 hover:text-cyan-400 transition-colors"
+                            className="p-1 rounded-full hover:bg-white/10 text-cyan-400/80 hover:text-cyan-400 transition-colors"
                             title="¿Qué hace el Sigil?"
                         >
-                            <Info size={18} />
+                            <Info size={14} />
                         </button>
                     </div>
 
