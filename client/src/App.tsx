@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from './lib/supabase';
 import { ArrowLeft, LogOut, MapPin } from 'lucide-react';
 import { ChatInterface } from './components/ChatInterface';
 import { LandingScreen } from './components/LandingScreen';
@@ -21,7 +22,6 @@ import { SigilBubble } from './components/SigilBubble';
 import { LanguagePromptBanner } from './components/LanguagePromptBanner';
 
 import { StatusBadge } from './components/StatusBadge';
-import { DevPlanToggle } from './components/DevPlanToggle';
 import { NaosVibrationEngine } from './components/NaosVibrationEngine';
 import { AtmosphereEngine } from './components/AtmosphereEngine';
 import { useEnergy } from './hooks/useEnergy';
@@ -76,6 +76,20 @@ function App() {
   const [welcomeUser, setWelcomeUser] = useState<{ id: string, nickname: string } | null>(null);
   const [storageReady, setStorageReady] = useState(false);
   const [headerOpacity] = useState(1);
+
+  // 0. GHOST SESSION PURGE (SECURITY UPGRADE)
+  useEffect(() => {
+    const checkPhantom = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user?.is_anonymous) {
+        console.warn("👻 GHOST ANONYMOUS SESSION DETECTED. PURGING PARA HABILITAR LOGIN...");
+        await signOut();
+        localStorage.removeItem('naos_active_user');
+        window.location.reload();
+      }
+    };
+    checkPhantom();
+  }, [signOut]);
 
   // 1. INITIALIZATION & PERSISTENCE CHECK
   useEffect(() => {
@@ -330,7 +344,6 @@ function App() {
           {/* Removing FloatingLaboratorio per request */}
           <SigilBubble activeView={activeView as any} onNavigate={navigateWithRitual} />
           <LanguagePromptBanner />
-          <DevPlanToggle />
 
           <div className="relative z-10 min-h-screen flex flex-col animate-in fade-in duration-1000">
             {/* ... header and main content ... */}
