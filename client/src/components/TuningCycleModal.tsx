@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, Zap, Target, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { getAsyncAuthHeaders } from '../lib/api';
 import { cn } from '../lib/utils';
 
 interface TuningCycleModalProps {
@@ -58,19 +59,14 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
         setErrorMsg(null);
 
         try {
-            let { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                await supabase.auth.refreshSession();
-                const { data: refreshed } = await supabase.auth.getUser();
-                user = refreshed.user;
-            }
-            if (!user) throw new Error("No se pudo verificar la sesión de usuario en NAOS.");
+            await getAsyncAuthHeaders(); // Force fresh session if approaching expiration
+            if (!userId) throw new Error("No se pudo verificar la sesión de usuario en NAOS.");
 
             // Workaround for Supabase RLS Upsert Bug: Explicit Check
             const { data: existing } = await supabase
                 .from('coherence_tunings')
                 .select('id')
-                .match({ user_id: user.id, module_type: 'elemental_lab', aspect: practiceName })
+                .match({ user_id: userId, module_type: 'elemental_lab', aspect: practiceName })
                 .maybeSingle();
 
             if (existing) {
@@ -86,7 +82,7 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                 const { error: insertError } = await supabase
                     .from('coherence_tunings')
                     .insert({
-                        user_id: user.id,
+                        user_id: userId,
                         module_type: 'elemental_lab',
                         aspect: practiceName,
                         cron_schedule: schedule,
