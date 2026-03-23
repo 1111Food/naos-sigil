@@ -81,7 +81,7 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
  */
 const mapProfileData = (data: any, userEmail?: string): UserProfile => {
     const rawEmail = data.email || data.profile_data?.email || userEmail || '';
-    const isRoot = rawEmail?.toLowerCase() === 'luisalfredoherreramendez@gmail.com';
+    const isRoot = rawEmail?.toLowerCase().includes('luisalfredoherreramendez');
 
     return {
         ...data,

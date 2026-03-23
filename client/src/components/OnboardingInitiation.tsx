@@ -6,6 +6,7 @@ import { NumerologyEngine } from '../lib/numerologyEngine';
 import { MayanEngine } from '../lib/mayanEngine';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import { Sparkles, MapPin, LocateFixed, Eye, X, Loader2 } from 'lucide-react';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AstralVortex } from './AstralVortex';
@@ -56,12 +57,20 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
         setCompleting(true);
         try {
             console.log("🚀 Sintonizando llave de acceso maestro...");
-            const { error: authError } = await signUp(formData.email, formData.password);
-            
-            if (authError) {
-                alert("Error al forjar la llave: " + authError.message);
-                setCompleting(false);
-                return;
+            // Si el usuario ya existe en Auth (por ejemplo, creado manual en Supabase), saltamos signUp
+            let currentUser = undefined;
+            try { 
+                const { data } = await supabase.auth.getUser(); 
+                currentUser = data?.user; 
+            } catch(e) {}
+
+            if (!currentUser) {
+                const { error: authError } = await signUp(formData.email, formData.password);
+                if (authError) {
+                    alert("Error al forjar la llave: " + authError.message);
+                    setCompleting(false);
+                    return;
+                }
             }
 
             console.log("🔮 NAOS: Iniciando cálculo místico en cliente...");
@@ -79,7 +88,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                 name: formData.name,
                 nickname: formData.nickname,
                 email: formData.email,
-                plan_type: formData.email.toLowerCase() === 'luisalfredoherreramendez@gmail.com' ? 'admin' : 'free',
+                plan_type: formData.email.toLowerCase().includes('luisalfredoherreramendez') ? 'admin' : 'free',
                 birthDate: formData.birthDate,
                 birthTime: formData.birthTime,
                 birthCity: formData.birthCity,
