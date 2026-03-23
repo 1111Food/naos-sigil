@@ -1,5 +1,5 @@
 import React, { useState, memo } from 'react';
-import { Home, User, LogOut, Volume2, VolumeX, Aperture, Bot } from 'lucide-react';
+import { Home, User, LogOut, Volume2, VolumeX, Aperture, Bot, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
@@ -42,10 +42,16 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
         (window as any).setNaosVibration?.(newState);
     };
 
+    const { profile } = useProfile();
+
     const items = [
         { id: 'TEMPLE', icon: Home, label: t('temple'), color: 'text-amber-400' },
         { id: 'PROFILE', icon: User, label: t('profile'), color: 'text-purple-400' },
     ];
+
+    if ((profile as any)?.plan_type === 'admin') {
+        items.push({ id: 'ADMIN', icon: Shield, label: 'Admin', color: 'text-red-500' });
+    }
 
     return (
         <>
