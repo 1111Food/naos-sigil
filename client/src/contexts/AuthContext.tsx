@@ -10,6 +10,9 @@ interface AuthContextType {
     signInWithPassword: (email: string, password: string) => Promise<{ data: any, error: any }>;
     signUp: (email: string, password: string) => Promise<{ data: any, error: any }>;
     signOut: () => Promise<{ error: any }>;
+    resetPasswordForEmail: (email: string) => Promise<{ data: any, error: any }>;
+    updatePassword: (password: string) => Promise<{ data: any, error: any }>;
+    isRecoveringPassword: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
 
     useEffect(() => {
         // 1. Obtener sesión inicial
@@ -40,6 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log("🔐 NAOS AUTH: Sesión activa detectada para:", session.user.id);
             } else {
                 console.log("🔓 NAOS AUTH: Sesión cerrada o inexistente.");
+            }
+
+            if (_event === 'PASSWORD_RECOVERY') {
+                console.log("🔑 NAOS AUTH: Flujo de recuperación de llave iniciado.");
+                setIsRecoveringPassword(true);
             }
         });
 
@@ -64,8 +73,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return await supabase.auth.signOut();
     };
 
+    const resetPasswordForEmail = async (email: string) => {
+        return await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin
+        });
+    };
+
+    const updatePassword = async (password: string) => {
+        const res = await supabase.auth.updateUser({ password });
+        if (!res.error) {
+            setIsRecoveringPassword(false);
+        }
+        return res;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, session, loading, signInAnonymously, signInWithPassword, signUp, signOut }}>
+        <AuthContext.Provider value={{ user, session, loading, signInAnonymously, signInWithPassword, signUp, signOut, resetPasswordForEmail, updatePassword, isRecoveringPassword }}>
             {children}
         </AuthContext.Provider>
     );

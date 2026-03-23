@@ -23,6 +23,7 @@ import { LanguagePromptBanner } from './components/LanguagePromptBanner';
 
 import { StatusBadge } from './components/StatusBadge';
 import { LoginView } from './components/LoginView';
+import { UpdatePasswordView } from './components/UpdatePasswordView';
 import { NaosVibrationEngine } from './components/NaosVibrationEngine';
 import { AtmosphereEngine } from './components/AtmosphereEngine';
 import { useEnergy } from './hooks/useEnergy';
@@ -67,7 +68,7 @@ const WisdomManager = () => {
 
 function App() {
   const { energy } = useEnergy();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isRecoveringPassword } = useAuth();
   const { profile, appReady: profileReady, refreshProfile } = useProfile();
   const { status } = useSubscription();
 
@@ -238,6 +239,18 @@ function App() {
 
   // --- RENDER CONTENT ---
   const renderContent = () => {
+    // Password Recovery Override (Highest Priority)
+    if (isRecoveringPassword) {
+      return (
+        <div className="flex items-center justify-center min-h-[80vh] relative z-10 p-4">
+          <UpdatePasswordView onSuccess={() => {
+            // isRecoveringPassword is automatically set to false by updatePassword in AuthContext
+            setActiveView('TEMPLE');
+          }} />
+        </div>
+      );
+    }
+
     // Loading State (Global SSoT)
     if (!isAppFullyReady) {
       return <TempleLoading variant="fullscreen" />;

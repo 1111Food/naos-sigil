@@ -1,5 +1,13 @@
 {
-  "10a8587a-ef23-4239-a4f4-5e7b4af0b623": {
+  "22325a10-7b9f-4606-8a54-574bb63ba6a8": {
+    "usage_stats": {
+      "naos_code_count": 3,
+      "last_active_date": "2026-03-23",
+      "tarot_draw_count": 1,
+      "synastry_dual_count": 0,
+      "sigil_messages_count": 1,
+      "synastry_group_count": 0
+    },
     "naos_identity_code": {
       "arquetipo": {
         "rol": "Analista",
@@ -10,17 +18,17 @@
       },
       "patron_sombra": "El patrón de sombra se activa ante la desconexión. La tensión entre tu fuego instintivo de Dragón y tu misión de Analista es tu crisol de crecimiento.",
       "nucleo_interno": "Tu núcleo es un santuario del arquetipo El Arquitecto. Operas bajo la sabiduría de que el amor y la verdad consolidan tu poder.",
-      "direccion_vital": "Tu camino está trazado hacia la cúspide del El Arquitecto. Cada paso es un eco de tu rol de Analista en la gran sinfonía del universo.",
+      "direccion_vital": "Avanzas hacia una expresión sagrada de tu ser. Tu destino florece al compás de la frecuencia Telúrica y tu arte constructivo.",
       "interfaz_social": "Proyectas un aura de Analista bajo la mirada de Cancer. Tu danza social es un puente entre tu instinto de Dragón y tu esencia sagrada.",
       "alquimia_vinculos": "En tus relaciones actúas como un espejo de la frecuencia Telúrica. Buscas destilar amor y verdad con otros caminantes.",
       "tension_evolutiva": "Evolucionas al sanar la paradoja interna. Tu frecuencia Telúrica te invita a una síntesis amorosa de tus dones innatos.",
       "arquitectura_entorno": "Tu espacio es un templo para el elemento undefined. Crea un santuario de paz y belleza que eleve y sostenga tu espíritu de Analista.",
-      "umbral_manifestacion": "Manifiestas con gracia cuando tu rol de Analista y la marea del Dragón son una sola canción bajo el cielo de NAOS."
+      "umbral_manifestacion": "Tu abundancia florece cuando actúas en sincronicidad con el El Arquitecto. La vida se despliega sin esfuerzo ante tu luz."
     },
     "onboarding_completed": true,
-    "id": "10a8587a-ef23-4239-a4f4-5e7b4af0b623",
+    "id": "22325a10-7b9f-4606-8a54-574bb63ba6a8",
     "name": "Luis Alfredo Herrera Mendez",
-    "guardian_notes": {},
+    "guardian_notes": "Usuario se identifica como Luis Alfredo. Sigil se presenta como Guardián de NAOS y guía en la \"arquitectura de consciencia\".\n",
     "birthDate": "1986-07-12",
     "birthTime": "09:40:00",
     "birthCity": "",
@@ -208,30 +216,299 @@
       "plan": "FREE",
       "features": []
     },
-    "plan_type": "free",
+    "plan_type": "admin",
     "usage_level": "normal",
     "daily_interactions": 0,
     "consciousness_level": "Iniciado",
     "consciousness_points": 0
   },
-  "22325a10-7b9f-4606-8a54-574bb63ba6a8": {
-    "naos_identity_code": {
-      "arquetipo": {
-        "rol": "Analista",
-        "nombre": "El Vector",
-        "elemento": "fuego",
-        "frecuencia": "Ígnea",
-        "descripcion": "La flecha de luz que rasga el velo del mañana; avanza con la certeza del viento estelar hacia horizontes sagrados."
-      },
-      "patron_sombra": "La sombra del Vector se manifiesta en la dispersión, una tendencia a diluir la energía en múltiples direcciones, perdiendo el foco en la búsqueda de la novedad. El miedo a la limitación puede llevar a evitar la profundidad, prefiriendo la superficie brillante de la información a la inmersión en la sabiduría esencial. La integración reside en abrazar la disciplina y la constancia, transformando la curiosidad en un poder concentrado.",
-      "nucleo_interno": "La Luna en Géminis susurra en el corazón del Vector, un anhelo insaciable por explorar las miríadas de facetas del ser. Esta alma busca la verdad en la danza incesante de la información, un eterno estudiante que encuentra consuelo en la versatilidad y la adaptabilidad, tejiendo un tapiz de experiencias que reflejan la complejidad del universo interior.",
-      "direccion_vital": "El sendero del Vector, marcado por el número 9, es un llamado a la trascendencia, a disolver las fronteras del ego en la vastedad del servicio universal. Su misión número 5 lo impulsa a romper las cadenas de la convención, a abrazar la libertad de expresión y a inspirar a otros a danzar al ritmo de su propia verdad, un catalizador de cambio que ilumina el camino hacia la evolución colectiva.",
-      "interfaz_social": "El Vector, irradiando la chispa de Aries desde la cúspide, proyecta una imagen de pionero audaz, un líder que enciende la llama de la iniciativa. Su ascendente en Cáncer matiza esta energía con una sensibilidad intuitiva, creando una presencia que es a la vez impulsiva y profundamente empática, un faro de coraje arropado en la calidez del hogar.",
-      "alquimia_vinculos": "En el crisol de las relaciones, el Vector se enfrenta al espejo de Acuario, donde la individualidad se encuentra con la colectividad. La alquimia reside en honrar la singularidad de cada conexión, fomentando la libertad y la autenticidad en el tejido de la comunidad. El desafío es trascender la idealización, abrazando la imperfección y cultivando la empatía en la diversidad.",
-      "tension_evolutiva": "La tensión evolutiva del Vector reside en la integración de la acción impulsiva de Aries con la reflexión geminiana. El desafío es canalizar la energía pionera hacia proyectos con un propósito trascendente, equilibrando la necesidad de aventura con la responsabilidad de construir un legado duradero. La alquimia se encuentra en la síntesis de la audacia y la sabiduría.",
-      "arquitectura_entorno": "El entorno del Vector se construye sobre la base de la expansión y el aprendizaje continuo, con un toque de introspección. Los planetas en la casa 9 lo invitan a explorar horizontes lejanos, tanto físicos como intelectuales, mientras que la influencia de la casa 12 lo impulsa a conectar con la sabiduría intuitiva y la compasión universal. La casa 1 le otorga la fuerza para manifestar su visión en el mundo.",
-      "umbral_manifestacion": "El Vector se manifiesta como un faro de inspiración, un líder que enciende la chispa del potencial en los demás. Su presencia es un catalizador de cambio, un recordatorio constante de que la libertad y la autenticidad son las claves para desbloquear el destino. Su legado será la huella imborrable de un alma valiente que se atrevió a danzar al ritmo de su propia verdad, inspirando a otros a hacer lo mismo."
+  "14bd699d-a1b0-4c18-baa0-6202a01ac031": {
+    "id": "14bd699d-a1b0-4c18-baa0-6202a01ac031",
+    "name": "Luis Alfredo Herrera Mendez",
+    "mayan": {
+      "tone": 4,
+      "meaning": "Cocodrilo, Agua, Locura Divina",
+      "mission": "Misión de Imox: Cocodrilo, Agua, Locura Divina. Expandir la conciencia a través de La esencia del agua y lo subconsciente.",
+      "glyphUrl": "/nawales/imox.svg",
+      "toneName": "Kajib' (4) - Estabilidad, Los 4 Rumbos",
+      "kicheName": "Imox",
+      "challenges": "Desafío: Integrar la sombra de Imox y usar su energía para construir, no para destruir.",
+      "nawal_maya": "Imox",
+      "nawal_tono": 4,
+      "description": "La esencia del agua y lo subconsciente. Creatividad desbordante, intuición profunda y conexión con el origen."
     },
+    "astrology": {
+      "houses": [
+        {
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 15.089684582810946,
+          "absDegree": 165.08968458281095
+        },
+        {
+          "sign": "Libra",
+          "house": 2,
+          "degree": 15.089684582810946,
+          "absDegree": 195.08968458281095
+        },
+        {
+          "sign": "Scorpio",
+          "house": 3,
+          "degree": 15.089684582810946,
+          "absDegree": 225.08968458281095
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 15.089684582810946,
+          "absDegree": 255.08968458281095
+        },
+        {
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 15.089684582810946,
+          "absDegree": 285.08968458281095
+        },
+        {
+          "sign": "Aquarius",
+          "house": 6,
+          "degree": 15.089684582810946,
+          "absDegree": 315.08968458281095
+        },
+        {
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 15.089684582810946,
+          "absDegree": 345.08968458281095
+        },
+        {
+          "sign": "Aries",
+          "house": 8,
+          "degree": 15.089684582810946,
+          "absDegree": 15.089684582810946
+        },
+        {
+          "sign": "Taurus",
+          "house": 9,
+          "degree": 15.089684582810946,
+          "absDegree": 45.089684582810946
+        },
+        {
+          "sign": "Gemini",
+          "house": 10,
+          "degree": 15.089684582810946,
+          "absDegree": 75.08968458281095
+        },
+        {
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 15.089684582810946,
+          "absDegree": 105.08968458281095
+        },
+        {
+          "sign": "Leo",
+          "house": 12,
+          "degree": 15.089684582810946,
+          "absDegree": 135.08968458281095
+        }
+      ],
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 20,
+          "absDegree": 109.99502986277126,
+          "retrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 23.83,
+          "absDegree": 173.83045563479573,
+          "retrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Leo",
+          "house": 11,
+          "degree": 6.12,
+          "absDegree": 126.1171621946723,
+          "retrograde": true
+        },
+        {
+          "name": "Venus",
+          "sign": "Virgo",
+          "house": 12,
+          "degree": 1.1,
+          "absDegree": 151.10457760122466,
+          "retrograde": false
+        },
+        {
+          "name": "Mars",
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 16.97,
+          "absDegree": 286.9682176014637,
+          "retrograde": true
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 22.86,
+          "absDegree": 352.85752739399595,
+          "retrograde": false
+        },
+        {
+          "name": "Saturn",
+          "sign": "Sagittarius",
+          "house": 3,
+          "degree": 3.58,
+          "absDegree": 243.57814889142412,
+          "retrograde": true
+        },
+        {
+          "name": "Uranus",
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 19.19,
+          "absDegree": 259.18677320995045,
+          "retrograde": true
+        },
+        {
+          "name": "Neptune",
+          "sign": "Capricorn",
+          "house": 4,
+          "degree": 4,
+          "absDegree": 273.9964754722916,
+          "retrograde": true
+        },
+        {
+          "name": "Pluto",
+          "sign": "Scorpio",
+          "house": 2,
+          "degree": 4.54,
+          "absDegree": 214.53987163706836,
+          "retrograde": true
+        }
+      ],
+      "elements": {
+        "air": 0,
+        "fire": 3,
+        "earth": 4,
+        "water": 3
+      },
+      "ascendant": 165.08968458281095,
+      "midheaven": 75.93999088935038,
+      "modalities": {
+        "fixed": 2,
+        "mutable": 5,
+        "cardinal": 3
+      }
+    },
+    "birthCity": "",
+    "birthDate": "1986-07-12",
+    "birthTime": "09:40:00",
+    "plan_type": "free",
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "nawal_maya": "4 Imox",
+    "numerology": {
+      "pinaculo": {
+        "a": 7,
+        "b": 3,
+        "c": 6,
+        "d": 7,
+        "e": 1,
+        "f": 9,
+        "g": 1,
+        "h": 22,
+        "i": 11,
+        "j": 11,
+        "o": 3,
+        "p": 4,
+        "q": 1,
+        "r": 7,
+        "s": 8
+      },
+      "nameNumber": 1,
+      "lifePathNumber": 7
+    },
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "usage_level": "normal",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "FREE",
+      "features": []
+    },
+    "chinese_animal": "Tigre",
+    "guardian_notes": "Notas del Guardián: Tigre de Fuego: Auto-sabotaje latente. Protocolo 21: día 7 crítico. Inercia = riesgo (estancamiento). Foco en cierre diario (3 pilares). Complacencia: némesis. Reactivar voluntad. Meditación NAOS + Lab Elemental (Fuego). SINCRONIZAR CÓDIGO IDENTIDAD (perfil incompleto = data genérica). Silencio = oportunidad/desconexión. Revisar metas/Código Identidad. URGENTE: completar datos.\n",
+    "chinese_element": "Fuego",
+    "chinese_birth_year": 1986,
+    "daily_interactions": 0,
+    "consciousness_level": "Iniciado",
+    "consciousness_points": 0,
+    "onboarding_completed": true
+  },
+  "cc61ce3d-ce8b-4afe-86c4-514fa57dcd40": {
+    "id": "cc61ce3d-ce8b-4afe-86c4-514fa57dcd40",
+    "name": "Viajero cosmico",
+    "guardian_notes": {},
+    "birthDate": "",
+    "birthTime": "",
+    "birthCity": "",
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "FREE",
+      "features": []
+    },
+    "plan_type": "free",
+    "usage_level": "normal",
+    "daily_interactions": 0,
+    "onboarding_completed": false,
+    "consciousness_level": "Iniciado",
+    "consciousness_points": 0
+  },
+  "27c0bd67-362a-48eb-b2ed-463ef24c132c": {
+    "id": "27c0bd67-362a-48eb-b2ed-463ef24c132c",
+    "name": "Viajero cosmico",
+    "guardian_notes": {},
+    "birthDate": "",
+    "birthTime": "",
+    "birthCity": "",
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "FREE",
+      "features": []
+    },
+    "plan_type": "free",
+    "usage_level": "normal",
+    "daily_interactions": 0,
+    "onboarding_completed": false,
+    "consciousness_level": "Iniciado",
+    "consciousness_points": 0
+  },
+  "cb113ece-7196-42b6-ab74-64058d19ce9d": {
     "onboarding_completed": true
   }
 }
