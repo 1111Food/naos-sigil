@@ -83,6 +83,8 @@ const mapProfileData = (data: any): UserProfile => {
     return {
         ...data,
         ...(data.profile_data || {}),
+        name: data.full_name || data.name || data.profile_data?.name || 'Viajero',
+        nickname: data.nickname || data.profile_data?.nickname || '',
         email: data.email,
         birthDate: data.birth_date,
         birthTime: data.birth_time,

@@ -56,7 +56,11 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             } as any);
 
             const headers = await getAsyncAuthHeaders();
-            await fetch(`${API_BASE_URL}/api/onboarding/complete`, { method: 'POST', headers });
+            await fetch(`${API_BASE_URL}/api/onboarding/complete`, { 
+                method: 'POST', 
+                headers,
+                body: JSON.stringify({}) 
+            });
 
             onComplete();
         } catch (err) {
