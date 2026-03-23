@@ -33,7 +33,22 @@ export const getAuthHeaders = (): Record<string, string> => {
  * Ensures we have the latest session before critical calls
  */
 export const getAsyncAuthHeaders = async (): Promise<Record<string, string>> => {
-    const { data: { session } } = await supabase.auth.getSession();
+    let { data: { session } } = await supabase.auth.getSession();
+    
+    if (session?.access_token) {
+        try {
+            const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+            const buffer = 30; // 30 segundos de margen
+            if (payload.exp - buffer < Date.now() / 1000) {
+                console.log("🔄 API: Token por expirar, refrescando sesión...");
+                const { data } = await supabase.auth.refreshSession();
+                if (data.session) session = data.session;
+            }
+        } catch (e) {
+            console.error("Error validando expiración del token:", e);
+        }
+    }
+
     const headers: Record<string, string> = {
         'Content-Type': 'application/json'
     };

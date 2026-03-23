@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Users, Plus, Lock, Trash2 } from 'lucide-react';
 import { useProfile } from '../contexts/ProfileContext';
-import { supabase } from '../lib/supabase';
-import { API_BASE_URL } from '../lib/api';
+import { API_BASE_URL, getAsyncAuthHeaders } from '../lib/api';
 import { cn } from '../lib/utils';
 
 export const ProfileSelector: React.FC = () => {
@@ -28,13 +27,10 @@ export const ProfileSelector: React.FC = () => {
 
     const handleSwitch = async (id?: string) => {
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const headers = await getAsyncAuthHeaders();
             await fetch(`${API_BASE_URL}/api/user/profiles/switch`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`
-                },
+                headers,
                 body: JSON.stringify({ active_sub_profile_id: id })
             });
             await refreshProfile();
@@ -47,13 +43,10 @@ export const ProfileSelector: React.FC = () => {
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const headers = await getAsyncAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/api/user/profiles`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`
-                },
+                headers,
                 body: JSON.stringify({ name, birthDate, birthTime, birthCity, birthDepartment, birthCountry })
             });
             if (!res.ok) {
@@ -73,10 +66,10 @@ export const ProfileSelector: React.FC = () => {
         e.stopPropagation();
         if (!confirm("¿Eliminar este perfil?")) return;
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const headers = await getAsyncAuthHeaders();
             await fetch(`${API_BASE_URL}/api/user/profiles/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${session?.access_token}` }
+                headers
             });
             await refreshProfile();
         } catch (e) {
