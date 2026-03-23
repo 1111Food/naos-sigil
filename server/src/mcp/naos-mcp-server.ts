@@ -74,15 +74,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             // Buscamos todas las preferencias activas
             const { data: tunings, error } = await supabase
                 .from('coherence_tunings')
-                .select('user_id, aspect, module_type, cron_schedule, last_triggered_at, profiles(astrology)')
+                .select('user_id, aspect, module_type, cron_schedule, last_triggered_at')
                 .eq('is_active', true);
 
             if (error) throw error;
 
+            if (!tunings || tunings.length === 0) {
+                return { content: [{ type: 'text', text: '[]' }] };
+            }
+
+            // Hydrate profiles memory-wise to bypass foreign key constraint gap
+            const userIds = [...new Set(tunings.map(t => t.user_id))];
+            const { data: users } = await supabase
+                .from('profiles')
+                .select('id, astrology')
+                .in('id', userIds);
+
+            const userMap = (users || []).reduce((acc: any, u: any) => {
+                acc[u.id] = u;
+                return acc;
+            }, {});
+
+            const hydratedTunings = tunings.map(t => ({
+                ...t,
+                profiles: userMap[t.user_id]
+            }));
+
             const now = new Date();
             const nowMs = now.getTime();
 
-            const due = (tunings || []).filter((t: any) => {
+            const due = hydratedTunings.filter((t: any) => {
                 if (!t.cron_schedule) return false;
 
                 // Formato esperado: "08:30,20:00"
