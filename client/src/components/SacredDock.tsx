@@ -9,6 +9,7 @@ import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
 import { ProfileSelector } from './ProfileSelector';
+import { useProfile } from '../contexts/ProfileContext';
 
 interface SacredDockProps {
     activeView: string;
