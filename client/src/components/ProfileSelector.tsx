@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Plus, Lock, Trash2 } from 'lucide-react';
+import { Users, Plus, Lock, Trash2 } from 'lucide-react';
 import { useProfile } from '../contexts/ProfileContext';
 import { supabase } from '../lib/supabase';
 import { API_BASE_URL } from '../lib/api';
@@ -82,17 +82,13 @@ export const ProfileSelector: React.FC = () => {
         }
     };
 
-
     return (
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-center gap-2 px-4 py-2 rounded-full glass-panel border border-white/5 bg-black/40 hover:bg-cyan-500/10 transition-all text-cyan-100 hover:text-cyan-400 group"
+                className="flex items-center justify-center p-3 rounded-full glass-panel border border-white/5 bg-black/40 hover:bg-cyan-500/10 transition-all text-cyan-100 hover:text-cyan-400 group"
             >
-                <User className="w-4 h-4 text-cyan-400 group-hover:animate-pulse" />
-                <span className="text-[9px] font-black uppercase tracking-widest">
-                    Perfiles
-                </span>
+                <Users className="w-5 h-5 text-cyan-400 group-hover:animate-pulse" />
             </button>
 
             {isOpen && (

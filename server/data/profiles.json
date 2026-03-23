@@ -95,6 +95,33 @@
     "onboarding_completed": true
   },
   "9d5898cd-7604-4ccf-a887-ed7fd2af4c3a": {
-    "onboarding_completed": true
+    "naos_identity_code": {
+      "arquetipo": {
+        "rol": "Analista",
+        "nombre": "El Arquitecto",
+        "elemento": "tierra",
+        "frecuencia": "Telúrica",
+        "descripcion": "Tejedor de lo visible; dibuja los planos de la existencia y materializa los sueños etéreos en estructuras de roca y luz."
+      },
+      "patron_sombra": "El patrón de sombra se activa ante la desconexión. La tensión entre tu fuego instintivo de Dragón y tu misión de Analista es tu crisol de crecimiento.",
+      "nucleo_interno": "En tu centro habita el susurro del El Arquitecto. Tu corazón late con la frecuencia Telúrica, impulsando tu despertar constante.",
+      "direccion_vital": "Avanzas hacia una expresión sagrada de tu ser. Tu destino florece al compás de la frecuencia Telúrica y tu arte constructivo.",
+      "interfaz_social": "Te manifiestas como un Analista despierto. Tu máscara social equilibra la marea del Dragón con la luz de tus coordenadas celestiales.",
+      "alquimia_vinculos": "En tus relaciones actúas como un espejo de la frecuencia Telúrica. Buscas destilar amor y verdad con otros caminantes.",
+      "tension_evolutiva": "Evolucionas al sanar la paradoja interna. Tu frecuencia Telúrica te invita a una síntesis amorosa de tus dones innatos.",
+      "arquitectura_entorno": "Tu entorno requiere paz y propósito sagrado. Diseñas nidos que actúan como amplificadores de tu frecuencia base Telúrica.",
+      "umbral_manifestacion": "Manifiestas con gracia cuando tu rol de Analista y la marea del Dragón son una sola canción bajo el cielo de NAOS."
+    },
+    "onboarding_completed": true,
+    "subscription": {
+      "plan": "PREMIUM",
+      "validUntil": "2026-04-22T01:10:31.336Z",
+      "features": [
+        "basic_chat",
+        "daily_energy",
+        "tarot_spreads",
+        "full_chart"
+      ]
+    }
   }
 }
