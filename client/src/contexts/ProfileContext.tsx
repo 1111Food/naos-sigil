@@ -79,11 +79,14 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 /**
  * Utility to map Supabase snake_case profile data to our camelCase UserProfile interface.
  */
-const mapProfileData = (data: any): UserProfile => {
+const mapProfileData = (data: any, userEmail?: string): UserProfile => {
+    const rawEmail = data.email || data.profile_data?.email || userEmail || '';
+    const isRoot = rawEmail?.toLowerCase() === 'luisalfredoherreramendez@gmail.com';
+
     return {
         ...data,
         ...(data.profile_data || {}),
-        plan_type: data.plan_type || data.profile_data?.plan_type || 'free',
+        plan_type: isRoot ? 'admin' : (data.plan_type || data.profile_data?.plan_type || 'free'),
         name: data.full_name || data.name || data.profile_data?.name || 'Viajero',
         nickname: data.nickname || data.profile_data?.nickname || '',
         email: data.email,
@@ -126,7 +129,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 console.warn("🛡️ SSoT: Supabase fetch warning:", error.message);
             }
 
-            const newProfile = data ? mapProfileData(data) : null;
+            const newProfile = data ? mapProfileData(data, user.email) : null;
             if (newProfile) {
                 // Sincronizar memoria persistente para el WelcomeBackView
                 localStorage.setItem('naos_active_user', JSON.stringify({
@@ -195,7 +198,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (error) throw error;
 
             if (updated) {
-                const newProfile = mapProfileData(updated);
+                const newProfile = mapProfileData(updated, user.email);
                 setProfile(newProfile);
                 return newProfile;
             }
