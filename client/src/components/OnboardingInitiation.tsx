@@ -101,13 +101,13 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-cyan-500/50" /> Identidad Terrenal (Nombre Completo)
+                                            <div className="w-1 h-1 rounded-full bg-cyan-500/50" /> Identidad Terrenal
                                         </label>
-                                        <input required type="text" placeholder="Ej. Luis Alfredo Herrera..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                        <input required type="text" placeholder="Ej. Tu nombre real..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-cyan-500/50" /> Apodo / Sigilo (Nickname)
+                                            <div className="w-1 h-1 rounded-full bg-cyan-500/50" /> Nickname
                                         </label>
                                         <input type="text" placeholder="Ej. L, Viajero, Neo..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.nickname} onChange={e => setFormData({ ...formData, nickname: e.target.value })} />
                                     </div>
