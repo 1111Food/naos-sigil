@@ -7,6 +7,8 @@ interface AuthContextType {
     session: Session | null;
     loading: boolean;
     signInAnonymously: () => Promise<{ data: any, error: any }>;
+    signInWithPassword: (email: string, password: string) => Promise<{ data: any, error: any }>;
+    signUp: (email: string, password: string) => Promise<{ data: any, error: any }>;
     signOut: () => Promise<{ error: any }>;
 }
 
@@ -50,12 +52,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return await supabase.auth.signInAnonymously();
     };
 
+    const signInWithPassword = async (email: string, password: string) => {
+        return await supabase.auth.signInWithPassword({ email, password });
+    };
+
+    const signUp = async (email: string, password: string) => {
+        return await supabase.auth.signUp({ email, password });
+    };
+
     const signOut = async () => {
         return await supabase.auth.signOut();
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signInAnonymously, signOut }}>
+        <AuthContext.Provider value={{ user, session, loading, signInAnonymously, signInWithPassword, signUp, signOut }}>
             {children}
         </AuthContext.Provider>
     );

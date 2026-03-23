@@ -10,30 +10,42 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => {
-    // const [name, setName] = useState(''); // Removed
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const { signInAnonymously } = useAuth();
-    const { refreshProfile } = useProfile(); // Get refetcher
+    const { signInWithPassword, signUp } = useAuth();
+    const { refreshProfile } = useProfile();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
         setLoading(true);
         try {
-            // 1. Iniciar sesión anónima en Supabase
-            console.log("🚀 LoginView: Iniciando portal anónimo...");
-            const { data, error } = await signInAnonymously();
+            console.log("🚀 LoginView: Autenticando llave...");
+            let { data, error } = await signInWithPassword(email, password);
 
-            // Manejo específico de error
             if (error) {
-                if (error.message.includes("Anonymous sign-ins disabled")) {
-                    alert("⚠️ ERROR CRÍTICO: 'Anonymous sign-ins' desactivados.");
+                // Si la cuenta no existe o el password falla, ofrecemos crear la llave (SignUp)
+                if (error.message.includes('Invalid login credentials')) {
+                    const confirmSignup = confirm('Identidad no encontrada en el Templo. ¿Deseas crear una clave permanente con este correo electrónico y contraseña?');
+                    if (confirmSignup) {
+                        const res = await signUp(email, password);
+                        data = res.data;
+                        error = res.error;
+                        if (error) {
+                            alert("Error al forjar la llave: " + error.message);
+                            setLoading(false);
+                            return;
+                        }
+                    } else {
+                        setLoading(false);
+                        return;
+                    }
                 } else {
-                    console.error("Error login anónimo:", error);
                     alert("Error conectando con el Templo: " + error.message);
+                    setLoading(false);
+                    return;
                 }
-                setLoading(false);
-                return;
             }
 
             const user = data?.user;
@@ -84,17 +96,32 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                 </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-8">
-                {/* Name Input Removed - Identity is claimed in Onboarding */}
+            <form onSubmit={handleLogin} className="space-y-4">
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Correo Electrónico"
+                    required
+                    className="w-full bg-[#0a0a1f]/60 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 focus:bg-white/5 transition-all text-sm tracking-widest text-center"
+                />
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Contraseña Secreta"
+                    required
+                    className="w-full bg-[#0a0a1f]/60 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 focus:bg-white/5 transition-all text-sm tracking-widest text-center"
+                />
 
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     disabled={loading}
-                    className="w-full py-8 rounded-full bg-gradient-to-r from-violet-600 to-indigo-700 text-white font-bold uppercase tracking-[0.5em] text-[11px] shadow-[0_10px_40px_rgba(139,92,246,0.2)] hover:shadow-[0_15px_60px_rgba(139,92,246,0.4)] transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:pointer-events-none"
+                    className="w-full py-6 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white font-bold uppercase tracking-[0.5em] text-[11px] shadow-[0_10px_40px_rgba(139,92,246,0.2)] hover:shadow-[0_15px_60px_rgba(139,92,246,0.4)] transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:pointer-events-none mt-4"
                 >
                     {loading ? <Loader2 className="animate-spin" /> : <Send size={16} />}
-                    {loading ? "ABRIENDO PORTAL..." : "INGRESAR AL TEMPLO"}
+                    {loading ? "PROCESANDO..." : "INGRESAR AL TEMPLO"}
                 </motion.button>
             </form>
 
