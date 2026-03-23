@@ -102,25 +102,93 @@ export class NotificationEngine {
     }
 
     /**
+     * Checks user_tunings (coherence_tunings) to trigger personalized 
+     * reminders set by time schedules (e.g., '08:00,12:00').
+     */
+    public static async checkTuningCycles() {
+        const now = new Date();
+        const currentHour = String(now.getHours()).padStart(2, '0');
+        const currentMinute = String(now.getMinutes()).padStart(2, '0');
+        const currentTimeString = `${currentHour}:${currentMinute}`;
+
+        const { data: tunings } = await supabase
+            .from('coherence_tunings')
+            .select('*')
+            .eq('is_active', true);
+
+        if (!tunings || tunings.length === 0) return;
+
+        // Collect distinct user IDs
+        const userIds = [...new Set(tunings.map(t => t.user_id))];
+        
+        const { data: users } = await supabase
+            .from('profiles')
+            .select('id, telegram_chat_id, nickname, full_name, profile_data, language')
+            .in('id', userIds);
+
+        if (!users) return;
+
+        const userMap = users.reduce((acc: any, u: any) => {
+            if (u.telegram_chat_id) acc[u.id] = u;
+            return acc;
+        }, {});
+
+        for (const tuning of tunings) {
+            const user = userMap[tuning.user_id];
+            if (!user) continue;
+
+            const schedules = tuning.cron_schedule.split(','); // '08:00,12:00'
+            const hasMatch = schedules.includes(currentTimeString);
+
+            if (hasMatch) {
+                console.log(`🚨 [NOTIF_ENGINE] Match for tuning: ${tuning.aspect} for ${user.nickname || user.full_name}`);
+                
+                try {
+                    const prompt = `Actúa como el Sigil. Envía un recordatorio místico para la práctica: ${tuning.aspect || 'su sintonización personal'}. Motívalos a reconectarse ahora.`;
+                    const sigil = new SigilService();
+                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, user.language || 'es');
+
+                    const tts = new TTSService();
+                    const { buffer } = await tts.generateVoice(message);
+
+                    const useVoice = user.profile_data?.telegram_voice_enabled !== false;
+                    if (useVoice && buffer) {
+                        await sendProactiveVoice(user.telegram_chat_id, buffer, message);
+                    } else {
+                        await sendProactiveMessage(user.telegram_chat_id, message);
+                    }
+                } catch (e) {
+                    console.error(`[NOTIF_ENGINE] Failed sending tuning for ${user.id}`, e);
+                }
+            }
+        }
+    }
+
+    /**
      * Central schedule daemon executing contextual check loops.
      */
     public static scheduleDaemon() {
         console.log("🌌 [NOTIF_ENGINE] Notification Daemon initialized.");
         
-        // Loop every hour to inspect timers/events
+        // Loop every minute to inspect timers/events
         setInterval(async () => {
-            const currentHour = new Date().getHours();
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
 
-            // Run Protocol Reminders around 7 PM (19:00)
-            if (currentHour === 19) {
+            // 1. Run Personalized Tuning Cycles (Personal Cron Lists)
+            await this.checkTuningCycles();
+
+            // 2. Run Protocol Reminders around 7 PM (19:00:00)
+            if (currentHour === 19 && currentMinute === 0) {
                 await this.checkProtocolReminders();
             }
 
-            // Run Inactivity sweeps once a day at 11:00 AM
-            if (currentHour === 11) {
+            // 3. Run Inactivity sweeps once a day at 11:00 AM (11:00:00)
+            if (currentHour === 11 && currentMinute === 0) {
                 await this.checkInactivity();
             }
 
-        }, 1000 * 60 * 60); // Hourly checks
+        }, 1000 * 60); // Minute-by-minute checks
     }
 }
