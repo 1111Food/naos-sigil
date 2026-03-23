@@ -211,8 +211,8 @@ export class UserService {
         const current = await this.getProfile(userId);
         const subProfiles = current.sub_profiles || [];
 
-        const limitCount = current.plan_type === 'premium' || current.plan_type === 'premium_plus' || current.plan_type === 'admin' ? 3 : 1;
-        if (1 + subProfiles.length >= limitCount) {
+        const maxSubProfiles = current.plan_type === 'premium' || current.plan_type === 'premium_plus' || current.plan_type === 'admin' ? 3 : 1;
+        if (subProfiles.length >= maxSubProfiles) {
             throw new Error(`Profile limit reached for plan ${current.plan_type}.`);
         }
 

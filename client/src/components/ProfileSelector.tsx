@@ -22,8 +22,8 @@ export const ProfileSelector: React.FC = () => {
 
     const subProfiles = profile.sub_profiles || [];
     const isPremium = (profile as any).plan_type === 'premium' || (profile as any).plan_type === 'premium_plus' || (profile as any).plan_type === 'admin';
-    const limit = isPremium ? 3 : 1;
-    const canAdd = 1 + subProfiles.length < limit;
+    const maxSubProfiles = isPremium ? 3 : 1;
+    const canAdd = subProfiles.length < maxSubProfiles;
 
     const handleSwitch = async (id?: string) => {
         try {
