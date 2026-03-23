@@ -68,9 +68,9 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
     const containerStyle = { boxShadow: "0 0 40px rgba(6,182,212,0.1), inset 0 0 20px rgba(6,182,212,0.05)" };
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto bg-black">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden bg-black">
             <AstralVortex />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1, ease: "easeOut" }} className={`relative z-10 w-full ${!showForm ? 'max-w-lg' : 'max-w-3xl'} p-6 md:p-10 rounded-[2.5rem] bg-black/60 border border-cyan-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(6,182,212,0.15)] max-h-[85vh] overflow-y-auto custom-scrollbar flex flex-col items-center transition-all duration-700`} style={containerStyle}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1, ease: "easeOut" }} className={`relative z-10 w-full ${!showForm ? 'max-w-lg' : 'max-w-3xl'} p-6 md:p-10 rounded-[2.5rem] bg-black/60 border border-cyan-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(6,182,212,0.15)] max-h-[85vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center transition-all duration-700`} style={containerStyle}>
                 
                 <div className="absolute -top-24 -left-24 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full animate-pulse" />
                 <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full animate-pulse" />
