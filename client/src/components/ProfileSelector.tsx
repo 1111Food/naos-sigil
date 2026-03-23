@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Users, Plus, Lock, Trash2 } from 'lucide-react';
 import { useProfile } from '../contexts/ProfileContext';
 import { supabase } from '../lib/supabase';
@@ -144,7 +145,7 @@ export const ProfileSelector: React.FC = () => {
             )}
 
             {/* Modal de Añadir Perfil */}
-            {isAdding && (
+            {isAdding && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
                     <form onSubmit={handleAdd} className="w-full max-w-sm glass-panel bg-black/90 border border-white/10 rounded-3xl p-6 flex flex-col gap-4 shadow-2xl">
                         <h3 className="text-sm font-serif italic text-white/80">Nuevo Perfil</h3>
@@ -180,7 +181,8 @@ export const ProfileSelector: React.FC = () => {
                             <button type="submit" className="flex-1 px-3 py-2 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">Guardar</button>
                         </div>
                     </form>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
