@@ -43,7 +43,7 @@
     "birthCity": "",
     "birthDate": "1986-07-12",
     "birthTime": "09:40:00",
-    "plan_type": "free",
+    "plan_type": "admin",
     "utcOffset": -6,
     "birthPlace": "",
     "birthState": "",
@@ -63,13 +63,13 @@
     "birthCountry": "Guatemala",
     "subscription": {
       "plan": "PREMIUM",
-      "validUntil": "2026-04-22T00:48:59.322Z",
       "features": [
         "basic_chat",
         "daily_energy",
         "tarot_spreads",
         "full_chart"
-      ]
+      ],
+      "validUntil": "2026-04-22T00:48:59.322Z"
     },
     "guardian_notes": "Usuario identificado como Luis Alfredo. Se presenta como Sigil, Guardián de NAOS. Asistirá al usuario en su viaje a través de la \"arquitectura de conciencia\" NAOS.\n",
     "daily_interactions": 0,
@@ -92,6 +92,9 @@
     },
     "consciousness_level": "Iniciado",
     "consciousness_points": 0,
+    "onboarding_completed": true
+  },
+  "9d5898cd-7604-4ccf-a887-ed7fd2af4c3a": {
     "onboarding_completed": true
   }
 }

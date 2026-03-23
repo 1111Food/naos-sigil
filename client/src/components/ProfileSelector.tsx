@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, ChevronDown, Plus, Lock, Trash2 } from 'lucide-react';
+import { User, Plus, Lock, Trash2 } from 'lucide-react';
 import { useProfile } from '../contexts/ProfileContext';
 import { supabase } from '../lib/supabase';
 import { API_BASE_URL } from '../lib/api';
@@ -82,19 +82,17 @@ export const ProfileSelector: React.FC = () => {
         }
     };
 
-    const activeName = subProfiles.find(p => p.id === profile.active_sub_profile_id)?.name || profile.name;
 
     return (
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full glass-panel border border-white/5 bg-black/40 hover:bg-black/60 transition-all text-white/80 hover:text-white"
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-full glass-panel border border-white/5 bg-black/40 hover:bg-cyan-500/10 transition-all text-cyan-100 hover:text-cyan-400 group"
             >
-                <User className="w-4 h-4 text-cyan-400" />
-                <span className="text-xs font-serif italic tracking-wide truncate max-w-[120px]">
-                    {activeName}
+                <User className="w-4 h-4 text-cyan-400 group-hover:animate-pulse" />
+                <span className="text-[9px] font-black uppercase tracking-widest">
+                    Perfiles
                 </span>
-                <ChevronDown className={cn("w-3 h-3 transition-transform", isOpen && "rotate-180")} />
             </button>
 
             {isOpen && (
