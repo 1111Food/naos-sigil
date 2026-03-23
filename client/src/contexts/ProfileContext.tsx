@@ -175,6 +175,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (data.fengShui) payload.fengShui = data.fengShui;
             if (data.onboarding_completed !== undefined) payload.onboarding_completed = data.onboarding_completed;
 
+            // Delete camelCase keys spread from frontend to prevent PostgREST 400 errors
+            delete payload.name;
+            delete payload.birthDate;
+            delete payload.birthTime;
+            delete payload.birthCity;
+            delete payload.birthCountry;
+            delete payload.birthDepartment;
+
             const { data: updated, error } = await supabase
                 .from('profiles')
                 .upsert(payload)
