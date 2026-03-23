@@ -13,7 +13,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const { signInWithPassword, signUp } = useAuth();
+    const { signInWithPassword } = useAuth();
     const { refreshProfile } = useProfile();
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -25,27 +25,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
             let { data, error } = await signInWithPassword(email, password);
 
             if (error) {
-                // Si la cuenta no existe o el password falla, ofrecemos crear la llave (SignUp)
-                if (error.message.includes('Invalid login credentials')) {
-                    const confirmSignup = confirm('Identidad no encontrada en el Templo. ¿Deseas crear una clave permanente con este correo electrónico y contraseña?');
-                    if (confirmSignup) {
-                        const res = await signUp(email, password);
-                        data = res.data;
-                        error = res.error;
-                        if (error) {
-                            alert("Error al forjar la llave: " + error.message);
-                            setLoading(false);
-                            return;
-                        }
-                    } else {
-                        setLoading(false);
-                        return;
-                    }
-                } else {
-                    alert("Error conectando con el Templo: " + error.message);
-                    setLoading(false);
-                    return;
-                }
+                alert("Identidad no reconocida o llave incorrecta. Si eres nuevo, regresa y elige 'Desliza para conectar'.");
+                setLoading(false);
+                return;
             }
 
             const user = data?.user;
@@ -88,11 +70,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
 
             <div className="text-center space-y-4">
                 <Sparkles className="mx-auto text-amber-300/40 w-12 h-12" />
-                <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-300">
-                    DECLARA TU ESENCIA
+                <h1 className="text-3xl md:text-4xl font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-300">
+                    ACCESO DE VIAJERO
                 </h1>
-                <p className="text-violet-200/40 text-[10px] uppercase tracking-[0.4em] font-light italic">
-                    Escribe tu nombre para entrar al Templo.
+                <p className="text-cyan-200/40 text-[10px] uppercase tracking-[0.4em] font-light italic">
+                    Escribe tu llave secreta para entrar al Templo.
                 </p>
             </div>
 

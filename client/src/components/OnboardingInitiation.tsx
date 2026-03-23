@@ -5,6 +5,7 @@ import { AstrologyEngine } from '../lib/astrologyEngine';
 import { NumerologyEngine } from '../lib/numerologyEngine';
 import { MayanEngine } from '../lib/mayanEngine';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
+import { useAuth } from '../contexts/AuthContext';
 import { Sparkles, MapPin, LocateFixed, Eye, X, Loader2 } from 'lucide-react';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AstralVortex } from './AstralVortex';
@@ -15,6 +16,7 @@ interface OnboardingInitiationProps {
 
 export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onComplete }) => {
     const { updateProfile } = useProfile();
+    const { signUp } = useAuth();
     const [message, setMessage] = useState('');
     const [fullMessage, setFullMessage] = useState('');
     const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
     // Merge states
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({
-        name: '', nickname: '', email: '', birthDate: '', birthTime: '', birthCity: '', birthCountry: '', birthDepartment: ''
+        name: '', nickname: '', email: '', password: '', confirmPassword: '', birthDate: '', birthTime: '', birthCity: '', birthCountry: '', birthDepartment: ''
     });
 
     useEffect(() => {
@@ -45,8 +47,23 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
 
     const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (formData.password !== formData.confirmPassword) {
+            alert("Las contraseñas no coinciden. El portal requiere sincronía.");
+            return;
+        }
+
         setCompleting(true);
         try {
+            console.log("🚀 Sintonizando llave de acceso maestro...");
+            const { error: authError } = await signUp(formData.email, formData.password);
+            
+            if (authError) {
+                alert("Error al forjar la llave: " + authError.message);
+                setCompleting(false);
+                return;
+            }
+
             console.log("🔮 NAOS: Iniciando cálculo místico en cliente...");
             const lat = 14.6349;
             const lng = -90.5069;
@@ -143,7 +160,19 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                                         </label>
                                         <input required type="email" placeholder="Tu correo para Sigil..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                     </div>
-                                    <div className="space-y-2"></div> {/* Separator */}
+                                    <div className="space-y-2 hidden md:block"></div> {/* Separator */}
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black tracking-[0.3em] text-fuchsia-400/90 uppercase flex items-center gap-2">
+                                            <div className="w-1 h-1 rounded-full bg-fuchsia-500/50" /> Crear Contraseña
+                                        </label>
+                                        <input required minLength={6} type="password" placeholder="Tu llave secreta..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black tracking-[0.3em] text-fuchsia-400/90 uppercase flex items-center gap-2">
+                                            <div className="w-1 h-1 rounded-full bg-fuchsia-500/50" /> Confirmar Contraseña
+                                        </label>
+                                        <input required minLength={6} type="password" placeholder="Repite tu llave..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.confirmPassword} onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} />
+                                    </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-amber-100/90 uppercase flex items-center gap-2">
                                             <div className="w-1 h-1 rounded-full bg-amber-500/50" /> Ciclo Solar (Fecha de Nacimiento)

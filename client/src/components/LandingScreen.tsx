@@ -86,11 +86,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
                     <button
                         onClick={onTemporaryAccess}
-                        className="mt-6 text-[9px] uppercase tracking-[0.4em] text-white/20 hover:text-white/40 transition-colors flex items-center justify-center gap-2 group"
+                        className="mt-6 text-[10px] uppercase tracking-[0.4em] text-white/50 hover:text-white transition-colors flex items-center justify-center gap-2 group font-bold"
                     >
-                        <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-amber-500/50 transition-colors" />
-                        Consulta Temporal (Olvido Sagrado)
-                        <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-amber-500/50 transition-colors" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-cyan-500/50 transition-colors shadow-[0_0_10px_rgba(6,182,212,0)] group-hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+                        Ya Tengo Mi Llave (Ingresar)
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-cyan-500/50 transition-colors shadow-[0_0_10px_rgba(6,182,212,0)] group-hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
                     </button>
                 </div>
             </div>
