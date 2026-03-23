@@ -11,6 +11,7 @@ interface Message {
     timestamp: string;
     isHistory?: boolean;
     audioUrl?: string;
+    audioBase64?: string;
 }
 
 interface SynastryEntry {

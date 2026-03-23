@@ -31,7 +31,8 @@ export function useSigil(userName?: string, energyContext?: any) {
                 role: m.sender === 'user' ? 'user' : 'model',
                 text: m.text?.replace(/\bhla\b/gi, 'Saludos').replace(/conooimiento/gi, 'conocimiento') || m.text,
                 isHistory: m.isHistory,
-                audioUrl: m.audioUrl
+                audioUrl: m.audioUrl,
+                audioBase64: m.audioBase64
             })));
         } else if (messages.length === 0) {
             setMessages([{ id: 'welcome', role: 'model', text: getWelcomeMessage(), isHistory: false }]);
