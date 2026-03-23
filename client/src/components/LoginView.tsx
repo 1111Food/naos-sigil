@@ -21,11 +21,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
 
         setLoading(true);
         try {
-            console.log("🚀 LoginView: Autenticando llave...");
-            let { data, error } = await signInWithPassword(email, password);
+            const cleanEmail = email.trim();
+            console.log("🚀 LoginView: Autenticando llave para", cleanEmail, "...");
+            let { data, error } = await signInWithPassword(cleanEmail, password);
 
             if (error) {
-                alert("Identidad no reconocida o llave incorrecta. Si eres nuevo, regresa y elige 'Desliza para conectar'.");
+                alert(`Identidad no reconocida o llave incorrecta.\n\nFallo de Supabase: ${error.message}\n\nSi eres nuevo, regresa y elige 'Desliza para conectar'.`);
                 setLoading(false);
                 return;
             }
