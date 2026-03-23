@@ -128,9 +128,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
         <div className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans text-white transition-colors duration-1000 ${isBunkerMode ? 'bg-red-950/20' : 'bg-transparent'}`}>
             
             {/* 00. LEFTSIDE: PROGRESSION BAR */}
-            <div className="absolute top-6 left-6 z-[100]">
-                <ConsciousnessBar />
-            </div>
+            {/* Removed Iniciado flag as requested */}
 
             {/* 01. BACKGROUND ENGINE */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-40">

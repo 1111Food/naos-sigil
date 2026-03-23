@@ -17,7 +17,6 @@ import { Guardian } from './components/Guardian';
 import { GuardianProvider } from './contexts/GuardianContext';
 import { UpgradeProvider } from './contexts/UpgradeContext';
 import { OnboardingInitiation } from './components/OnboardingInitiation';
-import { FloatingLaboratorio } from './components/FloatingLaboratorio';
 import { SigilBubble } from './components/SigilBubble';
 import { LanguagePromptBanner } from './components/LanguagePromptBanner';
 
@@ -328,7 +327,7 @@ function App() {
           <EtherBackground />
           <NaosVibrationEngine />
           <Guardian view={activeView as any} onOpenChat={() => setActiveView('CHAT')} />
-          <FloatingLaboratorio onNavigate={navigateWithRitual} />
+          {/* Removing FloatingLaboratorio per request */}
           <SigilBubble activeView={activeView as any} onNavigate={navigateWithRitual} />
           <LanguagePromptBanner />
           <DevPlanToggle />

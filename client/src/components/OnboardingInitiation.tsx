@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2 } from 'lucide-react';
-import { useProfile } from '../hooks/useProfile';
+import { useProfile } from '../contexts/ProfileContext';
+import { AstrologyEngine } from '../lib/astrologyEngine';
+import { NumerologyEngine } from '../lib/numerologyEngine';
+import { MayanEngine } from '../lib/mayanEngine';
+import { calculateChineseZodiac } from '../utils/chineseMapper';
+import { Sparkles, MapPin, LocateFixed, Eye, X, Loader2 } from 'lucide-react';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AstralVortex } from './AstralVortex';
 
@@ -43,6 +47,17 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
         e.preventDefault();
         setCompleting(true);
         try {
+            console.log("🔮 NAOS: Iniciando cálculo místico en cliente...");
+            const lat = 14.6349;
+            const lng = -90.5069;
+            const cleanTime = formData.birthTime ? formData.birthTime.substring(0, 5) : '12:00';
+            const birthDateTime = new Date(`${formData.birthDate}T${cleanTime}:00`);
+            const astroData = AstrologyEngine.calculateNatalChart(birthDateTime, lat, lng);
+            const { lifePathNumber, pinaculo } = NumerologyEngine.calculateFullChart(formData.birthDate);
+            const mayanData = MayanEngine.calculateNawal(formData.birthDate);
+            const nameNumber = NumerologyEngine.calculateNameNumerology(formData.name);
+            const chineseData = calculateChineseZodiac(birthDateTime.toISOString());
+
             await updateProfile({
                 name: formData.name,
                 nickname: formData.nickname,
@@ -52,6 +67,13 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                 birthCity: formData.birthCity,
                 birthCountry: formData.birthCountry,
                 birthDepartment: formData.birthDepartment,
+                astrology: astroData,
+                numerology: { lifePathNumber, pinaculo, nameNumber },
+                mayan: mayanData,
+                nawal_maya: `${mayanData.tone} ${mayanData.kicheName}`,
+                chinese_animal: chineseData.animal,
+                chinese_element: chineseData.element,
+                chinese_birth_year: chineseData.birthYear,
                 onboarding_completed: true
             } as any);
 
