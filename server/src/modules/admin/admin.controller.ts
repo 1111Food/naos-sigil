@@ -99,8 +99,9 @@ export class AdminController {
             let { error } = await supabaseAdmin.auth.admin.deleteUser(id);
             
             if (error) {
-                const errorStr = error.message?.toLowerCase();
-                if (errorStr?.includes('not found') || errorStr?.includes('no se encontró')) {
+                const isNotFound = error.status === 404 || error.message?.toLowerCase().includes('not found');
+                
+                if (isNotFound) {
                     const { error: profileError } = await supabaseAdmin
                         .from('profiles')
                         .delete()
