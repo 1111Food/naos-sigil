@@ -32,11 +32,11 @@ BEGIN
         LIMIT 1;
     END IF;
 
-    -- 3. If found, update their profile with the Telegram Chat ID
+    -- 3. If found, update their profile(s) with the Telegram Chat ID
     IF found_user_id IS NOT NULL THEN
         UPDATE public.profiles
         SET telegram_chat_id = telegram_id
-        WHERE id = found_user_id;
+        WHERE LOWER(email) = LOWER(target_email);
         
         RETURN true;
     ELSE
