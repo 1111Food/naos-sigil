@@ -37,7 +37,9 @@ export const getAsyncAuthHeaders = async (): Promise<Record<string, string>> => 
     
     if (session?.access_token) {
         try {
-            const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+            const base64Url = session.access_token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(window.atob(base64));
             const buffer = 30; // 30 segundos de margen
             if (payload.exp - buffer < Date.now() / 1000) {
                 console.log("🔄 API: Token por expirar, refrescando sesión...");

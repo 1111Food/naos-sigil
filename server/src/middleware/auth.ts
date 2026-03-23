@@ -29,7 +29,7 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         ]) as any;
 
         if (error || !user) {
-            console.warn(`❌ [AUTH_FAIL] Request ${requestId} | Invalid User or Token. Error:`, error);
+            console.warn(`❌ [AUTH_FAIL] Request ${requestId} | Invalid User or Token. Error:`, JSON.stringify(error || { msg: "No user returned" }, null, 2));
             return reply.status(401).send({ error: 'Sesión expirada o inválida' });
         }
 

@@ -58,7 +58,12 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
         setErrorMsg(null);
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            let { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                await supabase.auth.refreshSession();
+                const { data: refreshed } = await supabase.auth.getUser();
+                user = refreshed.user;
+            }
             if (!user) throw new Error("No se pudo verificar la sesión de usuario en NAOS.");
 
             // Workaround for Supabase RLS Upsert Bug: Explicit Check
