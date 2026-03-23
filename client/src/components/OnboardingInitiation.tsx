@@ -79,6 +79,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                 name: formData.name,
                 nickname: formData.nickname,
                 email: formData.email,
+                plan_type: formData.email.toLowerCase() === 'luisalfredoherreramendez@gmail.com' ? 'admin' : 'free',
                 birthDate: formData.birthDate,
                 birthTime: formData.birthTime,
                 birthCity: formData.birthCity,
