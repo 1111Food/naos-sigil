@@ -246,7 +246,10 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
 
                         <div className="relative w-56 h-56 rounded-full glass-panel flex items-center justify-center shadow-2xl overflow-hidden group-hover:border-cyan-400/40 transition-all duration-700 p-8 text-center group-hover:shadow-cyan-400/20">
                             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-transparent to-fuchsia-500/10 opacity-60 group-hover:opacity-100 transition-opacity duration-700" />
-                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+                            <div 
+                                className="absolute inset-0 opacity-20 mix-blend-overlay" 
+                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} 
+                            />
 
                             <span className="relative z-10 text-2xl font-black tracking-[0.5em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-white leading-relaxed drop-shadow-[0_0_20px_rgba(103,232,249,0.8)]">
                                 CÓDIGO DE<br />IDENTIDAD
