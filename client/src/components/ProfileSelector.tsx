@@ -16,6 +16,7 @@ export const ProfileSelector: React.FC = () => {
     const [birthDate, setBirthDate] = useState('');
     const [birthTime, setBirthTime] = useState('');
     const [birthCity, setBirthCity] = useState('');
+    const [birthDepartment, setBirthDepartment] = useState('');
     const [birthCountry, setBirthCountry] = useState('');
 
     if (!profile) return null;
@@ -53,7 +54,7 @@ export const ProfileSelector: React.FC = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session?.access_token}`
                 },
-                body: JSON.stringify({ name, birthDate, birthTime, birthCity, birthCountry })
+                body: JSON.stringify({ name, birthDate, birthTime, birthCity, birthDepartment, birthCountry })
             });
             if (!res.ok) {
                 const err = await res.json();
@@ -62,7 +63,7 @@ export const ProfileSelector: React.FC = () => {
             }
             await refreshProfile();
             setIsAdding(false);
-            setName(''); setBirthDate(''); setBirthTime(''); setBirthCity(''); setBirthCountry('');
+            setName(''); setBirthDate(''); setBirthTime(''); setBirthCity(''); setBirthDepartment(''); setBirthCountry('');
         } catch (e) {
             console.error("Error adding profile:", e);
         }
@@ -167,13 +168,18 @@ export const ProfileSelector: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-1">
-                            <label className="text-[10px] uppercase tracking-wider text-white/40">Ciudad</label>
-                            <input type="text" value={birthCity} onChange={e => setBirthCity(e.target.value)} required className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/40" />
+                            <label className="text-[10px] uppercase tracking-wider text-white/40">País</label>
+                            <input type="text" placeholder="Ej. Guatemala..." value={birthCountry} onChange={e => setBirthCountry(e.target.value)} required className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/40" />
                         </div>
 
                         <div className="flex flex-col gap-1">
-                            <label className="text-[10px] uppercase tracking-wider text-white/40">País</label>
-                            <input type="text" value={birthCountry} onChange={e => setBirthCountry(e.target.value)} required className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/40" />
+                            <label className="text-[10px] uppercase tracking-wider text-white/40">Región / Departamento</label>
+                            <input type="text" placeholder="Ej. Guatemala, Petén..." value={birthDepartment} onChange={e => setBirthDepartment(e.target.value)} required className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/40" />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label className="text-[10px] uppercase tracking-wider text-white/40">Ciudad</label>
+                            <input type="text" placeholder="Ej. Ciudad de Guatemala..." value={birthCity} onChange={e => setBirthCity(e.target.value)} required className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/40" />
                         </div>
 
                         <div className="flex gap-2 pt-2">
