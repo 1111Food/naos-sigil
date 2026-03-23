@@ -142,11 +142,16 @@ export const initTelegramBot = () => {
             }
         });
 
-        bot.launch().catch(err => {
-            console.error("🔥 Telegram Bot Launch Failed:", err.message || err);
-            console.warn("⚠️ Sigil Telegram Node is offline, but the Great Work continues...");
+        // deleteWebhook fixes 409 Conflict after dev restarts
+        bot!.telegram.deleteWebhook().then(() => {
+            bot!.launch().catch(err => {
+                console.error("🔥 Telegram Bot Launch Failed:", err.message || err);
+                console.warn("⚠️ Sigil Telegram Node is offline, but the Great Work continues...");
+            });
+            console.log("🌌 Sigil Telegram Node: CONNECTED & LISTENING.");
+        }).catch(err => {
+            console.error("🔥 Telegram Webhook Deletion Failed:", err);
         });
-        console.log("🌌 Sigil Telegram Node: CONNECTED & LISTENING.");
 
         // Graceful stop
         process.once('SIGINT', () => bot?.stop('SIGINT'));
