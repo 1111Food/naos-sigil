@@ -10,12 +10,14 @@ import { IdentityAltar } from './IdentityAltar';
 import { AstralVortex } from './AstralVortex';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
 import { SigilManifesto } from './SigilManifesto';
+import { useTranslation } from '../i18n/translations';
 
 interface OnboardingFormProps {
     onComplete: (data: any) => void;
 }
 
 export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) => {
+    const { t, language } = useTranslation();
     const { user } = useAuth();
     const { profile, refreshProfile } = useProfile();
     const [isEditing, setIsEditing] = useState(false);
@@ -111,17 +113,20 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
 
             // Prompt Bloque 1: Secuencia de Revelación
             setIsDecoding(true);
-            setDecodingText("Decodificando arquitectura...");
+            setDecodingText(language === 'en' ? "Decoding architecture..." : "Decodificando arquitectura...");
             await new Promise(r => setTimeout(r, 400));
-            setDecodingText("Sincronizando patrones...");
+            setDecodingText(language === 'en' ? "Syncing patterns..." : "Sincronizando patrones...");
             await new Promise(r => setTimeout(r, 400));
-            setDecodingText("Estabilizando frecuencia...");
+            setDecodingText(language === 'en' ? "Stabilizing frequency..." : "Estabilizando frecuencia...");
             await new Promise(r => setTimeout(r, 400));
 
             // TTS (Speech Synthesis)
             if ('speechSynthesis' in window) {
-                const msg = new SpeechSynthesisUtterance("Acceso concedido. Tu estructura ha sido interpretada. Este es tu código base.");
-                msg.lang = 'es-ES';
+                const text = language === 'en' 
+                    ? "Access granted. Your structure has been interpreted. This is your base code."
+                    : "Acceso concedido. Tu estructura ha sido interpretada. Este es tu código base.";
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = language === 'en' ? 'en-US' : 'es-ES';
                 msg.rate = 0.9;
                 window.speechSynthesis.speak(msg);
             }
@@ -131,7 +136,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
 
         } catch (err) {
             console.error("❌ Error en ritual de inicio:", err);
-            alert("Hubo un error guardando tu perfil espirital. Intenta de nuevo.");
+            alert(language === 'en' ? "There was an error saving your spiritual profile. Try again." : "Hubo un error guardando tu perfil espirital. Intenta de nuevo.");
         } finally {
             setLoading(false);
         }
@@ -155,7 +160,11 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                         <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_0_80px_rgba(6,182,212,0.05)] pointer-events-none" />
 
                         <h2 className="relative z-10 text-2xl md:text-3xl lg:text-4xl font-serif italic text-white/95 leading-relaxed tracking-wide drop-shadow-md">
-                            "Para revelar la arquitectura de tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-amber-300">Avatar</span>, el Templo requiere las coordenadas de tu llegada."
+                            {language === 'en' ? (
+                                <>"To reveal the architecture of your <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-amber-300">Avatar</span>, the Temple requires your arrival coordinates."</>
+                            ) : (
+                                <>"Para revelar la arquitectura de tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-amber-300">Avatar</span>, el Templo requiere las coordenadas de tu llegada."</>
+                            )}
                         </h2>
 
                         <div className="relative z-10 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
@@ -165,7 +174,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                             >
                                 <span className="relative z-10 flex items-center gap-3">
                                     <span className="text-cyan-400 group-hover:animate-pulse">✦</span>
-                                    Sintonizar Coordenadas
+                                    {t('sync_coordinates')}
                                     <span className="text-cyan-400 group-hover:animate-pulse">✦</span>
                                 </span>
                                 {/* Hover sweep effect */}
@@ -173,7 +182,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                             </button>
 
                             <p className="text-[9px] uppercase tracking-[0.4em] text-cyan-200/40 animate-pulse font-mono">
-                                Vórtice de Sintonización Activo
+                                {language === 'en' ? "Tuning Vortex Active" : "Vórtice de Sintonización Activo"}
                             </p>
                         </div>
                     </motion.div>
@@ -191,7 +200,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                         <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_0_80px_rgba(6,182,212,0.05)] pointer-events-none" />
 
                         <div className="text-center mb-10 relative z-10">
-                            <p className="text-cyan-400/80 text-[10px] uppercase tracking-[0.6em] mb-4 font-black">Calibración de Identidad Original</p>
+                            <p className="text-cyan-400/80 text-[10px] uppercase tracking-[0.6em] mb-4 font-black">{t('calibration_title')}</p>
                             <div className="h-px w-32 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent mx-auto" />
                         </div>
 
@@ -201,12 +210,12 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-cyan-500/50" />
-                                        Identidad Terrenal
+                                        {t('earthly_identity')}
                                     </label>
                                     <input
                                         required
                                         type="text"
-                                        placeholder="Tu nombre completo en este plano..."
+                                        placeholder={language === 'en' ? "Your full name in this plane..." : "Tu nombre completo en este plano..."}
                                         className="astral-input"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -217,7 +226,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-cyan-500/50" />
-                                        Apodo / Sigilo
+                                        {t('nickname_sigil')}
                                     </label>
                                     <input
                                         type="text"
@@ -232,7 +241,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-amber-500/50" />
-                                        Ciclo Solar (Fecha)
+                                        {t('solar_cycle')}
                                     </label>
                                     <input
                                         required
@@ -247,7 +256,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-amber-500/50" />
-                                        Momento Exacto (Hora)
+                                        {t('exact_moment')}
                                     </label>
                                     <input
                                         required
@@ -262,12 +271,12 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-emerald-500/50" />
-                                        Nación de Origen
+                                        {t('origin_nation')}
                                     </label>
                                     <input
                                         required
                                         type="text"
-                                        placeholder="Ej. México, España, Japón..."
+                                        placeholder={language === 'en' ? "e.g., Mexico, Spain, Japan..." : "Ej. México, España, Japón..."}
                                         className="astral-input"
                                         value={formData.birthCountry}
                                         onChange={(e) => setFormData({ ...formData, birthCountry: e.target.value })}
@@ -278,12 +287,12 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-emerald-500/50" />
-                                        Región / Estado
+                                        {t('region_state')}
                                     </label>
                                     <input
                                         required
                                         type="text"
-                                        placeholder="Ej. Jalisco, Madrid, Texas..."
+                                        placeholder={language === 'en' ? "e.g., Texas, Madrid, Tokyo..." : "Ej. Jalisco, Madrid, Texas..."}
                                         className="astral-input"
                                         value={formData.birthState}
                                         onChange={(e) => setFormData({ ...formData, birthState: e.target.value })}
@@ -294,12 +303,12 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-emerald-500/50" />
-                                        Anclaje (Ciudad)
+                                        {t('anchorage_city')}
                                     </label>
                                     <input
                                         required
                                         type="text"
-                                        placeholder="Ej. Guadalajara, Barcelona, Tokio..."
+                                        placeholder={language === 'en' ? "e.g., Dallas, Barcelona, Kyoto..." : "Ej. Guadalajara, Barcelona, Tokio..."}
                                         className="astral-input"
                                         value={formData.birthCity}
                                         onChange={(e) => setFormData({ ...formData, birthCity: e.target.value })}
@@ -310,12 +319,12 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black tracking-[0.3em] text-white/90 uppercase flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-white/50" />
-                                        Correo Electrónico
+                                        {t('email_label')}
                                     </label>
                                     <input
                                         required
                                         type="email"
-                                        placeholder="Tu mail (para Telegram)..."
+                                        placeholder={language === 'en' ? "Your email (for Telegram)..." : "Tu mail (para Telegram)..."}
                                         className="astral-input"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -334,13 +343,13 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                     {loading ? (
                                         <div className="flex items-center gap-3 relative z-10">
                                             <div className="w-4 h-4 border-2 border-cyan-400/20 border-t-cyan-400 rounded-full animate-spin" />
-                                            <span className="animate-pulse text-cyan-200">Sincronizando Esencia...</span>
+                                            <span className="animate-pulse text-cyan-200">{t('syncing_essence')}</span>
                                         </div>
                                     ) : (
                                         <>
                                             <span className="relative z-10 flex items-center gap-3">
                                                 <span className="text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">✦</span>
-                                                Iniciar Ritual de Sintonía
+                                                {t('start_ritual')}
                                                 <span className="text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0">✦</span>
                                             </span>
                                             {/* Hover sweep effect */}
@@ -350,7 +359,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                                 </motion.button>
 
                                 <p className="text-[8px] text-center text-cyan-100/30 uppercase tracking-[0.4em] mt-8 italic">
-                                    La arquitectura de las estrellas será trazada para tu avatar.
+                                    {t('architecture_stars')}
                                 </p>
                             </div>
                         </form>

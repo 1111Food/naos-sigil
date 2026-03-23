@@ -96,9 +96,24 @@ export class AdminController {
             const { createClient } = require('@supabase/supabase-js');
             const supabaseAdmin = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-            const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
-
+            let { error } = await supabaseAdmin.auth.admin.deleteUser(id);
+            
             if (error) {
+                const errorStr = error.message?.toLowerCase();
+                if (errorStr?.includes('not found') || errorStr?.includes('no se encontró')) {
+                    const { error: profileError } = await supabaseAdmin
+                        .from('profiles')
+                        .delete()
+                        .eq('id', id);
+
+                    if (profileError) {
+                        return reply.status(500).send({ 
+                            error: "Fallo al eliminar perfil huérfano", 
+                            details: profileError.message 
+                        });
+                    }
+                    return { status: 'ok', message: `Perfil huérfano desintegrado.` };
+                }
                 return reply.status(500).send({ error: "Fallo al eliminar el usuario en Auth", details: error.message });
             }
 

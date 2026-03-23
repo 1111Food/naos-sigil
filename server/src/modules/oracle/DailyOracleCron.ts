@@ -19,7 +19,7 @@ export class DailyOracleCron {
 
         const query = supabase
             .from('profiles')
-            .select('id, full_name, nickname, astrology, numerology, mayan, telegram_chat_id, oracle_time')
+            .select('id, full_name, nickname, astrology, numerology, mayan, telegram_chat_id, oracle_time, language')
             .not('telegram_chat_id', 'is', null);
 
         // Standard dispatch at 8:00 AM includes users with NULL (defaults)
@@ -86,7 +86,8 @@ export class DailyOracleCron {
                     dayPillars,
                     interaction: adjustedScores,
                     coherence,
-                    toneProfile
+                    toneProfile,
+                    language: user.language || 'es'
                 });
 
                 // 5. Save report (Step 11) using interaction_logs

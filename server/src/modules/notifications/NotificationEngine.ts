@@ -18,7 +18,7 @@ export class NotificationEngine {
         // Fetch users with Telegram linked and who are active
         const { data: users, error } = await supabase
             .from('profiles')
-            .select('id, nickname, full_name, telegram_chat_id, profile_data')
+            .select('id, nickname, full_name, telegram_chat_id, profile_data, language')
             .not('telegram_chat_id', 'is', null);
 
         if (error || !users) {
@@ -44,9 +44,8 @@ export class NotificationEngine {
                      
                      // Trigger Sigil message addressing the Protocol stall
                      const promptContext = `${SIGIL_STRUCTURE_PROMPT}\n${SIGIL_DISCIPLINE_TEMPLATE.replace('{current}', '7').replace('{target}', '21')}`;
-                     
-                     const sigil = new SigilService();
-                     const sigilResponse = await sigil.processMessage(user.id, promptContext);
+                                          const sigil = new SigilService();
+                      const sigilResponse = await sigil.processMessage(user.id, promptContext, undefined, undefined, 'maestro', false, undefined, user.language || 'es');
 
                      console.log(`[NOTIF_ENGINE] Sending reminder to ${userName}`);
                      
@@ -76,7 +75,7 @@ export class NotificationEngine {
         // Placeholder query node: Fetch users where last_active_at > 24h ago.
         const { data: users } = await supabase
             .from('profiles')
-            .select('id, telegram_chat_id, nickname, full_name, profile_data')
+            .select('id, telegram_chat_id, nickname, full_name, profile_data, language')
             .not('telegram_chat_id', 'is', null);
 
         if (!users) return;
@@ -88,7 +87,7 @@ export class NotificationEngine {
             const contextMsg = `${SIGIL_STRUCTURE_PROMPT}\n${SIGIL_INACTIVITY_TEMPLATE}`;
             
             const sigil = new SigilService();
-            const message = await sigil.processMessage(user.id, contextMsg);
+            const message = await sigil.processMessage(user.id, contextMsg, undefined, undefined, 'maestro', false, undefined, user.language || 'es');
 
             const tts = new TTSService();
             const { buffer } = await tts.generateVoice(message);

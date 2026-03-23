@@ -27,7 +27,33 @@ export const translations = {
         language_selector: "Idioma / Language",
         cancel: "Cancelar",
         save: "Guardar",
-        saving: "Guardando..."
+        saving: "Guardando...",
+        // Identity Nexus & Manuals
+        identity_nexus_title: "Nexo de Identidad",
+        architecture_ser: "Arquitectura del Ser",
+        back_temple: "Regresar al Templo",
+        view_full_code: "VER MI CÓDIGO COMPLETO",
+        view_full_code_sub: "Explora tu diseño original: Astral, Numerología y Nahual.",
+        wisdom_library: "BIBLIOTECA DE SABIDURÍA",
+        wisdom_library_sub: "El repositorio de conocimientos ancestrales y guías del sistema.",
+        access: "Acceder",
+        pedagogical_marco: "Marco Pedagógico de Naos",
+        close_curtain: "Cerrar Telón",
+        // Onboarding
+        threshold_quote: "Para revelar la arquitectura de tu Avatar, el Templo requiere las coordenadas de tu llegada.",
+        sync_coordinates: "Sintonizar Coordenadas",
+        calibration_title: "Calibración de Identidad Original",
+        earthly_identity: "Identidad Terrenal",
+        nickname_sigil: "Apodo / Sigilo",
+        solar_cycle: "Ciclo Solar (Fecha)",
+        exact_moment: "Momento Exacto (Hora)",
+        origin_nation: "Nación de Origen",
+        region_state: "Región / Estado",
+        anchorage_city: "Anclaje (Ciudad)",
+        email_label: "Correo Electrónico",
+        start_ritual: "Iniciar Ritual de Sintonía",
+        syncing_essence: "Sincronizando Esencia...",
+        architecture_stars: "La arquitectura de las estrellas será trazada para tu avatar."
     },
     en: {
         identity: "Identity Code",
@@ -57,7 +83,33 @@ export const translations = {
         language_selector: "Language",
         cancel: "Cancel",
         save: "Save",
-        saving: "Saving..."
+        saving: "Saving...",
+        // Identity Nexus & Manuals
+        identity_nexus_title: "Identity Nexus",
+        architecture_ser: "Architecture of Being",
+        back_temple: "Return to Temple",
+        view_full_code: "VIEW MY FULL CODE",
+        view_full_code_sub: "Explore your original design: Astral, Numerology, and Nahual.",
+        wisdom_library: "WISDOM LIBRARY",
+        wisdom_library_sub: "The repository of ancestral knowledge and system guides.",
+        access: "Access",
+        pedagogical_marco: "Naos Pedagogical Framework",
+        close_curtain: "Close Manual",
+        // Onboarding
+        threshold_quote: "To reveal your Avatar’s architecture, the Temple requires your arrival coordinates.",
+        sync_coordinates: "Tune Coordinates",
+        calibration_title: "Original Identity Calibration",
+        earthly_identity: "Earthly Identity",
+        nickname_sigil: "Nickname / Sigil",
+        solar_cycle: "Solar Cycle (Date)",
+        exact_moment: "Exact Moment (Time)",
+        origin_nation: "Nation of Origin",
+        region_state: "Region / State",
+        anchorage_city: "Anchorage (City)",
+        email_label: "Email Address",
+        start_ritual: "Start Tuning Ritual",
+        syncing_essence: "Syncing Essence...",
+        architecture_stars: "The architecture of the stars will be traced for your avatar."
     }
 };
 

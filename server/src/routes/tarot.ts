@@ -53,6 +53,15 @@ export async function tarotRoutes(app: FastifyInstance) {
         console.log(`🔮 Tarot/Ritual POST. Intent: "${question}", Engine: ${selectedEngine}, Spread: ${spreadType}`);
 
         try {
+            // 0. Fetch User Language Profile for safe AI instruction
+            const { data: userProfile } = await supabase
+                .from('profiles')
+                .select('language')
+                .eq('id', userId)
+                .maybeSingle();
+
+            const language = userProfile?.language || 'es';
+
             const message = `
             SOLICITUD DE INTERPRETACIÓN ORACULAR:
             [MOTOR: ${selectedEngine}]
@@ -80,7 +89,7 @@ export async function tarotRoutes(app: FastifyInstance) {
 
             // Generate response using Sigil Central (processMessage)
             console.log("Attempting to contact Gemini (Sigil Central)...");
-            const response = await sigilService.processMessage(userId, message, undefined, undefined, 'maestro', finalForceReading);
+            const response = await sigilService.processMessage(userId, message, undefined, undefined, 'maestro', finalForceReading, undefined, language);
             console.log("Gemini response received.");
 
             await UsageGuardService.incrementUsage(userId, 'tarot');

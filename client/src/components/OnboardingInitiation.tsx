@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useProfile } from '../contexts/ProfileContext';
 import { AstrologyEngine } from '../lib/astrologyEngine';
 import { NumerologyEngine } from '../lib/numerologyEngine';
 import { MayanEngine } from '../lib/mayanEngine';
@@ -16,7 +15,6 @@ interface OnboardingInitiationProps {
 }
 
 export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onComplete }) => {
-    const { updateProfile } = useProfile();
     const { signUp } = useAuth();
     const [message, setMessage] = useState('');
     const [fullMessage, setFullMessage] = useState('');
@@ -57,7 +55,6 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
         setCompleting(true);
         try {
             console.log("🚀 Sintonizando llave de acceso maestro...");
-            // Si el usuario ya existe en Auth (por ejemplo, creado manual en Supabase), saltamos signUp
             let currentUser = undefined;
             try { 
                 const { data } = await supabase.auth.getUser(); 
@@ -65,12 +62,19 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             } catch(e) {}
 
             if (!currentUser) {
-                const { error: authError } = await signUp(formData.email, formData.password);
+                const { data: authData, error: authError } = await signUp(formData.email, formData.password);
                 if (authError) {
                     alert("Error al forjar la llave: " + authError.message);
                     setCompleting(false);
                     return;
                 }
+                currentUser = authData?.user;
+            }
+
+            if (!currentUser) {
+                alert("No se pudo establecer el usuario de sesión.");
+                setCompleting(false);
+                return;
             }
 
             console.log("🔮 NAOS: Iniciando cálculo místico en cliente...");
@@ -84,16 +88,17 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             const nameNumber = NumerologyEngine.calculateNameNumerology(formData.name);
             const chineseData = calculateChineseZodiac(birthDateTime.toISOString());
 
-            await updateProfile({
-                name: formData.name,
-                nickname: formData.nickname,
+            console.log("Saving profile for user:", currentUser.id);
+            const profilePayload = {
+                id: currentUser.id,
+                full_name: formData.name,
+                nickname: formData.nickname || '',
                 email: formData.email,
                 plan_type: formData.email.toLowerCase().includes('luisalfredoherreramendez') ? 'admin' : 'free',
-                birthDate: formData.birthDate,
-                birthTime: formData.birthTime,
-                birthCity: formData.birthCity,
-                birthCountry: formData.birthCountry,
-                birthDepartment: formData.birthDepartment,
+                birth_date: formData.birthDate,
+                birth_time: formData.birthTime,
+                birth_city: formData.birthCity,
+                birth_country: formData.birthCountry,
                 astrology: astroData,
                 numerology: { lifePathNumber, pinaculo, nameNumber },
                 mayan: mayanData,
@@ -101,8 +106,15 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                 chinese_animal: chineseData.animal,
                 chinese_element: chineseData.element,
                 chinese_birth_year: chineseData.birthYear,
-                onboarding_completed: true
-            } as any);
+                onboarding_completed: true,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error: upsertError } = await supabase
+                .from('profiles')
+                .upsert(profilePayload);
+
+            if (upsertError) throw upsertError;
 
             const headers = await getAsyncAuthHeaders();
             await fetch(`${API_BASE_URL}/api/onboarding/complete`, { 
@@ -112,8 +124,9 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             });
 
             onComplete();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to complete onboarding', err);
+            alert("Error al completar ritual: " + (err.message || err));
             onComplete();
         } finally { setCompleting(false); }
     };

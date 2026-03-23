@@ -58,7 +58,7 @@ export const initTelegramBot = () => {
             // Usamos neq('id', ...) para evitar problemas con registros nulos si los hay
             const { data: profile, error: checkError } = await supabase
                 .from('profiles')
-                .select('id, full_name, email')
+                .select('id, full_name, email, language')
                 .eq('telegram_chat_id', chatId)
                 .maybeSingle();
 
@@ -69,7 +69,7 @@ export const initTelegramBot = () => {
                 console.log(`[TELEGRAM] Interactuando con Sigil para ${profile.full_name} (${profile.email})`);
                 
                 try {
-                    const aiResponse = await sigilService.processMessage(profile.id, text);
+                    const aiResponse = await sigilService.processMessage(profile.id, text, undefined, undefined, 'maestro', false, undefined, profile.language || 'es');
                     ctx.reply(aiResponse);
                 } catch (err) {
                     console.error("[TELEGRAM] Sigil AI error:", err);

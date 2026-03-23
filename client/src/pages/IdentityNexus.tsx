@@ -6,6 +6,7 @@ import { WisdomButton } from '../components/WisdomOverlay';
 import { OracleExplainer } from '../components/OracleExplainer';
 import { useWisdom } from '../hooks/useWisdom';
 import { useSound } from '../hooks/useSound';
+import { useTranslation } from '../i18n/translations';
 
 interface IdentityNexusProps {
     onNavigate: (view: any) => void;
@@ -13,6 +14,7 @@ interface IdentityNexusProps {
 }
 // @ts-ignore
 export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack }) => {
+    const { t } = useTranslation();
     const [explainerType, setExplainerType] = React.useState<'IDENTITY_NEXUS' | 'IDENTITY_COMPLETE' | 'IDENTITY_WISDOM' | null>(null);
     const { openWisdom } = useWisdom();
     const { playSound } = useSound();
@@ -29,8 +31,8 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
     const options = [
         {
             id: 'PROFILE',
-            title: "VER MI CÓDIGO COMPLETO",
-            subtitle: "Explora tu diseño original: Astral, Numerología y Nahual.",
+            title: t('view_full_code'),
+            subtitle: t('view_full_code_sub'),
             icon: User,
             color: "from-blue-500/20 to-cyan-500/10",
             border: "border-blue-500/30",
@@ -38,8 +40,8 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
         },
         {
             id: 'MANUALS',
-            title: "BIBLIOTECA DE SABIDURÍA",
-            subtitle: "El repositorio de conocimientos ancestrales y guías del sistema.",
+            title: t('wisdom_library'),
+            subtitle: t('wisdom_library_sub'),
             icon: Book,
             color: "from-purple-500/20 to-magenta-500/10",
             border: "border-purple-500/30",
@@ -56,13 +58,13 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                 className="fixed top-[calc(1rem+env(safe-area-inset-top))] left-6 flex items-center gap-2 text-white/40 hover:text-white transition-colors group z-50"
             >
                 <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="text-[10px] uppercase tracking-[0.3em] font-black">Regresar al Templo</span>
+                <span className="text-[10px] uppercase tracking-[0.3em] font-black">{t('back_temple')}</span>
             </motion.button>
 
             <div className="text-center mb-16 space-y-4">
                 <div className="flex items-center justify-center gap-4">
                     <h2 className="text-3xl md:text-4xl font-serif italic text-white/90 tracking-wide">
-                        Nexo de Identidad
+                        {t('identity_nexus_title')}
                     </h2>
                     <button 
                         onClick={(e) => { e.stopPropagation(); playSound('click'); setExplainerType('IDENTITY_NEXUS'); }}
@@ -72,7 +74,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                     </button>
                 </div>
                 <div className="h-px w-24 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto" />
-                <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">Arquitectura del Ser</p>
+                <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">{t('architecture_ser')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
@@ -115,7 +117,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                             </div>
 
                             <div className="pt-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
-                                <span className="text-[10px] uppercase tracking-[0.3em] font-black text-blue-400">Acceder</span>
+                                <span className="text-[10px] uppercase tracking-[0.3em] font-black text-blue-400">{t('access')}</span>
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                             </div>
                         </div>

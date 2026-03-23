@@ -15,6 +15,7 @@ import { useSound } from '../hooks/useSound';
 import { useUpgrade } from '../contexts/UpgradeContext';
 import { LegalView } from '../components/LegalView';
 import { WelcomeExplainer } from '../components/WelcomeExplainer';
+import { useTranslation } from '../i18n/translations';
 
 interface HomeProps {
     onSelectFeature: (feature: any, payload?: any) => void;
@@ -135,6 +136,8 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
         setIsLegalOpen(true);
     };
 
+    const { t } = useTranslation();
+
     return (
         <div className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans text-white transition-colors duration-1000 ${isBunkerMode ? 'bg-red-950/20' : 'bg-transparent'}`}>
             
@@ -218,7 +221,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     )}>
                         <BentoBlock
                             position="top-left"
-                            title="CÓDIGO DE IDENTIDAD"
+                            title={t('identity').toUpperCase()}
                             accent="cyan"
                             clipPath="url(#puzzle-astro)"
                             pathData="M 0,0 H 0.9 V 0.4 C 0.8,0.4 0.8,0.6 0.9,0.6 V 0.9 H 0.6 C 0.6,1 0.4,1 0.4,0.9 H 0 Z"
@@ -231,7 +234,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     )}>
                         <BentoBlock
                             position="top-right"
-                            title="ORÁCULO"
+                            title={t('oracle').toUpperCase()}
                             accent="magenta"
                             clipPath="url(#puzzle-command)"
                             pathData="M 0.1,0 H 1 V 0.9 H 0.6 C 0.6,0.8 0.4,0.8 0.4,0.9 H 0.1 V 0.6 C 0,0.6 0,0.4 0.1,0.4 Z"
@@ -245,7 +248,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     )}>
                         <BentoBlock
                             position="bottom-left"
-                            title="PROTOCOLOS 21 Y 90"
+                            title={t('protocols').toUpperCase()}
                             accent="emerald"
                             clipPath="url(#puzzle-protocol)"
                             pathData="M 0,0.1 H 0.4 C 0.4,0.2 0.6,0.2 0.6,0.1 H 0.9 V 0.4 C 1,0.4 1,0.6 0.9,0.6 V 1 H 0 Z"
@@ -259,7 +262,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     )}>
                         <BentoBlock
                             position="bottom-right"
-                            title="LABORATORIO ELEMENTAL"
+                            title={t('laboratory').toUpperCase()}
                             accent="orange"
                             clipPath="url(#puzzle-evolution)"
                             pathData="M 0.1,0.1 H 0.4 C 0.4,0 0.6,0 0.6,0.1 H 1 V 1 H 0.1 V 0.6 C 0.2,0.6 0.2,0.4 0.1,0.4 Z"

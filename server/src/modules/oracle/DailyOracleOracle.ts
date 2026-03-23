@@ -8,12 +8,15 @@ export class DailyOracleOracle {
         interaction: any;
         coherence: { level: number; state: string };
         toneProfile: string;
+        language?: 'es' | 'en';
     }): Promise<string> {
         
         const apiKey = config.GOOGLE_API_KEY;
-        if (!apiKey) return this.getFallback();
+        if (!apiKey) return this.getFallback(context.language || 'es');
 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        const lang = context.language || 'es';
 
         const systemInstruction = `
 Eres el SIGIL de NAOS, el sistema operativo para el alma. 
@@ -28,21 +31,24 @@ ${context.toneProfile === 'BALANCED' ? 'Tono Claro y equilibrado entre diagnóst
 1. No haces astrología ni horóscopos flotantes. interpretas patrones conductuales.
 2. Máximo 120 palabras.
 3. Sin ambigüedades ("podría", "tal vez").
-4. FORMATO OBLIGATORIO (Utiliza estos encabezados exactos):
 
-🔮 Lectura NAOS — Hoy
+[LANGUAGE DIRECTIVE]: Respond STRICTLY in ${lang === 'en' ? 'English' : 'Spanish'}.
 
-DIAGNÓSTICO DEL DÍA:
-[Breve descripción mística/técnica de la energía de hoy, máx 1 línea]
+FORMATO OBLIGATORIO (Utiliza estos encabezados exactos):
 
-FUERZA ACTIVA:
-[Cómo resuena con el usuario y dónde empujar hoy, máx 2 líneas]
+${lang === 'en' ? '🔮 NAOS Reading — Today' : '🔮 Lectura NAOS — Hoy'}
 
-RIESGO:
-[Qué vigilar hoy, ej: impulsividad, fatiga, máx 1 línea]
+${lang === 'en' ? 'DAY DIAGNOSTIC:' : 'DIAGNÓSTICO DEL DÍA:'}
+[${lang === 'en' ? 'Brief description of today’s energy' : 'Breve descripción mística/técnica de la energía de hoy'}, máx 1 línea]
 
-ACCIÓN CONCRETA:
-[La única tarea de Bio-Hacking o conducta para hoy, ej: 10 mins Respiración de Fuego]
+${lang === 'en' ? 'ACTIVE FORCE:' : 'FUERZA ACTIVA:'}
+[${lang === 'en' ? 'How it resonates and where to push today' : 'Cómo resuena con el usuario y dónde empujar hoy'}, máx 2 líneas]
+
+${lang === 'en' ? 'RISK:' : 'RIESGO:'}
+[${lang === 'en' ? 'What to watch out for today' : 'Qué vigilar hoy'}, máx 1 línea]
+
+${lang === 'en' ? 'CONCRETE ACTION:' : 'ACCIÓN CONCRETA:'}
+[${lang === 'en' ? 'Single bio-hacking task for today' : 'La única tarea de Bio-Hacking o conducta para hoy'}]
         `;
 
         const userPrompt = `
@@ -77,7 +83,10 @@ Genera la lectura para ${context.userName}:
         }
     }
 
-    private static getFallback(): string {
+    private static getFallback(lang: string = 'es'): string {
+        if (lang === 'en') {
+            return `🔮 NAOS Reading — Today\n\nDay energy:\nLatent balance in the solar cycle.\n\nInteraction with you:\nNeutral resonance. Structural consolidation moment.\n\nRisk:\nScatter from over-analyzing.\n\nOpportunity:\nSustain rhythm without pressure.\n\nNAOS Action:\nEarth Frequencies 5 min.`;
+        }
         return `🔮 Lectura NAOS — Hoy\n\nEnergía del día:\nEquilibrio latente en el ciclo solar.\n\nInteracción contigo:\nResonancia neutra. Momento de consolidación estructural.\n\nRiesgo:\nDispersión por sobre-análisis.\n\nOportunidad:\nSostener ritmo sin presión.\n\nAcción NAOS:\nFrecuencias de Tierra 5 min.`;
     }
 }

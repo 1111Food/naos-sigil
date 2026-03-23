@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Send, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../hooks/useProfile';
+import { useTranslation } from '../i18n/translations';
 
 export const IntentionWidget: React.FC = () => {
+    const { language } = useTranslation();
     const { profile } = useProfile();
     const [activeIntention, setActiveIntention] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -72,7 +74,8 @@ export const IntentionWidget: React.FC = () => {
     const handleClear = async () => {
         if (!profile?.id) return;
 
-        if (window.confirm("¿Liberar esta intención?")) {
+        const confirmMsg = language === 'en' ? "Release this intention?" : "¿Liberar esta intención?";
+        if (window.confirm(confirmMsg)) {
             try {
                 // Delete from DB to ensure persistence
                 const startOfDay = new Date();
@@ -89,7 +92,7 @@ export const IntentionWidget: React.FC = () => {
                 setActiveIntention(null);
             } catch (e) {
                 console.error("Error deleting intention", e);
-                alert("No se pudo liberar la intención. Intenta de nuevo.");
+                alert(language === 'en' ? "Could not release intention. Try again." : "No se pudo liberar la intención. Intenta de nuevo.");
             }
         }
     };
@@ -113,7 +116,7 @@ export const IntentionWidget: React.FC = () => {
                     >
                         <Sparkles size={16} className="text-amber-400 animate-pulse" />
                         <span className="text-amber-100 font-serif italic tracking-wide text-sm uppercase">
-                            Declarar Intención de Hoy
+                            {language === 'en' ? "Declare Today's Intention" : "Declarar Intención de Hoy"}
                         </span>
                     </motion.button>
                 ) : isEditing ? (
@@ -132,7 +135,7 @@ export const IntentionWidget: React.FC = () => {
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
-                                placeholder="Hoy mi energía se enfoca en..."
+                                placeholder={language === 'en' ? "Today my energy focuses on..." : "Hoy mi energía se enfoca en..."}
                                 className="w-full px-6 py-4 pr-12 rounded-full bg-black/60 border border-white/20 text-white font-serif text-center placeholder:text-white/20 focus:outline-none focus:border-amber-500/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all"
                             />
                             <button
@@ -170,14 +173,14 @@ export const IntentionWidget: React.FC = () => {
                                 <button
                                     onClick={handleClear}
                                     className="p-1.5 rounded-full bg-black/80 border border-white/10 text-white/40 hover:text-red-400 hover:border-red-500/50 transition-colors"
-                                    title="Liberar intención"
+                                    title={language === 'en' ? "Release intention" : "Liberar intención"}
                                 >
                                     <X size={10} />
                                 </button>
                             </div>
                         </div>
                         <span className="text-[9px] uppercase tracking-[0.3em] text-amber-500/40 font-medium animate-pulse">
-                            Frecuencia Activa • 24H
+                            {language === 'en' ? "Active Frequency • 24H" : "Frecuencia Activa • 24H"}
                         </span>
                     </motion.div>
                 )}
