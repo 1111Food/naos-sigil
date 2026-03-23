@@ -302,13 +302,32 @@ export class SigilService {
 
             const rolePrompt = role === 'maestro' ? SIGIL_SYSTEM_PROMPT : GUARDIAN_SYSTEM_PROMPT;
 
-            const truthInjection = userProfile.cached_identity_context || `
-            ──────────────────────────
-            [PERFIL ENERGÉTICO EN ESPERA]
-            El viajero aún no ha sincronizado su código de identidad.
-            - Nombre: ${userProfile.name || 'Viajero'}
-            ──────────────────────────
-            `.trim();
+            let truthInjection = userProfile.cached_identity_context || "";
+
+            if (userProfile.naos_identity_code) {
+                const code = userProfile.naos_identity_code;
+                const arch = code.arquetipo || {};
+                truthInjection = `
+──────────────────────────
+[PERFIL ENERGÉTICO SINCRONIZADO]
+El viajero ha decodificado su arquitectura maestra.
+- Arquetipo: ${arch.nombre || 'Iniciado'}
+- Frecuencia: ${arch.frecuencia || 'Estable'}
+- Rol: ${arch.rol || 'Explorador'}
+
+SÍNTESIS DE IDENTIDAD ACTIVA:
+"${arch.descripcion || 'Frecuencia en resonancia.'}"
+──────────────────────────
+`.trim();
+            } else if (!truthInjection) {
+                truthInjection = `
+──────────────────────────
+[PERFIL ENERGÉTICO EN ESPERA]
+El viajero aún no ha sincronizado su código de identidad. No conoce su Arquetipo de NAOS.
+- Nombre: ${userProfile.name || 'Viajero'}
+──────────────────────────
+`.trim();
+            }
 
             // --- NATIVE CODEX INJECTION (V12.0 - EL CÓDICE MAESTRO) ---
             const masterWisdom = CodexService.getMasterWisdom('all');

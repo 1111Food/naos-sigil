@@ -357,13 +357,26 @@ CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
 
     private static async persistSynthesis(userId: string, synthesis: NaosIdentitySynthesis) {
         try {
+            console.log(`💾 [NaosCompiler] Persisting synthesis for ${userId}...`);
             const { error: columnError } = await supabase.from('profiles').update({ naos_identity_code: synthesis }).eq('id', userId);
+            
             if (columnError) {
+                console.warn(`⚠️ [NaosCompiler] 'naos_identity_code' column update failed, trying 'profile_data' fallback...`, columnError.message);
                 const { data: current } = await supabase.from('profiles').select('profile_data').eq('id', userId).maybeSingle();
                 const updatedData = { ...(current?.profile_data || {}), naos_identity_code: synthesis };
-                await supabase.from('profiles').update({ profile_data: updatedData }).eq('id', userId);
+                const { error: fallbackError } = await supabase.from('profiles').update({ profile_data: updatedData }).eq('id', userId);
+                
+                if (fallbackError) {
+                    console.error(`❌ [NaosCompiler] Fallback save to 'profile_data' failed:`, fallbackError.message);
+                } else {
+                    console.log(`✅ [NaosCompiler] Synthesis saved in 'profile_data' fallback for ${userId}`);
+                }
+            } else {
+                console.log(`✅ [NaosCompiler] Synthesis saved in 'naos_identity_code' column for ${userId}`);
             }
-        } catch (e) {}
+        } catch (e: any) {
+            console.error(`🔥 [NaosCompiler] Major crash during persistSynthesis:`, e.message);
+        }
     }
 
     private static normalizeSynthesis(raw: any, bible: any, archetype: any): Omit<NaosIdentitySynthesis, 'arquetipo'> {

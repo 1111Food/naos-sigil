@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Player, type PlayerRef } from '@remotion/player';
 import { TempleAura } from '../remotion/TempleAura';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEnergy } from '../hooks/useEnergy';
 import { cn } from '../lib/utils';
 import { useCoherence } from '../hooks/useCoherence';
@@ -13,8 +13,8 @@ import { IntentionWidget } from '../components/IntentionWidget';
 import { BentoBlock } from '../components/BentoBlock';
 import { useSound } from '../hooks/useSound';
 import { useUpgrade } from '../contexts/UpgradeContext';
-import { ConsciousnessBar } from '../components/ConsciousnessBar';
 import { LegalView } from '../components/LegalView';
+import { WelcomeExplainer } from '../components/WelcomeExplainer';
 
 interface HomeProps {
     onSelectFeature: (feature: any, payload?: any) => void;
@@ -23,7 +23,7 @@ interface HomeProps {
 
 export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     const { score, volatility } = useCoherence();
-    const { profile, loading } = useProfile();
+    const { profile } = useProfile();
     const { triggerUpgrade } = useUpgrade();
     const { energy } = useEnergy();
     const { isSettled } = usePerformance();
@@ -54,11 +54,22 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
 
     // El Templo Dormido (Onboarding State)
     const [isDormant, setIsDormant] = React.useState(true);
+    const [showWelcome, setShowWelcome] = React.useState(false);
 
     React.useEffect(() => {
         const hasSeen = localStorage.getItem('has_seen_identity');
         setIsDormant(!hasSeen);
+        
+        const hasSeenWelcome = localStorage.getItem('has_seen_welcome_carousel');
+        if (!hasSeenWelcome) {
+            setShowWelcome(true);
+        }
     }, []);
+
+    const handleCloseWelcome = () => {
+        localStorage.setItem('has_seen_welcome_carousel', 'true');
+        setShowWelcome(false);
+    };
 
     const { playSound } = useSound();
     // Focused block state removed for Protocol/Lab as they now navigate directly.
@@ -277,6 +288,10 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                 onClose={() => setIsLegalOpen(false)} 
                 type={legalType} 
             />
+
+            <AnimatePresence>
+                {showWelcome && <WelcomeExplainer onClose={handleCloseWelcome} />}
+            </AnimatePresence>
         </div>
     );
 };

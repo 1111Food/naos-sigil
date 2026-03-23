@@ -18,7 +18,7 @@ export class NotificationEngine {
         // Fetch users with Telegram linked and who are active
         const { data: users, error } = await supabase
             .from('profiles')
-            .select('id, nickname, full_name, telegram_chat_id')
+            .select('id, nickname, full_name, telegram_chat_id, profile_data')
             .not('telegram_chat_id', 'is', null);
 
         if (error || !users) {
@@ -53,11 +53,12 @@ export class NotificationEngine {
                      const tts = new TTSService();
                      const { buffer } = await tts.generateVoice(sigilResponse);
 
-                     if (buffer) {
-                         await sendProactiveVoice(user.telegram_chat_id, buffer, sigilResponse);
-                     } else {
-                         await sendProactiveMessage(user.telegram_chat_id, sigilResponse);
-                     }
+                      const useVoice = user.profile_data?.telegram_voice_enabled !== false; 
+                      if (useVoice && buffer) {
+                          await sendProactiveVoice(user.telegram_chat_id, buffer, sigilResponse);
+                      } else {
+                          await sendProactiveMessage(user.telegram_chat_id, sigilResponse);
+                      }
                  }
              } catch (e) {
                  console.error(`[NOTIF_ENGINE] Failed processing user ${user.id}`, e);
@@ -75,7 +76,7 @@ export class NotificationEngine {
         // Placeholder query node: Fetch users where last_active_at > 24h ago.
         const { data: users } = await supabase
             .from('profiles')
-            .select('id, telegram_chat_id, nickname, full_name')
+            .select('id, telegram_chat_id, nickname, full_name, profile_data')
             .not('telegram_chat_id', 'is', null);
 
         if (!users) return;
@@ -92,7 +93,8 @@ export class NotificationEngine {
             const tts = new TTSService();
             const { buffer } = await tts.generateVoice(message);
 
-            if (buffer) {
+            const useVoice = user.profile_data?.telegram_voice_enabled !== false;
+            if (useVoice && buffer) {
                 await sendProactiveVoice(user.telegram_chat_id, buffer, message);
             } else {
                 await sendProactiveMessage(user.telegram_chat_id, message);

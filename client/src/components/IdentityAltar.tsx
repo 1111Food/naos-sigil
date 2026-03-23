@@ -31,6 +31,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
     const [initialDeepTab, setInitialDeepTab] = React.useState<any>(undefined);
 
     const getSynthesis = () => {
+        if (profile?.naos_identity_code) return profile.naos_identity_code;
         if (profile?.naosIdentityCode) return profile.naosIdentityCode;
         try {
             const cached = localStorage.getItem(`naos_identity_${profile?.id || 'guest'}`);
@@ -68,7 +69,11 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    setRank(data.personal?.tier || "Iniciado");
+                    if (profile?.plan_type === 'admin') {
+                        setRank('Arquitecto');
+                    } else {
+                        setRank(data.personal?.tier || "Iniciado");
+                    }
                 }
             } catch (err) {
                 console.error("Failed to sync rank to altar:", err);

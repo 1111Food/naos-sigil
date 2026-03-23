@@ -37,6 +37,16 @@ export const initTelegramBot = () => {
                 ctx.reply("No se pudo romper el vínculo estelar en este momento.");
             }
         });
+        
+        // Comando para notificaciones
+        bot.command('notificaciones', async (ctx) => {
+            await ctx.reply("⚙️ *Configuración de Notificaciones*\n¿Cómo prefieres recibir las revelaciones del Sigil?", {
+                parse_mode: 'Markdown',
+                ...Markup.inlineKeyboard([
+                    [Markup.button.callback('🔊 Notas de Voz', 'notif_voice'), Markup.button.callback('📝 Solo Texto', 'notif_text')]
+                ])
+            });
+        });
 
         bot.on('text', async (ctx) => {
             const text = ctx.message.text.trim();
@@ -87,7 +97,12 @@ export const initTelegramBot = () => {
                     }
 
                     if (data === true || data === 'true') {
-                        ctx.reply("Sincronización estelar completada. El Sigil ahora vigila tus ciclos. Te avisaré cuando sea el momento.");
+                        ctx.reply("Sincronización estelar completada. El Sigil ahora vigila tus ciclos.\n\n⚙️ *Ajuste Inicial:* ¿Cómo prefieres recibir alertas?", {
+                            parse_mode: 'Markdown',
+                            ...Markup.inlineKeyboard([
+                                [Markup.button.callback('🔊 Notas de Voz', 'notif_voice'), Markup.button.callback('📝 Solo Texto', 'notif_text')]
+                            ])
+                        });
                         console.log(`[TELEGRAM] VINCULACIÓN EXITOSA: ${text} <-> ${chatId}`);
                     } else {
                         ctx.reply("Esa frecuencia no se encuentra en nuestros registros. Verifica tu correo.");
@@ -101,6 +116,29 @@ export const initTelegramBot = () => {
 
             } else {
                 ctx.reply("La secuencia ingresada no resuena como un correo electrónico válido. Para sincronizar, envía tu email de NAOS.");
+            }
+        });
+
+        // Manejo de Interacciones de Botones (Inline Keyboards)
+        bot.on('callback_query', async (ctx) => {
+            // @ts-ignore
+            const action = ctx.callbackQuery.data;
+            const chatId = ctx.chat?.id.toString();
+
+            if (!chatId) return;
+
+            try {
+                // @ts-ignore (evitar tipados estrictos en data)
+                const { data: current } = await supabase.from('profiles').select('profile_data').eq('telegram_chat_id', chatId).maybeSingle();
+                const updatedData = { ...(current?.profile_data || {}), telegram_voice_enabled: action === 'notif_voice' };
+                
+                await supabase.from('profiles').update({ profile_data: updatedData }).eq('telegram_chat_id', chatId);
+
+                await ctx.answerCbQuery();
+                await ctx.editMessageText(`✅ *Preferencia Guardada*\nNotificaciones configuradas como: *${action === 'notif_voice' ? '🔊 Notas de Voz' : '📝 Solo Texto'}*.\n\nPuedes volver a cambiar esto usando /notificaciones`, { parse_mode: 'Markdown' });
+            } catch (e) {
+                console.error("[TELEGRAM] Callback Query Error:", e);
+                await ctx.answerCbQuery("❌ Error guardando preferencia.");
             }
         });
 

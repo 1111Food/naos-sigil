@@ -274,8 +274,11 @@ export async function apiRoutes(app: FastifyInstance) {
         const userId = (req as any).user_id;
         const forceRefresh = (req.query as any).refresh === 'true';
 
+        // Check Admin
+        const isAdmin = (req as any).user?.role === 'admin';
+
         // 🛡️ UsageGuard Limit Check
-        if (forceRefresh) { // Only count against quota if they are FORCING a full AI recompile
+        if (forceRefresh && !isAdmin) { 
              const limitCheck = await UsageGuardService.checkLimit(userId, 'naos_code');
              if (!limitCheck.ok) {
                  return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });

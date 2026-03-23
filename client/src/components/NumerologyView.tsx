@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Hash, X, ChevronRight } from 'lucide-react';
+import { Hash, X, ChevronRight, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PINNACLE_INTERPRETATIONS, PINNACLE_POSITIONS } from '../data/pinnacleData';
 import { cn } from '../lib/utils';
@@ -28,7 +28,8 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
 
     const isPremium = overrideProfile
         ? true
-        : (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 
     // Logic for Profile Injection
@@ -344,14 +345,10 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
 
                                                 {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
                                                 <div
-                                                    className={`mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg ${isPremium ? 'cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]' : 'opacity-80'}`}
+                                                    className="mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        if (!isPremium) {
-                                                            alert('🔒 Función Premium\n\nDesbloquea el análisis sintético de tu pináculo con el plan Creador.');
-                                                        } else {
-                                                            setShowDeepInsight(showDeepInsight === item.l ? null : item.l);
-                                                        }
+                                                        setShowDeepInsight(showDeepInsight === item.l ? null : item.l);
                                                     }}
                                                 >
                                                     <div className="flex items-center gap-2 text-amber-400 mb-1">
@@ -364,28 +361,43 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                     <p className="text-[9px] text-white/40 font-medium">{isPremium ? 'Toca para descubrir el arquetipo y detalle maestro.' : 'Desbloquea la síntesis evolutiva de tu alma.'}</p>
 
                                                     <AnimatePresence>
-                                                        {isPremium && showDeepInsight === item.l && (
+                                                        {showDeepInsight === item.l && (
                                                             <motion.div
                                                                 initial={{ height: 0, opacity: 0 }}
                                                                 animate={{ height: 'auto', opacity: 1 }}
                                                                 exit={{ height: 0, opacity: 0 }}
                                                                 className="mt-4 pt-4 border-t border-purple-500/30 overflow-hidden"
                                                             >
-                                                                <div className="space-y-4 text-white/90 leading-relaxed">
-                                                                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                                                                        <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">Arquetipo Maestro</h4>
-                                                                        <p className="text-lg italic font-medium">
-                                                                            "{interp.archetype}"
-                                                                        </p>
-                                                                    </div>
-                                                                    <div className="space-y-3">
-                                                                        {interp.blocks.map((block, i) => (
-                                                                            <p key={i} className="text-xs leading-relaxed text-white/80 font-serif text-justify">
-                                                                                {block}
+                                                                {isPremium ? (
+                                                                    <div className="space-y-4 text-white/90 leading-relaxed">
+                                                                        <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                                                                            <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">Arquetipo Maestro</h4>
+                                                                            <p className="text-lg italic font-medium">
+                                                                                "{interp.archetype}"
                                                                             </p>
-                                                                        ))}
+                                                                        </div>
+                                                                        <div className="space-y-3">
+                                                                            {interp.blocks.map((block, i) => (
+                                                                                <p key={i} className="text-xs leading-relaxed text-white/80 font-serif text-justify">
+                                                                                    {block}
+                                                                                </p>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                ) : (
+                                                                    <div className="p-4 bg-black/40 rounded-xl border border-dashed border-purple-500/30 text-center space-y-3">
+                                                                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">
+                                                                            <Lock className="w-4 h-4 text-purple-400" />
+                                                                        </div>
+                                                                        <h5 className="text-xs font-bold text-white uppercase tracking-widest">Contenido Reservado</h5>
+                                                                        <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
+                                                                            Sintoniza con tu mayor frecuencia. Desbloquea la síntesis evolutiva de tu Pináculo con los planes Creador.
+                                                                        </p>
+                                                                        <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">
+                                                                            Ver Planes
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                             </motion.div>
                                                         )}
                                                     </AnimatePresence>

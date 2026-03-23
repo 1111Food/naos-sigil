@@ -59,6 +59,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     
     // Initial state hydration: Prop > LocalStorage > null
     const [synthesis, setSynthesis] = useState<NaosIdentitySynthesis | null>(() => {
+        if (_profile?.naos_identity_code) return _profile.naos_identity_code;
         if (_profile?.naosIdentityCode) return _profile.naosIdentityCode;
         try {
             const cached = localStorage.getItem(cacheKey);

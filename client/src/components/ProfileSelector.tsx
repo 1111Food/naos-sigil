@@ -92,7 +92,7 @@ export const ProfileSelector: React.FC = () => {
             </button>
 
             {isOpen && (
-                <div className="absolute top-12 right-0 w-56 rounded-2xl glass-panel border border-white/10 bg-black/90 shadow-2xl p-2 z-50 flex flex-col gap-1">
+                <div className="absolute top-0 left-full ml-3 w-56 rounded-2xl glass-panel border border-white/10 bg-black/90 shadow-2xl p-2 z-50 flex flex-col gap-1">
                     {/* Master Profile */}
                     <button
                         onClick={() => handleSwitch(undefined)}

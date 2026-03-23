@@ -69,6 +69,7 @@ export interface UserProfile {
     dominant_intent?: 'fitness' | 'consciousness' | 'productivity' | 'creativity' | 'none';
     onboarding_completed?: boolean;
     cached_identity_context?: string;
+    naos_identity_code?: any;
     active_sub_profile_id?: string;
     sub_profiles?: SubProfile[];
     consciousness_level?: string;

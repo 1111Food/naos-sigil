@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useSubscription } from '../hooks/useSubscription';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Star, User, Clock, MapPin, Zap, Info, X, Theater, Shirt, Building2 } from 'lucide-react';
+import { ChevronRight, Star, User, Clock, MapPin, Zap, Info, X, Theater, Shirt, Building2, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { NatalChartWheel } from './NatalChartWheel';
 import { PLANETS_LIB, SIGNS_LIB, HOUSES_LIB } from '../data/astrologyLibrary';
@@ -401,7 +401,8 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     // Check Premium status (Guest Mode is always Premium)
     const isPremium = overrideProfile
         ? true
-        : (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 
     // Fallback default for dev if needed, or stick to strict logic? 
@@ -681,14 +682,10 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
 
                                             {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
                                             <div
-                                                className={`mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg ${isPremium ? 'cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]' : 'opacity-80'}`}
+                                                className="mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    if (!isPremium) {
-                                                        alert('🔒 Función Premium\n\nDesbloquea el análisis del Teatro de la Vida con el plan Creador o Admin.');
-                                                    } else {
-                                                        setShowDeepInsight(showDeepInsight === body.key ? null : body.key);
-                                                    }
+                                                    setShowDeepInsight(showDeepInsight === body.key ? null : body.key);
                                                 }}
                                             >
                                                 <div className="flex items-center gap-2 text-amber-400 mb-1">
@@ -701,14 +698,29 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                 <p className="text-[9px] text-white/40 font-medium">{isPremium ? 'Toca para descubrir el diálogo entre tus personajes internos.' : 'Desbloquea la síntesis evolutiva de tu alma.'}</p>
 
                                                 <AnimatePresence>
-                                                    {isPremium && showDeepInsight === body.key && (
+                                                    {showDeepInsight === body.key && (
                                                         <motion.div
                                                             initial={{ height: 0, opacity: 0 }}
                                                             animate={{ height: 'auto', opacity: 1 }}
                                                             exit={{ height: 0, opacity: 0 }}
                                                             className="mt-4 pt-4 border-t border-purple-500/30 overflow-hidden"
                                                         >
-                                                            {generateDeepInsight(body.key, body.signName, body.house)}
+                                                            {isPremium ? (
+                                                                generateDeepInsight(body.key, body.signName, body.house)
+                                                            ) : (
+                                                                <div className="p-4 bg-black/40 rounded-xl border border-dashed border-purple-500/30 text-center space-y-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">
+                                                                        <Lock className="w-4 h-4 text-purple-400" />
+                                                                    </div>
+                                                                    <h5 className="text-xs font-bold text-white uppercase tracking-widest">Contenido Reservado</h5>
+                                                                    <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
+                                                                        Sintoniza con tu mayor frecuencia. Desbloquea el análisis profundo de tu Teatro de la Vida con los planes Creador.
+                                                                    </p>
+                                                                    <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">
+                                                                        Ver Planes
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </motion.div>
                                                     )}
                                                 </AnimatePresence>

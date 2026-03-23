@@ -111,6 +111,7 @@ export class UserService {
                     usage_level: data.usage_level || baseProfile.usage_level || 'normal',
                     daily_interactions: data.daily_interactions || baseProfile.daily_interactions || 0,
                     onboarding_completed: data.onboarding_completed || baseProfile.onboarding_completed || false,
+                    naos_identity_code: data.naos_identity_code || baseProfile.naos_identity_code || undefined,
                     active_sub_profile_id: baseProfile.active_sub_profile_id,
                     sub_profiles: baseProfile.sub_profiles,
                     consciousness_level: level,
