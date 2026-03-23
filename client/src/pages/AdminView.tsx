@@ -90,6 +90,40 @@ export function AdminView() {
         }
     };
 
+    const handleDeleteUser = async (id: string, email: string) => {
+        if (!window.confirm(`⚠️ PELIGRO EXTREMO: ¿Estás seguro de ELIMINAR permanentemente a ${email}? Esta acción no se puede deshacer y borrará toda su historia en el Templo.`)) return;
+
+        setUpdating(email);
+        try {
+            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+            const parsedToken = token ? JSON.parse(token) : null;
+            const accessToken = parsedToken?.access_token;
+
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                alert(`El usuario ${email} ha sido erradicado del sistema.`);
+                fetchUsers(searchTerm); // Refresh list
+            } else {
+                const errorData = await response.json();
+                if (errorData.error === 'Configuración Incompleta') {
+                    alert('FALTA LLAVE MAESTRA: Dile a Antigravity que necesitas colocar tu SUPABASE_SERVICE_ROLE_KEY en el archivo .env del servidor para tener poder de borrar instancias.');
+                } else {
+                    alert(`Error: ${errorData.error} - ${errorData.details}`);
+                }
+            }
+        } catch (err) {
+            alert("Error de conexión al intentar borrar.");
+        } finally {
+            setUpdating(null);
+        }
+    };
+
     return (
         <div className="flex flex-col min-h-screen w-full max-w-[1200px] mx-auto relative pt-32 pb-20 px-4 overflow-hidden text-white font-sans">
             {/* Background Accents */}
@@ -193,6 +227,15 @@ export function AdminView() {
                                                         className="p-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold text-white/60 transition-all hover:scale-105"
                                                     >
                                                         Quitar Plan
+                                                    </button>
+                                                )}
+                                                {u.email && !u.email.includes('luisalfredoherreramendez') && (
+                                                    <button 
+                                                        onClick={() => handleDeleteUser(u.id, u.email)}
+                                                        disabled={updating === u.email || !u.email}
+                                                        className="p-1 px-2 bg-red-600/20 hover:bg-red-600/40 border border-red-500/30 rounded-lg text-[10px] font-bold text-red-300 transition-all hover:scale-105"
+                                                    >
+                                                        Eliminar
                                                     </button>
                                                 )}
                                             </div>

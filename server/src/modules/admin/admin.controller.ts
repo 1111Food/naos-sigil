@@ -78,4 +78,33 @@ export class AdminController {
             return reply.status(500).send({ error: "Error en la actualización", details: e.message });
         }
     }
+
+    /**
+     * Hard-deletes a user from Supabase Auth completely (requires Service Role Key)
+     */
+    static async deleteUser(request: FastifyRequest, reply: FastifyReply) {
+        const { id } = request.params as { id: string };
+
+        try {
+            if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                return reply.status(400).send({ 
+                    error: "Configuración Incompleta", 
+                    details: "Falta SUPABASE_SERVICE_ROLE_KEY en el servidor (.env) para borrar usuarios desde auth.users." 
+                });
+            }
+
+            const { createClient } = require('@supabase/supabase-js');
+            const supabaseAdmin = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+            const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
+
+            if (error) {
+                return reply.status(500).send({ error: "Fallo al eliminar el usuario en Auth", details: error.message });
+            }
+
+            return { status: 'ok', message: `Usuario desintegrado completamente.` };
+        } catch (e: any) {
+            return reply.status(500).send({ error: "Error en la eliminación", details: e.message });
+        }
+    }
 }
