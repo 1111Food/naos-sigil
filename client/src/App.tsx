@@ -379,18 +379,7 @@ function App() {
                   </div>
                 </div>
 
-                {/* USER PROFILE BUTTON (Desktop View) */}
-                <div className="hidden md:flex flex-1 justify-center">
-                    <button
-                        onClick={() => setActiveView('ONBOARDING')}
-                        className="p-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
-                        title="Perfil de Arquitecto"
-                    >
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center text-[10px] font-bold text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                            {profile?.name?.charAt(0) || 'U'}
-                        </div>
-                    </button>
-                </div>
+                {/* USER PROFILE BUTTON (Desktop View) REMOVED */}
 
                 {/* RIGHT/BOTTOM ROW: LUNAR PHASE & TOOLS */}
                 <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 md:gap-6">

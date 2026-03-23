@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Clock, Sparkles } from 'lucide-react';
+import { X, Send, Clock, Sparkles, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n/translations';
+import { SigilExplainer } from './SigilExplainer';
 
 interface SigilSettingsModalProps {
     isOpen: boolean;
@@ -18,6 +19,7 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
     const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => {
         return localStorage.getItem('naos_sigil_voice_enabled') === 'true';
     });
+    const [showExplainer, setShowExplainer] = useState(false);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -84,9 +86,18 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                         <X size={20}/>
                     </button>
 
-                    <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-5 h-5 text-cyan-400 mystic-pulse" />
-                        <h3 className="text-lg font-light tracking-wider uppercase text-cyan-100">{t('sigil_settings')}</h3>
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-cyan-400 mystic-pulse" />
+                            <h3 className="text-lg font-light tracking-wider uppercase text-cyan-100">{t('sigil_settings')}</h3>
+                        </div>
+                        <button 
+                            onClick={() => setShowExplainer(true)}
+                            className="p-1.5 rounded-full hover:bg-white/10 text-cyan-400/80 hover:text-cyan-400 transition-colors"
+                            title="¿Qué hace el Sigil?"
+                        >
+                            <Info size={18} />
+                        </button>
                     </div>
 
                     <div className="text-[10px] text-cyan-400/90 mb-6 bg-cyan-500/10 p-3 rounded-xl border border-cyan-500/20 flex items-center gap-2">
@@ -158,6 +169,12 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                             {saving ? t('saving') : t('save')}
                         </button>
                     </div>
+
+                    <AnimatePresence>
+                        {showExplainer && (
+                            <SigilExplainer onClose={() => setShowExplainer(false)} />
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             @</div>
         </AnimatePresence>

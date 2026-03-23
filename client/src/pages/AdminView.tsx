@@ -58,10 +58,11 @@ export function AdminView() {
         fetchUsers(searchTerm);
     };
 
-    const handleRoleChange = async (email: string, newRole: string) => {
+    const handleRoleChange = async (email: string, newRole: string, id: string) => {
+        if (!email) return;
         if (!window.confirm(`¿Estás seguro de cambiar el rol de ${email} a [${newRole}]?`)) return;
 
-        setUpdating(email);
+        setUpdating(id);
         try {
             const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
             const parsedToken = token ? JSON.parse(token) : null;
@@ -93,7 +94,7 @@ export function AdminView() {
     const handleDeleteUser = async (id: string, email: string) => {
         if (!window.confirm(`⚠️ PELIGRO EXTREMO: ¿Estás seguro de ELIMINAR permanentemente a ${email}? Esta acción no se puede deshacer y borrará toda su historia en el Templo.`)) return;
 
-        setUpdating(email);
+        setUpdating(id);
         try {
             const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
             const parsedToken = token ? JSON.parse(token) : null;
@@ -213,8 +214,8 @@ export function AdminView() {
                                             <div className="flex items-center justify-end gap-2">
                                                 {u.plan_type !== 'premium' && (
                                                     <button 
-                                                        onClick={() => handleRoleChange(u.email, 'premium')}
-                                                        disabled={updating === u.email || !u.email}
+                                                        onClick={() => handleRoleChange(u.email, 'premium', u.id)}
+                                                        disabled={updating === u.id || !u.email}
                                                         className="p-1 px-2 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 rounded-lg text-[10px] font-bold text-purple-300 transition-all hover:scale-105"
                                                     >
                                                         Hacer Premium
@@ -222,17 +223,17 @@ export function AdminView() {
                                                 )}
                                                 {u.plan_type !== 'free' && u.plan_type !== 'admin' && (
                                                     <button 
-                                                        onClick={() => handleRoleChange(u.email, 'free')}
-                                                        disabled={updating === u.email || !u.email}
+                                                        onClick={() => handleRoleChange(u.email, 'free', u.id)}
+                                                        disabled={updating === u.id || !u.email}
                                                         className="p-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold text-white/60 transition-all hover:scale-105"
                                                     >
                                                         Quitar Plan
                                                     </button>
                                                 )}
-                                                {u.email && !u.email.includes('luisalfredoherreramendez') && (
+                                                {(!u.email?.includes('luisalfredoherreramendez')) && (
                                                     <button 
-                                                        onClick={() => handleDeleteUser(u.id, u.email)}
-                                                        disabled={updating === u.email || !u.email}
+                                                        onClick={() => handleDeleteUser(u.id, u.email || "Usuario sin email")}
+                                                        disabled={updating === u.id}
                                                         className="p-1 px-2 bg-red-600/20 hover:bg-red-600/40 border border-red-500/30 rounded-lg text-[10px] font-bold text-red-300 transition-all hover:scale-105"
                                                     >
                                                         Eliminar
