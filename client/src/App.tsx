@@ -22,6 +22,7 @@ import { SigilBubble } from './components/SigilBubble';
 import { LanguagePromptBanner } from './components/LanguagePromptBanner';
 
 import { StatusBadge } from './components/StatusBadge';
+import { LoginView } from './components/LoginView';
 import { NaosVibrationEngine } from './components/NaosVibrationEngine';
 import { AtmosphereEngine } from './components/AtmosphereEngine';
 import { useEnergy } from './hooks/useEnergy';
@@ -66,7 +67,7 @@ const WisdomManager = () => {
 
 function App() {
   const { energy } = useEnergy();
-  const { user, signOut, signInAnonymously } = useAuth();
+  const { user, signOut } = useAuth();
   const { profile, appReady: profileReady, refreshProfile } = useProfile();
   const { status } = useSubscription();
 
@@ -233,24 +234,7 @@ function App() {
   };
 
 
-  const handleEnterTemplo = async () => {
-    try {
-      console.log("🚀 App: Iniciando ritual de acceso desde el Umbral...");
-      const { error } = await signInAnonymously();
-      if (error) throw error;
 
-      // Una vez logueado, verificamos si ya existe perfil
-      const freshProfile = await refreshProfile();
-      if (freshProfile && freshProfile.onboarding_completed) {
-        setActiveView('TEMPLE');
-      } else {
-        setActiveView('ONBOARDING');
-      }
-    } catch (err) {
-      console.error("Portal Error:", err);
-      alert("La red estelar está inestable. Intenta de nuevo.");
-    }
-  };
 
   // --- RENDER CONTENT ---
   const renderContent = () => {
@@ -275,10 +259,16 @@ function App() {
         return (
           <div className="relative w-full h-full">
             <LandingScreen
-              onEnter={handleEnterTemplo}
-              onTemporaryAccess={handleEnterTemplo}
+              onEnter={() => setActiveView('LOGIN')}
+              onTemporaryAccess={() => setActiveView('LOGIN')}
             />
           </div>
+        );
+      case 'LOGIN':
+        return (
+           <div className="flex items-center justify-center min-h-[80vh] relative z-10 p-4">
+              <LoginView onSuccess={(view) => setActiveView(view as ViewState)} onCancel={() => setActiveView('LANDING')} />
+           </div>
         );
       case 'ONBOARDING':
         return <OnboardingInitiation onComplete={() => handleOnboardingComplete()} />;
