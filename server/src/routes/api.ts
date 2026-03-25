@@ -7,6 +7,7 @@ import { TarotService } from '../modules/tarot/service';
 import { NumerologyService } from '../modules/numerology/service';
 import { UserProfile } from '../types';
 
+import { config } from '../config/env';
 import { supabase } from '../lib/supabase';
 import { validateUser, validatePremium } from '../middleware/auth';
 import { CoherenceService } from '../modules/coherence/service';
@@ -57,6 +58,31 @@ export async function apiRoutes(app: FastifyInstance) {
         const fs = require('fs');
         const buffer = fs.readFileSync(audioPath);
         return reply.type('audio/mpeg').send(buffer);
+    });
+
+    // 🧪 TTS Diagnostic: Test ElevenLabs & Base64 Generation
+    app.get('/api/sigil/test-tts', async (req, reply) => {
+        const tts = new TTSService();
+        const testText = "NAOS se está sincronizando. Prueba de voz activada.";
+        
+        try {
+            console.log("🧪 Diagnostic: Starting TTS Test...");
+            const { hash, buffer } = await tts.generateVoice(testText, 'global');
+            
+            return {
+                status: buffer ? 'ok' : 'failed',
+                hash,
+                hasBuffer: !!buffer,
+                bufferSize: buffer ? buffer.length : 0,
+                base64Length: buffer ? buffer.toString('base64').length : 0,
+                apiKeyConfigured: !!config.ELEVENLABS_API_KEY,
+                voiceId: config.ELEVENLABS_VOICE_ID,
+                nodeEnv: process.env.NODE_ENV
+            };
+        } catch (e: any) {
+            console.error("🔥 TTS Test Failed:", e);
+            return reply.status(500).send({ status: 'error', message: e.message });
+        }
     });
 
     app.get('/api/test-supabase', async (req, reply) => {
@@ -111,17 +137,6 @@ export async function apiRoutes(app: FastifyInstance) {
             const { hash, buffer } = await tts.generateVoice(res, (req as any).userGeo?.region || 'global');
 
             await UsageGuardService.incrementUsage(userId, 'sigil');
-
-            // 📊 Usage Logs Analytics (Prompt 13)
-            supabase.from('usage_logs').insert({
-                user_id: userId,
-                country: (req as any).userGeo?.country || 'unknown',
-                region: (req as any).userGeo?.region || 'global',
-                language: language || 'es',
-                endpoint: '/api/chat'
-            }).then(({ error }) => {
-                if (error) console.error("⚠️ [Analytics] Failed to log usage:", error);
-            });
 
             return { 
                 text: res, 

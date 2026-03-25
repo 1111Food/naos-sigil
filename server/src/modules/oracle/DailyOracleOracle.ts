@@ -14,7 +14,7 @@ export class DailyOracleOracle {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) return this.getFallback(context.language || 'es');
 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
 
         const lang = context.language || 'es';
 

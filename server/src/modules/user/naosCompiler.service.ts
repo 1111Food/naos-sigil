@@ -38,7 +38,7 @@ export interface NaosIdentitySynthesis {
 }
 
 export class NaosCompilerService {
-    private static TARGET_MODEL = "gemini-2.0-flash";
+    private static TARGET_MODEL = "gemini-flash-latest";
     private static API_VERSION = "v1beta";
 
     static async compile(userId: string, forceRefresh = false): Promise<NaosIdentitySynthesis> {

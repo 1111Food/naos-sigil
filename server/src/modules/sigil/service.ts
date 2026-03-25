@@ -486,8 +486,8 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             throw new Error("❌ Error: Faltan las credenciales (API Key).");
         }
 
-        // CONFIRMED MODEL: gemini-2.0-flash
-        const TARGET_MODEL = "gemini-2.0-flash";
+        // CONFIRMED MODEL: gemini-flash-latest (Points to 1.5 stable)
+        const TARGET_MODEL = "gemini-flash-latest";
         const API_VERSION = "v1beta";
         const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;
 

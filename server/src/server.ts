@@ -46,7 +46,7 @@ const start = async () => {
 
         console.log(`✅ Server running at http://localhost:${config.PORT}`);
         console.log(`📂 CWD: ${process.cwd()}`);
-        console.log(`🚀 SIGIL V2.0 ACTIVE: Powered by Gemini 2.0 Flash`);
+        console.log(`🚀 SIGIL V2.0 ACTIVE: Powered by Gemini Flash Latest`);
         console.log(`🌐 Network: http://192.168.1.72:${config.PORT}`);
 
         // AWAKEN TELEGRAM BOT (RECOGNITION PROTOCOL)

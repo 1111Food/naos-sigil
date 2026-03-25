@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { endpoints, getAuthHeaders } from '../lib/api';
+import { useProfile } from './useProfile';
+import { endpoints, getAsyncAuthHeaders } from '../lib/api';
 
 export interface SubscriptionStatus {
     plan: 'FREE' | 'PREMIUM' | 'EXTENDED';
@@ -8,35 +9,49 @@ export interface SubscriptionStatus {
 }
 
 export function useSubscription(shouldFetch: boolean = true) {
+    const { profile } = useProfile();
     const [status, setStatus] = useState<SubscriptionStatus | null>(null);
     const [loading, setLoading] = useState(shouldFetch);
 
     useEffect(() => {
-        if (!shouldFetch) {
-            setLoading(false);
-            return;
-        }
+        const fetchStatus = async () => {
+            // Wait for profile.id to be available before fetching to prevent 401
+            if (!shouldFetch || !profile?.id) {
+                if (!shouldFetch) setLoading(false);
+                return;
+            }
 
-        fetch(endpoints.subscription, { headers: getAuthHeaders() })
-            .then(res => res.json())
-            .then(data => {
-                setStatus(data);
-                setLoading(false);
-            })
-            .catch(err => {
+            try {
+                const headers = await getAsyncAuthHeaders();
+                const res = await fetch(endpoints.subscription, { headers });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    setStatus(data);
+                } else if (res.status === 401) {
+                    console.warn("🔐 useSubscription: Token still invalid or expired.");
+                }
+            } catch (err) {
                 console.error("Failed to fetch subscription", err);
+            } finally {
                 setLoading(false);
-            });
-    }, []);
+            }
+        };
+
+        fetchStatus();
+    }, [shouldFetch, profile?.id]);
 
     const upgrade = async () => {
         try {
+            const headers = await getAsyncAuthHeaders();
             const res = await fetch(endpoints.upgrade, {
                 method: 'POST',
-                headers: getAuthHeaders()
+                headers
             });
-            const updated = await res.json();
-            setStatus(updated);
+            if (res.ok) {
+                const updated = await res.json();
+                setStatus(updated);
+            }
         } catch (err) {
             console.error("Upgrade failed", err);
         }
@@ -45,13 +60,16 @@ export function useSubscription(shouldFetch: boolean = true) {
     const togglePlan = async () => {
         try {
             const nextPlan = status?.plan === 'PREMIUM' ? 'FREE' : 'PREMIUM';
+            const headers = await getAsyncAuthHeaders();
             const res = await fetch(endpoints.upgrade, {
                 method: 'POST',
-                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                headers: { ...headers, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ plan: nextPlan })
             });
-            const updated = await res.json();
-            setStatus(updated);
+            if (res.ok) {
+                const updated = await res.json();
+                setStatus(updated);
+            }
         } catch (err) {
             console.error("Toggle Plan failed", err);
         }

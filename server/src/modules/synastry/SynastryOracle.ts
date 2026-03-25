@@ -10,7 +10,7 @@ export class SynastryOracle {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) return this.getFallback();
 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
 
         // Prepare a condensed version of the data for the prompt to save tokens and focus
         const context = {

@@ -12,7 +12,7 @@ export class SynastryOracleService {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) throw new Error("Missing GOOGLE_API_KEY");
 
-        const TARGET_MODEL = "gemini-2.0-flash";
+        const TARGET_MODEL = "gemini-flash-latest";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;
 
         const payload = {

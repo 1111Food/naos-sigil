@@ -9,7 +9,7 @@ const isProd = __dirname.includes('dist') || process.env.NODE_ENV === 'productio
 const MCP_SERVER_PATH = path.join(__dirname, `../mcp/naos-mcp-server.${isProd ? 'js' : 'ts'}`);
 
 const genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 async function createMcpClient() {
     const transport = new StdioClientTransport({
