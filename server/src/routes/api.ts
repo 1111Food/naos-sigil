@@ -67,12 +67,13 @@ export async function apiRoutes(app: FastifyInstance) {
         
         try {
             console.log("🧪 Diagnostic: Starting TTS Test...");
-            const { hash, buffer } = await tts.generateVoice(testText, 'global');
+            const { hash, buffer, error } = await tts.generateVoice(testText, 'global');
             
             return {
                 status: buffer ? 'ok' : 'failed',
                 hash,
                 hasBuffer: !!buffer,
+                error: error || (buffer ? undefined : "Unspecified failure"),
                 bufferSize: buffer ? buffer.length : 0,
                 base64Length: buffer ? buffer.toString('base64').length : 0,
                 apiKeyConfigured: !!config.ELEVENLABS_API_KEY,

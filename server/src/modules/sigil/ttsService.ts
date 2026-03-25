@@ -23,7 +23,7 @@ export class TTSService {
      * Converts Sigil text message to an audio buffer using ElevenLabs,
      * caching on local filesystem to optimize quotas and loads.
      */
-    public async generateVoice(text: string, region: string = 'global'): Promise<{ buffer: Buffer | null, hash: string }> {
+    public async generateVoice(text: string, region: string = 'global'): Promise<{ buffer: Buffer | null, hash: string, error?: string }> {
         const hash = this.getHash(text, region);
         const cachePath = path.join(CACHE_DIR, `${hash}.mp3`);
 
@@ -98,9 +98,9 @@ export class TTSService {
 
             return { buffer, hash };
 
-        } catch (e) {
+        } catch (e: any) {
             console.error("🔥 [TTS] Audio generation failed:", e);
-            return { buffer: null, hash };
+            return { buffer: null, hash, error: e.message };
         }
     }
 
