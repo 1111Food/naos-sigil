@@ -2,11 +2,11 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Book, User, ArrowLeft, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { WisdomButton } from '../components/WisdomOverlay';
 import { OracleExplainer } from '../components/OracleExplainer';
-import { useWisdom } from '../hooks/useWisdom';
 import { useSound } from '../hooks/useSound';
 import { useTranslation } from '../i18n/translations';
+import { useProfile } from '../contexts/ProfileContext';
+import { ShieldCheck } from 'lucide-react';
 
 interface IdentityNexusProps {
     onNavigate: (view: any) => void;
@@ -15,9 +15,10 @@ interface IdentityNexusProps {
 // @ts-ignore
 export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack }) => {
     const { t } = useTranslation();
-    const [explainerType, setExplainerType] = React.useState<'IDENTITY_NEXUS' | 'IDENTITY_COMPLETE' | 'IDENTITY_WISDOM' | null>(null);
-    const { openWisdom } = useWisdom();
+    const [explainerType, setExplainerType] = React.useState<any>(null);
     const { playSound } = useSound();
+    const { profile } = useProfile();
+    const isAdmin = profile?.plan_type === 'admin';
 
     React.useEffect(() => {
         window.scrollTo(0, 0);
@@ -61,21 +62,31 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                 <span className="text-[10px] uppercase tracking-[0.3em] font-black">{t('back_temple')}</span>
             </motion.button>
 
-            <div className="text-center mb-16 space-y-4">
-                <div className="flex items-center justify-center gap-4">
-                    <h2 className="text-3xl md:text-4xl font-serif italic text-white/90 tracking-wide">
-                        {t('identity_nexus_title')}
-                    </h2>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); playSound('click'); setExplainerType('IDENTITY_NEXUS'); }}
-                        className="p-1 rounded-full text-white/40 hover:text-white hover:scale-110 transition-all"
-                    >
-                        <Info size={16} />
-                    </button>
+                <div className="flex flex-col items-center justify-center gap-4 text-center mb-16 space-y-4">
+                    {isAdmin && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 mb-2"
+                        >
+                            <ShieldCheck size={12} className="text-amber-400" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500/80">Acceso Admin</span>
+                        </motion.div>
+                    )}
+                    <div className="flex items-center justify-center gap-4">
+                        <h2 className="text-3xl md:text-4xl font-serif italic text-white/90 tracking-wide">
+                            {t('identity_nexus_title')}
+                        </h2>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); playSound('click'); setExplainerType('IDENTITY_NEXUS'); }}
+                            className="p-1 rounded-full text-white/40 hover:text-white hover:scale-110 transition-all"
+                        >
+                            <Info size={16} />
+                        </button>
+                    </div>
+                    <div className="h-px w-24 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto" />
+                    <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">{t('architecture_ser')}</p>
                 </div>
-                <div className="h-px w-24 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto" />
-                <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">{t('architecture_ser')}</p>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
                 {options.map((opt, i) => (

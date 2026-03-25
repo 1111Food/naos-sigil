@@ -143,7 +143,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
     };
 
     return (
-        <div className="w-full flex flex-col items-center justify-center min-h-[70vh] relative overflow-hidden px-4 py-12">
+        <div className="w-full flex flex-col items-center justify-center min-h-screen sm:min-h-[70vh] relative px-4 py-12 md:py-20">
             {view !== 'CONSOLE' && <AstralVortex />}
 
             <AnimatePresence mode="wait">
@@ -194,7 +194,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="relative z-10 w-[95%] sm:w-[90%] md:max-w-3xl mx-auto rounded-[3rem] bg-black/40 backdrop-blur-xl border border-cyan-500/20 shadow-[0_0_40px_rgba(6,182,212,0.15)] flex flex-col p-8 md:p-14"
+                        className="relative z-10 w-[95%] sm:w-[90%] md:max-w-3xl mx-auto rounded-[3rem] bg-black/40 backdrop-blur-xl border border-cyan-500/20 shadow-[0_0_40px_rgba(6,182,212,0.15)] flex flex-col p-8 md:p-14 mb-20 md:mb-0"
                     >
                         {/* Inner glowing accent */}
                         <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_0_80px_rgba(6,182,212,0.05)] pointer-events-none" />
