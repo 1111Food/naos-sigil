@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useAnimation, useMotionValue, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 interface SlideToEnterProps {
     onUnlock: () => void;
 }
 
 export const SlideToEnter: React.FC<SlideToEnterProps> = ({ onUnlock }) => {
+    const { t } = useTranslation();
     const [isUnlocked, setIsUnlocked] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -58,7 +60,7 @@ export const SlideToEnter: React.FC<SlideToEnterProps> = ({ onUnlock }) => {
             {/* Background Track Text/Glow */}
             <motion.div style={{ opacity }} className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <span className="text-[9px] uppercase tracking-[0.4em] text-white/40 font-serif italic flex items-center gap-3">
-                    Desliza para conectar <ArrowRight className="w-3 h-3 opacity-50" />
+                    {t('landing_slide_connect')} <ArrowRight className="w-3 h-3 opacity-50" />
                 </span>
             </motion.div>
 

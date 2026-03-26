@@ -4,7 +4,9 @@ import { X, Hexagon, Sparkles, Zap, Shield, Target, User, BookOpen, Info, Chevro
 const Spline = React.lazy(() => import('@splinetool/react-spline'));
 import { cn } from '../lib/utils';
 import { NAOS_ARCHETYPES } from '../constants/archetypeData';
+import { NAOS_ARCHETYPES_EN } from '../constants/archetypeData_en';
 import type { ArchetypeInfo } from '../constants/archetypeData';
+import { useTranslation } from '../i18n';
 
 // Local Error Boundary for Spline to avoid "Fractured Reality" on 3D load failure
 class SplineErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
@@ -20,17 +22,21 @@ class SplineErrorBoundary extends React.Component<{ children: React.ReactNode },
     }
 }
 
-const frequencyConfig: Record<string, { color: string, border: string, bg: string, icon: any }> = {
-    'Ígnea': { color: 'text-rose-500', border: 'border-rose-500/20', bg: 'bg-rose-500/5', icon: Zap },
-    'Telúrica': { color: 'text-emerald-500', border: 'border-emerald-500/20', bg: 'bg-emerald-500/5', icon: Shield },
-    'Etérea': { color: 'text-cyan-500', border: 'border-cyan-500/20', bg: 'bg-cyan-500/5', icon: Target },
-    'Abisal': { color: 'text-fuchsia-500', border: 'border-fuchsia-500/20', bg: 'bg-fuchsia-500/5', icon: User },
-};
+const getFrequencyConfig = (t: any) => ({
+    [t('freq_igneous')]: { color: 'text-rose-500', border: 'border-rose-500/20', bg: 'bg-rose-500/5', icon: Zap },
+    [t('freq_telluric')]: { color: 'text-emerald-500', border: 'border-emerald-500/20', bg: 'bg-emerald-500/5', icon: Shield },
+    [t('freq_ethereal')]: { color: 'text-cyan-500', border: 'border-cyan-500/20', bg: 'bg-cyan-500/5', icon: Target },
+    [t('freq_abyssal')]: { color: 'text-fuchsia-500', border: 'border-fuchsia-500/20', bg: 'bg-fuchsia-500/5', icon: User },
+});
 
 export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const { t, language } = useTranslation();
     const [selectedArchetype, setSelectedArchetype] = useState<ArchetypeInfo | null>(null);
+    const frequencyConfig = getFrequencyConfig(t);
 
-    const groupedArchetypes = NAOS_ARCHETYPES.reduce((acc, curr) => {
+    const LIB = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
+
+    const groupedArchetypes = LIB.reduce((acc, curr) => {
         if (!acc[curr.frecuencia]) acc[curr.frecuencia] = [];
         acc[curr.frecuencia].push(curr);
         return acc;
@@ -59,8 +65,8 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                             <BookOpen className="w-6 h-6 text-cyan-400" />
                         </div>
                         <div>
-                            <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-black">Códice de Identidad</h2>
-                            <h3 className="text-2xl text-white font-thin tracking-widest uppercase">La Biblioteca de los 16 Arquetipos</h3>
+                            <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-black">{t('codex_of_identity')}</h2>
+                            <h3 className="text-2xl text-white font-thin tracking-widest uppercase">{t('library_archetypes_title')}</h3>
                         </div>
                     </div>
                     <button 
@@ -74,7 +80,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
                     {Object.entries(groupedArchetypes).map(([frecuencia, archetypes]) => {
-                        const config = frequencyConfig[frecuencia];
+                        const config = (frequencyConfig as any)[frecuencia];
                         const Icon = config.icon;
 
                         return (
@@ -84,7 +90,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                         <Icon className={cn("w-4 h-4", config.color)} />
                                     </div>
                                     <h4 className={cn("text-[11px] uppercase tracking-[0.3em] font-bold", config.color)}>
-                                        Frecuencia {frecuencia}
+                                        {t('frequency_label')} {frecuencia}
                                     </h4>
                                     <div className="flex-1 h-px bg-white/5" />
                                 </div>
@@ -120,7 +126,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                                     <p className="text-[10px] text-white/30 line-clamp-2 mt-2 leading-relaxed">{arch.descripcion}</p>
                                                 </div>
                                                 <div className="pt-2 flex items-center gap-2 text-[9px] uppercase tracking-widest text-white/20 font-black group-hover:text-white/60 transition-colors">
-                                                    Explorar Códice <ChevronRight className="w-3 h-3" />
+                                                    {t('explore_codex')} <ChevronRight className="w-3 h-3" />
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -206,7 +212,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                                 selectedArchetype.elemento === 'aire' ? 'bg-cyan-500' : 'bg-fuchsia-500'
                                             )} />
                                             <span className="text-[9px] uppercase tracking-widest text-white/60 font-black">
-                                                Frecuencia {selectedArchetype.frecuencia}
+                                                {t('frequency_label')} {selectedArchetype.frecuencia}
                                             </span>
                                         </div>
                                     </div>
@@ -217,7 +223,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                             <div className="flex-1 p-8 md:p-12 space-y-10 overflow-y-auto max-h-[70vh] md:max-h-none">
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[10px] uppercase tracking-[0.5em] text-cyan-400 font-bold">Resumen Operativo</span>
+                                        <span className="text-[10px] uppercase tracking-[0.5em] text-cyan-400 font-bold">{t('operative_summary')}</span>
                                         <div className="flex-1 h-px bg-cyan-400/20" />
                                     </div>
                                     <p className="text-xl text-white/80 font-serif italic leading-relaxed">
@@ -230,7 +236,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-3">
                                             <Sparkles className="w-4 h-4 text-emerald-400" />
-                                            <h4 className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold">Luces (Puntos Fuertes)</h4>
+                                            <h4 className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold">{t('lights_label')}</h4>
                                         </div>
                                         <ul className="space-y-3">
                                             {selectedArchetype.luces.map((l, i) => (
@@ -246,7 +252,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-3">
                                             <Zap className="w-4 h-4 text-rose-400" />
-                                            <h4 className="text-[10px] uppercase tracking-widest text-rose-400 font-bold">Sombras (Fricciones)</h4>
+                                            <h4 className="text-[10px] uppercase tracking-widest text-rose-400 font-bold">{t('shadows_label')}</h4>
                                         </div>
                                         <ul className="space-y-3">
                                             {selectedArchetype.sombras.map((s, i) => (
@@ -264,8 +270,8 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                         <div className="p-2 rounded-lg bg-white/5 border border-white/10">
                                             <Shield className="w-3 h-3 text-white/40" />
                                         </div>
-                                        <div>
-                                            <h5 className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Rol en el Sistema Humanos</h5>
+                                         <div>
+                                            <h5 className="text-[9px] uppercase tracking-widest text-white/20 font-bold">{t('human_system_role')}</h5>
                                             <p className="text-xs text-white/60 uppercase tracking-tighter">{selectedArchetype.rol}</p>
                                         </div>
                                      </div>
@@ -275,7 +281,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                     onClick={() => setSelectedArchetype(null)}
                                     className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white/40 text-[10px] uppercase tracking-widest font-black hover:bg-white/10 hover:text-white transition-all mt-8"
                                 >
-                                    Cerrar Expediente
+                                    {t('close_file')}
                                 </button>
                             </div>
                         </motion.div>

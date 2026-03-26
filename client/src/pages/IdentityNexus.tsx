@@ -4,7 +4,7 @@ import { Book, User, ArrowLeft, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { OracleExplainer } from '../components/OracleExplainer';
 import { useSound } from '../hooks/useSound';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 import { useProfile } from '../contexts/ProfileContext';
 import { ShieldCheck } from 'lucide-react';
 

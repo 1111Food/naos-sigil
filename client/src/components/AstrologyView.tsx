@@ -2,12 +2,15 @@
 import { useState, useMemo } from 'react';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useSubscription } from '../hooks/useSubscription';
+import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Star, User, Clock, MapPin, Zap, Info, X, Theater, Shirt, Building2, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { NatalChartWheel } from './NatalChartWheel';
 import { PLANETS_LIB, SIGNS_LIB, HOUSES_LIB } from '../data/astrologyLibrary';
+import { PLANETS_LIB_EN, SIGNS_LIB_EN, HOUSES_LIB_EN } from '../data/astrologyLibrary_en';
 import { ASTRO_EDUCATION, PLANET_DESCRIPTIONS, HOUSE_DESCRIPTIONS, SIGN_DESCRIPTIONS } from '../data/astrologyEducation';
+import { ASTRO_EDUCATION_EN, PLANET_DESCRIPTIONS_EN, HOUSE_DESCRIPTIONS_EN, SIGN_DESCRIPTIONS_EN } from '../data/astrologyEducation_en';
 import { getZodiacImage } from '../utils/zodiacMapper';
 
 
@@ -43,91 +46,101 @@ const ElementBar = ({ label, color, percent, icon }: { label: string, color: str
 );
 
 // Subcomponente para el Manual del Alma (Modal)
-const EducationalManual = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
-    <AnimatePresence>
-        {isOpen && (
-            <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-                onClick={onClose}
-            >
-                <motion.div
-                    initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                    className="bg-[#0a0a1f] border border-purple-500/30 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl p-6 custom-scrollbar"
-                    onClick={e => e.stopPropagation()}
-                >
-                    <div className="flex justify-between items-center mb-6 sticky top-0 bg-black/90 py-4 z-10 border-b border-white/5 backdrop-blur-md">
-                        <h2 className="text-xl font-thin text-white tracking-[0.3em] uppercase flex items-center gap-3">
-                            <Info className="text-purple-400 w-5 h-5" /> Manual del Alma
-                        </h2>
-                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors group">
-                            <X className="text-white/30 group-hover:text-white transition-colors" />
-                        </button>
-                    </div>
+const EducationalManual = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const { t, language } = useTranslation();
+    const educationLib = language === 'en' ? ASTRO_EDUCATION_EN : ASTRO_EDUCATION;
+    const planetDescLib = language === 'en' ? PLANET_DESCRIPTIONS_EN : PLANET_DESCRIPTIONS;
+    const signDescLib = language === 'en' ? SIGN_DESCRIPTIONS_EN : SIGN_DESCRIPTIONS;
+    const houseDescLib = language === 'en' ? HOUSE_DESCRIPTIONS_EN : HOUSE_DESCRIPTIONS;
+    const planetsLib = language === 'en' ? PLANETS_LIB_EN : PLANETS_LIB;
+    const signsLib = language === 'en' ? SIGNS_LIB_EN : SIGNS_LIB;
 
-                    <div className="space-y-8">
-                        {Object.values(ASTRO_EDUCATION).map((section: any) => (
-                            <div key={section.id} className="space-y-3">
-                                <h3 className="text-lg font-bold text-amber-300">{section.title}</h3>
-                                <p className="text-white/70 leading-relaxed">{section.content}</p>
-                                <div className="p-3 bg-purple-500/10 border-l-4 border-purple-500 rounded text-purple-200 italic text-sm">
-                                    "{section.metaphor}"
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                    onClick={onClose}
+                >
+                    <motion.div
+                        initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                        className="bg-[#0a0a1f] border border-purple-500/30 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl p-6 custom-scrollbar"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-6 sticky top-0 bg-black/90 py-4 z-10 border-b border-white/5 backdrop-blur-md">
+                            <h2 className="text-xl font-thin text-white tracking-[0.3em] uppercase flex items-center gap-3">
+                                <Info className="text-purple-400 w-5 h-5" /> {t('soul_manual')}
+                            </h2>
+                            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors group">
+                                <X className="text-white/30 group-hover:text-white transition-colors" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-8">
+                            {Object.values(educationLib).map((section: any) => (
+                                <div key={section.id} className="space-y-3">
+                                    <h3 className="text-lg font-bold text-amber-300">{section.title}</h3>
+                                    <p className="text-white/70 leading-relaxed">{section.content}</p>
+                                    <div className="p-3 bg-purple-500/10 border-l-4 border-purple-500 rounded text-purple-200 italic text-sm">
+                                        "{section.metaphor}"
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="pt-6 border-t border-white/10">
+                                <h3 className="text-lg font-bold text-emerald-300 mb-4">{t('the_actors')} ({t('planets')})</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {Object.entries(planetDescLib).map(([key, data]: [string, any]) => (
+                                        <div key={key} className="p-3 bg-white/5 rounded-lg border border-white/5">
+                                            <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">{planetsLib[key]?.name || key}</span>
+                                            <p className="text-sm font-medium text-white mb-1">{data.character}</p>
+                                            <p className="text-xs text-white/50">{data.intro}</p>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        ))}
 
-                        <div className="pt-6 border-t border-white/10">
-                            <h3 className="text-lg font-bold text-emerald-300 mb-4">Los Actores (Planetas)</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {Object.entries(PLANET_DESCRIPTIONS).map(([key, data]: [string, any]) => (
-                                    <div key={key} className="p-3 bg-white/5 rounded-lg border border-white/5">
-                                        <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">{PLANETS_LIB[key]?.name || key}</span>
-                                        <p className="text-sm font-medium text-white mb-1">{data.character}</p>
-                                        <p className="text-xs text-white/50">{data.intro}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="pt-6 border-t border-white/10">
-                            <h3 className="text-lg font-bold text-amber-500 mb-4">El Vestuario (Signos)</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                {Object.entries(SIGN_DESCRIPTIONS).map(([key, data]: [string, any]) => (
-                                    <div key={key} className="p-3 bg-white/5 rounded-xl border border-white/5 flex flex-col items-center text-center group/sign hover:bg-white/10 transition-all">
-                                        <div className="w-full aspect-[2/3] rounded-lg border border-amber-500/20 overflow-hidden mb-3 relative flex items-center justify-center bg-black/40">
-                                            <img
-                                                src={getZodiacImage(key)}
-                                                alt={key}
-                                                className="absolute inset-0 w-full h-full object-cover object-center scale-[2.5] brightness-110 group-hover/sign:scale-[2.6] transition-transform duration-700"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="pt-6 border-t border-white/10">
+                                <h3 className="text-lg font-bold text-amber-500 mb-4">{t('the_costumes')} ({t('signs')})</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                    {Object.entries(signDescLib).map(([key, data]: [string, any]) => (
+                                        <div key={key} className="p-3 bg-white/5 rounded-xl border border-white/5 flex flex-col items-center text-center group/sign hover:bg-white/10 transition-all">
+                                            <div className="w-full aspect-[2/3] rounded-lg border border-amber-500/20 overflow-hidden mb-3 relative flex items-center justify-center bg-black/40">
+                                                <img
+                                                    src={getZodiacImage(key)}
+                                                    alt={key}
+                                                    className="absolute inset-0 w-full h-full object-cover object-center scale-[2.5] brightness-110 group-hover/sign:scale-[2.6] transition-transform duration-700"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                            </div>
+                                            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-tighter">{signsLib[key]?.name || key}</span>
+                                            <p className="text-[10px] text-white/80 font-medium leading-tight mt-1">{data.gift}</p>
                                         </div>
-                                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-tighter">{SIGNS_LIB[key]?.name || key}</span>
-                                        <p className="text-[10px] text-white/80 font-medium leading-tight mt-1">{data.gift}</p>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="pt-6 border-t border-white/10">
-                            <h3 className="text-lg font-bold text-blue-300 mb-4">Los Escenarios (Casas)</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {Object.entries(HOUSE_DESCRIPTIONS).map(([num, desc]: [string, any]) => (
-                                    <div key={num} className="p-2 bg-white/5 rounded border border-white/5 flex gap-3 items-center">
-                                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
-                                            {num}
+                            <div className="pt-6 border-t border-white/10">
+                                <h3 className="text-lg font-bold text-blue-300 mb-4">{t('the_scenarios')} ({t('houses')})</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {Object.entries(houseDescLib).map(([num, desc]: [string, any]) => (
+                                        <div key={num} className="p-2 bg-white/5 rounded border border-white/5 flex gap-3 items-center">
+                                            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
+                                                {num}
+                                            </div>
+                                            <p className="text-xs text-white/60 leading-tight">{desc}</p>
                                         </div>
-                                        <p className="text-xs text-white/60 leading-tight">{desc}</p>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </motion.div>
-            </motion.div>
-        )}
-    </AnimatePresence>
-);
+            )}
+        </AnimatePresence>
+    );
+};
 
 // Subcomponente para el Detalle de la Tríada (Actor, Vestuario, Escenario)
 const DetailCardModal = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => void, data: any }) => (
@@ -195,6 +208,7 @@ const DetailCardModal = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: 
 );
 
 export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void, overrideProfile?: any }) {
+    const { t, language } = useTranslation();
 
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
@@ -213,7 +227,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     const [isManualOpen, setIsManualOpen] = useState(false);
     const [selectedDetail, setSelectedDetail] = useState<any>(null);
 
-    const displayName = profile?.nickname || profile?.name || 'Viajero';
+    const displayName = profile?.nickname || profile?.name || t('viajero');
 
     // Memoize chart data processing and Elements Balance
     const { chartData, elementsBalance, displayList } = useMemo(() => {
@@ -227,11 +241,14 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
         const ascendant = activeData.ascendant || 0;
 
         // 1. Process planets for Chart Wheel
+        const planetsLib = language === 'en' ? PLANETS_LIB_EN : PLANETS_LIB;
+        const signsLib = language === 'en' ? SIGNS_LIB_EN : SIGNS_LIB;
+
         const bodiesList = activeData.planets.map((p: any) => ({
-            name: PLANETS_LIB[p.name]?.name || p.name, // Nombre español si existe
+            name: planetsLib[p.name]?.name || p.name, // Nombre localizado
             key: p.name, // Add key for consistent lookup
             signName: p.name === 'Ascendant' ? 'Ascendant' : p.sign, // Guardamos nombre inglés del signo para lookups
-            signDisplay: SIGNS_LIB[p.sign]?.name || p.sign, // Nombre español para UI
+            signDisplay: signsLib[p.sign]?.name || p.sign, // Nombre localizado para UI
             house: p.house,
             absDegree: p.absDegree, // ✅ CORREGIDO: backend envía absDegree, no absPos
             retro: p.retro,
@@ -247,10 +264,10 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
         const signNames = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
         const ascendantSignName = signNames[Math.floor(ascendant / 30)];
         const ascendantEntry = {
-            name: 'Ascendente',
+            name: t('Ascendant' as any) || 'Ascendente',
             key: 'Ascendant', // Add key for consistent lookup
             signName: ascendantSignName,
-            signDisplay: SIGNS_LIB[ascendantSignName]?.name || ascendantSignName,
+            signDisplay: signsLib[ascendantSignName]?.name || ascendantSignName,
             house: 1, // Ascendant is always in house 1
             absDegree: ascendant,
             retro: false,
@@ -320,7 +337,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     }, [profile]);
 
     // --- RENDER FALLBACK IF LOADING OR NO DATA ---
-    if (loading) return <div className="flex items-center justify-center h-full text-white/50 animate-pulse">Consultando a los astros...</div>;
+    if (loading) return <div className="flex items-center justify-center h-full text-white/50 animate-pulse">{t('consulting_stars')}</div>;
 
     // Si no hay datos o la esencia está incompleta, mostrar estado vacío amigable
     if (!chartData || !profile?.birthDate) {
@@ -328,16 +345,16 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
             <div className="flex flex-col items-center justify-center h-full text-white p-8 text-center space-y-8">
                 <Star className="w-16 h-16 text-amber-500/10 animate-pulse-slow" />
                 <div className="space-y-2">
-                    <h3 className="text-2xl font-thin text-amber-100 uppercase tracking-[0.3em]">Esencia en Silencio</h3>
+                    <h3 className="text-2xl font-thin text-amber-100 uppercase tracking-[0.3em]">{t('hush_essence')}</h3>
                     <p className="text-white/30 max-w-sm text-[11px] leading-relaxed uppercase tracking-widest">
-                        "Los cielos requieren tus coordenadas de origen para revelar el mapa de tu alma."
+                        {t('hush_essence_desc')}
                     </p>
                 </div>
                 <button
                     onClick={() => onBack?.()}
                     className="px-8 py-3 rounded-full border border-white/10 text-[10px] uppercase tracking-[0.2em] hover:bg-white/5 transition-all text-white/50 hover:text-white"
                 >
-                    Volver al Altar
+                    {t('back_altar')}
                 </button>
             </div>
         );
@@ -345,16 +362,20 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
 
     // --- DEEP INSIGHT GENERATOR (TEATRO DE LA VIDA) ---
     const generateDeepInsight = (planetKey: string, signKey: string, houseNum: number) => {
-        const p = PLANETS_LIB[planetKey] || PLANETS_LIB['Sun'];
-        const s = SIGNS_LIB[signKey] || SIGNS_LIB['Aries'];
-        const h = HOUSES_LIB[houseNum] || HOUSES_LIB[1];
+        const planetsLib = language === 'en' ? PLANETS_LIB_EN : PLANETS_LIB;
+        const signsLib = language === 'en' ? SIGNS_LIB_EN : SIGNS_LIB;
+        const housesLib = language === 'en' ? HOUSES_LIB_EN : HOUSES_LIB;
+
+        const p = planetsLib[planetKey] || planetsLib['Sun'];
+        const s = signsLib[signKey] || signsLib['Aries'];
+        const h = housesLib[houseNum] || housesLib[1];
 
         return (
             <div className="space-y-4 text-white/90 leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                    <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">La Escena</h4>
+                    <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">{t('the_scenarios')}</h4>
                     <p className="text-lg italic font-medium">
-                        "El {p.archetype} ({p.name}) actuando con el estilo de {s.name} {h.scenario.replace('el escenario de ', '')}"
+                        "{p.archetype} ({p.name}) {h.scenario.replace('el escenario de ', '').replace('the scenario of ', '')}"
                     </p>
                     <p className="text-white/70 italic text-sm mt-3 pt-3 border-t border-purple-500/10">
                         {s.essence}
@@ -364,32 +385,32 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <h4 className="text-amber-300 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                            <Zap className="w-3 h-3" /> Tu Misión
+                            <Zap className="w-3 h-3" /> {t('mission')}
                         </h4>
                         <p className="text-sm">{p.mission}</p>
                     </div>
                     <div className="space-y-2">
                         <h4 className="text-emerald-300 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                            <Star className="w-3 h-3" /> Tu Estilo
+                            <Star className="w-3 h-3" /> {t('style')}
                         </h4>
-                        <p className="text-sm">Actúas {s.style}</p>
+                        <p className="text-sm">{s.style}</p>
                     </div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
                     <div>
-                        <span className="text-emerald-400 font-bold text-xs">EN LUZ:</span>
+                        <span className="text-emerald-400 font-bold text-xs">{t('in_light')}:</span>
                         <p className="text-sm text-white/70">{p.potential} (Don: {s.gift})</p>
                     </div>
                     <div>
-                        <span className="text-rose-400 font-bold text-xs">EN SOMBRA:</span>
+                        <span className="text-rose-400 font-bold text-xs">{t('in_shadow')}:</span>
                         <p className="text-sm text-white/70">{p.shadow} (Trampa: {s.trap})</p>
                     </div>
                 </div>
 
                 <div className="pt-4 border-t border-white/10 italic text-purple-200">
                     <p className="text-sm font-medium mb-1 flex items-center gap-2">
-                        <Info className="w-4 h-4" /> La Pregunta del Alma:
+                        <Info className="w-4 h-4" /> {t('soul_question')}:
                     </p>
                     <p className="text-base">"{p.question}"</p>
                     <p className="text-right text-xs mt-2 opacity-50">— Mantra: {s.mantra}</p>
@@ -442,16 +463,16 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                 {/* Elemental Balance */}
                 {elementsBalance && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-4 bg-white/5 rounded-xl border border-white/10 shrink-0">
-                        <ElementBar label="Fuego" icon="🔥" color="bg-red-500" percent={elementsBalance.fire} />
-                        <ElementBar label="Tierra" icon="🌍" color="bg-emerald-500" percent={elementsBalance.earth} />
-                        <ElementBar label="Aire" icon="💨" color="bg-amber-100" percent={elementsBalance.air} />
-                        <ElementBar label="Agua" icon="💧" color="bg-blue-500" percent={elementsBalance.water} />
+                        <ElementBar label={t('fuego')} icon="🔥" color="bg-red-500" percent={elementsBalance.fire} />
+                        <ElementBar label={t('tierra')} icon="🌍" color="bg-emerald-500" percent={elementsBalance.earth} />
+                        <ElementBar label={t('aire')} icon="💨" color="bg-amber-100" percent={elementsBalance.air} />
+                        <ElementBar label={t('agua')} icon="💧" color="bg-blue-500" percent={elementsBalance.water} />
                     </div>
                 )}
 
                 {/* PLACA DE VERIFICACIÓN (COORDENADAS DEL ALMA) */}
                 <div className="w-full mt-2 p-3 rounded-xl bg-slate-950/80 border border-slate-800 shrink-0">
-                    <p className="text-[9px] tracking-widest text-slate-600 mb-1.5">COORDENADAS DEL ALMA</p>
+                    <p className="text-[9px] tracking-widest text-slate-600 mb-1.5">{t('coordinates_of_soul')}</p>
                     <div className="flex items-center gap-x-3 gap-y-1.5 flex-wrap text-xs text-slate-300">
                         <div className="flex items-center gap-1.5">
                             <User size={10} className="text-cyan-500" />
@@ -478,14 +499,14 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                 <div className="space-y-3 max-w-xs">
                     <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40 flex items-center gap-2">
                         <Star className="w-1 h-1 rounded-full bg-amber-400" />
-                        La Tríada
+                        {t('triad_title')}
                     </h3>
                     <div className="grid grid-cols-3 gap-2">
                         {['Sun', 'Moon', 'Ascendant'].map((key) => {
                             const body = displayList.find(b => b.key === key);
                             if (!body) return null;
 
-                            const label = key === 'Sun' ? 'Sol' : key === 'Moon' ? 'Luna' : 'Asc';
+                            const label = key === 'Sun' ? t('Sun' as any) || 'Sol' : key === 'Moon' ? t('Moon' as any) || 'Luna' : 'Asc';
                             const accentColor = key === 'Sun' ? 'text-amber-400' : key === 'Moon' ? 'text-purple-300' : 'text-cyan-400';
 
                             return (
@@ -524,16 +545,22 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                 <div className="mb-2 mt-4">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 flex items-center gap-2">
                         <div className="w-1 h-1 rounded-full bg-purple-500" />
-                        Configuración Natales
+                        {t('natal_config')}
                     </h3>
                     <div className="h-[1px] w-full mt-2 bg-gradient-to-r from-white/10 via-white/5 to-transparent"></div>
                 </div>
 
                 <div className="flex-1 lg:overflow-y-auto pr-2 pb-24 lg:pb-0 space-y-3 custom-scrollbar">
                     {displayList.map((body: any, idx: number) => {
-                        const planetInfo = PLANETS_LIB[body.key] || { name: body.name, archetype: 'Arquetipo', mission: '...', question: '...' };
-                        const signInfo = SIGNS_LIB[body.signName] || { name: body.signDisplay, style: 'con su esencia' };
-                        const eduInfo = PLANET_DESCRIPTIONS[body.key];
+                        const planetsLib = language === 'en' ? PLANETS_LIB_EN : PLANETS_LIB;
+                        const signsLib = language === 'en' ? SIGNS_LIB_EN : SIGNS_LIB;
+                        const housesLib = language === 'en' ? HOUSES_LIB_EN : HOUSES_LIB;
+                        const planetDescLib = language === 'en' ? PLANET_DESCRIPTIONS_EN : PLANET_DESCRIPTIONS;
+                        const houseDescLib = language === 'en' ? HOUSE_DESCRIPTIONS_EN : HOUSE_DESCRIPTIONS;
+
+                        const planetInfo = planetsLib[body.key] || { name: body.name, archetype: 'Arquetipo', mission: '...', question: '...' };
+                        const signInfo = signsLib[body.signName] || { name: body.signDisplay, style: 'con su esencia' };
+                        const eduInfo = planetDescLib[body.key];
 
                         return (
                             <motion.div
@@ -584,7 +611,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                             className="mt-4 pt-4 border-t border-white/10 text-sm text-white/70 bg-[#050510]/60 -mx-4 -mb-4 px-4 pb-4"
                                         >
                                             <div className="mb-4">
-                                                <p className="text-[11px] text-purple-300/70 uppercase tracking-widest font-bold mb-2">Tu Misión Evolutiva</p>
+                                                <p className="text-[11px] text-purple-300/70 uppercase tracking-widest font-bold mb-2">{t('mission')}</p>
                                                 <p className="text-xs text-white/90 leading-relaxed italic border-l-2 border-purple-500/40 pl-3">
                                                     "{planetInfo.mission}"
                                                 </p>
@@ -598,14 +625,14 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                         e.stopPropagation();
                                                         setSelectedDetail({
                                                             title: planetInfo.name,
-                                                            subtitle: "El Actor / Arquetipo",
+                                                            subtitle: `${t('the_actors')} / ${t('planets')}`,
                                                             accentColor: "from-purple-600 to-indigo-900",
                                                             content: [
-                                                                { label: "Tu Arquetipo", text: planetInfo.archetype, highlight: true },
-                                                                { label: "Esencia Energética", text: planetInfo.essence },
-                                                                { label: "Misión Evolutiva", text: planetInfo.mission },
-                                                                { label: "Don en Luz", text: planetInfo.potential },
-                                                                { label: "Trampa en Sombra", text: planetInfo.shadow }
+                                                                { label: t('your_archetype'), text: planetInfo.archetype, highlight: true },
+                                                                { label: t('energy_essence'), text: planetInfo.essence },
+                                                                { label: t('evolutionary_mission'), text: planetInfo.mission },
+                                                                { label: t('gift_in_light'), text: planetInfo.potential },
+                                                                { label: t('trap_in_shadow'), text: planetInfo.shadow }
                                                             ],
                                                             footer: planetInfo.question
                                                         });
@@ -626,13 +653,13 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                         setSelectedDetail({
                                                             title: signInfo.name,
                                                             id: body.signName, // Pass original sign name
-                                                            subtitle: "El Vestuario / Estilo",
+                                                            subtitle: `${t('the_costumes')} / ${t('signs')}`,
                                                             accentColor: "from-amber-600 to-orange-900",
                                                             content: [
-                                                                { label: "Esencia Espiritual", text: signInfo.essence, highlight: true },
-                                                                { label: "Don en Luz", text: signInfo.gift },
-                                                                { label: "Trampa en Sombra", text: signInfo.trap },
-                                                                { label: "Estilo", text: `Actúas ${signInfo.style}` }
+                                                                { label: t('identity'), text: signInfo.essence, highlight: true },
+                                                                { label: t('gift_in_light').split(' ')[0], text: signInfo.gift },
+                                                                { label: t('trap_in_shadow').split(' ')[0], text: signInfo.trap },
+                                                                { label: t('style'), text: signInfo.style }
                                                             ],
                                                             footer: `Mantra: ${signInfo.mantra}`
                                                         });
@@ -643,10 +670,10 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                         <img src={getZodiacImage(body.signName)} alt={signInfo.name} className="absolute inset-0 w-full h-full object-cover object-center scale-[2.5] brightness-110 pointer-events-none" />
                                                         <Shirt size={18} className="text-amber-400 opacity-10 absolute" /> {/* Fallback ghost icon */}
                                                     </div>
-                                                    <span className="text-[9px] uppercase tracking-tighter text-amber-300/50 font-bold mb-1">Vestuario</span>
+                                                    <span className="text-[9px] uppercase tracking-tighter text-amber-300/50 font-bold mb-1">{t('the_costumes')}</span>
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-bold text-white leading-tight">{signInfo.name}</span>
-                                                        <span className="text-[8px] text-amber-200/40 mt-1 leading-tight uppercase font-medium">Estilo {SIGNS_LIB[body.signName]?.style.replace('con ', '').replace('una ', '')}</span>
+                                                        <span className="text-[8px] text-amber-200/40 mt-1 leading-tight uppercase font-medium">{t('style')} {signsLib[body.signName]?.style.replace('con ', '').replace('una ', '')}</span>
                                                     </div>
                                                 </div>
 
@@ -654,28 +681,28 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                 <div
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const h = HOUSES_LIB[body.house] || HOUSES_LIB[1];
+                                                        const h = housesLib[body.house] || housesLib[1];
                                                         setSelectedDetail({
-                                                            title: `Casa ${body.house}`,
-                                                            subtitle: "El Escenario / Área de Vida",
+                                                            title: `${t('houses')} ${body.house}`,
+                                                            subtitle: `${t('the_scenarios')} / ${t('houses')}`,
                                                             accentColor: "from-blue-600 to-slate-900",
                                                             content: [
-                                                                { label: "Identidad", text: h.title, highlight: true },
-                                                                { label: "Esencia", text: h.essence },
-                                                                { label: "Manifestación", text: h.manifestation },
-                                                                { label: "El Desafío", text: h.challenge },
-                                                                { label: "Punto Ciego", text: h.shadow }
+                                                                { label: t('identity'), text: h.title, highlight: true },
+                                                                { label: t('energy_essence').split(' ')[0], text: h.essence },
+                                                                { label: t('manifestation' as any) || 'Manifestación', text: h.manifestation },
+                                                                { label: t('challenge' as any) || 'El Desafío', text: h.challenge },
+                                                                { label: t('trap_in_shadow').split(' ')[2] || 'Sombra', text: h.shadow }
                                                             ],
-                                                            footer: "Sincronía Espacial"
+                                                            footer: "Quantum Sync"
                                                         });
                                                     }}
                                                     className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-xl flex flex-col items-center text-center group/card hover:bg-blue-500/10 hover:border-blue-500/40 transition-all active:scale-95"
                                                 >
                                                     <Building2 size={18} className="text-blue-400 mb-1.5" />
-                                                    <span className="text-[9px] uppercase tracking-tighter text-blue-300/50 font-bold mb-1">Escenario</span>
+                                                    <span className="text-[9px] uppercase tracking-tighter text-blue-300/50 font-bold mb-1">{t('the_scenarios')}</span>
                                                     <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-white leading-tight">Casa {body.house}</span>
-                                                        <span className="text-[8px] text-blue-200/40 mt-1 leading-tight uppercase font-medium">{HOUSE_DESCRIPTIONS[body.house]?.split(',')[0]}</span>
+                                                        <span className="text-xs font-bold text-white leading-tight">{t('houses')} {body.house}</span>
+                                                        <span className="text-[8px] text-blue-200/40 mt-1 leading-tight uppercase font-medium">{houseDescLib[body.house]?.split(',')[0]}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -690,12 +717,12 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                             >
                                                 <div className="flex items-center gap-2 text-amber-400 mb-1">
                                                     <Zap className={`w-3.5 h-3.5 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
-                                                    <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">Interpretación Profunda</span>
+                                                    <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
                                                     {isPremium && (
                                                         <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight === body.key ? 'rotate-90' : ''}`} />
                                                     )}
                                                 </div>
-                                                <p className="text-[9px] text-white/40 font-medium">{isPremium ? 'Toca para descubrir el diálogo entre tus personajes internos.' : 'Desbloquea la síntesis evolutiva de tu alma.'}</p>
+                                                <p className="text-[9px] text-white/40 font-medium">{isPremium ? t('interpreting') : t('premium_locked_desc')}</p>
 
                                                 <AnimatePresence>
                                                     {showDeepInsight === body.key && (
@@ -712,12 +739,12 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                                     <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">
                                                                         <Lock className="w-4 h-4 text-purple-400" />
                                                                     </div>
-                                                                    <h5 className="text-xs font-bold text-white uppercase tracking-widest">Contenido Reservado</h5>
+                                                                    <h5 className="text-xs font-bold text-white uppercase tracking-widest">{t('reserved_content')}</h5>
                                                                     <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
-                                                                        Sintoniza con tu mayor frecuencia. Desbloquea el análisis profundo de tu Teatro de la Vida con los planes Creador.
+                                                                        {t('premium_locked_desc')}
                                                                     </p>
                                                                     <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">
-                                                                        Ver Planes
+                                                                        {t('view_plans')}
                                                                     </button>
                                                                 </div>
                                                             )}

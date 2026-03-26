@@ -3,6 +3,7 @@ import { useTimeBasedMode } from '../hooks/useTimeBasedMode';
 import { SlideToEnter } from './SlideToEnter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LegalView } from './LegalView';
+import { useTranslation } from '../i18n';
 
 interface LandingScreenProps {
     onEnter: () => void;
@@ -13,6 +14,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
     onEnter,
     onTemporaryAccess
 }) => {
+    const { t } = useTranslation();
     const timeMode = useTimeBasedMode();
     const [isEntering, setIsEntering] = useState(false);
     
@@ -78,7 +80,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 />
 
                 <p className="text-xl md:text-2xl text-amber-100/90 font-serif italic tracking-[0.1em] mb-12 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
-                    Conecta con tu Alma
+                    {t('landing_connect_soul')}
                 </p>
 
                 <div className="flex flex-col gap-6 w-full max-w-sm mt-4">
@@ -89,7 +91,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                         className="mt-6 text-[10px] uppercase tracking-[0.4em] text-white/50 hover:text-white transition-colors flex items-center justify-center gap-2 group font-bold"
                     >
                         <span className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-cyan-500/50 transition-colors shadow-[0_0_10px_rgba(6,182,212,0)] group-hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
-                        Ya Tengo Mi Llave (Ingresar)
+                        {t('landing_login_btn')}
                         <span className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-cyan-500/50 transition-colors shadow-[0_0_10px_rgba(6,182,212,0)] group-hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
                     </button>
                 </div>
@@ -97,11 +99,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
             {/* ⚖️ Legal Footer */}
             <div className="absolute bottom-8 flex gap-4 text-white/30 text-[9px] tracking-widest uppercase font-sans font-medium z-10">
-                <button onClick={() => handleLegalOpen('terms')} className="hover:text-cyan-400 transition-colors">Términos</button>
+                <button onClick={() => handleLegalOpen('terms')} className="hover:text-cyan-400 transition-colors">{t('footer_terms')}</button>
                 <span>•</span>
-                <button onClick={() => handleLegalOpen('privacy')} className="hover:text-cyan-400 transition-colors">Privacidad</button>
+                <button onClick={() => handleLegalOpen('privacy')} className="hover:text-cyan-400 transition-colors">{t('footer_privacy')}</button>
                 <span>•</span>
-                <button onClick={() => handleLegalOpen('disclaimer')} className="hover:text-cyan-400 transition-colors">Disclaimer</button>
+                <button onClick={() => handleLegalOpen('disclaimer')} className="hover:text-cyan-400 transition-colors">{t('footer_disclaimer')}</button>
             </div>
 
             <LegalView

@@ -2,7 +2,7 @@ import { supabase } from '../../lib/supabase';
 import { sendProactiveMessage, sendProactiveVoice } from '../sigil/telegramService';
 import { SigilService } from '../sigil/service';
 import { CoherenceService } from '../coherence/service';
-import { SIGIL_STRUCTURE_PROMPT, SIGIL_DISCIPLINE_TEMPLATE, SIGIL_INACTIVITY_TEMPLATE } from '../sigil/prompts';
+import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS, SIGIL_STRUCTURE_PROMPT, SIGIL_DISCIPLINE_TEMPLATE, SIGIL_INACTIVITY_TEMPLATE } from '../sigil/prompts';
 import { TTSService } from '../sigil/ttsService';
 
 export class NotificationEngine {
@@ -107,9 +107,10 @@ export class NotificationEngine {
      */
     public static async checkTuningCycles() {
         const now = new Date();
-        const currentHour = String(now.getHours()).padStart(2, '0');
-        const currentMinute = String(now.getMinutes()).padStart(2, '0');
-        const currentTimeString = `${currentHour}:${currentMinute}`;
+        // Server time info for fallback or comparison
+        const serverHour = String(now.getHours()).padStart(2, '0');
+        const serverMin = String(now.getMinutes()).padStart(2, '0');
+        const serverTimeStr = `${serverHour}:${serverMin}`;
 
         const { data: tunings } = await supabase
             .from('coherence_tunings')
@@ -118,9 +119,7 @@ export class NotificationEngine {
 
         if (!tunings || tunings.length === 0) return;
 
-        // Collect distinct user IDs
         const userIds = [...new Set(tunings.map(t => t.user_id))];
-        
         const { data: users } = await supabase
             .from('profiles')
             .select('id, telegram_chat_id, nickname, full_name, profile_data, language')
@@ -137,14 +136,27 @@ export class NotificationEngine {
             const user = userMap[tuning.user_id];
             if (!user) continue;
 
-            const schedules = tuning.cron_schedule.split(','); // '08:00,12:00'
-            const hasMatch = schedules.includes(currentTimeString);
+            // Logic: Adjust server time to user local time
+            // utcOffset is expected in hours (e.g., -6)
+            const offset = (user.profile_data?.utcOffset !== undefined) ? user.profile_data.utcOffset : -6;
+            
+            // Generate clean User Local Time
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const userLocal = new Date(utc + (3600000 * offset));
+            
+            const userHour = String(userLocal.getHours()).padStart(2, '0');
+            const userMin = String(userLocal.getMinutes()).padStart(2, '0');
+            const userTimeStr = `${userHour}:${userMin}`;
+
+            const schedules = tuning.cron_schedule.split(',');
+            const hasMatch = schedules.includes(userTimeStr);
 
             if (hasMatch) {
-                console.log(`🚨 [NOTIF_ENGINE] Match for tuning: ${tuning.aspect} for ${user.nickname || user.full_name}`);
+                console.log(`🚨 [NOTIF_ENGINE] Timezone Match (${offset}): ${userTimeStr} for ${user.nickname || user.full_name} (Aspect: ${tuning.aspect})`);
                 
                 try {
-                    const prompt = `Actúa como el Sigil. Envía un recordatorio místico para la práctica: ${tuning.aspect || 'su sintonización personal'}. Motívalos a reconectarse ahora.`;
+                    const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
+                    const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(tuning.aspect);
                     const sigil = new SigilService();
                     const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, user.language || 'es');
 
@@ -179,12 +191,15 @@ export class NotificationEngine {
             // 1. Run Personalized Tuning Cycles (Personal Cron Lists)
             await this.checkTuningCycles();
 
-            // 2. Run Protocol Reminders around 7 PM (19:00:00)
+            // 2. Run Protocol Reminders & Inactivity sweeps inside their own time-aware checks
+            // For now, we call them every minute and they should ideally filter by user local time.
+            // But to avoid overloading the DB every minute, we'll keep the server-time triggers 
+            // OR implement a smarter check.
+            
+            // Simple approach: Run sweeps at specific server hours, but the content is already localized.
             if (currentHour === 19 && currentMinute === 0) {
                 await this.checkProtocolReminders();
             }
-
-            // 3. Run Inactivity sweeps once a day at 11:00 AM (11:00:00)
             if (currentHour === 11 && currentMinute === 0) {
                 await this.checkInactivity();
             }

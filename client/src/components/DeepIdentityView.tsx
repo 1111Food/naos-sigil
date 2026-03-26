@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Hash, Sun, Scroll, ChevronLeft } from 'lucide-react';
 import { AstrologyView } from './AstrologyView';
@@ -17,14 +18,15 @@ interface DeepIdentityViewProps {
 type TabType = 'NAOS' | 'ASTRO' | 'NUMERO' | 'MAYA' | 'ORIENTAL';
 
 export const DeepIdentityView: React.FC<DeepIdentityViewProps> = ({ profile, onClose, initialTab }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'NAOS');
 
     const tabs = [
-        { id: 'NAOS', label: 'Código NAOS', icon: Zap, color: 'text-cyan-400' },
-        { id: 'ASTRO', label: 'Astrología', icon: Star, color: 'text-purple-400' },
-        { id: 'NUMERO', label: 'Numerología', icon: Hash, color: 'text-rose-400' },
-        { id: 'MAYA', label: 'Cosmogonía Maya', icon: Sun, color: 'text-amber-400' },
-        { id: 'ORIENTAL', label: 'Sabiduría Oriental', icon: Scroll, color: 'text-cyan-400' },
+        { id: 'NAOS', label: t('naos_code_tab'), icon: Zap, color: 'text-cyan-400' },
+        { id: 'ASTRO', label: t('astrology_tab'), icon: Star, color: 'text-purple-400' },
+        { id: 'NUMERO', label: t('numerology_tab'), icon: Hash, color: 'text-rose-400' },
+        { id: 'MAYA', label: t('maya_tab'), icon: Sun, color: 'text-amber-400' },
+        { id: 'ORIENTAL', label: t('oriental_tab'), icon: Scroll, color: 'text-cyan-400' },
     ];
 
     const renderContent = () => {
@@ -57,10 +59,10 @@ export const DeepIdentityView: React.FC<DeepIdentityViewProps> = ({ profile, onC
                         className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/40 hover:text-white transition-colors group"
                     >
                         <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Cerrar Código
+                        {t('close_code')}
                     </button>
                     <div className="text-right">
-                        <h2 className="text-xl font-thin tracking-[0.3em] text-white/90 uppercase">Código de Identidad</h2>
+                        <h2 className="text-xl font-thin tracking-[0.3em] text-white/90 uppercase">{t('identity')}</h2>
                         <p className="text-[9px] text-white/20 uppercase tracking-widest mt-1">Deep Work Architecture</p>
                     </div>
                 </div>

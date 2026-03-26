@@ -15,7 +15,7 @@ import { useSound } from '../hooks/useSound';
 import { useUpgrade } from '../contexts/UpgradeContext';
 import { LegalView } from '../components/LegalView';
 import { WelcomeExplainer } from '../components/WelcomeExplainer';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 
 interface HomeProps {
     onSelectFeature: (feature: any, payload?: any) => void;

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AstrologyEngine } from '../lib/astrologyEngine';
 import { NumerologyEngine } from '../lib/numerologyEngine';
 import { MayanEngine } from '../lib/mayanEngine';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Sparkles, MapPin, LocateFixed, Eye, X, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AstralVortex } from './AstralVortex';
+import { useTranslation } from '../i18n';
 
 interface OnboardingInitiationProps {
     onComplete: () => void;
@@ -16,6 +17,7 @@ interface OnboardingInitiationProps {
 
 export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onComplete }) => {
     const { signUp } = useAuth();
+    const { t } = useTranslation();
     const [message, setMessage] = useState('');
     const [fullMessage, setFullMessage] = useState('');
     const [loading, setLoading] = useState(true);
@@ -28,9 +30,9 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
     });
 
     useEffect(() => {
-        setFullMessage("Bienvenido al Templo de Naos.\n\nTu arquitectura está siendo trazada a través de las cuatro grandes escuelas:\n\n• El Cosmos Astral y su diseño celeste.\n• La Vibración Numérica de tu esencia.\n• El Nawal Maya de tu cuenta larga.\n• El Tótem Oriental de tu instinto animal.\n\n• El Sigil ha de sintonizar las coordenadas para tu avatar.\n\nSincronizando frecuencias...");
+        setFullMessage(t('onboarding_welcome_message'));
         setLoading(false);
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         if (!fullMessage) return;
@@ -48,7 +50,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
         e.preventDefault();
 
         if (formData.password !== formData.confirmPassword) {
-            alert("Las contraseñas no coinciden. El portal requiere sincronía.");
+            alert(t('passwords_dont_match'));
             return;
         }
 
@@ -126,7 +128,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             onComplete();
         } catch (err: any) {
             console.error('Failed to complete onboarding', err);
-            alert("Error al completar ritual: " + (err.message || err));
+            alert(t('reserved_content') + ": " + (err.message || err));
             onComplete();
         } finally { setCompleting(false); }
     };
@@ -147,19 +149,19 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                             <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="p-3 rounded-full bg-cyan-500/5 border border-cyan-500/20">
                                 <Sparkles className="w-6 h-6 text-cyan-400" />
                             </motion.div>
-                            <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-serif">Sigil: La Sintonización Inicial</h2>
+                            <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-serif">{t('onboarding_welcome_title')}</h2>
                             <div className="min-h-[140px] flex items-center justify-center">
-                                {loading ? <p className="text-xs uppercase tracking-[0.3em] text-white/30 animate-pulse">Analizando tu Arquitectura...</p> : 
+                                {loading ? <p className="text-xs uppercase tracking-[0.3em] text-white/30 animate-pulse">{t('onboarding_analyzing')}</p> : 
                                 <p className="text-sm md:text-base font-serif italic leading-relaxed text-white/90 whitespace-pre-wrap">{message}</p>}
                             </div>
                             {(!loading && message.length === fullMessage.length) && (
-                                <button onClick={() => setShowForm(true)} className="group relative px-6 py-3 rounded-xl border border-cyan-500/40 bg-cyan-500/5 hover:bg-cyan-500/10 text-cyan-400 text-xs font-bold uppercase tracking-widest transition-all">Sintonizar Coordenadas</button>
+                                <button onClick={() => setShowForm(true)} className="group relative px-6 py-3 rounded-xl border border-cyan-500/40 bg-cyan-500/5 hover:bg-cyan-500/10 text-cyan-400 text-xs font-bold uppercase tracking-widest transition-all">{t('tune_coordinates')}</button>
                             )}
                         </>
                     ) : (
                         <div className="w-full flex flex-col animate-in fade-in duration-500 text-left">
                             <div className="text-center mb-8 relative z-10">
-                                <p className="text-cyan-400/80 text-[10px] uppercase tracking-[0.6em] mb-4 font-black">Calibración de Identidad Original</p>
+                                <p className="text-cyan-400/80 text-[10px] uppercase tracking-[0.6em] mb-4 font-black">{t('calibration_title')}</p>
                                 <div className="h-px w-32 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent mx-auto" />
                             </div>
 
@@ -167,71 +169,71 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-cyan-500/50" /> Identidad Terrenal
+                                            <div className="w-1 h-1 rounded-full bg-cyan-500/50" /> {t('earthly_identity')}
                                         </label>
-                                        <input required type="text" placeholder="Ej. Tu nombre real..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                        <input required type="text" placeholder={t('earthly_identity_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-cyan-100/90 uppercase flex items-center gap-2">
                                             <div className="w-1 h-1 rounded-full bg-cyan-500/50" /> Nickname
                                         </label>
-                                        <input type="text" placeholder="Ej. L, Viajero, Neo..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.nickname} onChange={e => setFormData({ ...formData, nickname: e.target.value })} />
+                                        <input type="text" placeholder={t('nickname_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.nickname} onChange={e => setFormData({ ...formData, nickname: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-white/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-white/50" /> Correo Electrónico
+                                            <div className="w-1 h-1 rounded-full bg-white/50" /> {t('email_label')}
                                         </label>
-                                        <input required type="email" placeholder="Tu correo para Sigil..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                        <input required type="email" placeholder={t('email_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                     </div>
                                     <div className="space-y-2 hidden md:block"></div> {/* Separator */}
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-fuchsia-400/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-fuchsia-500/50" /> Crear Contraseña
+                                            <div className="w-1 h-1 rounded-full bg-fuchsia-500/50" /> {t('create_password')}
                                         </label>
-                                        <input required minLength={6} type="password" placeholder="Tu llave secreta..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                                        <input required minLength={6} type="password" placeholder={t('password_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-fuchsia-400/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-fuchsia-500/50" /> Confirmar Contraseña
+                                            <div className="w-1 h-1 rounded-full bg-fuchsia-500/50" /> {t('confirm_password')}
                                         </label>
-                                        <input required minLength={6} type="password" placeholder="Repite tu llave..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.confirmPassword} onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} />
+                                        <input required minLength={6} type="password" placeholder={t('confirm_password_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.confirmPassword} onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-amber-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-amber-500/50" /> Ciclo Solar (Fecha de Nacimiento)
+                                            <div className="w-1 h-1 rounded-full bg-amber-500/50" /> {t('solar_cycle')}
                                         </label>
                                         <input required type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors [color-scheme:dark]" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-amber-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-amber-500/50" /> Momento Exacto (Hora)
+                                            <div className="w-1 h-1 rounded-full bg-amber-500/50" /> {t('exact_moment')}
                                         </label>
                                         <input required type="time" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors [color-scheme:dark]" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-emerald-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-emerald-500/50" /> Nación de Origen (País)
+                                            <div className="w-1 h-1 rounded-full bg-emerald-500/50" /> {t('origin_nation')}
                                         </label>
-                                        <input required type="text" placeholder="Ej. Guatemala, México..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.birthCountry} onChange={e => setFormData({ ...formData, birthCountry: e.target.value })} />
+                                        <input required type="text" placeholder={t('origin_nation_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.birthCountry} onChange={e => setFormData({ ...formData, birthCountry: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-emerald-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-emerald-500/50" /> Región / Departamento
+                                            <div className="w-1 h-1 rounded-full bg-emerald-500/50" /> {t('region_dept')}
                                         </label>
-                                        <input required type="text" placeholder="Ej. Guatemala, Petén..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.birthDepartment} onChange={e => setFormData({ ...formData, birthDepartment: e.target.value })} />
+                                        <input required type="text" placeholder={t('region_dept_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.birthDepartment} onChange={e => setFormData({ ...formData, birthDepartment: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black tracking-[0.3em] text-emerald-100/90 uppercase flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-emerald-500/50" /> Anclaje (Ciudad)
+                                            <div className="w-1 h-1 rounded-full bg-emerald-500/50" /> {t('anchorage_city')}
                                         </label>
-                                        <input required type="text" placeholder="Ej. Ciudad de Guatemala..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.birthCity} onChange={e => setFormData({ ...formData, birthCity: e.target.value })} />
+                                        <input required type="text" placeholder={t('anchorage_city_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.birthCity} onChange={e => setFormData({ ...formData, birthCity: e.target.value })} />
                                     </div>
                                 </div>
                                 <div className="pt-6 border-t border-white/10 flex flex-col items-center gap-4">
                                     <button type="submit" disabled={completing} className="group relative w-full sm:w-auto min-w-[280px] py-4 px-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-400 overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] text-white font-bold uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3">
-                                        {completing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Iniciar Sintonización Ritual"}
+                                        {completing ? <Loader2 className="w-4 h-4 animate-spin" /> : t('start_ritual')}
                                     </button>
-                                    <button type="button" onClick={() => setShowForm(false)} className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors">Volver</button>
+                                    <button type="button" onClick={() => setShowForm(false)} className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors">{t('back')}</button>
                                 </div>
                             </form>
                         </div>

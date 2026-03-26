@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Send, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../hooks/useProfile';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 
 export const IntentionWidget: React.FC = () => {
     const { language } = useTranslation();

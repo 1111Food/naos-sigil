@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCoherence } from '../hooks/useCoherence';
 import { cn } from '../lib/utils';
@@ -10,6 +11,7 @@ interface SigilBubbleProps {
 }
 
 export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate }) => {
+    const { t } = useTranslation();
     const { score, trend } = useCoherence();
     const { playSound } = useSound();
     const [message, setMessage] = React.useState<string | null>(null);
@@ -37,11 +39,11 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
             const currTrend = trendRef.current;
 
             if (currScore && currScore < 60) {
-                setMessage("Tu sistema muestra fricción. ¿Deseas estabilizarte?");
+                setMessage(t('friction_detected'));
                 playSound('success');
                 hasTriggeredRef.current = true;
             } else if (currTrend === 'down') {
-                setMessage("Frecuencia bajando. Es hora de regular tu estado.");
+                setMessage(t('frequency_dropping'));
                 playSound('success');
                 hasTriggeredRef.current = true;
             }
@@ -69,7 +71,7 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
                             onClick={() => setMessage(null)}
                             className="px-4 py-1.5 rounded-full border border-white/5 text-[8px] uppercase tracking-widest text-white/40 hover:bg-white/5 transition-all"
                         >
-                            Ignorar
+                            {t('ignore')}
                         </button>
                         <button 
                             onClick={() => {
@@ -80,7 +82,7 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
                             }}
                             className="px-4 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400 text-[8px] font-bold uppercase tracking-widest text-white hover:bg-cyan-500/30 transition-all"
                         >
-                            Estabilizar
+                            {t('stabilize')}
                         </button>
                     </div>
                 </motion.div>

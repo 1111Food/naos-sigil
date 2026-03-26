@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from './i18n';
 import { supabase } from './lib/supabase';
 import { ArrowLeft, LogOut, MapPin } from 'lucide-react';
 import { ChatInterface } from './components/ChatInterface';
@@ -67,6 +68,7 @@ const WisdomManager = () => {
 
 
 function App() {
+  const { t } = useTranslation();
   const { energy } = useEnergy();
   const { user, signOut, isRecoveringPassword } = useAuth();
   const { profile, appReady: profileReady, refreshProfile } = useProfile();
@@ -399,9 +401,9 @@ function App() {
                   <StatusBadge plan={status?.plan || 'FREE'} className="hidden md:flex" />
                   
                   <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0">
-                    <span className="text-[8px] md:text-[10px] uppercase tracking-[0.3em] text-white/30 font-medium whitespace-nowrap">Fase Lunar</span>
+                    <span className="text-[8px] md:text-[10px] uppercase tracking-[0.3em] text-white/30 font-medium whitespace-nowrap">{t('lunar_phase_label')}</span>
                     <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-white/60">
-                      {getMoonPhase().name} {getMoonPhase().emoji}
+                      {t(getMoonPhase().name as any)} {getMoonPhase().emoji}
                     </span>
                   </div>
 
@@ -411,7 +413,7 @@ function App() {
                     <button
                       onClick={handleLogout}
                       className="hidden md:flex p-2 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all group"
-                      title="Cerrar Sesión"
+                      title={t('sign_out')}
                     >
                       <LogOut size={12} className="group-hover:-translate-x-0.5 transition-transform" />
                     </button>
@@ -445,41 +447,41 @@ function App() {
                 <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-8 text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-white/40 pointer-events-auto bg-black/40 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none py-3 px-6 rounded-full border border-white/5 md:border-0 shadow-2xl md:shadow-none">
                   <div className="flex items-center gap-3">
                     <span className="text-amber-500/80 font-medium">
-                      {profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || 'Viajero'}
+                      {profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || t('viajero')}
                     </span>
                     <div className="w-px h-2 bg-white/10" />
                     {(() => {
                       const sign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign;
                       const getElement = (s: string) => {
                         const map: Record<string, { name: string, color: string }> = {
-                          'Aries': { name: 'Fuego', color: 'text-rose-400' },
-                          'Leo': { name: 'Fuego', color: 'text-rose-400' },
-                          'Sagitario': { name: 'Fuego', color: 'text-rose-400' },
-                          'Tauro': { name: 'Tierra', color: 'text-emerald-400' },
-                          'Virgo': { name: 'Tierra', color: 'text-emerald-400' },
-                          'Capricornio': { name: 'Tierra', color: 'text-emerald-400' },
-                          'Géminis': { name: 'Aire', color: 'text-cyan-400' },
-                          'Libra': { name: 'Aire', color: 'text-cyan-400' },
-                          'Acuario': { name: 'Aire', color: 'text-cyan-400' },
-                          'Cáncer': { name: 'Agua', color: 'text-blue-400' },
-                          'Escorpio': { name: 'Agua', color: 'text-blue-400' },
-                          'Piscis': { name: 'Agua', color: 'text-blue-400' },
+                          'Aries': { name: t('fuego'), color: 'text-rose-400' },
+                          'Leo': { name: t('fuego'), color: 'text-rose-400' },
+                          'Sagitario': { name: t('fuego'), color: 'text-rose-400' },
+                          'Tauro': { name: t('tierra'), color: 'text-emerald-400' },
+                          'Virgo': { name: t('tierra'), color: 'text-emerald-400' },
+                          'Capricornio': { name: t('tierra'), color: 'text-emerald-400' },
+                          'Géminis': { name: t('aire'), color: 'text-cyan-400' },
+                          'Libra': { name: t('aire'), color: 'text-cyan-400' },
+                          'Acuario': { name: t('aire'), color: 'text-cyan-400' },
+                          'Cáncer': { name: t('agua'), color: 'text-blue-400' },
+                          'Escorpio': { name: t('agua'), color: 'text-blue-400' },
+                          'Piscis': { name: t('agua'), color: 'text-blue-400' },
                         };
-                        return map[s] || { name: 'Agua', color: 'text-blue-400' };
+                        return map[s] || { name: t('agua'), color: 'text-blue-400' };
                       };
                       const info = getElement(sign || '');
                       return (
                         <span className={`${info.color}/80 font-bold`}>
-                          Elemento: {info.name}
+                          {t('element_label')}: {info.name}
                         </span>
                       );
                     })()}
                   </div>
                   <div className="hidden md:block w-px h-3 bg-white/10" />
                   <div className="flex items-center gap-2 max-w-[280px] md:max-w-md overflow-hidden">
-                    <span className="text-emerald-400/70 flex-shrink-0">Feng Shui:</span>
+                    <span className="text-emerald-400/70 flex-shrink-0">{t('feng_shui_label')}:</span>
                     <span className="italic truncate opacity-90" title={energy?.guidance}>
-                      {energy?.guidance || 'Armonizando tu templo personal...'}
+                      {energy?.guidance || t('harmonizing_temple')}
                     </span>
                   </div>
                   <div className="hidden md:block w-px h-3 bg-white/10" />

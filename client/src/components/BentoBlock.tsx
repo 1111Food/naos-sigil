@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 
 interface BentoBlockProps {
     title: string;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../i18n';
 import { Sun, Wind, MessageCircle, Flower2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTimeBasedMode } from '../hooks/useTimeBasedMode';
@@ -9,6 +10,7 @@ interface TempleDashboardProps {
 }
 
 export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeature, activeFeature }) => {
+    const { t } = useTranslation();
     const timeMode = useTimeBasedMode();
     const [isSettled, setIsSettled] = useState(false);
 
@@ -18,9 +20,9 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
     }, []);
 
     const buttons = [
-        { id: 'TAROT', label: 'Tarot Sí o No', icon: Flower2, color: 'text-rose-400', bg: 'bg-rose-400/10' },
-        { id: 'MAYA', label: 'Nawal Maya', icon: Sun, color: 'text-orange-400', bg: 'bg-orange-400/10' },
-        { id: 'FENGSHUI', label: 'Consejo Feng Shui', icon: Wind, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+        { id: 'TAROT', label: t('tarot_yes_no'), icon: Flower2, color: 'text-rose-400', bg: 'bg-rose-400/10' },
+        { id: 'MAYA', label: t('nawal_maya'), icon: Sun, color: 'text-orange-400', bg: 'bg-orange-400/10' },
+        { id: 'FENGSHUI', label: t('feng_shui_advice'), icon: Wind, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
     ];
 
     return (
@@ -43,7 +45,7 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                                 <div className="absolute inset-0 bg-amber-500/5 blur-[40px] rounded-full" />
                                 <img
                                     src="/sigil-day.png"
-                                    alt="Sigil Anthropos Solar"
+                                    alt={t('sigil_solar')}
                                     className={`w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(245,158,11,0.3)] animate-float ${isSettled ? 'pause-animations' : ''}`}
                                 />
                             </div>
@@ -52,7 +54,7 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                                 <div className="absolute inset-0 bg-cyan-500/5 blur-[40px] rounded-full" />
                                 <img
                                     src="/sigil-night.png"
-                                    alt="Sigil Anthropos Nocturno"
+                                    alt={t('sigil_night')}
                                     className={`w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(6,182,212,0.3)] animate-float ${isSettled ? 'pause-animations' : ''}`}
                                 />
                             </div>
@@ -65,7 +67,7 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                             "px-4 py-1 border rounded-full text-[10px] uppercase tracking-widest backdrop-blur-md transition-colors duration-1000",
                             timeMode === 'DAY' ? "bg-amber-500/20 border-amber-500/30 text-amber-500" : "bg-primary/20 border-primary/30 text-primary"
                         )}>
-                            {timeMode === 'DAY' ? "Sigil: Anthropos Solar" : "Sigil: Guardián Nocturno"}
+                            {timeMode === 'DAY' ? t('sigil_solar') : t('sigil_night')}
                         </div>
 
                         {/* REGULATION BOOST INDICATOR - INJECTED VIA PROP OR CONTEXT IN FUTURE, MOCKUP LOGIC HERE IF NEEDED OR JUST PLACEHOLDER */}
@@ -79,7 +81,7 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                     </div>
                 </div>
                 <p className="mt-10 text-center text-white/60 font-serif italic text-lg max-w-md">
-                    "Bienvenido al corazón del Templo. ¿Qué energía deseas explorar hoy?"
+                    "{t('welcome_heart_temple')}"
                 </p>
             </div>
 
@@ -115,7 +117,7 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                     className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors"
                 >
                     <MessageCircle className="w-4 h-4" />
-                    Chat con Sigil
+                    {t('chat_with_sigil')}
                 </button>
             </div>
         </div>

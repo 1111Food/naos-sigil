@@ -39,6 +39,13 @@ export interface HouseDescription {
 }
 
 export const ASTROLOGY_MANUAL = {
+    headerTitle1: "El Teatro",
+    headerTitle2: "del Cielo",
+    navLibrary: "Biblioteca",
+    navTitle: "Teatro de la Vida",
+    actPlanets: "Los Actores",
+    actSigns: "El Vestuario",
+    actHouses: "Los Escenarios",
     intro: {
         title: "El Teatro del Cielo",
         concept: "Tu Carta Astral es el Guion de tu Teatro Interior",

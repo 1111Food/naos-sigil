@@ -1,4 +1,4 @@
-export interface NahualInfo {
+export type NahualStructure = {
     meaning: string;
     totem: string;
     element: string;
@@ -6,9 +6,12 @@ export interface NahualInfo {
     personality_light: string;
     personality_shadow: string;
     legacy: string;
-}
+};
 
-export const NAHUAL_WISDOM: Record<string, NahualInfo> = {
+export const NahualInfo = {} as any;
+export type NahualInfo = NahualStructure;
+
+export const NAHUAL_WISDOM: Record<string, NahualStructure> = {
     "B'atz'": {
         meaning: "El Hilo del Tiempo / El Maestro",
         totem: "Mono",

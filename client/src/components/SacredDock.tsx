@@ -3,8 +3,7 @@ import { Home, User, LogOut, Volume2, VolumeX, Aperture, Bot, Shield } from 'luc
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 import type { AuraType } from '../contexts/ThemeContext';
 import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
@@ -19,8 +18,7 @@ interface SacredDockProps {
 
 export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavigate, onLogout }) => {
     const { activeAura, setAura } = useTheme();
-    const { language, setLanguage } = useLanguage();
-    const { t } = useTranslation();
+    const { language, setLanguage, t } = useTranslation();
     const [showAuras, setShowAuras] = useState(false);
     const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
     const [isSigilSettingsOpen, setIsSigilSettingsOpen] = useState(false);
@@ -118,7 +116,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                             className={cn(
                                 "p-2 md:p-3 rounded-full border transition-all duration-300 group bg-white/5 border-white/10 hover:bg-white/10 text-white/30 hover:text-cyan-400"
                             )}
-                            title="Ajustes del Sigil"
+                            title={t('dock_settings_tooltip')}
                         >
                             <Bot className={cn(
                                 "w-5 h-5 md:w-6 md:h-6 transition-all duration-500 group-hover:rotate-12"
@@ -134,7 +132,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                                 "p-2 md:p-3 rounded-full border transition-all duration-300 group",
                                 showAuras ? "bg-white/10 border-white/30" : "bg-white/5 border-white/10 hover:bg-white/10"
                             )}
-                            title="Configurar Auras"
+                            title={t('dock_auras_tooltip')}
                         >
                             <Aperture className={cn(
                                 "w-5 h-5 md:w-6 md:h-6 transition-all duration-500",
@@ -148,7 +146,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                         <button
                             onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
                             className="p-2 md:p-3 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-cyan-400 transition-all flex items-center justify-center font-bold text-[10px] w-9 h-9 md:w-11 md:h-11"
-                            title={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+                            title={t('dock_lang_tooltip')}
                         >
                             {language === 'es' ? 'ES' : 'EN'}
                         </button>
@@ -159,7 +157,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                         <button
                             onClick={toggleMute}
                             className="p-2 md:p-3 rounded-full bg-white/5 border border-white/10 text-white/30 hover:text-amber-400 transition-all"
-                            title={audioState.isMuted ? 'Activar Vibración' : 'Silenciar'}
+                            title={t('dock_vibration_tooltip')}
                         >
                             {audioState.isMuted ? <VolumeX className="w-5 h-5 md:w-5 md:h-5" /> : <Volume2 className="w-5 h-5 md:w-5 md:h-5" />}
                         </button>
@@ -183,7 +181,7 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
                             <button
                                 onClick={onLogout}
                                 className="p-2 md:p-3 rounded-xl md:rounded-full transition-all duration-300 hover:bg-red-500/10 group"
-                                title="Salir"
+                                title={t('dock_exit_tooltip')}
                             >
                                 <LogOut className="w-5 h-5 md:w-5 md:h-5 text-white/20 group-hover:text-red-400 transition-colors" />
                             </button>

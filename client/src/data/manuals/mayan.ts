@@ -24,11 +24,15 @@ export interface MayanCross {
 export const MAYAN_MANUAL = {
     intro: {
         title: "El Cholq'ij: El Telar del Tiempo",
+        headerTitle1: "El Código",
+        headerTitle2: "del Tiempo",
         concept: "Tú no tienes un nahual, tú caminas con una fuerza de la naturaleza",
         content: "El calendario sagrado no cuenta el tiempo lineal, sino la evolución de la conciencia biológica y espiritual. Extraído de la milenaria cosmovisión Maya (referenciando el Libro del Destino), cada Nawal es una inteligencia pura. Al nacer, esa energía imprime su frecuencia vibratoria en el tejido de tu psique."
     },
     mayanCross: {
         title: "La Cruz Maya: La Estructura del Alma",
+        sectionTitle: "La Cruz Maya",
+        sectionSubtitle: "La arquitectura biográfica y espiritual de tu alma",
         metaphor: "Eres un árbol: tus pies son las raíces (tu pasado), tu cabeza es la copa (tu destino), tus brazos son el equilibrio y tu corazón es el tronco.",
         positions: [
             { id: 'centro', title: 'Centro (Corazón)', description: 'Tu esencia pura, tu Nawal de nacimiento. El tronco que sostiene tu vida.' },
@@ -37,6 +41,10 @@ export const MAYAN_MANUAL = {
             { id: 'derecha', title: 'Brazo Derecho', description: 'Tu lado activo, racional, material y los desafíos terrenos.' },
             { id: 'izquierda', title: 'Brazo Izquierdo', description: 'Tu lado mágico, intuitivo, receptivo y la fuerza espiritual que te asiste.' }
         ]
+    },
+    forces: {
+        title: "Las 20 Fuerzas",
+        subtitle: "Los nahuales de la creación"
     },
     nahuales: [
         {

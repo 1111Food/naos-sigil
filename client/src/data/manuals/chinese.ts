@@ -1,7 +1,7 @@
 export interface ChineseAnimalData {
     id: string;
     chinese: string;
-    spanish: string;
+    name: string;
     archetype: string;
     essence: string;
     light: string;
@@ -20,10 +20,22 @@ export interface ElementData {
 export const CHINESE_MANUAL = {
     intro: {
         title: "El Río del Tiempo",
+        headerTitle1: "La Ecología",
+        headerTitle2: "Interna",
+        sources: "Fuentes: Ludovica Squirru / Horóscopo Chino",
         concept: "El Horóscopo Chino es tu Clima Interno y Estilo de Movimiento",
         content: "El tiempo no es una línea recta, es una espiral. El ciclo sexagenario combina 12 animales con 5 elementos para crear el ritmo de la evolución.",
         yinyang: "El Yang es acción y luz; el Yin es reflexión y receptividad. Todo tiene un ritmo y aprender a fluir con él es el secreto de la paz.",
         legend: "El Emperador de Jade convocó a una carrera para decidir los guardianes. Cada energía llegó a su manera: la Rata con astucia, el Buey con esfuerzo inquebrantable."
+    },
+    animalsSectionTitle: "Los 12 Guardianes",
+    animalsSectionSubtitle: "Arquetipos del movimiento",
+    labels: {
+        essence: "La Esencia:",
+        light: "En Luz (Dones):",
+        shadow: "En Sombra (Retos):",
+        advice: "Consejo Taoísta:",
+        curiousFact: "Dato Curioso:"
     },
     elements: [
         { id: 'madera', name: 'Madera', quality: 'Crecimiento, expansión, ética y visión de futuro.' },
@@ -36,7 +48,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'rata',
             chinese: 'Zi',
-            spanish: 'Rata',
+            name: 'Rata',
             archetype: 'El Conquistador Astuto',
             essence: 'La curiosidad incansable y la capacidad de encontrar recursos.',
             light: 'Diplomacia, encanto, ahorro inteligente y agudeza.',
@@ -48,7 +60,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'buey',
             chinese: 'Chou',
-            spanish: 'Buey',
+            name: 'Buey',
             archetype: 'El Constructor Silencioso',
             essence: 'La perseverancia que mueve montañas mediante el esfuerzo rítmico.',
             light: 'Lealtad, paciencia infinita, confiabilidad y método.',
@@ -60,7 +72,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'tigre',
             chinese: 'Yin',
-            spanish: 'Tigre',
+            name: 'Tigre',
             archetype: 'El Rebelde Apasionado',
             essence: 'El coraje de vivir bajo sus propias reglas e intensidad emocional.',
             light: 'Magnetismo, valentía ante la injusticia, generosidad.',
@@ -72,7 +84,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'conejo',
             chinese: 'Mao',
-            spanish: 'Conejo',
+            name: 'Conejo',
             archetype: 'El Diplomático Sensible',
             essence: 'La búsqueda de la paz, la estética y el bienestar interno.',
             light: 'Refinamiento, intuición, prudencia y consuelo.',
@@ -84,7 +96,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'dragon',
             chinese: 'Chen',
-            spanish: 'Dragón',
+            name: 'Dragón',
             archetype: 'El Soñador Imperial',
             essence: 'La voluntad de manifestar lo extraordinario y el legado divino.',
             light: 'Creatividad desbordante, vitalidad y corazón magnánimo.',
@@ -96,7 +108,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'serpiente',
             chinese: 'Si',
-            spanish: 'Serpiente',
+            name: 'Serpiente',
             archetype: 'El Místico Profundo',
             essence: 'La introspección que transmuta la experiencia en sabiduría.',
             light: 'Elegancia, perspicacia, autocontrol e intuición.',
@@ -108,7 +120,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'caballo',
             chinese: 'Wu',
-            spanish: 'Caballo',
+            name: 'Caballo',
             archetype: 'El Espíritu Libre',
             essence: 'La autonomía emocional y la necesidad de movimiento físico.',
             light: 'Entusiasmo, independencia, agilidad mental.',
@@ -120,7 +132,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'cabra',
             chinese: 'Wei',
-            spanish: 'Cabra',
+            name: 'Cabra',
             archetype: 'El Artista Compasivo',
             essence: 'La conexión con la sensibilidad artística y la armonía grupal.',
             light: 'Empatía, creatividad suave, amabilidad.',
@@ -132,7 +144,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'mono',
             chinese: 'Shen',
-            spanish: 'Mono',
+            name: 'Mono',
             archetype: 'El Innovador Imparable',
             essence: 'La alegría de descubrir el mecanismo de las cosas e ingenio.',
             light: 'Versatilidad, humor sanador, rapidez mental.',
@@ -144,7 +156,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'gallo',
             chinese: 'You',
-            spanish: 'Gallo',
+            name: 'Gallo',
             archetype: 'El Administrador Radiante',
             essence: 'La precisión, la claridad de visión y el aviso del nuevo día.',
             light: 'Coraje, organización impecable, honestidad.',
@@ -156,7 +168,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'perro',
             chinese: 'Xu',
-            spanish: 'Perro',
+            name: 'Perro',
             archetype: 'El Defensor de la Justicia',
             essence: 'Proteger la verdad y asegurar que nadie sea olvidado.',
             light: 'Integridad, fidelidad, sentido del deber y generosidad.',
@@ -168,7 +180,7 @@ export const CHINESE_MANUAL = {
         {
             id: 'cerdo',
             chinese: 'Hai',
-            spanish: 'Cerdo',
+            name: 'Cerdo',
             archetype: 'El Sabio del Disfrute',
             essence: 'El valor del placer sensorial, la paz mental y la honestidad.',
             light: 'Nobleza, gran corazón, fuerza de voluntad y epicureísmo.',

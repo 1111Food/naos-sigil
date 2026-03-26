@@ -3,8 +3,10 @@ import { Sparkles, Compass, ChevronDown, Scroll } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { MAYAN_MANUAL } from '../data/manuals/mayan';
-import { getNahualImage } from '../utils/nahualMapper';
+import { MAYAN_MANUAL_EN } from '../data/manuals/mayan_en';
+import { getNahualImage, getMayanToneName } from '../utils/nahualMapper';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../i18n';
 
 // Placeholder for glyph path logic if needed, or use image
 const GlyphPlaceholder = ({ tone, id, size = 'md', showTone = true }: { tone: number, id?: string, size?: 'xs' | 'sm' | 'md' | 'lg', showTone?: boolean }) => {
@@ -47,7 +49,7 @@ const GlyphPlaceholder = ({ tone, id, size = 'md', showTone = true }: { tone: nu
             {/* Tone Representation Dots/Bars */}
             {showTone && (
                 <div className={cn("absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-20", size === 'sm' ? 'top-2' : 'top-4')}>
-                    <span className={cn("text-white/40 tracking-[0.5em] uppercase font-black", size === 'sm' ? 'text-[5px]' : 'text-[7px]')}>Tono {tone}</span>
+                    <span className={cn("text-white/40 tracking-[0.5em] uppercase font-black", size === 'sm' ? 'text-[5px]' : 'text-[7px]')}>{useTranslation().t('tone')} {tone}</span>
                     <div className="flex gap-1.5 mt-0.5">
                         {Array.from({ length: tone }).map((_, i) => (
                             <div
@@ -76,38 +78,40 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     const profile = overrideProfile || activeProfile;
     const isLoading = overrideProfile ? false : activeLoading;
 
-    // HOOKS FIRST:
+    const { t, language } = useTranslation();
+    const MAYAN_LIB = language === 'en' ? MAYAN_MANUAL_EN : MAYAN_MANUAL;
+
+    // HOOKS
     const [openSectionId, setOpenSectionId] = useState<string | null>(null);
 
-
-    if (isLoading) return <div className="p-20 text-center text-white/20 uppercase tracking-[0.4em] text-[10px]">Consultando al tiempo...</div>;
+    if (isLoading) return <div className="p-20 text-center text-white/20 uppercase tracking-[0.4em] text-[10px]">{t('consulting_time')}</div>;
 
     // GUARDIA: Si no hay perfil con fecha, mostrar estado vacío
     if (!profile || !profile.birthDate) {
         return (
             <div className="flex flex-col items-center justify-center h-64 text-white/20 text-center px-12">
-                <p className="text-[10px] uppercase tracking-[0.3em] font-thin">El Tiempo espera tus coordenadas de origen para revelar tu energía guardiana.</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] font-thin">{t('time_awaits_coords')}</p>
             </div>
         );
     }
 
 
     const nawal = profile?.mayan;
-    const detailedNawal = nawal ? MAYAN_MANUAL.nahuales.find(n => n.kiche === nawal.kicheName) : null;
-    const sequence = MAYAN_MANUAL.nahuales;
+    const detailedNawal = nawal ? MAYAN_LIB.nahuales.find(n => n.kiche === nawal.kicheName) : null;
+    const sequence = MAYAN_LIB.nahuales;
     const centerIndex = sequence.findIndex(n => n.id === detailedNawal?.id);
 
     const allies = centerIndex !== -1 ? [4, 8, 12, 16].map(offset => sequence[(centerIndex + offset) % 20]) : [];
     const challenges = centerIndex !== -1 ? [sequence[(centerIndex + 10) % 20]] : [];
 
     const sections = [
-        { id: 'significado', title: 'Significado Cósmico', icon: Sparkles, color: 'emerald', content: detailedNawal?.meaning },
-        { id: 'esencia', title: 'Esencia Sagrada', icon: Sparkles, color: 'teal', content: detailedNawal?.essence },
-        { id: 'caracteristicas', title: 'Características del Nativo', icon: Scroll, color: 'amber', content: detailedNawal?.characteristics },
-        { id: 'luz', title: 'En Luz (Dones)', icon: Sparkles, color: 'emerald', content: detailedNawal?.light },
-        { id: 'sombra', title: 'En Sombra (Retos)', icon: Scroll, color: 'rose', content: detailedNawal?.shadow },
-        { id: 'mision', title: 'Misión de Vida', icon: Compass, color: 'cyan', content: detailedNawal?.mission },
-        { id: 'consejo', title: 'Consejo del Abuelo', icon: Scroll, color: 'amber', content: detailedNawal?.advice }
+        { id: 'significado', title: t('cosmic_meaning'), icon: Sparkles, color: 'emerald', content: detailedNawal?.meaning },
+        { id: 'esencia', title: t('sacred_essence'), icon: Sparkles, color: 'teal', content: detailedNawal?.essence },
+        { id: 'caracteristicas', title: t('native_characteristics'), icon: Scroll, color: 'amber', content: detailedNawal?.characteristics },
+        { id: 'luz', title: t('in_light_gifts'), icon: Sparkles, color: 'emerald', content: detailedNawal?.light },
+        { id: 'sombra', title: t('in_shadow_challenges'), icon: Scroll, color: 'rose', content: detailedNawal?.shadow },
+        { id: 'mision', title: t('mission_life'), icon: Compass, color: 'cyan', content: detailedNawal?.mission },
+        { id: 'consejo', title: t('grandfather_advice'), icon: Scroll, color: 'amber', content: detailedNawal?.advice }
     ];
 
     return (
@@ -115,7 +119,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
 
             <header className="w-full flex items-center justify-between mb-16 px-4">
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
-                <h1 className="text-[10px] font-black tracking-[0.5em] uppercase text-white/40 mx-8">Sincronario Maya</h1>
+                <h1 className="text-[10px] font-black tracking-[0.5em] uppercase text-white/40 mx-8">{t('mayan_synchronary')}</h1>
                 <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
             </header>
 
@@ -146,10 +150,12 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
 
                                     <div className="relative space-y-2">
                                         <h2 className="text-xs md:text-sm font-black text-white/40 uppercase tracking-[0.5em] leading-tight mb-2">
-                                            {nawal.toneName} ({nawal.tone}) — {nawal.meaning.split(',')[0]}
+                                            {getMayanToneName(nawal.tone, language)} ({nawal.tone}) — {detailedNawal?.meaning.split(',')[0]}
                                         </h2>
                                         <h2 className="text-2xl md:text-3xl font-black uppercase tracking-[0.4em] leading-tight text-white mb-2" style={{ textShadow: '0 0 20px rgba(245,158,11,0.4)' }}>
-                                            <span className="text-amber-500">LOS {nawal.tone} RUMBOS</span> <span className="font-thin tracking-[0.2em]">{nawal.kicheName}</span>
+                                            <span className="text-amber-500">
+                                                {nawal.tone === 1 ? t('the_directions_singular') : t('the_directions_prefix')} {nawal.tone} {t('the_directions_suffix')}
+                                            </span> <span className="font-thin tracking-[0.2em]">{nawal.kicheName}</span>
                                         </h2>
                                     </div>
 
@@ -177,7 +183,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                         <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                                             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                                         </div>
-                                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-emerald-400">Aliados Armónicos</h4>
+                                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-emerald-400">{t('harmonic_allies')}</h4>
                                     </div>
                                     <div className="grid grid-cols-4 gap-2">
                                         {allies.map(allied => (
@@ -203,7 +209,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                         <div className="p-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
                                             <Compass className="w-3.5 h-3.5 text-rose-400" />
                                         </div>
-                                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-rose-400">Opositor (Reto)</h4>
+                                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-rose-400">{t('opponent_challenge')}</h4>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         {challenges.map(chall => (
@@ -220,7 +226,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                                         {chall.kiche}
                                                     </span>
                                                     <span className="text-[7px] uppercase tracking-wider text-white/40">
-                                                        Fuerza Polar
+                                                        {t('polar_force')}
                                                     </span>
                                                 </div>
                                             </div>

@@ -89,17 +89,19 @@ export class SynastryEngine {
     }
 
     private static compareElements(signA: string, signB: string): CompatibilityAspect {
-        const elements = {
+        if (!signA || !signB || signA === 'Unknown' || signB === 'Unknown') return 'NEUTRAL';
+
+        const elements: Record<string, string> = {
             Aries: 'Fire', Leo: 'Fire', Sagittarius: 'Fire',
             Taurus: 'Earth', Virgo: 'Earth', Capricorn: 'Earth',
             Gemini: 'Air', Libra: 'Air', Aquarius: 'Air',
             Cancer: 'Water', Scorpio: 'Water', Pisces: 'Water'
         };
-        // @ts-ignore
+
         const elA = elements[signA];
-        // @ts-ignore
         const elB = elements[signB];
 
+        if (!elA || !elB) return 'NEUTRAL';
         if (elA === elB) return 'HARMONY';
 
         // Compatible Pairs: Fire-Air, Earth-Water

@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { Hash, X, ChevronRight, Lock } from 'lucide-react';
+import { Hash, ChevronRight, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PINNACLE_INTERPRETATIONS, PINNACLE_POSITIONS } from '../data/pinnacleData';
+import { PINNACLE_INTERPRETATIONS_EN, PINNACLE_POSITIONS_EN } from '../data/pinnacleData_en';
+import { useTranslation } from '../i18n';
 import { cn } from '../lib/utils';
 import { useGuardianState } from '../contexts/GuardianContext';
 import { useActiveProfile } from '../hooks/useActiveProfile';
@@ -21,10 +23,18 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
     const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const { trackEvent } = useGuardianState();
+    const { t, language } = useTranslation();
+
+    const PINNACLE_INTERP_LIB = language === 'en' ? PINNACLE_INTERPRETATIONS_EN : PINNACLE_INTERPRETATIONS;
+    const PINNACLE_POS_LIB = language === 'en' ? PINNACLE_POSITIONS_EN : PINNACLE_POSITIONS;
     
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
     const { status: subscription } = useSubscription(!overrideProfile);
+
+    // Logic for Profile Injection
+    const profile = overrideProfile || activeProfile;
+    const loading = overrideProfile ? false : activeLoading;
 
     const isPremium = overrideProfile
         ? true
@@ -32,20 +42,16 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
         (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 
-    // Logic for Profile Injection
-    const profile = overrideProfile || activeProfile;
-    const loading = overrideProfile ? false : activeLoading;
-
     // Obtener datos de numerología del perfil
     const data = profile?.numerology;
 
-    if (loading) return <div className="text-white text-center p-8">Cargando frecuencias...</div>;
+    if (loading) return <div className="text-white text-center p-8">{t('loading_frequencies')}</div>;
 
     if (!profile || (!profile.birthDate && !data)) {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center text-white/50">
-                <p className="mb-4">Esencia Incompleta</p>
-                <p className="text-xs max-w-xs">Configura tu fecha de nacimiento o calcula un perfil para ver el Pináculo.</p>
+                <p className="mb-4">{t('incomplete_essence')}</p>
+                <p className="text-xs max-w-xs">{t('configure_birth_desc')}</p>
             </div>
         );
     }
@@ -59,7 +65,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
         trackEvent('PINNACLE', {
             position: title,
             number: numValue,
-            archetype: PINNACLE_INTERPRETATIONS[numValue]?.archetype || "Desconocido"
+            archetype: PINNACLE_INTERP_LIB[numValue]?.archetype || t('unknown')
         });
     };
 
@@ -81,13 +87,13 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                 {/* 🌟 CAMINO DE VIDA (Interactive Card) */}
                 <motion.div
                     whileHover={{ scale: 1.02, translateY: -5 }}
-                    onClick={() => handleOpenModal('D', 'Frecuencia de Encarnación', data.lifePathNumber)}
+                    onClick={() => handleOpenModal('D', t('incarnation_frequency'), data.lifePathNumber)}
                     className="flex-1 relative group overflow-hidden bg-white/[0.02] border border-white/5 p-6 rounded-[36px] text-center backdrop-blur-xl flex flex-col items-center cursor-pointer transition-all hover:border-purple-500/30 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)] max-w-xs"
                 >
                     <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:rotate-12 transition-transform duration-1000">
                         <Hash className="w-32 h-32 text-white" />
                     </div>
-                    <span className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-black mb-6 block">Frecuencia de Encarnación</span>
+                    <span className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-black mb-6 block">{t('life_path')}</span>
 
                     <div className="relative w-32 aspect-[3/4] mb-6">
                         <div className="absolute inset-0 rounded-[1.5rem] border border-white/10 bg-black/40 overflow-hidden shadow-2xl group-hover:border-purple-500/40 transition-colors">
@@ -104,7 +110,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                             {getNumberText(data.lifePathNumber)}
                         </h2>
                         <p className="text-white/30 text-[9px] uppercase tracking-[0.2em] font-light max-w-[200px] mx-auto leading-relaxed">
-                            "La arquitectura fundamental de tu espíritu."
+                            {t('life_path_desc')}
                         </p>
                     </div>
                 </motion.div>
@@ -112,13 +118,13 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                 {/* 🌟 CÓDIGO DE EXPRESIÓN (Name Number - Interactive Card) */}
                 <motion.div
                     whileHover={{ scale: 1.02, translateY: -5 }}
-                    onClick={() => handleOpenModal('N', 'Código de Expresión', data.nameNumber)}
+                    onClick={() => handleOpenModal('N', t('expression_code'), data.nameNumber)}
                     className="flex-1 relative group overflow-hidden bg-white/[0.02] border border-white/5 p-6 rounded-[36px] text-center backdrop-blur-xl flex flex-col items-center cursor-pointer transition-all hover:border-cyan-500/30 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)] max-w-xs"
                 >
                     <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:-rotate-12 transition-transform duration-1000">
                         <div className="font-serif italic text-6xl text-white">Abc</div>
                     </div>
-                    <span className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-black mb-6 block">Código de Expresión</span>
+                    <span className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-black mb-6 block">{t('expression_code')}</span>
 
                     <div className="relative w-32 aspect-[3/4] mb-6">
                         <div className="absolute inset-0 rounded-[1.5rem] border border-white/10 bg-black/40 overflow-hidden shadow-2xl group-hover:border-cyan-500/40 transition-colors">
@@ -133,10 +139,10 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
 
                     <div className="text-center space-y-1">
                         <h2 className="text-lg font-black text-white/80 uppercase tracking-[0.2em]">
-                            {getNumberText(data.nameNumber) || 'Calculando...'}
+                            {getNumberText(data.nameNumber) || t('calculating')}
                         </h2>
                         <p className="text-white/30 text-[9px] uppercase tracking-[0.2em] font-light max-w-[200px] mx-auto leading-relaxed">
-                            "La frecuencia sonora de tu nombre en este plano."
+                            {t('expression_code_desc')}
                         </p>
                     </div>
                 </motion.div>
@@ -149,7 +155,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                 <div className="flex-1 bg-black/40 border border-white/5 p-8 rounded-[3rem] overflow-hidden flex flex-col items-center justify-center min-h-fit lg:min-h-[600px]">
                     <div className="mb-0 mt-2 text-center w-full">
                         <h3 className="text-sm font-bold uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-fuchsia-300 to-amber-200">
-                            ARQUITECTURA DEL ALMA
+                            {t('life_architecture')}
                         </h3>
                         <div className="h-[1px] w-48 mx-auto mt-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                     </div>
@@ -258,7 +264,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                         <div className="mb-0 mt-2">
                             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 flex items-center gap-2">
                                 <div className="w-1 h-1 rounded-full bg-rose-500" />
-                                Códigos de Vida
+                                {t('life_codes')}
                             </h3>
                             <div className="h-[1px] w-full mt-2 bg-gradient-to-r from-white/10 via-white/5 to-transparent"></div>
                         </div>
@@ -269,25 +275,25 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                         className="lg:overflow-y-auto p-4 pb-24 lg:pb-4 space-y-2 custom-scrollbar flex-1 scroll-smooth"
                     >
                         {[
-                            { l: 'A', t: 'Karma (Mes)', d: 'Tu tarea pendiente de otras vidas.', v: data.pinaculo?.a },
-                            { l: 'B', t: 'Personalidad (Día)', d: 'La máscara que muestras al mundo y cómo te perciben.', v: data.pinaculo?.b },
-                            { l: 'C', t: 'Vidas Pasadas (Año)', d: 'Lo que fuiste y traes contigo de encarnaciones previas.', v: data.pinaculo?.c },
-                            { l: 'D', t: 'Esencia', d: 'Tu núcleo divino, ¿quién eres realmente en tu profundidad?', v: data.pinaculo?.d },
-                            { l: 'E', t: 'Regalo Divino', d: 'Un talento concedido para esta vida.', v: data.pinaculo?.e },
-                            { l: 'F', t: 'Destino', d: 'Hacia dónde te diriges inevitablemente.', v: data.pinaculo?.f },
-                            { l: 'G', t: 'Misión de Vida', d: 'Tu propósito central de encarnación.', v: data.pinaculo?.g },
-                            { l: 'H', t: 'Realización', d: 'El logro máximo de tu espíritu.', v: data.pinaculo?.h },
-                            { l: 'I', t: 'Subconsciente', d: 'Deseos ocultos y motores internos.', v: data.pinaculo?.i },
-                            { l: 'J', t: 'Inconsciente', d: 'Reacciones automáticas y sombra.', v: data.pinaculo?.j },
-                            { l: 'N', t: 'Destino (Nombre)', d: 'Tu misión sonora y capacidad de manifestación.', v: data.nameNumber },
-                            { l: 'P', t: 'Sombra Inmediata', d: 'Tu primer gran bloqueo.', v: data.pinaculo?.p },
-                            { l: 'O', t: 'Inconsciente Negativo', d: 'Patrones repetitivos dañinos.', v: data.pinaculo?.o },
-                            { l: 'Q', t: 'Ser Inferior Heredado', d: 'Carga ancestral no resuelta.', v: data.pinaculo?.q },
-                            { l: 'R', t: 'Ser Inferior Consciente', d: 'Defectos que conoces pero no cambias.', v: data.pinaculo?.r },
-                            { l: 'S', t: 'Ser Inferior Latente', d: 'El enemigo oculto final.', v: data.pinaculo?.s },
+                            { l: 'A', t: t('num_karma'), d: t('num_karma_desc'), v: data.pinaculo?.a },
+                            { l: 'B', t: t('num_personality'), d: t('num_personality_desc'), v: data.pinaculo?.b },
+                            { l: 'C', t: t('num_past_lives'), d: t('num_past_lives_desc'), v: data.pinaculo?.c },
+                            { l: 'D', t: t('num_essence'), d: t('num_essence_desc'), v: data.pinaculo?.d },
+                            { l: 'E', t: t('num_gift'), d: t('num_gift_desc'), v: data.pinaculo?.e },
+                            { l: 'F', t: t('num_destiny'), d: t('num_destiny_desc'), v: data.pinaculo?.f },
+                            { l: 'G', t: t('num_mission'), d: t('num_mission_desc'), v: data.pinaculo?.g },
+                            { l: 'H', t: t('num_realization'), d: t('num_realization_desc'), v: data.pinaculo?.h },
+                            { l: 'I', t: t('num_subconscious'), d: t('num_subconscious_desc'), v: data.pinaculo?.i },
+                            { l: 'J', t: t('num_unconscious'), d: t('num_unconscious_desc'), v: data.pinaculo?.j },
+                            { l: 'N', t: t('num_name_destiny'), d: t('num_name_destiny_desc'), v: data.nameNumber },
+                            { l: 'P', t: t('num_shadow'), d: t('num_shadow_desc'), v: data.pinaculo?.p },
+                            { l: 'O', t: t('num_neg_unconscious'), d: t('num_neg_unconscious_desc'), v: data.pinaculo?.o },
+                            { l: 'Q', t: t('num_lower_self_inherited'), d: t('num_lower_self_inherited_desc'), v: data.pinaculo?.q },
+                            { l: 'R', t: t('num_lower_self_conscious'), d: t('num_lower_self_conscious_desc'), v: data.pinaculo?.r },
+                            { l: 'S', t: t('num_lower_self_latent'), d: t('num_lower_self_latent_desc'), v: data.pinaculo?.s },
                         ].map((item, idx) => {
                             const numValue = Number(item.v);
-                            const interp = PINNACLE_INTERPRETATIONS[numValue];
+                            const interp = PINNACLE_INTERP_LIB[numValue];
                             const isExpanded = expandedItem === item.l;
 
                             return (
@@ -334,12 +340,12 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                 className="mt-4 pt-4 border-t border-white/10 text-sm text-white/70 overflow-hidden"
                                             >
                                                 <div className="mb-4">
-                                                    <p className="text-[11px] text-purple-300/70 uppercase tracking-widest font-bold mb-2">El Núcleo</p>
+                                                    <p className="text-[11px] text-purple-300/70 uppercase tracking-widest font-bold mb-2">{t('core')}</p>
                                                     <p className="text-sm font-serif text-white/90 leading-relaxed italic border-l-2 border-purple-500/40 pl-3">
-                                                        "La frecuencia {numValue} actuando en tu {PINNACLE_POSITIONS[item.l]?.title || item.t}"
+                                                        "{t('pinnacle_context_prefix')} {numValue} {t('acting_in_your')} {PINNACLE_POS_LIB[item.l]?.title || item.t}"
                                                     </p>
                                                     <p className="text-xs text-white/70 mt-2 pl-3 leading-relaxed border-l-2 border-white/10">
-                                                        {PINNACLE_POSITIONS[item.l]?.context}
+                                                        {PINNACLE_POS_LIB[item.l]?.context}
                                                     </p>
                                                 </div>
 
@@ -353,12 +359,12 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                 >
                                                     <div className="flex items-center gap-2 text-amber-400 mb-1">
                                                         <div className="w-3.5 h-3.5 flex items-center justify-center">⚡</div>
-                                                        <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">Interpretación Profunda</span>
+                                                        <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
                                                         {isPremium && (
                                                             <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight === item.l ? 'rotate-90' : ''}`} />
                                                         )}
                                                     </div>
-                                                    <p className="text-[9px] text-white/40 font-medium">{isPremium ? 'Toca para descubrir el arquetipo y detalle maestro.' : 'Desbloquea la síntesis evolutiva de tu alma.'}</p>
+                                                    <p className="text-[9px] text-white/40 font-medium">{isPremium ? t('deep_interpretation_tap') : t('deep_interpretation_lock')}</p>
 
                                                     <AnimatePresence>
                                                         {showDeepInsight === item.l && (
@@ -371,7 +377,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                                 {isPremium ? (
                                                                     <div className="space-y-4 text-white/90 leading-relaxed">
                                                                         <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                                                                            <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">Arquetipo Maestro</h4>
+                                                                            <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">{t('master_archetype')}</h4>
                                                                             <p className="text-lg italic font-medium">
                                                                                 "{interp.archetype}"
                                                                             </p>
@@ -389,12 +395,12 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                                         <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">
                                                                             <Lock className="w-4 h-4 text-purple-400" />
                                                                         </div>
-                                                                        <h5 className="text-xs font-bold text-white uppercase tracking-widest">Contenido Reservado</h5>
+                                                                        <h5 className="text-xs font-bold text-white uppercase tracking-widest">{t('reserved_content')}</h5>
                                                                         <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
-                                                                            Sintoniza con tu mayor frecuencia. Desbloquea la síntesis evolutiva de tu Pináculo con los planes Creador.
+                                                                            {t('pinnacle_lock_desc')}
                                                                         </p>
-                                                                        <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">
-                                                                            Ver Planes
+                                                                        <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
+                                                                            {t('view_plans')}
                                                                         </button>
                                                                     </div>
                                                                 )}

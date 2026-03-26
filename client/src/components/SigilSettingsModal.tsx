@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Clock, Sparkles, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 import { SigilExplainer } from './SigilExplainer';
 
 interface SigilSettingsModalProps {
@@ -92,7 +92,7 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                         <button 
                             onClick={() => setShowExplainer(true)}
                             className="p-1 rounded-full hover:bg-white/10 text-cyan-400/80 hover:text-cyan-400 transition-colors"
-                            title="¿Qué hace el Sigil?"
+                            title={t('sigil_what_is')}
                         >
                             <Info size={14} />
                         </button>

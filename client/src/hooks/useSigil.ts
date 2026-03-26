@@ -1,10 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { endpoints, getAuthHeaders } from '../lib/api';
 import { useGuardianState } from '../contexts/GuardianContext';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../i18n';
 
 export function useSigil(userName?: string, energyContext?: any) {
-    const { language } = useLanguage();
+    const { language } = useTranslation();
     const { oracleState, addMessage: addGlobalMessage, isHistoryLoading } = useGuardianState();
 
     const getWelcomeMessage = useCallback(() => {

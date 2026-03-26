@@ -10,7 +10,7 @@ import { IdentityAltar } from './IdentityAltar';
 import { AstralVortex } from './AstralVortex';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
 import { SigilManifesto } from './SigilManifesto';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 
 interface OnboardingFormProps {
     onComplete: (data: any) => void;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { User, Hexagon, Sparkles } from 'lucide-react';
@@ -11,13 +12,17 @@ import { getNahualImage } from '../utils/nahualMapper';
 import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 import { CoherenceCore } from './CoherenceCore';
-import { NAOS_ARCHETYPES } from '../constants/archetypeData';
-
 // Data Libraries for Quick Intel
 import { NAHUAL_WISDOM } from '../data/nahualData';
+import { NAHUAL_WISDOM_EN } from '../data/nahualData_en';
 import { CHINESE_ZODIAC_WISDOM } from '../data/chineseZodiacData';
+import { CHINESE_ZODIAC_WISDOM_EN } from '../data/chineseZodiacData_en';
 import { SIGNS_LIB } from '../data/astrologyLibrary';
+import { SIGNS_LIB_EN } from '../data/astrologyLibrary_en';
 import { PINNACLE_INTERPRETATIONS } from '../data/pinnacleData';
+import { PINNACLE_INTERPRETATIONS_EN } from '../data/pinnacleData_en';
+import { NAOS_ARCHETYPES } from '../constants/archetypeData';
+import { NAOS_ARCHETYPES_EN } from '../constants/archetypeData_en';
 
 interface IdentityAltarProps {
     profile: any;
@@ -26,6 +31,8 @@ interface IdentityAltarProps {
 }
 
 export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, onNavigate }) => {
+    const { t, language } = useTranslation();
+    const isEn = language === 'en';
     const [showWisdom, setShowWisdom] = React.useState(false);
     const [quickIntel, setQuickIntel] = React.useState<any>(null);
     const [initialDeepTab, setInitialDeepTab] = React.useState<any>(undefined);
@@ -44,20 +51,26 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
     // 1. Essence Number (Life Path Number)
     const essence = profile?.numerology?.lifePathNumber || "?";
 
-    // 2. Dominant Element / Sun Sign Logic
-    const sunSign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || profile?.zodiac_sign || "Desconocido";
+    // 2. Astrology Sign
+    const sunSign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || profile?.zodiac_sign || t('unknown');
 
     // 3. Chinese Horoscope
-    const animal = profile?.chinese_animal || profile?.astrology?.chineseSign || "Dragón";
+    const animal = profile?.chinese_animal || profile?.astrology?.chineseSign || (language === 'en' ? "Dragon" : "Dragón");
     const chineseElement = profile?.chinese_element || "";
-    const chineseSign = chineseElement ? `${animal} de ${chineseElement}` : animal;
+    // Translated connector and element if needed (or use the one from profile if it's already translated)
+    const chineseSign = chineseElement ? `${animal} ${isEn ? 'of' : 'de'} ${chineseElement}` : animal;
 
     // 4. Mayan Energy
-    const nahuatl = profile?.nawal_maya?.split(' ')[1] || "?";
+    const getNahuatlTranslation = () => {
+        const parts = profile?.nawal_maya?.split(' ') || [];
+        if (parts.length < 2) return t('unknown');
+        return parts[1]; // The name part
+    };
+    const nahuatl = getNahuatlTranslation();
     const nahualId = profile?.nawal_maya?.toLowerCase().split(' ')[1]?.replace(/'/g, '') || "";
 
     const [showDeepView, setShowDeepView] = React.useState(false);
-    const [rank, setRank] = React.useState("Iniciado");
+    const [rank, setRank] = React.useState(t('initiated'));
 
     // Dynamic Rank Sync
     React.useEffect(() => {
@@ -70,9 +83,9 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                 if (response.ok) {
                     const data = await response.json();
                     if (profile?.plan_type === 'admin') {
-                        setRank('Arquitecto');
+                        setRank(t('architect'));
                     } else {
-                        setRank(data.personal?.tier || "Iniciado");
+                        setRank(data.personal?.tier || t('initiated'));
                     }
                 }
             } catch (err) {
@@ -80,54 +93,60 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
             }
         };
         if (profile?.id) fetchRank();
-    }, [profile?.id]);
+    }, [profile?.id, profile?.plan_type, t]);
 
-    const getQuickIntelData = (label: string) => {
-        if (label.includes('MAYA')) {
-            const data = NAHUAL_WISDOM[nahuatl];
+    const getQuickIntelData = (type: 'MAYA' | 'NUMERO' | 'ASTRO' | 'ORIENTAL' | 'NAOS') => {
+        if (type === 'MAYA') {
+            const lib = language === 'en' ? NAHUAL_WISDOM_EN : NAHUAL_WISDOM;
+            const data = lib[nahuatl];
             return {
-                title: `Misterio de ${nahuatl}`,
-                desc: data?.description || "Energía ancestral de la cuenta larga.",
+                title: `${t('mystery_of')} ${nahuatl}`,
+                desc: data?.description || t('ancestral_energy_desc'),
                 color: "emerald",
                 manualId: "maya",
                 deepTab: "MAYA"
             };
         }
-        if (label.includes('NUMÉRICA')) {
-            const data = PINNACLE_INTERPRETATIONS[essence];
+        if (type === 'NUMERO') {
+            const lib = language === 'en' ? PINNACLE_INTERPRETATIONS_EN : PINNACLE_INTERPRETATIONS;
+            const data = lib[essence];
             return {
-                title: `Vibración ${essence}`,
-                desc: data?.blocks[0] || "Frecuencia fundamental de tu camino de vida.",
+                title: `${t('vibration_label')} ${essence}`,
+                desc: data?.blocks[0] || t('fundamental_frequency_desc'),
                 color: "fuchsia",
                 manualId: "numero",
                 deepTab: "NUMERO"
             };
         }
-        if (label.includes('ASTRAL')) {
-            const data = SIGNS_LIB[sunSign];
+        if (type === 'ASTRO') {
+            const lib = language === 'en' ? SIGNS_LIB_EN : SIGNS_LIB;
+            const data = lib[sunSign];
             return {
-                title: `Signo de ${sunSign}`,
-                desc: data?.essence || "Tu núcleo radiante y propósito vital.",
+                title: `${t('sign_of_label')} ${sunSign}`,
+                desc: data?.essence || t('radiant_core_desc'),
                 color: "cyan",
                 manualId: "astro",
                 deepTab: "ASTRO"
             };
         }
-        if (label.includes('ORIENTAL')) {
-            const data = CHINESE_ZODIAC_WISDOM[animal];
+        if (type === 'ORIENTAL') {
+            const lib = language === 'en' ? CHINESE_ZODIAC_WISDOM_EN : CHINESE_ZODIAC_WISDOM;
+            // Map Spanish animal name to English if needed for the library key
+            const animalKey = isEn ? (profile?.chinese_animal_en || animal) : animal;
+            const data = lib[animalKey];
             return {
-                title: `Tótem: ${animal}`,
-                desc: data?.totem_essence || "Tu instinto y sabiduría ancestral oriental.",
+                title: `${t('totem_label')}: ${animal}`,
+                desc: data?.totem_essence || t('oriental_wisdom_desc'),
                 color: "rose",
                 manualId: "oriental",
                 deepTab: "ORIENTAL"
             };
         }
-        if (label.includes('ARQUETIPO')) {
+        if (type === 'NAOS') {
             const arch = synthesis?.arquetipo;
             return {
-                title: arch?.nombre || "El Custodio",
-                desc: arch?.descripcion || "Resonando con tu frecuencia original...",
+                title: arch?.nombre || t('the_custodian'),
+                desc: arch?.descripcion || t('resonating_frequency_desc'),
                 color: "cyan",
                 manualId: "naos",
                 deepTab: "NAOS"
@@ -136,9 +155,12 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
         return null;
     };
 
-    const archName = synthesis?.arquetipo?.nombre || "El Custodio";
-    const archInfo = NAOS_ARCHETYPES.find(a => a.nombre.toLowerCase().trim() === archName.toLowerCase().trim());
+    const archName = synthesis?.arquetipo?.nombre || t('the_custodian');
+    const archLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
+    const archetypeId = synthesis?.arquetipo?.id;
+    const archInfo = archLib.find(a => a.id === archetypeId) || archLib.find(a => a.nombre.toLowerCase().trim() === (archName || '').toLowerCase().trim());
     const arcanoImage = archInfo?.imagePath;
+    const displayArchName = archInfo?.nombre || archName;
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center relative min-h-[60vh] py-12">
@@ -146,8 +168,8 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                 key="wisdom-identity"
                 isOpen={showWisdom}
                 onClose={() => setShowWisdom(false)}
-                title="Código de Identidad"
-                description="El mapa de tu arquitectura espiritual. Una síntesis exclusiva que unifica para ti 4 escuelas energéticas (Astrología, Numerología, Maya y Oriental) para revelar tu Arcano de Naos: la frecuencia maestra de tu diseño original."
+                title={t('identity')}
+                description={t('identity_description')}
                 accentColor="cyan"
             />
 
@@ -174,7 +196,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                         >
                             <div className={cn("absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-50", `text-${quickIntel.color}-400`)} />
 
-                            <h3 className="text-[10px] uppercase tracking-[0.4em] text-white/20 font-black mb-8 block text-center">Quick Intel</h3>
+                            <h3 className="text-[10px] uppercase tracking-[0.4em] text-white/20 font-black mb-8 block text-center">{t('quick_intel')}</h3>
 
                             <div className="flex flex-col items-center gap-6 text-center">
                                 <h2 className="text-3xl font-serif italic text-white/90 drop-shadow-md">
@@ -189,7 +211,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                                         onClick={() => setQuickIntel(null)}
                                         className="px-6 py-2 rounded-full border border-white/5 text-[9px] uppercase tracking-widest text-white/30 hover:bg-white/5 transition-all"
                                     >
-                                        Cerrar
+                                        {t('close')}
                                     </button>
                                     <button
                                         onClick={() => {
@@ -209,7 +231,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                                             `bg-${quickIntel.color}-400 hover:scale-105`
                                         )}
                                     >
-                                        Explorar Código
+                                        {t('explore_code')}
                                     </button>
                                 </div>
                             </div>
@@ -228,7 +250,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                     <div className="flex items-center justify-center gap-4">
                         <h2 className="text-[28px] font-thin tracking-[0.2em] text-primary uppercase">{profile?.name}</h2>
                     </div>
-                    <p className="text-[11px] uppercase tracking-[0.4em] text-amber-500/80 font-black">{profile?.nickname || "El Arquitecto"}</p>
+                    <p className="text-[11px] uppercase tracking-[0.4em] text-amber-500/80 font-black">{profile?.nickname || t('architect')}</p>
                 </div>
 
                 <div className="flex flex-col items-center gap-2">
@@ -252,7 +274,13 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                             />
 
                             <span className="relative z-10 text-2xl font-black tracking-[0.5em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-white leading-relaxed drop-shadow-[0_0_20px_rgba(103,232,249,0.8)]">
-                                CÓDIGO DE<br />IDENTIDAD
+                                {t('identity').split(' ').map((word: string, i: number) => (
+                                    <React.Fragment key={i}>
+                                        {word}
+                                        {i === 1 && <br />}
+                                        {i !== 1 && ' '}
+                                    </React.Fragment>
+                                ))}
                             </span>
                         </div>
                     </motion.div>
@@ -262,58 +290,58 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 w-full items-stretch">
                         {/* 1. Astrología */}
                         <StatCard
-                            label="SOL ASTRAL"
+                            label={t('astrology_tab').toUpperCase()}
                             value={sunSign}
                             delay={0.2}
                             image={getZodiacImage(sunSign)}
                             assetType="zodiac"
-                            onClick={() => setQuickIntel(getQuickIntelData("SOL ASTRAL"))}
+                            onClick={() => setQuickIntel(getQuickIntelData('ASTRO'))}
                         />
                         {/* 2. Numerología */}
                         <StatCard
-                            label="ENERGÍA NUMÉRICA"
+                            label={t('numerology_tab').toUpperCase()}
                             value={essence}
                             delay={0.3}
                             isNeonNumber
-                            onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA NUMÉRICA"))}
+                            onClick={() => setQuickIntel(getQuickIntelData('NUMERO'))}
                         />
                         {/* 3. Arquetipo Naos */}
                         <StatCard
-                            label="ARQUETIPO NAOS"
-                            value={archName}
+                            label={t('naos_code_tab').toUpperCase()}
+                            value={displayArchName}
                             delay={0.1}
                             image={arcanoImage}
                             assetType="none"
                             highlight
                             isArchetypeCard
                             archColor={profile?.naosIdentityCode?.arquetipo?.elemento}
-                            onClick={() => setQuickIntel(getQuickIntelData("ARQUETIPO NAOS"))}
+                            onClick={() => setQuickIntel(getQuickIntelData('NAOS'))}
                         />
                         {/* 4. Nawal Maya */}
                         <StatCard
-                            label="ENERGÍA MAYA"
+                            label={t('maya_tab').toUpperCase()}
                             value={nahuatl}
                             delay={0.4}
                             image={getNahualImage(nahualId)}
                             nahualId={nahualId}
                             assetType="nahual"
-                            onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA MAYA"))}
+                            onClick={() => setQuickIntel(getQuickIntelData('MAYA'))}
                         />
                         {/* 5. Horóscopo Chino */}
                         <StatCard
-                            label="ENERGÍA ORIENTAL"
+                            label={t('oriental_tab').toUpperCase()}
                             value={chineseSign}
                             delay={0.5}
                             image={getChineseZodiacImage(animal)}
                             assetType="chinese"
-                            onClick={() => setQuickIntel(getQuickIntelData("ENERGÍA ORIENTAL"))}
+                            onClick={() => setQuickIntel(getQuickIntelData('ORIENTAL'))}
                         />
                     </div>
                 </div>
 
                 {/* RANK & ACTIONS */}
                 <div className="flex flex-col items-center gap-12 mt-4">
-                    <StatCard label="Rango" value={rank} highlight delay={0.6} />
+                    <StatCard label={t('rank_label')} value={rank} highlight delay={0.6} />
 
                     <div className="flex flex-col items-center gap-6">
                         <button
@@ -321,7 +349,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                             className="px-8 py-3 rounded-full border border-white/10 text-[10px] uppercase tracking-[0.2em] text-white/20 hover:text-white/80 hover:bg-white/5 transition-all flex items-center gap-2"
                         >
                             <User className="w-3 h-3" />
-                            <span>Re-escribir Perfil</span>
+                            <span>{t('rewrite_profile')}</span>
                         </button>
                     </div>
                 </div>
@@ -347,12 +375,13 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ 
     label, value, image, assetType, isNeonNumber, highlight, isArchetypeCard, archColor, delay, onClick 
 }) => {
+    const { t } = useTranslation();
     const [imgError, setImgError] = React.useState(false);
 
     const getNeonColor = () => {
-        if (label.includes('MAYA')) return 'emerald';
-        if (label.includes('ORIENTAL')) return 'rose';
-        if (label.includes('ASTRAL')) return 'cyan';
+        if (label.toUpperCase().includes('MAYA')) return 'emerald';
+        if (label.toUpperCase().includes('ORIENTAL')) return 'rose';
+        if (label.toUpperCase().includes('ASTRAL') || label.toUpperCase().includes('ASTROLOG')) return 'cyan';
         return 'fuchsia';
     };
 
@@ -469,7 +498,7 @@ const StatCard: React.FC<StatCardProps> = ({
                         <div className="absolute bottom-2 left-0 right-0 p-2 flex items-center justify-center z-20">
                             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 uppercase tracking-[0.3em] text-[7px] font-black text-white/40">
                                 <Sparkles size={8} />
-                                Master Code
+                                {t('master_code')}
                             </div>
                         </div>
                     </div>
@@ -497,7 +526,7 @@ const StatCard: React.FC<StatCardProps> = ({
                     </span>
                 )}
                 {highlight && !image && !isNeonNumber && (
-                    <span className="text-[9px] text-amber-500/60 uppercase tracking-widest font-bold">Rango Actual</span>
+                    <span className="text-[9px] text-amber-500/60 uppercase tracking-widest font-bold">{t('current_rank')}</span>
                 )}
             </div>
         </motion.div >

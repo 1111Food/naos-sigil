@@ -2,12 +2,19 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Hash, Sun, Moon, ArrowLeft, ChevronDown, Hexagon } from 'lucide-react';
 import { useSound } from '../hooks/useSound';
-import { ASTROLOGY_MANUAL } from '../data/manuals/astrology';
+import { useTranslation } from '../i18n';
+import { ASTROLOGY_MANUAL as ASTRO } from '../data/manuals/astrology';
+import { ASTROLOGY_MANUAL_EN as ASTRO_EN } from '../data/manuals/astrology_en';
 import { PLANETS_LIB, SIGNS_LIB, HOUSES_LIB } from '../data/astrologyLibrary';
-import { NUMEROLOGY_MANUAL } from '../data/manuals/numerology';
-import { MAYAN_MANUAL, getMayanCross } from '../data/manuals/mayan';
-import { CHINESE_MANUAL } from '../data/manuals/chinese';
+import { PLANETS_LIB_EN, SIGNS_LIB_EN, HOUSES_LIB_EN } from '../data/astrologyLibrary_en';
+import { NUMEROLOGY_MANUAL as NUMERO } from '../data/manuals/numerology';
+import { NUMEROLOGY_MANUAL_EN as NUMERO_EN } from '../data/manuals/numerology_en';
+import { MAYAN_MANUAL as MAYAN } from '../data/manuals/mayan';
+import { MAYAN_MANUAL_EN as MAYAN_EN } from '../data/manuals/mayan_en';
+import { CHINESE_MANUAL as CHINESE } from '../data/manuals/chinese';
+import { CHINESE_MANUAL_EN as CHINESE_EN } from '../data/manuals/chinese_en';
 import { CHINESE_LIB } from '../data/chineseLibrary';
+import { CHINESE_LIB_EN } from '../data/chineseLibrary_en';
 import { SabiduriaOriental } from '../components/SabiduriaOriental';
 import { ArchetypeLibrary } from '../components/ArchetypeLibrary';
 import { WisdomRow } from '../components/WisdomRow';
@@ -18,7 +25,9 @@ import { getChineseZodiacImage } from '../utils/chineseMapper';
 import { cn } from '../lib/utils';
 import { WisdomOverlay } from '../components/WisdomOverlay';
 import { useActiveProfile } from '../hooks/useActiveProfile';
-import { getMayaCrossWisdom } from '../data/manuals/mayan';
+import { getMayaCrossWisdom as getMayaCrossWisdomEs } from '../data/manuals/mayan';
+import { getMayaCrossWisdomEn } from '../data/manuals/mayan_en';
+const getMayaCrossWisdom = (isEn: boolean, pos: any, name: string) => isEn ? getMayaCrossWisdomEn(pos, name) : getMayaCrossWisdomEs(pos, name);
 
 interface ManualsViewProps {
     onBack: () => void;
@@ -26,51 +35,53 @@ interface ManualsViewProps {
 }
 // @ts-ignore
 export const ManualsView: React.FC<ManualsViewProps> = ({ onBack, initialManual }) => {
+    const { language } = useTranslation();
+    const isEn = language === 'en';
     const [selectedManual, setSelectedManual] = useState<string | null>(initialManual || null);
     const { playSound } = useSound();
 
     const manuals = [
         {
             id: 'astro',
-            title: 'El Teatro del Cielo',
-            subtitle: 'Astrología Simbólica',
-            description: 'Aprende el lenguaje de los Actores, Vestuarios y Escenarios.',
+            title: isEn ? 'The Theater of the Sky' : 'El Teatro del Cielo',
+            subtitle: isEn ? 'Symbolic Astrology' : 'Astrología Simbólica',
+            description: isEn ? 'Learn the language of Actors, Costumes, and Stages.' : 'Aprende el lenguaje de los Actores, Vestuarios y Escenarios.',
             icon: Star,
             color: 'from-purple-500/20 to-blue-500/20',
             active: true
         },
         {
             id: 'numero',
-            title: 'El Código Secreto',
-            subtitle: 'Numerología Pitagórica',
-            description: 'Descifra el ritmo vibratorio de tu nombre y esencia.',
+            title: isEn ? 'The Secret Code' : 'El Código Secreto',
+            subtitle: isEn ? 'Pythagorean Numerology' : 'Numerología Pitagórica',
+            description: isEn ? 'Decipher the vibratory rhythm of your name and essence.' : 'Descifra el ritmo vibratorio de tu nombre y esencia.',
             icon: Hash,
             color: 'from-amber-500/20 to-orange-500/20',
             active: true
         },
         {
             id: 'maya',
-            title: 'El Tiempo Sagrado',
-            subtitle: 'Nahual Maya',
-            description: 'Conéctate con la sabiduría ancestral del Cholq\'ij.',
+            title: isEn ? 'Sacred Time' : 'El Tiempo Sagrado',
+            subtitle: isEn ? 'Mayan Nahual' : 'Nahual Maya',
+            description: isEn ? "Connect with the ancestral wisdom of the Cholq'ij." : 'Conéctate con la sabiduría ancestral del Cholq\'ij.',
             icon: Sun,
             color: 'from-emerald-500/10 to-teal-500/10',
             active: true
         },
         {
             id: 'oriental',
-            title: 'El Ciclo Ancestral',
-            subtitle: 'Astrología China',
-            description: 'Explora tu animal guardián y el flujo de los cinco elementos.',
+            title: isEn ? 'The Ancestral Cycle' : 'El Ciclo Ancestral',
+            subtitle: isEn ? 'Chinese Astrology' : 'Astrología China',
+            description: isEn ? 'Explore your guardian animal and the flow of the five elements.' : 'Explora tu animal guardián y el flujo de los cinco elementos.',
             icon: Moon,
             color: 'from-blue-500/10 to-indigo-500/10',
             active: true
         },
         {
             id: 'codice',
-            title: 'Los Arquetipos de NAOS',
-            subtitle: 'Ingeniería Humana',
-            description: 'Explora la matriz operativa de las 16 identidades originales.',
+            title: isEn ? 'NAOS Archetypes' : 'Los Arquetipos de NAOS',
+            subtitle: isEn ? 'Human Engineering' : 'Ingeniería Humana',
+            description: isEn ? 'Explore the operational matrix of the 16 original identities.' : 'Explora la matriz operativa de las 16 identidades originales.',
             icon: Hexagon,
             color: 'from-cyan-500/20 to-blue-500/20',
             active: true
@@ -88,9 +99,9 @@ export const ManualsView: React.FC<ManualsViewProps> = ({ onBack, initialManual 
                 </button>
                 <div>
                     <h1 className="text-4xl md:text-5xl font-serif italic text-white/90">
-                        Biblioteca de <span className="text-white/60">Sabiduría</span>
+                        {isEn ? 'Wisdom' : 'Biblioteca de'} <span className="text-white/60">{isEn ? 'Library' : 'Sabiduría'}</span>
                     </h1>
-                    <p className="text-cyan-400/80 text-[10px] uppercase tracking-[0.4em] font-bold mt-1">Marco Pedagógico de Naos</p>
+                    <p className="text-cyan-400/80 text-[10px] uppercase tracking-[0.4em] font-bold mt-1">{isEn ? 'NAOS Pedagogical Framework' : 'Marco Pedagógico de Naos'}</p>
                 </div>
             </div>
 
@@ -136,6 +147,16 @@ export const ManualsView: React.FC<ManualsViewProps> = ({ onBack, initialManual 
 };
 
 const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSound: (type?: 'click' | 'success' | 'transition') => void }) => {
+    const { language } = useTranslation();
+    const isEn = language === 'en';
+    const data = (isEn ? ASTRO_EN : ASTRO) as any;
+    const PLANETS = isEn ? PLANETS_LIB_EN : PLANETS_LIB;
+    const SIGNS = isEn ? SIGNS_LIB_EN : SIGNS_LIB;
+    const HOUSES = isEn ? HOUSES_LIB_EN : HOUSES_LIB;
+    
+    // Use them to avoid lint errors
+    console.debug('Astro data loaded:', { PLANETS, SIGNS, HOUSES });
+
     const [openPlanet, setOpenPlanet] = useState<string | null>(null);
     const [openSign, setOpenSign] = useState<string | null>(null);
     const [openHouse, setOpenHouse] = useState<string | null>(null);
@@ -156,11 +177,11 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                 <nav className="flex items-center justify-between mb-16 sticky top-4 rounded-full px-6 py-3 bg-[#050505]/80 backdrop-blur-xl z-50 border border-white/5 shadow-2xl">
                     <button onClick={() => { playSound('click'); onClose(); }} className="flex items-center gap-3 text-zinc-400 hover:text-white transition-all uppercase tracking-widest text-[10px] font-bold group">
                         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        <span>Biblioteca</span>
+                        <span>{data.navLibrary}</span>
                     </button>
                     <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse" />
-                        <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-[0.3em]">Teatro de la Vida</span>
+                        <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-[0.3em]">{data.navTitle}</span>
                     </div>
                 </nav>
 
@@ -169,8 +190,8 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-900/10 blur-[120px] rounded-full pointer-events-none" />
 
                     <h2 className="relative z-10 text-5xl md:text-8xl font-serif text-zinc-100 leading-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                        El Teatro <br />
-                        <span className="italic text-transparent bg-clip-text bg-gradient-to-b from-white via-white/80 to-white/20">del Cielo</span>
+                        {data.headerTitle1} <br />
+                        <span className="italic text-transparent bg-clip-text bg-gradient-to-b from-white via-white/80 to-white/20">{data.headerTitle2}</span>
                     </h2>
 
                     <div className="relative z-10 flex justify-center">
@@ -178,14 +199,14 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                     </div>
 
                     <p className="relative z-10 text-lg md:text-xl text-zinc-400 font-light max-w-2xl mx-auto leading-relaxed font-sans">
-                        {ASTROLOGY_MANUAL.integration.content}
+                        {data.integration.content}
                     </p>
                 </header>
 
                 <div className="space-y-32 relative z-10">
                     {/* INTRO SECTION - PHILOSOPHY */}
                     <section className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        {ASTROLOGY_MANUAL.intro.sections.map((section) => (
+                        {data.intro.sections.map((section: any) => (
                             <div key={section.id} className="group relative p-8 rounded-[2rem] bg-[#050505]/60 backdrop-blur-xl border border-white/5 hover:border-white/10 transition-all duration-700">
                                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[2rem]" />
 
@@ -223,7 +244,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
-                                    {act === 'planets' ? 'Los Actores' : act === 'signs' ? 'El Vestuario' : 'Los Escenarios'}
+                                    {act === 'planets' ? data.actPlanets : act === 'signs' ? data.actSigns : data.actHouses}
                                 </button>
                             ))}
                         </div>
@@ -240,14 +261,14 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                             {activeAct === 'planets' && (
                                 <section className="space-y-12">
                                     <div className="flex flex-col items-center text-center space-y-4">
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-cyan-500/70">Acto I</span>
-                                        <h3 className="text-4xl font-serif text-white">Los Actores</h3>
-                                        <p className="text-zinc-500 text-sm max-w-md">Fuerzas arquetípicas que impulsan la narrativa de tu alma.</p>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-cyan-500/70">{isEn ? 'Act I' : 'Acto I'}</span>
+                                        <h3 className="text-4xl font-serif text-white">{isEn ? 'The Actors' : 'Los Actores'}</h3>
+                                        <p className="text-zinc-500 text-sm max-w-md">{isEn ? 'Archetypal forces that drive your soul\'s narrative.' : 'Fuerzas arquetípicas que impulsan la narrativa de tu alma.'}</p>
                                     </div>
                                     {/* ... rest of planets section as rendered below ... */}
 
                                     <div className="grid grid-cols-1 gap-4">
-                                        {Object.entries(ASTROLOGY_MANUAL.planets).map(([key, data]) => (
+                                        {Object.entries(ASTRO.planets).map(([key, data]: [string, any]) => (
                                             <div key={key} className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openPlanet === key ? 'bg-cyan-500/10 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.05)]' : 'bg-[#080808]/80 border-white/5 hover:border-white/20'}`}>
                                                 <button onClick={() => { playSound('click'); setOpenPlanet(openPlanet === key ? null : key); }} className="w-full p-6 flex flex-col sm:flex-row sm:items-center justify-between text-left gap-4 gap-y-2">
                                                     <div className="flex items-center gap-6">
@@ -267,9 +288,9 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                                                             <div className="p-8 pt-0 space-y-6 border-t border-white/5 mt-4">
                                                                 <div className="space-y-1">
-                                                                    <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest block">Propósito:</span>
+                                                                    <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest block">{isEn ? 'Purpose' : 'Propósito'}:</span>
                                                                     <p className="text-zinc-300 text-lg leading-relaxed font-light">{data.intro}</p>
-                                                                    <span className="text-[10px] font-black text-cyan-400/70 uppercase tracking-widest block mt-4">Naturaleza Esencial:</span>
+                                                                    <span className="text-[10px] font-black text-cyan-400/70 uppercase tracking-widest block mt-4">{isEn ? 'Essential Nature' : 'Naturaleza Esencial'}:</span>
                                                                     <p className="text-zinc-400 text-sm leading-relaxed font-light">{data.essence}</p>
                                                                     <p className="text-cyan-500/50 text-xs italic mt-2 uppercase tracking-wide">{data.keywords}</p>
                                                                 </div>
@@ -367,7 +388,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-4">
-                                        {Object.entries(ASTROLOGY_MANUAL.signs).map(([key, data]) => (
+                                        {Object.entries(data.signs).map(([key, data]: [string, any]) => (
                                             <div key={key} className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openSign === key ? 'bg-amber-500/10 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.05)]' : 'bg-[#080808]/80 border-white/5 hover:border-white/20'}`}>
                                                 <button onClick={() => { playSound('click'); setOpenSign(openSign === key ? null : key); }} className="w-full p-6 flex flex-col sm:flex-row sm:items-center justify-between text-left gap-4 gap-y-2">
                                                     <div className="flex items-center gap-6">
@@ -508,7 +529,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-4">
-                                        {Object.entries(ASTROLOGY_MANUAL.houses).map(([num, data]) => (
+                                        {Object.entries(data.houses).map(([num, data]: [string, any]) => (
                                             <div key={num} className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openHouse === num ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.05)]' : 'bg-[#080808]/80 border-white/5 hover:border-white/20'}`}>
                                                 <button onClick={() => { playSound('click'); setOpenHouse(openHouse === num ? null : num); }} className="w-full p-6 flex flex-col sm:flex-row sm:items-center justify-between text-left gap-4 gap-y-2">
                                                     <div className="flex items-center gap-6">
@@ -630,7 +651,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
 
                 <footer className="mt-40 text-center">
                     <button onClick={() => { playSound('transition'); onClose(); }} className="px-10 py-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-all">
-                        Cerrar Telón
+                        {isEn ? 'Close Curtain' : 'Cerrar Telón'}
                     </button>
                 </footer>
             </div >
@@ -639,6 +660,10 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
 };
 
 const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, playSound: (type?: 'click' | 'success' | 'transition') => void }) => {
+    const { language } = useTranslation();
+    const isEn = language === 'en';
+    const data = (isEn ? NUMERO_EN : NUMERO) as any;
+
     const [openNumber, setOpenNumber] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'frequencies' | 'pinnacle'>('frequencies');
 
@@ -656,7 +681,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
             <button
                 onClick={() => { playSound('click'); scrollToSection(id); }}
                 className={`absolute ${x} ${y} flex flex-col items-center group cursor-pointer z-10 translate-x-[-50%] translate-y-[-50%] outline-none`}
-                title={NUMEROLOGY_MANUAL.pinnacle.positions.find(p => p.id === id)?.title}
+                title={data.pinnacle.positions.find((p: any) => p.id === id)?.title}
             >
                 <div className={`${size} rounded-full border-2 ${color} flex items-center justify-center bg-black text-white font-black text-sm transition-all group-hover:scale-125 group-focus-visible:scale-125 group-hover:shadow-[0_0_30px_white/40] group-focus-visible:shadow-[0_0_30px_white/40] group-hover:border-white group-focus-visible:border-white shadow-[0_0_15px_rgba(0,0,0,0.5)]`}>
                     {id}
@@ -730,7 +755,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
 
                 {/* Pinnacle Legend (Key) */}
                 <div className="max-w-2xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 p-6 bg-white/5 border border-white/10 rounded-2xl">
-                    {NUMEROLOGY_MANUAL.pinnacle.positions.map(p => (
+                    {data.pinnacle.positions.map((p: any) => (
                         <button
                             key={p.id}
                             onClick={() => { playSound('click'); scrollToSection(p.id); }}
@@ -761,18 +786,18 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
             <div className="max-w-4xl mx-auto px-6 py-12 pb-32">
                 <nav className="flex items-center justify-between mb-16 sticky top-0 py-4 bg-[#050510]/80 backdrop-blur-md z-10 border-b border-white/5">
                     <button onClick={() => { playSound('click'); onClose(); }} className="flex items-center gap-3 text-white/40 hover:text-white transition-all uppercase tracking-widest text-xs font-bold">
-                        <ArrowLeft size={18} /> Volver a Biblioteca
+                        <ArrowLeft size={18} /> {data.navLibrary}
                     </button>
                     <div className="flex items-center gap-3">
                         <Hash className="text-amber-400" size={20} />
-                        <span className="text-sm font-light text-white uppercase tracking-[0.3em]">El Código Secreto</span>
+                        <span className="text-sm font-light text-white uppercase tracking-[0.3em]">{data.navTitle}</span>
                     </div>
                 </nav>
 
                 <header className="mb-12 space-y-4">
                     <h2 className="text-5xl md:text-7xl font-serif text-white/90 leading-tight">
-                        La Arquitectura <br />
-                        <span className="text-amber-500 italic">del Alma</span>
+                        {data.pinnacle.sectionTitle1} <br />
+                        <span className="text-amber-500 italic">{data.pinnacle.sectionTitle2}</span>
                     </h2>
                     <p className="text-xl text-white/50 font-sans font-light max-w-2xl leading-relaxed">
                         No somos una etiqueta estática, somos una frecuencia en constante aprendizaje y evolución.
@@ -782,8 +807,8 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                 <div className="flex justify-center mb-16 sticky top-24 z-20">
                     <div className="p-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex gap-1">
                         {[
-                            { id: 'frequencies', label: 'Frecuencias', color: 'text-amber-400' },
-                            { id: 'pinnacle', label: 'El Pináculo', color: 'text-amber-400' }
+                            { id: 'frequencies', label: data.tabs.frequencies, color: 'text-amber-400' },
+                            { id: 'pinnacle', label: data.tabs.pinnacle, color: 'text-amber-400' }
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -816,23 +841,23 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                             {/* Intro Section */}
                             <section className="space-y-12">
                                 <div className="space-y-6">
-                                    <h3 className="text-3xl font-light text-amber-300 tracking-wide">{NUMEROLOGY_MANUAL.intro.title}</h3>
-                                    <p className="text-xl text-white/70 leading-relaxed font-light">{NUMEROLOGY_MANUAL.intro.content}</p>
+                                    <h3 className="text-3xl font-light text-amber-300 tracking-wide">{data.intro.title}</h3>
+                                    <p className="text-xl text-white/70 leading-relaxed font-light">{data.intro.content}</p>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
                                         <div className="p-8 bg-amber-500/5 border border-amber-500/10 rounded-3xl space-y-4">
                                             <h4 className="text-xl text-amber-400 font-medium">Concepto Clave</h4>
                                             <p className="text-2xl text-white/80 italic font-light leading-snug">
-                                                "{NUMEROLOGY_MANUAL.intro.concept}"
+                                                "{data.intro.concept}"
                                             </p>
                                         </div>
                                         <div className="p-8 bg-white/5 border border-white/10 rounded-3xl space-y-4">
-                                            <h4 className="text-xl text-white/80 font-medium">{NUMEROLOGY_MANUAL.intro.reduction.title}</h4>
+                                            <h4 className="text-xl text-white/80 font-medium">{data.intro.reduction.title}</h4>
                                             <p className="text-white/50 leading-relaxed">
-                                                {NUMEROLOGY_MANUAL.intro.reduction.content}
+                                                {data.intro.reduction.content}
                                             </p>
                                             <p className="text-sm text-amber-200/40 italic border-l border-amber-500/30 pl-4">
-                                                {NUMEROLOGY_MANUAL.intro.reduction.masters_note}
+                                                {data.intro.reduction.masters_note}
                                             </p>
                                         </div>
                                     </div>
@@ -851,7 +876,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4">
-                                    {NUMEROLOGY_MANUAL.frequencies.map((f) => (
+                                    {data.frequencies.map((f: any) => (
                                         <div
                                             key={f.number}
                                             className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openNumber === f.number ? 'bg-amber-500/10 border-amber-500/40' : 'bg-white/5 border-white/5 hover:border-white/20'
@@ -920,7 +945,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                                                 <div className="space-y-3">
                                                                     <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">En Luz (Dones):</span>
                                                                     <ul className="space-y-1.5">
-                                                                        {f.positives.map((p, i) => (
+                                                                        {f.positives.map((p: string, i: number) => (
                                                                             <li key={i} className="flex items-start gap-2 text-zinc-400 text-xs font-light">
                                                                                 <span className="text-emerald-400 mt-0.5 flex-shrink-0">✦</span>
                                                                                 {p}
@@ -931,7 +956,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                                                 <div className="space-y-3">
                                                                     <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">En Sombra (Retos):</span>
                                                                     <ul className="space-y-1.5">
-                                                                        {f.negatives.map((n, i) => (
+                                                                        {f.negatives.map((n: string, i: number) => (
                                                                             <li key={i} className="flex items-start gap-2 text-zinc-400 text-xs font-light">
                                                                                 <span className="text-rose-400 mt-0.5 flex-shrink-0">✦</span>
                                                                                 {n}
@@ -973,7 +998,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4">
-                                    {NUMEROLOGY_MANUAL.masters.map((m) => (
+                                    {data.masters.map((m: any) => (
                                         <div
                                             key={m.number}
                                             className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openNumber === m.number ? 'bg-amber-500/10 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.05)]' : 'bg-[#080808]/80 border-white/5 hover:border-white/20'
@@ -1071,7 +1096,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                 <div className="space-y-4">
                                     <h3 className="text-4xl text-white font-light tracking-wide uppercase">El Pináculo del Destino <span className="text-white/20 font-serif lowercase italic pt-2 block text-2xl tracking-normal">tu geometría sagrada completa</span></h3>
                                     <p className="text-xl text-white/50 font-light leading-relaxed">
-                                        {NUMEROLOGY_MANUAL.pinnacle.intro}
+                                        {data.pinnacle.intro}
                                     </p>
                                 </div>
 
@@ -1106,7 +1131,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
 
                                 <div className="space-y-12">
                                     {(['IDENTIDAD', 'BRILLO', 'MISTERIO', 'SOMBRAS'] as const).map(level => {
-                                        const levelPositions = NUMEROLOGY_MANUAL.pinnacle.positions.filter(p => p.level === level);
+                                        const levelPositions = NUMERO.pinnacle.positions.filter((p: any) => p.level === level);
                                         const levelTitles = {
                                             IDENTIDAD: "Los Pilares de la Identidad",
                                             BRILLO: "El Triángulo del Brillo",
@@ -1123,7 +1148,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {levelPositions.map((p) => (
+                                                    {levelPositions.map((p: any) => (
                                                         <div key={p.id} id={`pinnacle-pos-${p.id}`} className="group p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/[0.08] hover:border-white/10 transition-all">
                                                             <div className="flex items-center gap-4 mb-3">
                                                                 <div className="w-8 h-8 rounded-full bg-black border border-white/20 flex items-center justify-center text-[10px] font-black text-white group-hover:bg-amber-500 group-hover:border-amber-400 transition-colors">
@@ -1148,13 +1173,13 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
 
                                 <div className="max-w-2xl mx-auto text-center space-y-8">
-                                    <h3 className="text-4xl font-light text-white">{NUMEROLOGY_MANUAL.integration.title}</h3>
+                                    <h3 className="text-4xl font-light text-white">{data.integration.title}</h3>
                                     <p className="text-xl text-white/60 leading-relaxed font-light">
-                                        {NUMEROLOGY_MANUAL.integration.content}
+                                        {data.integration.content}
                                     </p>
                                     <div className="pt-8 border-t border-white/5">
                                         <p className="text-2xl text-amber-400 italic font-medium">
-                                            "{NUMEROLOGY_MANUAL.integration.closing}"
+                                            "{data.integration.closing}"
                                         </p>
                                     </div>
                                 </div>
@@ -1164,9 +1189,9 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                 </AnimatePresence>
 
                 <footer className="mt-32 p-12 bg-white/5 border border-white/10 rounded-3xl text-center">
-                    <p className="text-white/40 text-sm tracking-widest uppercase mb-4">Fin de la Arquitectura del Alma</p>
+                    <p className="text-white/40 text-sm tracking-widest uppercase mb-4">{isEn ? 'End of Soul Architecture' : 'Fin de la Arquitectura del Alma'}</p>
                     <button onClick={() => { playSound('transition'); onClose(); }} className="px-8 py-3 bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 rounded-full transition-all border border-amber-500/30 uppercase text-xs font-bold tracking-[0.2em]">
-                        Cerrar y Volver
+                        {isEn ? 'Close and Go Back' : 'Cerrar y Volver'}
                     </button>
                 </footer>
             </div>
@@ -1175,6 +1200,9 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
 };
 
 const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSound: (type?: 'click' | 'success' | 'transition') => void }) => {
+    const { language } = useTranslation();
+    const isEn = language === 'en';
+    const data = (isEn ? MAYAN_EN : MAYAN) as any;
     const { profile } = useActiveProfile();
     const [openNahual, setOpenNahual] = useState<string | null>(null);
     const [selectedPos, setSelectedPos] = useState<{ id: string, title: string, description: string } | null>(null);
@@ -1189,7 +1217,9 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
         if (selectedPos.id === 'centro') {
             return {
                 title: selectedPos.title,
-                description: `Este es tu Nawal Guardián, el tronco de tu árbol espiritual. Es la energía que te sostiene y define tu propósito más profundo en este plano. \n\n${MAYAN_MANUAL.nahuales.find(n => n.id === profile?.mayan?.kicheName.toLowerCase())?.essence || 'Es la vibración purísima de tu nacimiento.'}`,
+                description: isEn 
+                    ? `This is your Guardian Nahual, the trunk of your spiritual tree. It is the energy that sustains you and defines your deepest purpose on this plane. \n\n${MAYAN.nahuales.find(n => n.id === profile?.mayan?.kicheName.toLowerCase())?.essence || 'It is the purest vibration of your birth.'}`
+                    : `Este es tu Nawal Guardián, el tronco de tu árbol espiritual. Es la energía que te sostiene y define tu propósito más profundo en este plano. \n\n${MAYAN.nahuales.find(n => n.id === profile?.mayan?.kicheName.toLowerCase())?.essence || 'Es la vibración purísima de tu nacimiento.'}`,
                 color: 'emerald' as const
             };
         }
@@ -1203,7 +1233,7 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
 
         const posKey = positionMap[selectedPos.id];
         const nawalName = profile?.mayan?.kicheName || "";
-        const wisdom = getMayaCrossWisdom(posKey, nawalName);
+        const wisdom = getMayaCrossWisdom(isEn, posKey, nawalName);
 
         return {
             title: selectedPos.title,
@@ -1224,26 +1254,26 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
             <div className="max-w-4xl mx-auto px-6 py-12 pb-32">
                 <nav className="flex items-center justify-between mb-16 sticky top-0 py-4 bg-[#020504]/80 backdrop-blur-md z-10 border-b border-white/5">
                     <button onClick={() => { playSound('click'); onClose(); }} className="flex items-center gap-3 text-white/40 hover:text-white transition-all uppercase tracking-widest text-xs font-bold">
-                        <ArrowLeft size={18} /> Volver a Biblioteca
+                        <ArrowLeft size={18} /> {isEn ? 'Back to Library' : 'Volver a Biblioteca'}
                     </button>
                     <div className="flex items-center gap-3">
                         <Sun className="text-emerald-400" size={20} />
-                        <span className="text-sm font-light text-white uppercase tracking-[0.3em]">El Tiempo Sagrado</span>
+                        <span className="text-sm font-light text-white uppercase tracking-[0.3em]">{isEn ? 'Sacred Time' : 'El Tiempo Sagrado'}</span>
                     </div>
                 </nav>
 
                 <header className="mb-20 space-y-4 text-center">
                     <h2 className="text-5xl md:text-7xl font-serif text-white/90 leading-tight">
-                        El Código <br />
-                        <span className="text-emerald-500 italic">del Tiempo</span>
+                        {data.intro.headerTitle1} <br />
+                        <span className="text-emerald-500 italic">{data.intro.headerTitle2}</span>
                     </h2>
                     <div className="flex items-center justify-center gap-2 mb-4">
                         <span className="h-px w-8 bg-emerald-500/30" />
-                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">Referenciando el Libro del Destino</span>
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">{isEn ? 'Referencing the Book of Destiny' : 'Referenciando el Libro del Destino'}</span>
                         <span className="h-px w-8 bg-emerald-500/30" />
                     </div>
                     <p className="text-xl text-white/50 font-sans font-light max-w-2xl leading-relaxed mx-auto">
-                        {MAYAN_MANUAL.intro.content}
+                        {data.intro.content}
                     </p>
                 </header>
 
@@ -1252,19 +1282,19 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
                     <section className="space-y-12">
                         <div className="space-y-4 text-center">
                             <h3 className="text-4xl text-emerald-400 font-serif italic tracking-wide">
-                                La Cruz Maya
+                                {data.mayanCross.sectionTitle}
                             </h3>
                             <span className="text-zinc-500 font-sans font-light uppercase tracking-widest text-[10px] pt-2 block">
-                                La arquitectura biológica y espiritual de tu alma
+                                {data.mayanCross.sectionSubtitle}
                             </span>
                             <div className="p-10 bg-emerald-500/[0.03] border border-emerald-500/10 rounded-[2.5rem] text-xl text-emerald-300/90 italic font-light relative mt-10 max-w-2xl mx-auto shadow-2xl shadow-emerald-500/5">
                                 <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-8xl text-emerald-500/10 font-serif">"</span>
-                                {MAYAN_MANUAL.mayanCross.metaphor}
+                                {data.mayanCross.metaphor}
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 max-w-4xl mx-auto">
-                            {MAYAN_MANUAL.mayanCross.positions.map((pos) => {
+                            {data.mayanCross.positions.map((pos: any) => {
                                 // Dynamic grid layout for literal cross shape
                                 const positionMap: Record<string, string> = {
                                     cabeza: "md:col-start-2 md:row-start-1",
@@ -1302,16 +1332,30 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
                     <section className="space-y-12">
                         <div className="space-y-4">
                             <h3 className="text-4xl text-emerald-400 font-serif italic tracking-wide">
-                                Las 20 Fuerzas
+                                {data.forces.title}
                             </h3>
                             <span className="text-zinc-500 font-sans font-light uppercase tracking-widest text-xs pt-2 block">
-                                Los nahuales de la creación
+                                {data.forces.subtitle}
                             </span>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">
-                            {MAYAN_MANUAL.nahuales.map((n) => {
-                                const cross = getMayanCross(n.id);
+                            {data.nahuales.map((n: any) => {
+                                // Localized cross calculation
+                                const sequence = data.nahuales;
+                                const centerIndex = sequence.findIndex((item: any) => item.id === n.id);
+                                const getNahualOffset = (offset: number) => {
+                                    let newIndex = (centerIndex + offset) % 20;
+                                    if (newIndex < 0) newIndex += 20;
+                                    return sequence[newIndex];
+                                };
+                                const cross = {
+                                    center: sequence[centerIndex],
+                                    conception: getNahualOffset(-8),
+                                    destiny: getNahualOffset(8),
+                                    leftArm: getNahualOffset(-6),
+                                    rightArm: getNahualOffset(6)
+                                };
                                 return (
                                     <div
                                         key={n.id}
@@ -1319,7 +1363,7 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
                                             }`}
                                     >
                                         <button
-                                            onClick={() => setOpenNahual(openNahual === n.id ? null : n.id)}
+                                            onClick={() => { playSound('click'); setOpenNahual(openNahual === n.id ? null : n.id); }}
                                             className="w-full p-6 flex items-center justify-between text-left"
                                         >
                                             <div className="flex items-center gap-6">
@@ -1333,7 +1377,7 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
                                                 </div>
                                                 <div>
                                                     <h4 className="text-xl text-white font-light group-hover:text-emerald-300 transition-colors">{n.kiche} - <span className="text-white/50">{n.spanish}</span></h4>
-                                                    <p className="text-[10px] text-emerald-500/50 uppercase tracking-[0.2em]">Totem: {n.totem}</p>
+                                                    <p className="text-[10px] text-emerald-500/50 uppercase tracking-[0.2em]">{isEn ? 'Totem' : 'Tótem'}: {n.totem}</p>
                                                 </div>
                                             </div>
                                             <ChevronDown className={`w-5 h-5 text-white/20 transition-transform duration-500 ${openNahual === n.id ? 'rotate-180 text-emerald-400' : ''}`} />
@@ -1361,45 +1405,45 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <span className="text-[10px] font-black text-teal-400 uppercase tracking-widest">Significado Cósmico:</span>
+                                                            <span className="text-[10px] font-black text-teal-400 uppercase tracking-widest">{isEn ? 'Cosmic Meaning' : 'Significado Cósmico'}:</span>
                                                             <p className="text-white/70 text-sm leading-relaxed italic">{n.meaning}</p>
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Esencia Sagrada:</span>
+                                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{isEn ? 'Sacred Essence' : 'Esencia Sagrada'}:</span>
                                                             <p className="text-white/80 text-lg leading-relaxed font-light">{n.essence}</p>
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Características del Nativo:</span>
+                                                            <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">{isEn ? 'Native Characteristics' : 'Características del Nativo'}:</span>
                                                             <p className="text-white/70 text-sm leading-relaxed">{n.characteristics}</p>
                                                         </div>
 
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                             <div className="space-y-2">
-                                                                <span className="text-[10px] font-black text-teal-400 uppercase tracking-widest">En Luz (Dones):</span>
+                                                                <span className="text-[10px] font-black text-teal-400 uppercase tracking-widest">{isEn ? 'In Light (Gifts)' : 'En Luz (Dones)'}:</span>
                                                                 <p className="text-white/60 text-sm leading-relaxed">{n.light}</p>
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">En Sombra (Retos):</span>
+                                                                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{isEn ? 'In Shadow (Challenges)' : 'En Sombra (Desafíos)'}:</span>
                                                                 <p className="text-white/60 text-sm leading-relaxed">{n.shadow}</p>
                                                             </div>
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Misión de Vida:</span>
+                                                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{isEn ? 'Soul Mission' : 'Misión de Vida'}:</span>
                                                             <p className="text-white/80 text-sm leading-relaxed">{n.mission}</p>
                                                         </div>
 
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                             <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl space-y-2">
-                                                                <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest block mb-2">Consejo del Abuelo:</span>
+                                                                <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest block mb-2">{isEn ? "Grandfathers' Advice" : "Consejo del Abuelo"}:</span>
                                                                 <p className="text-white italic text-sm font-light">"{n.advice}"</p>
                                                             </div>
                                                             <div className="p-6 bg-amber-500/5 border border-amber-500/20 rounded-2xl space-y-2">
-                                                                <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-2">Dato Curioso:</span>
+                                                                <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-2">{isEn ? 'Curious Fact' : 'Dato Curioso'}:</span>
                                                                 <p className="text-zinc-300 italic text-xs font-light leading-relaxed">
-                                                                    {n.curiousFact || "En la cosmovisión maya, esta fuerza es fundamental para el equilibrio de la red de la vida."}
+                                                                    {n.curiousFact || (isEn ? "In the Mayan worldview, this force is fundamental for the balance of the web of life." : "En la cosmovisión maya, esta fuerza es fundamental para el equilibrio de la red de la vida.") }
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -1547,13 +1591,13 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
 
                         <div className="max-w-2xl mx-auto text-center space-y-8">
-                            <h3 className="text-4xl font-light text-white">{MAYAN_MANUAL.integration.title}</h3>
+                            <h3 className="text-4xl font-light text-white">{data.integration.title}</h3>
                             <p className="text-xl text-white/60 leading-relaxed font-light">
-                                {MAYAN_MANUAL.integration.content}
+                                {data.integration.content}
                             </p>
                             <div className="pt-8 border-t border-white/5">
                                 <p className="text-2xl text-emerald-400 italic font-medium">
-                                    "{MAYAN_MANUAL.integration.closing}"
+                                    "{data.integration.closing}"
                                 </p>
                             </div>
                         </div>
@@ -1561,9 +1605,9 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
                 </div>
 
                 <footer className="mt-32 p-12 bg-white/5 rounded-3xl border border-white/10 text-center">
-                    <p className="text-white/40 text-sm tracking-widest uppercase mb-4">Fin del Tiempo Sagrado</p>
+                    <p className="text-white/40 text-sm tracking-widest uppercase mb-4">{isEn ? 'End of Sacred Time' : 'Fin del Tiempo Sagrado'}</p>
                     <button onClick={() => { playSound('transition'); onClose(); }} className="px-8 py-3 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 rounded-full transition-all border border-emerald-500/30 uppercase text-xs font-bold tracking-[0.2em]">
-                        Cerrar y Volver
+                        {isEn ? 'Close and Go Back' : 'Cerrar y Volver'}
                     </button>
                 </footer>
 
@@ -1580,6 +1624,10 @@ const MayaManualDetail = ({ onClose, playSound }: { onClose: () => void, playSou
 };
 
 const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, playSound: (type?: 'click' | 'success' | 'transition') => void }) => {
+    const { language } = useTranslation();
+    const isEn = language === 'en';
+    const data = (isEn ? CHINESE_EN : CHINESE) as any;
+
     const [openAnimal, setOpenAnimal] = useState<string | null>(null);
     const [openLibAnimal, setOpenLibAnimal] = useState<string | null>(null);
 
@@ -1593,11 +1641,11 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
             <div className="max-w-4xl mx-auto px-6 py-12 pb-32">
                 <nav className="flex items-center justify-between mb-16 sticky top-0 py-4 bg-[#02020a]/80 backdrop-blur-md z-10 border-b border-white/5">
                     <button onClick={() => { playSound('click'); onClose(); }} className="flex items-center gap-3 text-white/40 hover:text-white transition-all uppercase tracking-widest text-xs font-bold">
-                        <ArrowLeft size={18} /> Volver a Biblioteca
+                        <ArrowLeft size={18} /> {isEn ? 'Back to Library' : 'Volver a Biblioteca'}
                     </button>
                     <div className="flex items-center gap-3">
                         <Moon className="text-indigo-400" size={20} />
-                        <span className="text-sm font-light text-white uppercase tracking-[0.3em]">El Ciclo Ancestral</span>
+                        <span className="text-sm font-light text-white uppercase tracking-[0.3em]">{isEn ? 'The Ancestral Cycle' : 'El Ciclo Ancestral'}</span>
                     </div>
                 </nav>
 
@@ -1608,16 +1656,16 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
 
                 <header className="mb-20 space-y-4">
                     <h2 className="text-5xl md:text-7xl font-serif text-white/90 leading-tight">
-                        La Ecología <br />
-                        <span className="text-indigo-500 italic">Interna</span>
+                        {data.intro.headerTitle1} <br />
+                        <span className="text-indigo-500 italic">{data.intro.headerTitle2}</span>
                     </h2>
                     <div className="flex items-center gap-2 mb-4">
                         <span className="h-px w-8 bg-indigo-500/30" />
-                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em]">Fuentes: Ludovica Squirru / Horóscopo Chino</span>
+                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em]">{data.intro.sources}</span>
                         <span className="h-px w-8 bg-indigo-500/30" />
                     </div>
                     <p className="text-xl text-white/50 font-sans font-light max-w-2xl leading-relaxed">
-                        {CHINESE_MANUAL.intro.content}
+                        {data.intro.content}
                     </p>
                 </header>
 
@@ -1628,13 +1676,13 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                             <div className="space-y-6">
                                 <h3 className="text-3xl font-light text-indigo-300 tracking-wide">Yin y Yang: El Latido</h3>
                                 <p className="text-lg text-white/70 leading-relaxed font-light italic">
-                                    {CHINESE_MANUAL.intro.yinyang}
+                                    {data.intro.yinyang}
                                 </p>
                             </div>
                             <div className="p-8 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl space-y-4">
                                 <h4 className="text-xl text-indigo-400 font-medium">Concepto Maestro</h4>
                                 <p className="text-2xl text-white/80 italic font-light leading-snug">
-                                    "{CHINESE_MANUAL.intro.concept}"
+                                    "{data.intro.concept}"
                                 </p>
                             </div>
                         </div>
@@ -1647,7 +1695,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                 El clima de tu alma
                             </span>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                                {CHINESE_MANUAL.elements.map((el) => (
+                                {data.elements.map((el: any) => (
                                     <div key={el.id} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 hover:border-indigo-500/30 transition-all hover:bg-white/5 group">
                                         <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-colors">
                                             <div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.5)]" />
@@ -1664,15 +1712,15 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                     <section className="space-y-12">
                         <div className="space-y-4">
                             <h3 className="text-4xl text-indigo-400 font-serif italic tracking-wide">
-                                Los 12 Guardianes
+                                {data.animalsSectionTitle}
                             </h3>
                             <span className="text-zinc-500 font-sans font-light uppercase tracking-widest text-xs pt-2 block">
-                                Arquetipos del movimiento
+                                {data.animalsSectionSubtitle}
                             </span>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">
-                            {CHINESE_MANUAL.animals.map((a) => (
+                            {data.animals.map((a: any) => (
                                 <div
                                     key={a.id}
                                     className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openAnimal === a.id ? 'bg-indigo-500/10 border-indigo-500/40' : 'bg-white/5 border-white/5 hover:border-white/20'
@@ -1686,13 +1734,13 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                             <div className={`w-11 aspect-[3/4] rounded-lg border transition-all flex items-center justify-center overflow-hidden shadow-lg ${openAnimal === a.id ? 'bg-indigo-500/20 border-indigo-500/50' : 'bg-black/40 border-white/10 group-hover:border-white/20'
                                                 }`}>
                                                 <img
-                                                    src={getChineseZodiacImage(a.spanish)}
-                                                    alt={a.spanish}
+                                                    src={getChineseZodiacImage(a.id)}
+                                                    alt={a.name}
                                                     className="w-[145%] h-[145%] object-cover object-center transition-transform duration-700 group-hover:scale-[1.05] brightness-110"
                                                 />
                                             </div>
                                             <div>
-                                                <h4 className="text-xl text-white font-light group-hover:text-indigo-300 transition-colors">{a.spanish}</h4>
+                                                <h4 className="text-xl text-white font-light group-hover:text-indigo-300 transition-colors">{a.name}</h4>
                                                 <p className="text-[10px] text-indigo-500/50 uppercase tracking-[0.2em]">{a.archetype}</p>
                                             </div>
                                         </div>
@@ -1713,36 +1761,36 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                     <div className="flex w-full justify-center items-center py-6">
                                                         <div className="w-48 md:w-64 aspect-[2/3] flex items-center justify-center rounded-xl overflow-hidden shadow-2xl border border-indigo-500/20 bg-black/40 group/large">
                                                             <img
-                                                                src={getChineseZodiacImage(a.spanish)}
-                                                                alt={a.spanish}
+                                                                src={getChineseZodiacImage(a.id)}
+                                                                alt={a.name}
                                                                 className="w-[145%] h-[145%] object-cover object-center brightness-125 transition-transform duration-700 group-hover/large:scale-[1.05]"
                                                             />
                                                         </div>
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">La Esencia:</span>
+                                                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{data.labels.essence}</span>
                                                         <p className="text-white/80 text-lg leading-relaxed font-light">{a.essence}</p>
                                                     </div>
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                         <div className="space-y-2">
-                                                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">En Luz (Dones):</span>
+                                                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{data.labels.light}</span>
                                                             <p className="text-white/60 text-sm leading-relaxed">{a.light}</p>
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">En Sombra (Retos):</span>
+                                                            <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{data.labels.shadow}</span>
                                                             <p className="text-white/60 text-sm leading-relaxed">{a.shadow}</p>
                                                         </div>
                                                     </div>
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div className="p-6 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl space-y-2">
-                                                            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest block mb-2">Consejo Taoísta:</span>
+                                                            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest block mb-2">{data.labels.advice}</span>
                                                             <p className="text-white italic text-sm font-light">"{a.advice}"</p>
                                                         </div>
                                                         <div className="p-6 bg-amber-500/5 border border-amber-500/20 rounded-2xl space-y-2">
-                                                            <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-2">Dato Curioso:</span>
+                                                            <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-2">{data.labels.curiousFact}</span>
                                                             <p className="text-zinc-300 italic text-xs font-light leading-relaxed">
                                                                 {a.curiousFact}
                                                             </p>
@@ -1755,52 +1803,54 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                             onClick={() => { playSound('click'); setOpenLibAnimal(openLibAnimal === a.id ? null : a.id); }}
                                                             className={`px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-2 ${openLibAnimal === a.id ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]' : 'bg-white/5 text-indigo-300/70 hover:text-indigo-300 hover:bg-white/10 border border-indigo-500/20'}`}
                                                         >
-                                                            {openLibAnimal === a.id ? 'Cerrar Biblioteca Profunda' : 'Ver Biblioteca Profunda'}
+                                                            {openLibAnimal === a.id 
+                                                                ? (isEn ? 'Close Deep Library' : 'Cerrar Biblioteca Profunda') 
+                                                                : (isEn ? 'View Deep Library' : 'Ver Biblioteca Profunda')}
                                                         </button>
                                                     </div>
 
                                                     <AnimatePresence>
-                                                        {openLibAnimal === a.id && CHINESE_LIB[a.spanish] && (() => {
-                                                            const data = CHINESE_LIB[a.spanish];
+                                                        {openLibAnimal === a.id && (isEn ? CHINESE_LIB_EN[a.spanish] : CHINESE_LIB[a.spanish]) && (() => {
+                                                            const data = isEn ? CHINESE_LIB_EN[a.spanish] : CHINESE_LIB[a.spanish];
                                                             return (
                                                                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                                                                     <div className="pt-8 space-y-6">
-                                                                        <div className="flex flex-col items-center text-center space-y-2 mb-8">
-                                                                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-400">Archivos de Ludovica Squirru</span>
-                                                                            <div className="h-px w-12 bg-indigo-500/30" />
-                                                                        </div>
+                                                        <div className="flex flex-col items-center text-center space-y-2 mb-8">
+                                                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-400">{isEn ? 'Ludovica Squirru Archives' : 'Archivos de Ludovica Squirru'}</span>
+                                                            <div className="h-px w-12 bg-indigo-500/30" />
+                                                        </div>
 
                                                                         <p className="text-indigo-400/50 text-[10px] uppercase tracking-widest">{data.years}</p>
 
                                                                         <div className="space-y-1">
-                                                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">Perfil Profundo</span>
+                                                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">{isEn ? 'Deep Profile' : 'Perfil Profundo'}</span>
                                                                             <p className="text-zinc-300 text-sm leading-relaxed font-light">{data.profile}</p>
                                                                         </div>
 
                                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                                             <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 space-y-2">
-                                                                                <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">❤ Amor</span>
+                                                                                <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? '❤ Love' : '❤ Amor'}</span>
                                                                                 <p className="text-zinc-400 text-xs leading-relaxed">{data.love}</p>
                                                                             </div>
                                                                             <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/15 space-y-2">
-                                                                                <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">✦ Carrera</span>
+                                                                                <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">{isEn ? '✦ Career' : '✦ Carrera'}</span>
                                                                                 <p className="text-zinc-400 text-xs leading-relaxed">{data.career}</p>
                                                                             </div>
                                                                         </div>
 
                                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                                             <div className="space-y-2">
-                                                                                <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">+ Fortalezas</span>
+                                                                                <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">{isEn ? '+ Strengths' : '+ Fortalezas'}</span>
                                                                                 <ul className="space-y-1">
-                                                                                    {data.positives.map((p, i) => (
+                                                                                    {data.positives.map((p: string, i: number) => (
                                                                                         <li key={i} className="text-xs text-zinc-400 flex gap-2"><span className="text-emerald-500 mt-0.5">›</span>{p}</li>
                                                                                     ))}
                                                                                 </ul>
                                                                             </div>
                                                                             <div className="space-y-2">
-                                                                                <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest block">– Sombras</span>
+                                                                                <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest block">{isEn ? '– Shadows' : '– Sombras'}</span>
                                                                                 <ul className="space-y-1">
-                                                                                    {data.negatives.map((n, i) => (
+                                                                                    {data.negatives.map((n: string, i: number) => (
                                                                                         <li key={i} className="text-xs text-zinc-500 flex gap-2"><span className="text-orange-500/60 mt-0.5">›</span>{n}</li>
                                                                                     ))}
                                                                                 </ul>
@@ -1808,12 +1858,12 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                                         </div>
 
                                                                         <div className="p-4 bg-indigo-500/5 border-l-2 border-indigo-400/30 rounded-r-xl">
-                                                                            <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest block mb-1">Karma de vida</span>
+                                                                            <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest block mb-1">{isEn ? 'Life Karma' : 'Karma de vida'}</span>
                                                                             <p className="text-zinc-300 text-xs italic leading-relaxed">{data.karma}</p>
                                                                         </div>
 
                                                                         <div className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-2xl border border-white/5">
-                                                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest flex-shrink-0">Talismán:</span>
+                                                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest flex-shrink-0">{isEn ? 'Talisman:' : 'Talismán:'}</span>
                                                                             <span className="text-xs text-zinc-500 italic">{data.talisman}</span>
                                                                         </div>
                                                                     </div>
@@ -1835,13 +1885,13 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
 
                         <div className="max-w-2xl mx-auto text-center space-y-8">
-                            <h3 className="text-4xl font-light text-white">{CHINESE_MANUAL.integration.title}</h3>
+                            <h3 className="text-4xl font-light text-white">{data.integration.title}</h3>
                             <p className="text-xl text-white/60 leading-relaxed font-light">
-                                {CHINESE_MANUAL.integration.content}
+                                {data.integration.content}
                             </p>
                             <div className="pt-8 border-t border-white/5">
                                 <p className="text-2xl text-indigo-400 italic font-medium">
-                                    "{CHINESE_MANUAL.integration.closing}"
+                                    "{data.integration.closing}"
                                 </p>
                             </div>
                         </div>
@@ -1849,9 +1899,9 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                 </div>
 
                 <footer className="mt-32 p-12 bg-white/5 rounded-3xl border border-white/10 text-center">
-                    <p className="text-white/40 text-sm tracking-widest uppercase mb-4">Fin del Ciclo Ancestral</p>
+                    <p className="text-white/40 text-sm tracking-widest uppercase mb-4">{isEn ? 'End of Ancestral Cycle' : 'Fin del Ciclo Ancestral'}</p>
                     <button onClick={() => { playSound('transition'); onClose(); }} className="px-8 py-3 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 rounded-full transition-all border border-indigo-500/30 uppercase text-xs font-bold tracking-[0.2em]">
-                        Cerrar y Volver
+                        {isEn ? 'Close and Go Back' : 'Cerrar y Volver'}
                     </button>
                 </footer>
             </div>

@@ -3,62 +3,65 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, MessageSquare, Mic, Shield, Compass, ArrowLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
+import { useTranslation } from '../i18n';
 
 interface SigilExplainerProps {
     onClose: () => void;
 }
 
-const SIGIL_SLIDES = [
+const getSigilSlides = (t: any) => [
     {
-        title: "Asistente Cuántico",
-        subtitle: "Tu Mentor de Inteligencia Artificial",
+        title: t('sigil_ex_title_1'),
+        subtitle: t('sigil_ex_sub_1'),
         icon: Sparkles,
         iconColor: "text-cyan-400",
         colorBg: "bg-cyan-500/10",
         borderColor: "border-cyan-500/30",
-        description: "El Sigil (IA) es tu guía evolutivo. Capaz de analizar tu código de identidad, comprender tu momento actual y responder con sabiduría cuántica a tus dilemas."
+        description: t('sigil_ex_desc_1')
     },
     {
-        title: "Omnipresencia en Telegram",
-        subtitle: "Apoyo Proactivo Diario",
+        title: t('sigil_ex_title_2'),
+        subtitle: t('sigil_ex_sub_2'),
         icon: MessageSquare,
         iconColor: "text-purple-400",
         colorBg: "bg-purple-500/10",
         borderColor: "border-purple-500/30",
-        description: "Puedes vincular el Sigil con tu Telegram para recibir lecturas del oráculo matutinas, recordatorios de tus protocolos y alertas de tránsitos cósmicos sin necesidad de abrir la aplicación."
+        description: t('sigil_ex_desc_2')
     },
     {
-        title: "Modulación de Voz",
-        subtitle: "Respuestas Inmersivas (Beta)",
+        title: t('sigil_ex_title_3'),
+        subtitle: t('sigil_ex_sub_3'),
         icon: Mic,
         iconColor: "text-amber-400",
         colorBg: "bg-amber-500/10",
         borderColor: "border-amber-500/30",
-        description: "El Sigil puede comunicarse contigo a través de audios inmersivos aplicados a momentos críticos de tu semana u oráculos profundos de audio."
+        description: t('sigil_ex_desc_3')
     },
     {
-        title: "Guardián de Hábitos",
-        subtitle: "Monitoreo del Protocolo 21",
+        title: t('sigil_ex_title_4'),
+        subtitle: t('sigil_ex_sub_4'),
         icon: Shield,
         iconColor: "text-emerald-400",
         colorBg: "bg-emerald-500/10",
         borderColor: "border-emerald-500/30",
-        description: "Sintoniza con tus hábitos elite del Protocolo 21. El Sigil te asistirá recordando tus meditaciones y vigilando la consecución de tus ciclos diarios."
+        description: t('sigil_ex_desc_4')
     },
     {
-        title: "Oráculos en Tiempo Real",
-        subtitle: "Perspectiva y Claridad",
+        title: t('sigil_ex_title_5'),
+        subtitle: t('sigil_ex_sub_5'),
         icon: Compass,
         iconColor: "text-rose-400",
         colorBg: "bg-rose-500/10",
         borderColor: "border-rose-500/30",
-        description: "Consulta tiras del Tarot o el Oráculo del Día. El Sigil cruza las bases de datos de sabiduría astral para entregarte respuestas adaptadas a tu frecuencia vibracional."
+        description: t('sigil_ex_desc_5')
     }
 ];
 
 export const SigilExplainer: React.FC<SigilExplainerProps> = ({ onClose }) => {
+    const { t } = useTranslation();
     const { playSound } = useSound();
     const [currentIndex, setCurrentIndex] = React.useState(0);
+    const SIGIL_SLIDES = React.useMemo(() => getSigilSlides(t), [t]);
     const totalSteps = SIGIL_SLIDES.length;
     const currentSlide = SIGIL_SLIDES[currentIndex];
     const SlideIcon = currentSlide.icon;
@@ -174,7 +177,7 @@ export const SigilExplainer: React.FC<SigilExplainerProps> = ({ onClose }) => {
                         )}
                     >
                         <ArrowLeft size={16} />
-                        Atrás
+                        {t('back')}
                     </button>
 
                     <div className="flex items-center gap-4">
@@ -182,7 +185,7 @@ export const SigilExplainer: React.FC<SigilExplainerProps> = ({ onClose }) => {
                             onClick={onClose}
                             className="text-[10px] uppercase tracking-[0.2em] font-black text-white/30 hover:text-white/60 transition-colors"
                         >
-                            Saltar
+                            {t('skip')}
                         </button>
 
                         <button
@@ -193,7 +196,7 @@ export const SigilExplainer: React.FC<SigilExplainerProps> = ({ onClose }) => {
                             )}
                         >
                             <span className="relative z-10 flex items-center gap-3">
-                                {currentIndex === totalSteps - 1 ? 'Entendido' : 'Continuar'} 
+                                {currentIndex === totalSteps - 1 ? t('understood') : t('continue')} 
                                 {currentIndex !== totalSteps - 1 && <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />}
                             </span>
                         </button>

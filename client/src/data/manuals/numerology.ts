@@ -34,6 +34,12 @@ export interface PinnaclePositionData {
 }
 
 export const NUMEROLOGY_MANUAL = {
+    navLibrary: "Volver a Biblioteca",
+    navTitle: "El Código Secreto",
+    tabs: {
+        frequencies: "Frecuencias",
+        pinnacle: "El Pináculo"
+    },
     intro: {
         title: "El Lenguaje del Universo",
         concept: "Todo en el universo vibra, y esa vibración tiene un número",
@@ -212,6 +218,8 @@ export const NUMEROLOGY_MANUAL = {
     ],
     pinnacle: {
         title: "El Pináculo del Destino: Tu Geometría Sagrada",
+        sectionTitle1: "La Arquitectura",
+        sectionTitle2: "del Alma",
         intro: "Tu código o 'árbol de vida numerológico' se construye a partir de tu fecha de nacimiento (A: Mes, B: Día, C: Año). A través de la alquimia de estos tres pilares —sumando para ascender hacia el espíritu y restando para descender hacia las sombras— NAOS revela los 15 pilares fundamentales de tu Arquitectura del Alma.",
         positions: [
             { id: 'A', title: 'Mes (Karma)', level: 'IDENTIDAD', description: 'Tu energía de acción externa y el aprendizaje que vienes a equilibrar en tu relación con el mundo.' },

@@ -2,6 +2,7 @@ import { Telegraf, Markup } from 'telegraf';
 import { config } from '../../config/env';
 import { supabase } from '../../lib/supabase';
 import { SigilService } from './service';
+import { SYSTEM_PROMPTS } from './prompts';
 
 let bot: Telegraf | null = null;
 const sigilService = new SigilService();
@@ -18,23 +19,28 @@ export const initTelegramBot = () => {
         // Protocolo de Reconocimiento
         bot.start((ctx) => {
             console.log(`[TELEGRAM] Iniciando Protocolo de Reconocimiento para chat.id: ${ctx.chat.id}`);
-            ctx.reply("Saludos, Arquitecto. Para sincronizar tu canal de comunicación con el Templo, por favor escribe el correo electrónico con el que fuiste registrado en NAOS.");
+            const welcome = "Greetings, Architect. To synchronize your channel with the Temple, please write your NAOS registered email.\n\nSaludos, Arquitecto. Para sincronizar tu canal con el Templo, por favor escribe tu correo de NAOS.";
+            ctx.reply(welcome);
         });
 
         // Comando para desenlazar
         bot.command('unlink', async (ctx) => {
             const chatId = ctx.chat.id.toString();
             try {
+                const { data: profile } = await supabase.from('profiles').select('language').eq('telegram_chat_id', chatId).maybeSingle();
+                const lang = profile?.language === 'en' ? 'en' : 'es';
+                const t = SYSTEM_PROMPTS[lang].telegram;
+
                 const { error } = await supabase
                     .from('profiles')
                     .update({ telegram_chat_id: null })
                     .eq('telegram_chat_id', chatId);
 
                 if (error) throw error;
-                ctx.reply("Sincronización terminada. El Sigil ha dejado de vigilar este canal. Puedes volver a sincronizar con /start.");
+                ctx.reply(t.unlink_success);
             } catch (e) {
                 console.error("[TELEGRAM] Unlink Error:", e);
-                ctx.reply("No se pudo romper el vínculo estelar en este momento.");
+                ctx.reply("No se pudo romper el vínculo estelar en este momento. / Could not break the link.");
             }
         });
         
@@ -79,7 +85,7 @@ export const initTelegramBot = () => {
             }
 
             // 2. Si no está vinculado, intentar validar email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailRegex = /^[^s\@]+@[^s\@]+\.[^s\@]+$/;
 
             if (emailRegex.test(text)) {
                 console.log(`[TELEGRAM] Intentando vincular email: ${text} con Telegram ID: ${chatId}`);
@@ -92,30 +98,35 @@ export const initTelegramBot = () => {
 
                     if (error) {
                         console.error("[TELEGRAM] RPC Error:", error);
-                        ctx.reply("Ha ocurrido una interferencia en el tejido de la base de datos de NAOS. Intenta más tarde.");
+                        ctx.reply("Error en la conexión con NAOS / NAOS connection error.");
                         return;
                     }
 
                     if (data === true || data === 'true') {
-                        ctx.reply("Sincronización estelar completada. El Sigil ahora vigila tus ciclos.\n\n⚙️ *Ajuste Inicial:* ¿Cómo prefieres recibir alertas?", {
+                        // After linking, we can try to fetch the profile to get the language
+                        const { data: newProfile } = await supabase.from('profiles').select('language').eq('telegram_chat_id', chatId).maybeSingle();
+                        const lang = newProfile?.language === 'en' ? 'en' : 'es';
+                        const t = SYSTEM_PROMPTS[lang].telegram;
+
+                        ctx.reply(t.sync_success, {
                             parse_mode: 'Markdown',
                             ...Markup.inlineKeyboard([
-                                [Markup.button.callback('🔊 Notas de Voz', 'notif_voice'), Markup.button.callback('📝 Solo Texto', 'notif_text')]
+                                [Markup.button.callback(t.voice_label, 'notif_voice'), Markup.button.callback(t.text_label, 'notif_text')]
                             ])
                         });
                         console.log(`[TELEGRAM] VINCULACIÓN EXITOSA: ${text} <-> ${chatId}`);
                     } else {
-                        ctx.reply("Esa frecuencia no se encuentra en nuestros registros. Verifica tu correo.");
+                        ctx.reply("Email no encontrado / Email not found. Verifica tu correo.");
                         console.log(`[TELEGRAM] VINCULACIÓN FALLIDA: Email ${text} no encontrado.`);
                     }
 
                 } catch (dbErr) {
                     console.error("[TELEGRAM] DB Connection Error:", dbErr);
-                    ctx.reply("El oráculo no puede conectar en este momento.");
+                    ctx.reply("Error de conexión / Connection error.");
                 }
 
             } else {
-                ctx.reply("La secuencia ingresada no resuena como un correo electrónico válido. Para sincronizar, envía tu email de NAOS.");
+                ctx.reply("Email inválido / Invalid email. Envía tu correo de NAOS.");
             }
         });
 

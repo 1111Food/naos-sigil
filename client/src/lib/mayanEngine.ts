@@ -40,9 +40,32 @@ export class MayanEngine {
     // Calibration for User GMC (Gran Cuenta Maya?): -49 days relative to GMT 584283
     private static readonly USER_CORRECTION_OFFSET = -49;
 
-    static calculate(dateString: string) {
+    static calculate(dateString: string): any {
+        if (!dateString || dateString.trim() === '') {
+            console.warn("MayanEngine: Missing dateString. Returning default state.");
+            return {
+                nawal_maya: "Unknown",
+                kicheName: "Unknown",
+                nawal_tono: 1,
+                tone: 1,
+                meaning: "Pending alignment",
+                toneName: "Jun (1)",
+                description: "Complete your profile rituals to reveal this energy.",
+                mission: "Alignment pending.",
+                challenges: "Discovery ahead.",
+                glyphUrl: "/nawales/unknown.svg"
+            };
+        }
+
         // Ensure standard noon UTC to avoid timezone shifts affecting date diff
-        const inputDate = new Date(dateString + 'T12:00:00Z');
+        // Handle full ISO strings by extracting date part
+        const cleanDate = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+        const inputDate = new Date(cleanDate + 'T12:00:00Z');
+
+        if (isNaN(inputDate.getTime())) {
+            console.warn(`MayanEngine: Invalid Date ("${dateString}"). Returning default state.`);
+            return this.calculate(""); // Recursive fallback to default
+        }
 
         const diffTime = inputDate.getTime() - this.CORRELATION_DATE.getTime();
         const rawDiffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -56,6 +79,7 @@ export class MayanEngine {
         let nawalIdx = ((this.REF_NAWAL_IDX + diffDays) % 20 + 20) % 20;
 
         const nawalData = NAWALES[nawalIdx];
+        if (!nawalData) return this.calculate(""); // Safety check for array bounds
         const toneData = TONES[tone - 1];
 
         return {

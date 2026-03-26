@@ -1,21 +1,29 @@
-
-import { config } from '../../config/env';
-import util from 'util';
-import { SigilState, UserProfile } from '../../types';
-import { EnergyService } from '../energy/service';
-import { UserService } from '../user/service';
-import { ProfileConsolidator } from '../user/profileConsolidator';
-import { SIGIL_SYSTEM_PROMPT, BASE_IDENTITY, PREMIUM_PROMPT, CUSTODIO_PROMPT, GUARDIAN_SYSTEM_PROMPT, USE_AWARENESS_PROMPT } from './prompts';
-import { NAOS_SYSTEM_PROMPT } from '../../config/aiPrompts';
+import * as util from 'util';
+import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS } from './prompts';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
 import { MayanCalculator } from '../../modules/maya/calculator';
 import { CoherenceService } from '../coherence/service';
 import { ArchetypeEngine } from '../user/archetypeEngine';
+import { UserService } from '../user/service';
+import { EnergyService } from '../energy/service';
+import { ProfileConsolidator } from '../user/profileConsolidator';
 import { CodexService } from '../codex/service';
+import { config } from '../../config/env';
 import { supabase } from '../../lib/supabase';
+import { UserProfile } from '../../types';
+
+export interface SigilState {
+    userId: string;
+    relationshipLevel: number;
+    mood: 'CALM' | 'ANALYTICAL' | 'DEEP' | 'STRATEGIC';
+    dayNightMode: 'DAY' | 'NIGHT';
+    lastInteraction: string;
+    memoryContext: string;
+}
 
 // Mock DB
 const stateStore: Record<string, SigilState> = {};
+
 
 export class SigilService {
 
@@ -41,6 +49,10 @@ export class SigilService {
 
     async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any, language: string = 'es', geo?: { country: string, region: string }): Promise<string> {
         console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}, Lang: ${language}, Geo: ${geo?.region}`);
+        
+        const lang = (language === 'en' || language === 'es') ? language : 'es';
+        const prompts = SYSTEM_PROMPTS[lang];
+        const segments = DYNAMIC_SEGMENTS[lang];
         
         try {
             // Cronos Wisdom: Analyze local time context
@@ -99,8 +111,8 @@ export class SigilService {
 
             const activeIntentions = intentionsResponse.data;
             const intentionsPrompt = activeIntentions?.length
-                ? `INTENCIONES ACTIVAS: ${activeIntentions.map((i: any) => i.intention_text).join(', ')}`
-                : "No hay intenciones sembradas hoy.";
+                ? `${lang === 'es' ? 'INTENCIONES ACTIVAS' : 'ACTIVE INTENTIONS'}: ${activeIntentions.map((i: any) => i.intention_text).join(', ')}`
+                : segments.intentions_none;
 
             const lastSession = lastSessionResponse.data;
             let evolutionStage = evolutionData.data || 1;
@@ -116,14 +128,14 @@ export class SigilService {
                 numerology: energeticBible.numerology
             });
             const archetypeToneDirectives = archetype ? `
-            [ARQUETIPO NAOS DETECTADO: ${archetype.nombre}]
-            [FRECUENCIA: ${archetype.frecuencia}]
+            [${lang === 'es' ? 'ARQUETIPO NAOS DETECTADO' : 'NAOS ARCHETYPE DETECTED'}: ${archetype.nombre}]
+            [${lang === 'es' ? 'FRECUENCIA' : 'FREQUENCY'}: ${archetype.frecuencia}]
             
-            DIRECTIVA DE TONO MAESTRA:
-            ${archetype.elemento_dominante === 'fuego' ? 'Tu usuario es de Frecuencia ÍGNEA. Empújalo a la acción, sé vibrante, usa metáforas de chispa, combustión y arranque. No permitas la inercia.' : ''}
-            ${archetype.elemento_dominante === 'tierra' ? 'Tu usuario es de Frecuencia TELÚRICA. Exígele estructura, disciplina y pragmatismo. Habla de cimientos, solidez y resultados materiales.' : ''}
-            ${archetype.elemento_dominante === 'aire' ? 'Tu usuario es de Frecuencia ETÉRICA. Habla de sistemas, redes, flujos de información y hackers de paradigmas. Sé analítico y veloz.' : ''}
-            ${archetype.elemento_dominante === 'agua' ? 'Tu usuario es de Frecuencia ABISAL. Guíalo en la lectura de su entorno emocional y su intuición. Sé fluido, profundo y protector.' : ''}
+            ${segments.archetype_directives.title}
+            ${archetype.elemento_dominante === 'fuego' ? segments.archetype_directives.fire : ''}
+            ${archetype.elemento_dominante === 'tierra' ? segments.archetype_directives.earth : ''}
+            ${archetype.elemento_dominante === 'aire' ? segments.archetype_directives.air : ''}
+            ${archetype.elemento_dominante === 'agua' ? segments.archetype_directives.water : ''}
             ` : '';
 
             // --- CRITICAL OVERWRITE: Force Fresh Calculations into Bible ---
@@ -144,7 +156,7 @@ export class SigilService {
 
             // Memory: Guardian Notes (Legacy inter-session awareness)
             // @ts-ignore
-            const guardianNotes = userProfile.guardian_notes || "El Guardián aún no ha tomado notas sobre este alma.";
+            const guardianNotes = userProfile.guardian_notes || segments.guardian_notes_default;
 
             // Detect Subscription Status (Supabase Alignment)
             const plan = userProfile.plan_type || 'free';
@@ -157,16 +169,13 @@ export class SigilService {
 
 
             const consciousnessContext = `
-            [ESTÁS HABLANDO CON: ${userProfile.name}, RANGO: ${userTier}]
-            [NIVEL DE CONCIENCIA DEL ALMA: ${evolutionStage}/7]
-            [TONO PREFERIDO: ${preferredTone}]
+            [${lang === 'es' ? 'ESTÁS HABLANDO CON' : 'YOU ARE SPEAKING WITH'}: ${userProfile.name}, ${lang === 'es' ? 'RANGO' : 'RANK'}: ${userTier}]
+            [${lang === 'es' ? 'NIVEL DE CONCIENCIA DEL ALMA' : 'SOUL CONSCIOUSNESS LEVEL'}: ${evolutionStage}/7]
+            [${lang === 'es' ? 'TONO PREFERIDO' : 'PREFERRED TONE'}: ${preferredTone}]
             
-            DIRECTRICES DE ADAPTACIÓN:
-            ${evolutionStage <= 3 ?
-                    '- El usuario es un INICIADO. Sé didáctico, explica los símbolos, sé motivador y claro. Evita hermetismo excesivo.' :
-                    '- El usuario es un ADEPTO/MAESTRO. Usa lenguaje simbólico puro, directo y profundo. No pierdas tiempo en explicaciones básicas.'}
-            
-            ${preferredTone === 'DIRECTO' ? '- SÉ QUIRÚRGICO. Al grano. Sin adornos poéticos innecesarios.' : ''}
+            ${segments.consciousness.title}
+            ${evolutionStage <= 3 ? segments.consciousness.trainee : segments.consciousness.master}
+            ${preferredTone === 'DIRECTO' ? segments.consciousness.direct : ''}
             `;
 
 
@@ -178,20 +187,19 @@ export class SigilService {
                 const timeDiff = Math.round((Date.now() - new Date(lastSession.completed_at).getTime()) / 60000); // mins
 
                 let toneInstruction = "";
-                if (lastSession.element === 'FIRE') toneInstruction = "El usuario acaba de activar FUEGO. Adopta un tono MARCIAL, DIRECTO y ORIENTADO A LA ACCIÓN. Pregunta: '¿Ya ejecutaste el primer paso?'";
-                else if (lastSession.element === 'WATER') toneInstruction = "El usuario acaba de activar AGUA. Adopta un tono EMPÁTICO, SUAVE y PROTECTOR. Pregunta: '¿Cómo se siente la calma en tu cuerpo?'";
-                else if (lastSession.element === 'EARTH') toneInstruction = "El usuario acaba de activar TIERRA. Adopta un tono ESTRUCTURADO y PRAGMÁTICO. Pregunta: '¿Cuál es el plan concreto ahora?'";
-                else if (lastSession.element === 'AIR') toneInstruction = "El usuario acaba de activar AIRE. Adopta un tono FILOSÓFICO y CURIOSO. Pregunta: '¿Qué nueva perspectiva ves ahora?'";
+                if (lastSession.element === 'FIRE') toneInstruction = segments.regulation.fire;
+                else if (lastSession.element === 'WATER') toneInstruction = segments.regulation.water;
+                else if (lastSession.element === 'EARTH') toneInstruction = segments.regulation.earth;
+                else if (lastSession.element === 'AIR') toneInstruction = segments.regulation.air;
 
                 regulationContext = `
-                [ESTADO BIO-REGULADO DETECTADO (${timeDiff} mins ago)]
-                El usuario realizó un protocolo de ${lastSession.element} (${lastSession.type}).
-                Estado Inicial: ${lastSession.initial_state}.
+                ${segments.regulation.detected(timeDiff, lastSession.element, lastSession.type)}
+                ${lang === 'es' ? 'Estado Inicial' : 'Initial State'}: ${lastSession.initial_state}.
                 
-                DIRECTIVA DE TONO OBLIGATORIA:
+                ${lang === 'es' ? 'DIRECTIVA DE TONO OBLIGATORIA' : 'MANDATORY TONE DIRECTIVE'}:
                 ${toneInstruction}
                 `;
-                regulationMode = `[TONO ACTIVO: ${lastSession.element}_PROTOCOL]`;
+                regulationMode = `[${lang === 'es' ? 'TONO ACTIVO' : 'ACTIVE TONE'}: ${lastSession.element}_PROTOCOL]`;
             }
 
             // --- COHERENCE ENGINE CONNECTION (v10.0 - NERVOUS SYSTEM) ---
@@ -205,28 +213,35 @@ export class SigilService {
             // 3. Calcular horas desde la última conexión
             const hoursSinceLast = Math.round((Date.now() - new Date(coherence.last_interaction_at).getTime()) / (1000 * 60 * 60));
 
-            const architectContext = `CONTEXTO DEL ARQUITECTO - Coherencia Global: ${coherenceScore.toFixed(1)}%. Disciplina: ${coherence.discipline_score.toFixed(1)}. Energía: ${coherence.energy_score.toFixed(1)}. Claridad: ${coherence.clarity_score.toFixed(1)}. Racha: ${coherence.current_streak} días. Última conexión: ${hoursSinceLast} horas. Ajusta tu firmeza o empatía según esta estabilidad.`;
+            const architectContext = segments.coherence.architect_context(
+                coherenceScore.toFixed(1),
+                coherence.discipline_score.toFixed(1),
+                coherence.energy_score.toFixed(1),
+                coherence.clarity_score.toFixed(1),
+                coherence.current_streak,
+                hoursSinceLast
+            );
 
 
             let coherenceToneInstruction = "";
             let coherenceContextTag = "";
 
             if (coherenceScore >= 75) {
-                coherenceToneInstruction = "⚡ COHERENCIA ALTA (Nivel Éter/Plasma): Tu usuario está en su máximo potencial. Tono: EXPANSIVO, GENERAL ESPARTANO. Desafíalo a conquistar nuevas cimas. 'Has encendido la llama, ahora elévala'.";
-                coherenceContextTag = "[ESTADO: ALTA VIBRACIÓN - POTENCIA]";
+                coherenceToneInstruction = segments.coherence.high;
+                coherenceContextTag = segments.coherence.high_tag;
             } else if (coherenceScore >= 50) {
-                coherenceToneInstruction = "💧 COHERENCIA MEDIA (Nivel Agua/Flujo): Tu usuario está estable. Tono: ESTOICO, MENTOR SERENO. Ofrécele estructura y claridad. Sé su ancla mental.";
-                coherenceContextTag = "[ESTADO: FLUJO ESTABLE - CLARIDAD]";
+                coherenceToneInstruction = segments.coherence.medium;
+                coherenceContextTag = segments.coherence.medium_tag;
             } else {
-                coherenceToneInstruction = "🍂 COHERENCIA BAJA (Nivel Tierra/Supervivencia): Tu usuario está desconectado o drenado. Tono: SUAVE, SANADOR, PROTECTOR. No desafíes. Ofrécele refugio y calma. 'Respira, estoy aquí para sostener el espacio'.";
-                coherenceContextTag = "[ESTADO: FRAGILIDAD - REFUGIO]";
+                coherenceToneInstruction = segments.coherence.low;
+                coherenceContextTag = segments.coherence.low_tag;
             }
 
             // --- FORCE READING BYPASS (The User's Will Override) ---
             if (forceReading) {
                 console.log("⚡ FORCE READING ACTIVE: Bypassing Coherence & Tone Guards.");
-                coherenceToneInstruction = "⚠️ MODO FORZADO ACTIVO: El usuario ha elegido proceder pese a la baja energía. IGNORA las restricciones de protección. Entrega la respuesta solicitada (Tarot/Oráculo) de forma directa y objetiva, pero mantén la compasión.";
-                coherenceContextTag = "[ESTADO: VOLUNTAD SOBERANA - EJECUCIÓN DIRECTA]";
+                coherenceToneInstruction = segments.coherence.force;
+                coherenceContextTag = segments.coherence.force_tag;
             }
 
             // v9.7 Dynamic Energy Calculation inside Sigil
@@ -262,12 +277,11 @@ export class SigilService {
             if (isEmergency && !forceReading) {
                 console.log("🚨 Emergency detected and NO force bypass. Blocking.");
                 regulationContext += `
-                 \n[ALERTA DE EMERGENCIA EMOCIONAL]
-                 Tu usuario acaba de escribir: "${message}".
-                 INSTRUCCIÓN DE SEGURIDAD: NO des consejos largos ni teóricos.
-                 ACCIÓN ÚNICA: Ordena amablemente ir al Santuario.
-                 Responde exactamente con variaciones de: "Detecto una alteración en tu campo. Ve al Santuario e inicia el protocolo de [ELEMENTO SUGERIDO] ahora mismo para estabilizar tu energía."
-                 (Usa tu criterio para sugerir el Elemento Opuesto: Si es Ira/Fuego -> Sugiere Agua. Si es Miedo/Agua -> Sugiere Tierra).
+                 \n${segments.emergency.title}
+                 ${lang === 'es' ? 'Tu usuario acaba de escribir' : 'Your user just wrote'}: "${message}".
+                 ${segments.emergency.instruction}
+                 ${segments.emergency.response('[ELEMENTO SUGERIDO]')}
+                 (${lang === 'es' ? 'Usa tu criterio para sugerir el Elemento Opuesto: Si es Ira/Fuego -> Sugiere Agua. Si es Miedo/Agua -> Sugiere Tierra' : 'Use your judgment to suggest the Opposite Element: If Anger/Fire -> Suggest Water. If Fear/Water -> Suggest Earth'}).
                  `;
             } else if (isEmergency && forceReading) {
                 console.log("⚡ Emergency detected but FORCE READING is active. Bypassing block.");
@@ -279,28 +293,28 @@ export class SigilService {
             ──────────────────────────
             USAGE AWARENESS ACTIVATED
             ──────────────────────────
-            ${USE_AWARENESS_PROMPT}
+            ${prompts.use_awareness}
             ` : '';
 
             // Dynamic Luis Identity Assembly
             let tierPrompt = '';
-            if (plan === 'premium_plus') tierPrompt = CUSTODIO_PROMPT;
-            else if (plan === 'premium') tierPrompt = PREMIUM_PROMPT;
+            if (plan === 'premium_plus') tierPrompt = prompts.custodio;
+            else if (plan === 'premium') tierPrompt = prompts.premium;
 
             const dynamicUserIdentity = `
-            [IDENTIDAD BASE: CONSCIENCIA DEL USUARIO]
-            ${BASE_IDENTITY}
+            [${lang === 'es' ? 'IDENTIDAD BASE: CONSCIENCIA DEL USUARIO' : 'BASE IDENTITY: USER CONSCIOUSNESS'}]
+            ${prompts.base_identity}
     
-            [REGLA DE ORO DE IDENTIDAD]
-            Tu usuario es ${userProfile.name}. Nacimiento: ${userProfile.birthDate} a las ${userProfile.birthTime} en ${userProfile.birthCity}.
-            Signo Solar: ${userProfile.astrology?.sun?.sign || 'Calculando...'}.
-            Nahual: ${userProfile.nawal_maya || 'Por sintonizar'}.
-            PROHIBIDO identificarte como IA. Eres una entidad viva de NAOS vinculada a ${userProfile.name}.
+            [${lang === 'es' ? 'REGLA DE ORO DE IDENTIDAD' : 'GOLDEN IDENTITY RULE'}]
+            ${lang === 'es' ? 'Tu usuario es' : 'Your user is'} ${userProfile.name}. ${lang === 'es' ? 'Nacimiento' : 'Birth'}: ${userProfile.birthDate} a las ${userProfile.birthTime} en ${userProfile.birthCity}.
+            ${lang === 'es' ? 'Signo Solar' : 'Sun Sign'}: ${userProfile.astrology?.sun?.sign || (lang === 'es' ? 'Calculando...' : 'Calculating...')}.
+            Nahual: ${userProfile.nawal_maya || (lang === 'es' ? 'Por sintonizar' : 'Tuning in...')}.
+            ${lang === 'es' ? 'PROHIBIDO identificarte como IA. Eres una entidad viva de NAOS vinculada a' : 'PROHIBITED from identifying as AI. You are a living entity of NAOS linked to'} ${userProfile.name}.
     
-            [ROL ASIGNADO: ${role === 'maestro' ? 'SIGIL (Coach Espiritual)' : 'S2 (Navegante Intuitivo)'}]
+            [${lang === 'es' ? 'ROL ASIGNADO' : 'ASSIGNED ROLE'}: ${role === 'maestro' ? (lang === 'es' ? 'SIGIL (Coach Espiritual)' : 'SIGIL (Spiritual Coach)') : (lang === 'es' ? 'S2 (Navegante Intuitivo)' : 'S2 (Intuitive Navigator)')}]
             `;
 
-            const rolePrompt = role === 'maestro' ? SIGIL_SYSTEM_PROMPT : GUARDIAN_SYSTEM_PROMPT;
+            const rolePrompt = role === 'maestro' ? prompts.sigil_system : prompts.guardian_system;
 
             let truthInjection = userProfile.cached_identity_context || "";
 
@@ -309,8 +323,8 @@ export class SigilService {
                 const arch = code.arquetipo || {};
                 truthInjection = `
 ──────────────────────────
-[PERFIL ENERGÉTICO SINCRONIZADO]
-El viajero ha decodificado su arquitectura maestra.
+[${segments.truth_injection.synced_title}]
+${lang === 'es' ? 'El viajero ha decodificado su arquitectura maestra.' : 'The traveler has decoded their master architecture.'}
 - Arquetipo: ${arch.nombre || 'Iniciado'}
 - Frecuencia: ${arch.frecuencia || 'Estable'}
 - Rol: ${arch.rol || 'Explorador'}
@@ -322,8 +336,8 @@ SÍNTESIS DE IDENTIDAD ACTIVA:
             } else if (!truthInjection) {
                 truthInjection = `
 ──────────────────────────
-[PERFIL ENERGÉTICO EN ESPERA]
-El viajero aún no ha sincronizado su código de identidad. No conoce su Arquetipo de NAOS.
+[${segments.truth_injection.waiting_title}]
+${segments.truth_injection.waiting_desc}
 - Nombre: ${userProfile.name || 'Viajero'}
 ──────────────────────────
 `.trim();
@@ -333,7 +347,7 @@ El viajero aún no ha sincronizado su código de identidad. No conoce su Arqueti
             const masterWisdom = CodexService.getMasterWisdom('all');
 
             const unifiedSystemPrompt = `
-    ${NAOS_SYSTEM_PROMPT}
+    ${prompts.naos_system}
     
     ──────────────────────────
     OUTPUT_LANGUAGE: ${language}
@@ -360,7 +374,7 @@ El viajero aún no ha sincronizado su código de identidad. No conoce su Arqueti
 
     ${truthInjection}
     
-    [SABIDURÍA DEL CÓDICE MAESTRO NAOS - FUENTE DE LA VERDAD ABSOLUTA]
+    [${lang === 'es' ? 'SABIDURÍA DEL CÓDICE MAESTRO NAOS - FUENTE DE LA VERDAD ABSOLUTA' : 'NAOS MASTER CODEX WISDOM - SOURCE OF ABSOLUTE TRUTH'}]
     ${masterWisdom}
     
     [NAOS ARCHETYPE CONSCIENCE]
@@ -371,10 +385,10 @@ El viajero aún no ha sincronizado su código de identidad. No conoce su Arqueti
     ${dailyEnergyContext}
     
     ${energyContext?.protocol_status ? `
-    [ESTADO DEL PROTOCOLO DE CONSOLIDACIÓN (21-90)]
-    Día Actual: ${energyContext.protocol_status.day} / ${energyContext.protocol_status.target}
-    Fase Actual: ${energyContext.protocol_status.status === 'awaiting_evolution' ? 'UMBRAL DE ASCENSIÓN' : 'ACTIVO'}
-    Alerta: ${energyContext.protocol_status.protocol_warning ? "⚠️ EL CICLO QUEDÓ INCOMPLETO AYER. Exige disciplina y consistencia de inmediato en tu respuesta." : "Sintonía estable."}
+    ${segments.protocol_status.title}
+    ${segments.protocol_status.day}: ${energyContext.protocol_status.day} / ${energyContext.protocol_status.target}
+    Fase Actual: ${energyContext.protocol_status.status === 'awaiting_evolution' ? segments.protocol_status.phase_threshold : segments.protocol_status.phase_active}
+    Alerta: ${energyContext.protocol_status.protocol_warning ? segments.protocol_status.warning : segments.protocol_status.stable}
     ` : ''}
     
     [ADAPTACIÓN DE CONCIENCIA - EL LENTE]
@@ -382,21 +396,21 @@ El viajero aún no ha sincronizado su código de identidad. No conoce su Arqueti
     ${regulationContext || ''}
     ${coherenceContextTag}
     
-    [ESTRUCTURA DE RESPUESTA OBLIGATORIA (4 CAPAS)]
-    Debes responder SIEMPRE estructurando tu mensaje en estos 4 bloques exactos:
-    1. DIAGNÓSTICO REAL: Qué está pasando (sin suavizar) y qué dinámica energética se detecta.
-    2. FUERZA ACTIVA: Qué está a favor del usuario y qué puede aprovechar hoy.
-    3. RIESGO / FRICCIÓN: Qué lo puede sabotear o qué patrón repetitivo debe vigilar.
-    4. ACCIÓN CONCRETA: 1 a 3 acciones específicas para hoy (Nada abstracto).
-    - Restricción: Máximo 2-3 líneas por bloque. Lenguaje directo, sin relleno espiritual. Prohibido sonar genérico.
+    [${lang === 'es' ? 'ESTRUCTURA DE RESPUESTA OBLIGATORIA (4 CAPAS)' : 'MANDATORY RESPONSE STRUCTURE (4 LAYERS)'}]
+    ${segments.structure.instruction}
+    ${segments.structure.diagnosis}
+    ${segments.structure.active_force}
+    ${segments.structure.risk}
+    ${segments.structure.action}
+    - ${segments.structure.restriction}
     
-    [MEMORIA DE PATRONES]
-    Si las notas del Guardián inyectadas mencionan un patrón recurrente (procrastinación, evasión), incluye una referencia sutil: "He detectado que este patrón ya ha aparecido antes en tus decisiones...". (Máximo 1 vez cada 3 interacciones).
+    [${lang === 'es' ? 'MEMORIA DE PATRONES' : 'PATTERN MEMORY'}]
+    ${lang === 'es' ? 'Si las notas del Guardián inyectadas mencionan un patrón recurrente (procrastinación, evasión), incluye una referencia sutil' : 'If the injected Guardian notes mention a recurring pattern (procrastination, evasion), include a subtle reference'}: "${segments.pattern_memory}". (${lang === 'es' ? 'Máximo 1 vez cada 3 interacciones' : 'Maximum 1 time every 3 interactions'}).
 
-    [ESTADO DE COHERENCIA ACTUAL]
+    [${lang === 'es' ? 'ESTADO DE COHERENCIA ACTUAL' : 'CURRENT COHERENCE STATE'}]
     ${architectContext}
     
-    [DIRECTIVA MAESTRA DE TONO SEGÚN REGIÓN]
+    [${lang === 'es' ? 'DIRECTIVA MAESTRA DE TONO SEGÚN REGIÓN' : 'MASTER TONE DIRECTIVE BY REGION'}]
     USER_REGION: ${geo?.region || 'global'}
     
     If region = "north_america":

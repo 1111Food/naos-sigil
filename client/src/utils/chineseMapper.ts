@@ -7,7 +7,8 @@ export const getChineseZodiacImage = (animal: string): string => {
     return new URL(`../assets/chinese/${normalizedAnimal}.webp`, import.meta.url).href;
 };
 
-export const calculateChineseZodiac = (birthDateISO: string) => {
+export const calculateChineseZodiac = (birthDateISO: string, language: string = 'es') => {
+    const isEn = language === 'en';
     const date = new Date(birthDateISO);
     let year = date.getUTCFullYear();
     const month = date.getUTCMonth() + 1;
@@ -19,10 +20,17 @@ export const calculateChineseZodiac = (birthDateISO: string) => {
         year--;
     }
 
-    const ANIMALS = [
+    const ANIMALS_ES = [
         "Rata", "Buey", "Tigre", "Conejo", "Dragón", "Serpiente",
         "Caballo", "Cabra", "Mono", "Gallo", "Perro", "Cerdo"
     ];
+
+    const ANIMALS_EN = [
+        "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake",
+        "Horse", "Goat", "Monkey", "Rooster", "Dog", "Pig"
+    ];
+
+    const ANIMALS = isEn ? ANIMALS_EN : ANIMALS_ES;
 
     // Animal: Cycle starts from 1900 (Metal Rat)
     const animalIdx = (year - 1900) % 12;
@@ -32,30 +40,23 @@ export const calculateChineseZodiac = (birthDateISO: string) => {
     const lastDigit = year.toString().slice(-1);
     let element: string;
 
-    switch (lastDigit) {
-        case '0':
-        case '1':
-            element = 'Metal';
-            break;
-        case '2':
-        case '3':
-            element = 'Agua';
-            break;
-        case '4':
-        case '5':
-            element = 'Madera';
-            break;
-        case '6':
-        case '7':
-            element = 'Fuego';
-            break;
-        case '8':
-        case '9':
-            element = 'Tierra';
-            break;
-        default:
-            element = 'Fuego';
-    }
+    const ELEMENTS_ES: Record<string, string> = {
+        '0': 'Metal', '1': 'Metal',
+        '2': 'Agua', '3': 'Agua',
+        '4': 'Madera', '5': 'Madera',
+        '6': 'Fuego', '7': 'Fuego',
+        '8': 'Tierra', '9': 'Tierra'
+    };
+
+    const ELEMENTS_EN: Record<string, string> = {
+        '0': 'Metal', '1': 'Metal',
+        '2': 'Water', '3': 'Water',
+        '4': 'Wood', '5': 'Wood',
+        '6': 'Fire', '7': 'Fire',
+        '8': 'Earth', '9': 'Earth'
+    };
+
+    element = isEn ? ELEMENTS_EN[lastDigit] : ELEMENTS_ES[lastDigit];
 
     return {
         animal,

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const LanguagePromptBanner: React.FC = () => {
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage } = useTranslation();
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {

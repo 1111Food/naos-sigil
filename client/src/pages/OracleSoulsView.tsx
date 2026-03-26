@@ -11,7 +11,7 @@ import { useCoherence } from '../hooks/useCoherence';
 import { cn } from '../lib/utils';
 import { LowEnergyWarningModal } from '../components/LowEnergyWarningModal';
 import { useSound } from '../hooks/useSound';
-import { useTranslation } from '../i18n/translations';
+import { useTranslation } from '../i18n';
 
 // Local Error Boundary for Spline to avoid "Fractured Reality" on 3D load failure
 class SplineErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {

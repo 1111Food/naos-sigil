@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Scroll, Sparkles, Users, Heart, Coins, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '../hooks/useProfile';
-import { useGuardianState } from '../contexts/GuardianContext';
 import { CHINESE_ZODIAC_WISDOM } from '../data/chineseZodiacData';
+import { CHINESE_ZODIAC_WISDOM_EN } from '../data/chineseZodiacData_en';
 import { getChineseZodiacImage } from '../utils/chineseMapper';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../i18n';
+import { calculateChineseZodiac } from '../utils/chineseMapper';
 
 interface SabiduriaOrientalProps {
     overrideProfile?: any;
@@ -34,73 +36,15 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
     const { profile: hookProfile, loading } = useProfile();
     // Logic: Use passed profile (override) OR hook profile
     const profile = overrideProfile || hookProfile;
+    const { t, language } = useTranslation();
+    const CHINESE_LIB = language === 'en' ? CHINESE_ZODIAC_WISDOM_EN : CHINESE_ZODIAC_WISDOM;
 
     // HOOKS FIRST:
-    const { trackEvent } = useGuardianState();
     const [openSectionId, setOpenSectionId] = useState<string | null>(null);
 
-    // ✨ CLIENT-SIDE CALCULATION - No server dependency!
-    const calculateChineseZodiac = (birthDateISO: string) => {
-        const date = new Date(birthDateISO);
-        let year = date.getUTCFullYear();
-        const month = date.getUTCMonth() + 1;
-        const day = date.getUTCDate();
-
-        // Lichun (Start of Solar Spring) usually falls on Feb 4.
-        // If birth is before Feb 4, use previous Chinese year.
-        if (month < 2 || (month === 2 && day < 4)) {
-            year--;
-        }
-
-        const ANIMALS = [
-            "Rata", "Buey", "Tigre", "Conejo", "Dragón", "Serpiente",
-            "Caballo", "Cabra", "Mono", "Gallo", "Perro", "Cerdo"
-        ];
-
-        // Animal: Cycle starts from 1900 (Metal Rat)
-        const animalIdx = (year - 1900) % 12;
-        const animal = ANIMALS[animalIdx];
-
-        // Element: Use the LAST DIGIT RULE (Heavenly Stems)
-        // This is the correct traditional method
-        const lastDigit = year.toString().slice(-1);
-        let element: string;
-
-        switch (lastDigit) {
-            case '0':
-            case '1':
-                element = 'Metal';
-                break;
-            case '2':
-            case '3':
-                element = 'Agua';
-                break;
-            case '4':
-            case '5':
-                element = 'Madera';
-                break;
-            case '6':
-            case '7':
-                element = 'Fuego';  // ✅ 1986 ends in 6 -> Fuego
-                break;
-            case '8':
-            case '9':
-                element = 'Tierra';
-                break;
-            default:
-                element = 'Fuego';
-        }
-
-        return {
-            animal,
-            element,
-            birthYear: year
-        };
-    };
-
     // Calculate locally if we have birthDate
-    const chineseData = profile?.birthDate ? calculateChineseZodiac(profile.birthDate) : null;
-    const animalData = chineseData?.animal ? CHINESE_ZODIAC_WISDOM[chineseData.animal] : null;
+    const chineseData = profile?.birthDate ? calculateChineseZodiac(profile.birthDate, language) : null;
+    const animalData = chineseData?.animal ? CHINESE_LIB[chineseData.animal] : null;
 
     // --- PARSE COMPATIBILITY ---
     const parseCompatibility = (compString?: string) => {
@@ -108,13 +52,15 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
         // Example: "Mejor con: Dragón, Mono, Buey. / Evitar: Caballo."
         const parts = compString.split('/');
         
-        const alliesStr = parts.find(p => p.toLowerCase().includes('mejor')) || '';
-        const enemiesStr = parts.find(p => p.toLowerCase().includes('evitar')) || '';
+        const alliesStr = parts.find(p => p.toLowerCase().includes('mejor') || p.toLowerCase().includes('best')) || '';
+        const enemiesStr = parts.find(p => p.toLowerCase().includes('evitar') || p.toLowerCase().includes('avoid')) || '';
 
         const extractAnimals = (str: string) => {
             return str
                 .replace(/Mejor con:/i, '')
+                .replace(/Best with:/i, '')
                 .replace(/Evitar:/i, '')
+                .replace(/Avoid:/i, '')
                 .replace(/\./g, '')
                 .split(',')
                 .map(s => s.trim())
@@ -129,7 +75,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
 
     const { allies, enemies } = parseCompatibility(animalData?.compatibility);
 
-    const elementDescription = chineseData?.element ? getElementWisdom(chineseData.element) : '';
+    const elementDescription = chineseData?.element ? getElementWisdom(chineseData.element, language) : '';
 
     // --- DEBUG (can be removed later) ---
     React.useEffect(() => {
@@ -144,50 +90,50 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
 
     // Validación flexible (MOVED AFTER HOOKS/LOGIC)
     if (!profile || !profile.birthDate) {
-        if (loading && !overrideProfile) return <div className="p-8 text-center text-white/50">Cargando sabiduría...</div>;
-        return <div className="p-8 text-center text-white/50">Esencia Incompleta. Se requiere fecha de nacimiento.</div>;
+        if (loading && !overrideProfile) return <div className="p-8 text-center text-white/50">{t('calculating')}</div>;
+        return <div className="p-8 text-center text-white/50">{t('incomplete_essence')}</div>;
     }
 
 
     const sections = [
         { 
             id: 'elemento', 
-            title: 'Naturaleza de Elemento', 
+            title: t('element_nature'), 
             icon: Sparkles, 
             color: 'cyan', 
             content: `"${elementDescription}"` 
         },
         { 
             id: 'horizonte', 
-            title: 'Horizonte 2026', 
+            title: t('horizon_2026'), 
             icon: Sparkles, 
             color: 'amber', 
-            content: `Año del Caballo de Fuego (Bing Wu). ${animalData?.forecast_2026_title || 'Expansión solar'}. Tiempo de expansión solar y decisiones audaces.` 
+            content: animalData?.forecast_2026_title ? `${animalData.forecast_2026_title}. ${animalData.forecast_general}` : t('year_of_horse_desc')
         },
         { 
             id: 'alianzas', 
-            title: 'Dinámica de Alianzas', 
+            title: t('alliance_dynamics'), 
             icon: Users, 
             color: 'indigo', 
             content: (
                 <div className="space-y-3 pt-2">
                     <div>
-                        <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-1">Trígono Compatible</span>
+                        <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-1">{t('best_with')}</span>
                         <div className="flex flex-wrap gap-2">
                             {allies.map(ally => (
                                 <div key={ally} className="px-3 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-200 flex items-center gap-1 shrink-0" title={ally}>
-                                    <span className="text-sm">{getAnimalEmoji(ally)}</span> {ally}
+                                    <span className="text-sm">{getAnimalEmoji(ally, language)}</span> {ally}
                                 </div>
                             ))}
                         </div>
                     </div>
                     {enemies.length > 0 && (
                         <div className="pt-2 border-t border-white/5">
-                            <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-1">Eje de Tensión</span>
+                            <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-1">{t('avoid')}</span>
                             <div className="flex flex-wrap gap-2">
                                 {enemies.map(en => (
                                     <div key={en} className="px-3 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-xs text-rose-200 flex items-center gap-1 shrink-0" title={en}>
-                                        <span className="text-sm">{getAnimalEmoji(en)}</span> {en}
+                                        <span className="text-sm">{getAnimalEmoji(en, language)}</span> {en}
                                     </div>
                                 ))}
                             </div>
@@ -198,28 +144,28 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
         },
         { 
             id: 'esencia', 
-            title: 'Esencia del Tótem', 
+            title: t('totem_essence'), 
             icon: Scroll, 
             color: 'rose', 
             content: `"${animalData?.totem_essence}"` 
         },
         { 
             id: 'sombra', 
-            title: 'Sombra Consciente', 
+            title: t('conscious_shadow'), 
             icon: Scroll, 
             color: 'amber', 
             content: animalData?.totem_shadow 
         },
         { 
             id: 'amor', 
-            title: 'Amor y Vínculos', 
+            title: t('love_bonds'), 
             icon: Heart, 
             color: 'rose', 
             content: animalData?.forecast_love 
         },
         { 
             id: 'abundancia', 
-            title: 'Abundancia y Flujo', 
+            title: t('abundance_flow'), 
             icon: Coins, 
             color: 'emerald', 
             content: animalData?.forecast_wealth 
@@ -233,10 +179,10 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                     <Scroll className="w-10 h-10 text-rose-500/40" />
                 </div>
                 <div className="space-y-4">
-                    <h2 className="text-[11px] uppercase tracking-[0.5em] text-rose-500/60 font-bold">Sabiduría Oriental</h2>
-                    <h3 className="text-2xl text-amber-50/40 font-serif italic">EL VACÍO ES FORMA</h3>
+                    <h2 className="text-[11px] uppercase tracking-[0.5em] text-rose-500/60 font-bold">{t('oriental_wisdom')}</h2>
+                    <h3 className="text-2xl text-amber-50/40 font-serif italic">{t('void_is_form')}</h3>
                     <p className="text-white/30 italic font-serif">
-                        "El pincel aún no toca el pergamino sagrado."
+                        "{t('brush_not_touched')}"
                     </p>
                 </div>
             </div>
@@ -259,9 +205,9 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                     <div>
                         <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-black flex items-center gap-2">
                             <div className="w-1 h-1 rounded-full bg-cyan-500" />
-                            Sabiduría Oriental
+                            {t('oriental_wisdom')}
                         </h2>
-                        <p className="text-[9px] uppercase tracking-[0.2em] text-white/20 mt-1">Zodíaco Imperial & BaZi</p>
+                        <p className="text-[9px] uppercase tracking-[0.2em] text-white/20 mt-1">{t('imperial_zodiac_bazi')}</p>
                     </div>
                 </div>
 
@@ -286,7 +232,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
 
                     <div className="flex-1 text-center md:text-left space-y-4">
                         <div className="space-y-1">
-                            <p className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-bold">Arquetipo Animal</p>
+                            <p className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-bold">{t('animal_archetype')}</p>
                             <h3 className="text-4xl md:text-5xl font-thin text-white tracking-widest uppercase">
                                 {chineseData?.animal || '...'} <span className="text-cyan-400/40">/ {chineseData?.element || '...'}</span>
                             </h3>
@@ -358,22 +304,36 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
     );
 };
 
-function getAnimalEmoji(animal: string): string {
-    const map: Record<string, string> = {
+function getAnimalEmoji(animal: string, language?: string): string {
+    const map_es: Record<string, string> = {
         'Rata': '🐀', 'Buey': '🐂', 'Tigre': '🐅', 'Conejo': '🐇',
         'Dragón': '🐉', 'Serpiente': '🐍', 'Caballo': '🐎', 'Cabra': '🐐',
         'Mono': '🐒', 'Gallo': '🐓', 'Perro': '🐕', 'Cerdo': '🐖'
     };
+    const map_en: Record<string, string> = {
+        'Rat': '🐀', 'Ox': '🐂', 'Tiger': '🐅', 'Rabbit': '🐇',
+        'Dragon': '🐉', 'Snake': '🐍', 'Horse': '🐎', 'Goat': '🐐',
+        'Monkey': '🐒', 'Rooster': '🐓', 'Dog': '🐕', 'Pig': '🐖'
+    };
+    const map = language === 'en' ? map_en : map_es;
     return map[animal] || '🏮';
 }
 
-function getElementWisdom(element: string): string {
-    const map: Record<string, string> = {
+function getElementWisdom(element: string, language?: string): string {
+    const map_es: Record<string, string> = {
         "Madera": "Fuerza en la flexibilidad y regeneración constante.",
         "Fuego": "Chispa divina de liderazgo, pasión y verdad.",
         "Tierra": "Cimiento paciente, sabio y profundamente nutricio.",
         "Metal": "Espíritu forjado en silencio, claridad y firmeza.",
         "Agua": "Fluidez intuitiva que comunica verdades profundas."
     };
+    const map_en: Record<string, string> = {
+        "Wood": "Strength in flexibility and constant regeneration.",
+        "Fire": "Divine spark of leadership, passion, and truth.",
+        "Earth": "Patient, wise, and deeply nurturing foundation.",
+        "Metal": "Spirit forged in silence, clarity, and firmness.",
+        "Water": "Intuitive fluidity that communicates deep truths."
+    };
+    const map = language === 'en' ? map_en : map_es;
     return map[element] || '';
 }
