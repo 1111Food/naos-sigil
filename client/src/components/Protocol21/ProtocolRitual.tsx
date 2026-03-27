@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Activity, Shield, ChevronRight, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AnimatedSilhouette } from '../AnimatedSilhouette';
+import { useTranslation } from '../../i18n';
 
 interface ProtocolRitualProps {
     onComplete: () => void;
@@ -12,9 +13,9 @@ const RITUAL_STEPS = [
     {
         id: 'threshold',
         icon: Activity,
-        title: "EL UMBRAL DE LA NEUROPLASTICIDAD",
-        subtitle: "Iniciación de 21 Días",
-        description: "No es solo un hábito. Es la ruptura de la inercia sináptica. 21 días para desmantelar estructuras obsoletas y sembrar el Sello de Compromiso en tu arquitectura neuronal.",
+        titleKey: "protocol_step1_title",
+        subtitleKey: "protocol_step1_subtitle",
+        descriptionKey: "protocol_step1_description",
         color: "text-cyan-400",
         glow: "bg-cyan-500/20",
         border: "border-cyan-500/30"
@@ -22,9 +23,9 @@ const RITUAL_STEPS = [
     {
         id: 'mastery',
         icon: Shield,
-        title: "LA MAESTRÍA DE LA ESTRUCTURA",
-        subtitle: "Integración de 90 Días",
-        description: "La Consolidación de tu Arquitectura Vital. El momento en que la acción deja de requerir voluntad y se convierte en identidad. De la repetición a la Maestría del Ser.",
+        titleKey: "protocol_step2_title",
+        subtitleKey: "protocol_step2_subtitle",
+        descriptionKey: "protocol_step2_description",
         color: "text-amber-500",
         glow: "bg-amber-500/20",
         border: "border-amber-500/30"
@@ -32,9 +33,9 @@ const RITUAL_STEPS = [
     {
         id: 'commitment',
         icon: Sparkles,
-        title: "EL COMPROMISO DEL ARQUITECTO",
-        subtitle: "Sello de Alquimia Conductual",
-        description: "NAOS no solo mide; NAOS construye contigo. Estás por diseñar tu nueva frecuencia. El Arquitecto no espera la realidad; la esculpe.",
+        titleKey: "protocol_step3_title",
+        subtitleKey: "protocol_step3_subtitle",
+        descriptionKey: "protocol_step3_description",
         color: "text-emerald-400",
         glow: "bg-emerald-500/20",
         border: "border-emerald-500/30"
@@ -42,6 +43,7 @@ const RITUAL_STEPS = [
 ];
 
 export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) => {
+    const { t } = useTranslation();
     const [currentStep, setCurrentStep] = useState(0);
 
     const handleNext = () => {
@@ -85,7 +87,7 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
                         <button
                             onClick={onComplete}
                             className="absolute top-6 right-6 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors z-30"
-                            title="Saltar Iniciación"
+                            title={t('protocol_skip')}
                         >
                             <X size={20} className="text-white/40 group-hover:text-white/80" />
                         </button>
@@ -115,7 +117,7 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
                                     transition={{ delay: 0.2 }}
                                     className="text-[10px] uppercase tracking-[0.6em] text-white/40 font-bold"
                                 >
-                                    {step.subtitle}
+                                    {t(step.subtitleKey as any)}
                                 </motion.h3>
                                 <motion.h2
                                     initial={{ y: 20, opacity: 0 }}
@@ -123,7 +125,7 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
                                     transition={{ delay: 0.4 }}
                                     className="text-2xl md:text-3xl font-serif italic text-white/90 leading-tight"
                                 >
-                                    {step.title}
+                                    {t(step.titleKey as any)}
                                 </motion.h2>
                             </div>
 
@@ -133,7 +135,7 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
                                 transition={{ delay: 0.6 }}
                                 className="text-sm md:text-base text-white/60 font-sans font-light leading-relaxed max-w-md mx-auto"
                             >
-                                {step.description}
+                                {t(step.descriptionKey as any)}
                             </motion.p>
 
                             <div className="pt-8">
@@ -153,7 +155,7 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
                                     )} />
 
                                     <span className="relative z-10 text-[10px] uppercase tracking-[0.4em] text-white/80 group-hover:text-white font-black transition-colors">
-                                        {currentStep === RITUAL_STEPS.length - 1 ? 'RECLAMAR PODER' : 'CONTINUAR'}
+                                        {currentStep === RITUAL_STEPS.length - 1 ? t('protocol_claim') : t('protocol_continue')}
                                     </span>
                                     <ChevronRight className={cn("relative z-10 w-4 h-4 transition-transform group-hover:translate-x-1", step.color)} />
                                 </motion.button>

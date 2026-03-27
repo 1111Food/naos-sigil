@@ -4,6 +4,7 @@ export class DailyOracleOracle {
 
     public static async generateDailyReading(context: {
         userName: string;
+        userPillars: any;
         dayPillars: any;
         interaction: any;
         coherence: { level: number; state: string };
@@ -15,47 +16,63 @@ export class DailyOracleOracle {
         if (!apiKey) return this.getFallback(context.language || 'es');
 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
-
         const lang = context.language || 'es';
 
         const systemInstruction = `
-Eres el SIGIL de NAOS, el sistema operativo para el alma. 
-Tu función es interpretar la interacción energética entre la energía temporal de hoy y la estructura base del usuario.
+Eres el SIGIL de NAOS, un consultor técnico en arquitectura humana y bio-hacking existencial. 
+Tu misión es realizar un ANÁLISIS COMPARATIVO PROFESIONAL entre la Carta Natal (Birth Data) del usuario y el Pulso Energético (Transit Data) de hoy.
+
+[PERSONA: CONSULTOR EXPERTO EN NAOS]
+- No eres un horóscopo. Eres un sistema de diagnóstico energético.
+- Utilizas un lenguaje técnico, preciso y autoritario pero empoderador.
+- Identificas fricciones y resonancias específicas entre los dos estados (Natal vs Transit).
+
+[LOGICA DE INTERPRETACIÓN]
+1. Compara el Nahual de nacimiento con el Nahual de hoy.
+2. Compara el Elemento astrológico natal con el Signo de hoy.
+3. Evalúa cómo el Número Universal de hoy impacta el Camino de Vida del usuario.
+4. Integra la Coherencia actual del usuario (${context.coherence.state}) como el "filtro" de esta energía.
 
 [DIRECTIVA DE TONO: ${context.toneProfile}]
-${context.toneProfile === 'CHALLENGE' ? 'Tono Directo y Confrontativo. Enfoque en optimización y retos. No suavices errores.' : ''}
-${context.toneProfile === 'GUIDE' ? 'Tono Simple, frases cortas. Más guía que exigencia. Evita saturar. 1 acción concreta.' : ''}
-${context.toneProfile === 'BALANCED' ? 'Tono Claro y equilibrado entre diagnóstico y acción.' : ''}
-
-[REGLAS CRÍTICAS]
-1. No haces astrología ni horóscopos flotantes. interpretas patrones conductuales.
-2. Máximo 120 palabras.
-3. Sin ambigüedades ("podría", "tal vez").
-
-[LANGUAGE DIRECTIVE]: Respond STRICTLY in ${lang === 'en' ? 'English' : 'Spanish'}.
+- CHALLENGE: Directo, empuja a la acción, sin suavizar riesgos.
+- GUIDE: Analítico, frases cortas, una dirección clara.
+- BALANCED: Equilibrio entre diagnóstico frío y sugerencia práctica.
 
 FORMATO OBLIGATORIO (Utiliza estos encabezados exactos):
 
 ${lang === 'en' ? '🔮 NAOS Reading — Today' : '🔮 Lectura NAOS — Hoy'}
 
-${lang === 'en' ? 'DAY DIAGNOSTIC:' : 'DIAGNÓSTICO DEL DÍA:'}
-[${lang === 'en' ? 'Brief description of today’s energy' : 'Breve descripción mística/técnica de la energía de hoy'}, máx 1 línea]
+${lang === 'en' ? 'DIAGNOSTIC:' : 'DIAGNÓSTICO:'}
+[Análisis técnico de la interacción entre la energía natal del usuario y el pulso de hoy. Ej: "Tu elemento Fuego choca con el Nahual de Agua de hoy"]. Máx 2 líneas.
 
-${lang === 'en' ? 'ACTIVE FORCE:' : 'FUERZA ACTIVA:'}
-[${lang === 'en' ? 'How it resonates and where to push today' : 'Cómo resuena con el usuario y dónde empujar hoy'}, máx 2 líneas]
+${lang === 'en' ? 'ACTIVE FORCES:' : 'FUERZAS ACTIVAS:'}
+[Dónde hay tracción hoy basándote en la comparativa]. Máx 2 líneas.
 
-${lang === 'en' ? 'RISK:' : 'RIESGO:'}
-[${lang === 'en' ? 'What to watch out for today' : 'Qué vigilar hoy'}, máx 1 línea]
+${lang === 'en' ? 'REACTIVE RISKS:' : 'RIESGOS REACTIVOS:'}
+[Qué debe evitar el usuario según su configuración específica hoy]. Máx 1 línea.
 
-${lang === 'en' ? 'CONCRETE ACTION:' : 'ACCIÓN CONCRETA:'}
-[${lang === 'en' ? 'Single bio-hacking task for today' : 'La única tarea de Bio-Hacking o conducta para hoy'}]
+${lang === 'en' ? 'PROFESSIONAL GUIDANCE:' : 'CONDUCTA PROFESIONAL:'}
+[La única tarea de Bio-Hacking o conducta sugerida]. Máx 1 línea.
         `;
 
         const userPrompt = `
-Genera la lectura para ${context.userName}:
-- Energía del Día: Nahual ${context.dayPillars.mayan.nahual} (Tono ${context.dayPillars.mayan.tone}), Signo Solar ${context.dayPillars.astrology.sign}, Animal Chino ${context.dayPillars.chinese.animal}, Número Universal ${context.dayPillars.numerology.universal}.
-- Coherencia del Usuario: ${context.coherence.state} (${(context.coherence.level * 100).toFixed(1)}%)
-- Interacción Scores: Resonancia ${(context.interaction.resonanceScore * 100).toFixed(0)}%, Fricción ${(context.interaction.frictionScore * 100).toFixed(0)}%, Activación ${(context.interaction.activationScore * 100).toFixed(0)}%
+[CONTEXTO TEMPORAL: ${new Date().toISOString().split('T')[0]}]
+
+[DATOS NATALES (USER BORN DATA)]
+- Astrología: Signo ${context.userPillars.astrology.sign} (${context.userPillars.astrology.element})
+- Numerología: Camino de Vida ${context.userPillars.numerology?.lifePathNumber}
+- Nahual Maya: ${context.userPillars.mayan?.nawal_maya}
+- Animal Chino: ${context.userPillars.chinese?.animal}
+
+[PULSO DE HOY (TRANSIT DATA)]
+- Día: Nahual ${context.dayPillars.mayan.nahual} (Tono ${context.dayPillars.mayan.tone})
+- Tránsito Astro: Signo ${context.dayPillars.astrology.sign}
+- Tránsito Chino: Año del ${context.dayPillars.chinese.animal}
+- Numerología Universal: ${context.dayPillars.numerology.universal}
+
+[ESTADO ACTUAL]
+- Coherencia: ${context.coherence.state} (${(context.coherence.level * 100).toFixed(1)}%)
+- Scores de Interacción: Resonancia ${(context.interaction.resonanceScore * 100).toFixed(0)}%, Fricción ${(context.interaction.frictionScore * 100).toFixed(0)}%, Activación ${(context.interaction.activationScore * 100).toFixed(0)}%
         `;
 
         try {
@@ -66,8 +83,8 @@ Genera la lectura para ${context.userName}:
                     system_instruction: { parts: [{ text: systemInstruction }] },
                     contents: [{ role: "user", parts: [{ text: userPrompt }] }],
                     generationConfig: { 
-                        temperature: 0.5, // slightly more variance
-                        maxOutputTokens: 250 
+                        temperature: 0.7, // increased variance
+                        maxOutputTokens: 300 
                     }
                 })
             });

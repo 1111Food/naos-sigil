@@ -35,15 +35,16 @@ export const SlideToEnter: React.FC<SlideToEnterProps> = ({ onUnlock }) => {
     const handleDragEnd = async (_event: any, info: any) => {
         if (isUnlocked || containerWidth === 0) return;
 
-        // Target is getting close to the right edge
-        const threshold = containerWidth - btnWidth - (padding * 3);
+        // Lower threshold (80% of total travel) to make it easier on mobile
+        const maxTravel = containerWidth - btnWidth - padding;
+        const threshold = maxTravel * 0.8;
 
         if (info.offset.x >= threshold) {
             setIsUnlocked(true);
-            await controls.start({ x: containerWidth - btnWidth - padding });
+            await controls.start({ x: maxTravel });
             onUnlock();
         } else {
-            controls.start({ x: 0, transition: { type: "spring", stiffness: 300, damping: 20 } });
+            controls.start({ x: 0, transition: { type: "spring", stiffness: 350, damping: 25 } });
         }
     };
 

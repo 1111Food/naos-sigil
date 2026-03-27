@@ -289,6 +289,7 @@ export async function apiRoutes(app: FastifyInstance) {
     app.get('/api/naos-code', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const forceRefresh = (req.query as any).refresh === 'true';
+        const lang = (req.query as any).lang || 'es';
 
         // Check Admin
         const isAdmin = (req as any).user?.role === 'admin';
@@ -301,9 +302,9 @@ export async function apiRoutes(app: FastifyInstance) {
              }
         }
 
-        console.log(`🧬 [NAOS_CODE_START] Compilación solicitada para: ${userId} | Refresh: ${forceRefresh}`);
+        console.log(`🧬 [NAOS_CODE_START] Compilación solicitada para: ${userId} | Refresh: ${forceRefresh} | Lang: ${lang}`);
         try {
-            const res = await NaosCompilerService.compile(userId, forceRefresh);
+            const res = await NaosCompilerService.compile(userId, forceRefresh, lang as any);
             if (forceRefresh) {
                  await UsageGuardService.incrementUsage(userId, 'naos_code');
             }

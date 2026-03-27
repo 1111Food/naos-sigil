@@ -112,6 +112,8 @@ export class NotificationEngine {
         const serverMin = String(now.getMinutes()).padStart(2, '0');
         const serverTimeStr = `${serverHour}:${serverMin}`;
 
+        console.log(`⏰ [NOTIF_ENGINE] Checking Tuning Cycles at server time: ${serverTimeStr}`);
+
         const { data: tunings } = await supabase
             .from('coherence_tunings')
             .select('*')
@@ -138,7 +140,10 @@ export class NotificationEngine {
 
             // Logic: Adjust server time to user local time
             // utcOffset is expected in hours (e.g., -6)
-            const offset = (user.profile_data?.utcOffset !== undefined) ? user.profile_data.utcOffset : -6;
+            const profileData = user.profile_data || {};
+            const offset = (profileData.utcOffset !== undefined) 
+                ? profileData.utcOffset 
+                : (profileData.timezone_offset !== undefined ? profileData.timezone_offset : -6);
             
             // Generate clean User Local Time
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);

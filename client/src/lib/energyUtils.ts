@@ -1,7 +1,7 @@
 export interface DailyInsight {
     mode: 'EXPANSION' | 'REFUGE' | 'PORTAL' | 'BALANCE';
-    title: string;
-    advice: string;
+    titleKey: string;
+    adviceKey: string;
     keywords: string[];
     color: string;
 }
@@ -35,8 +35,8 @@ export function generateDailyInsight(
     if (masterNumbers.includes(universalDayNumber) || masterNumbers.includes(personalNumber)) {
         return {
             mode: 'PORTAL',
-            title: 'Portal de Manifestación',
-            advice: 'Tu intuición está afilada como un diamante. El velo entre lo visible y lo invisible es delgado hoy. Presta atención a los sueños, coincidencias y señales repetitivas. Es un momento para decretar, no para forzar.',
+            titleKey: 'energy_portal_title',
+            adviceKey: 'energy_portal_advice',
             keywords: ['Intuición', 'Maestría', 'Sincronicidad'],
             color: 'text-violet-300'
         };
@@ -46,8 +46,8 @@ export function generateDailyInsight(
     if ((element === 'FIRE' || element === 'AIR') && activeNumbers.includes(personalNumber)) {
         return {
             mode: 'EXPANSION',
-            title: 'Día de Expansión',
-            advice: 'El universo te ha dado luz verde. Tu carisma y energía vital están amplificados. Es el momento perfecto para lanzar ese proyecto, hablar en público o tomar la iniciativa en una relación. El movimiento genera suerte hoy.',
+            titleKey: 'energy_expansion_title',
+            adviceKey: 'energy_expansion_advice',
             keywords: ['Liderazgo', 'Socializar', 'Iniciar'],
             color: 'text-amber-300'
         };
@@ -57,8 +57,8 @@ export function generateDailyInsight(
     if ((element === 'WATER' || element === 'EARTH') && passiveNumbers.includes(personalNumber)) {
         return {
             mode: 'REFUGE',
-            title: 'Día de Refugio',
-            advice: 'El mundo exterior puede sentirse ruidoso o drenante. Tu poder hoy reside en el silencio y la contención. Busca espacios de calma, conecta con tu círculo íntimo o dedica tiempo al estudio profundo. Evita las multitudes si es posible.',
+            titleKey: 'energy_refuge_title',
+            adviceKey: 'energy_refuge_advice',
             keywords: ['Hogar', 'Calma', 'Nutrición'],
             color: 'text-emerald-300'
         };
@@ -67,8 +67,8 @@ export function generateDailyInsight(
     // MIXED/BALANCE (Active Element + Passive Number OR Passive Element + Active Number)
     return {
         mode: 'BALANCE',
-        title: 'Alquimia Interior',
-        advice: 'Hoy se te pide integrar opuestos. Puedes sentir un impulso de actuar frenado por una necesidad de reflexionar (o viceversa). Usa esta tensión creativamente: planifica en silencio para actuar con precisión mañana. Busca el punto medio.',
+        titleKey: 'energy_balance_title',
+        adviceKey: 'energy_balance_advice',
         keywords: ['Integración', 'Paciencia', 'Estrategia'],
         color: 'text-rose-300'
     };

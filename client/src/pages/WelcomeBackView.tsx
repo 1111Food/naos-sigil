@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, LogOut } from 'lucide-react';
 import { TempleLoading } from '../components/TempleLoading';
+import { useTranslation } from '../i18n';
 
 interface WelcomeBackViewProps {
     nickname: string;
@@ -10,6 +11,7 @@ interface WelcomeBackViewProps {
 }
 
 export const WelcomeBackView: React.FC<WelcomeBackViewProps> = ({ nickname, onContinue, onReset }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
 
     const handleEnter = async () => {
@@ -61,7 +63,7 @@ export const WelcomeBackView: React.FC<WelcomeBackViewProps> = ({ nickname, onCo
                         transition={{ delay: 0.3 }}
                         className="text-amber-500/60 text-xs tracking-[0.3em] uppercase"
                     >
-                        El Templo te Reconoce
+                        {t('welcome_back_recognize')}
                     </motion.p>
                     <motion.h1
                         initial={{ y: 10, opacity: 0 }}
@@ -89,7 +91,7 @@ export const WelcomeBackView: React.FC<WelcomeBackViewProps> = ({ nickname, onCo
                             transition={{ delay: 0.8 }}
                             className="group relative w-full py-4 px-8 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-100 font-bold tracking-widest uppercase text-xs hover:bg-amber-500/20 hover:border-amber-500/50 transition-all shadow-[0_0_20px_rgba(245,158,11,0.1)] hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center justify-center gap-3"
                         >
-                            <span>Ingresar al Templo</span>
+                            <span>{t('welcome_back_enter')}</span>
                             <Play className="w-3 h-3 fill-current group-hover:translate-x-1 transition-transform" />
 
                             {/* Pulse Effect */}
@@ -105,7 +107,7 @@ export const WelcomeBackView: React.FC<WelcomeBackViewProps> = ({ nickname, onCo
                         className="text-white/20 hover:text-white/40 text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors"
                     >
                         <LogOut className="w-3 h-3" />
-                        No soy {nickname} / Cerrar Sesión
+                        {t('welcome_back_not_me').replace('{{nickname}}', nickname)}
                     </motion.button>
                 </div>
 

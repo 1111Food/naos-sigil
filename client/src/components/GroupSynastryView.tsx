@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GroupDynamicsModule } from './GroupDynamicsModule';
 import { GroupHistoryModule } from './GroupHistoryModule';
+import { useTranslation } from '../i18n';
 
 interface GroupSynastryViewProps {
     profile: any;
 }
 
 export const GroupSynastryView: React.FC<GroupSynastryViewProps> = ({ profile }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'FORM' | 'HISTORY'>('FORM');
     // Group Dynamics Module handles its own internal calculation state.
     // However, if we view history, we might want to pass data back.
@@ -45,13 +47,13 @@ export const GroupSynastryView: React.FC<GroupSynastryViewProps> = ({ profile })
                         onClick={() => handleTabChange('FORM')}
                         className={`text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-full transition-all ${activeTab === 'FORM' ? 'bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30' : 'text-white/40 hover:text-white/80'}`}
                     >
-                        Ensamblaje Organizacional
+                        {t('synastry_group_assembly')}
                     </button>
                     <button
                         onClick={() => handleTabChange('HISTORY')}
                         className={`text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-full transition-all ${activeTab === 'HISTORY' ? 'bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30' : 'text-white/40 hover:text-white/80'}`}
                     >
-                        Historial de Redes
+                        {t('synastry_group_history')}
                     </button>
                 </div>
             </div>

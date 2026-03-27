@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { createProtocol } from '../services/supabaseService';
+import { useTranslation } from '../i18n';
 
 interface ProtocolWizardProps {
     userId: string;
@@ -9,6 +10,7 @@ interface ProtocolWizardProps {
 }
 
 export const ProtocolWizard: React.FC<ProtocolWizardProps> = ({ userId, onProtocolCreated, onCancel }) => {
+    const { t } = useTranslation();
     const [title, setTitle] = useState('');
     const [purpose, setPurpose] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +46,7 @@ export const ProtocolWizard: React.FC<ProtocolWizardProps> = ({ userId, onProtoc
                     transition={{ delay: 0.1 }}
                     className="text-2xl md:text-3xl font-serif italic mb-2 text-center text-white/90 drop-shadow-md"
                 >
-                    Firma del Arquitecto
+                    {t('protocol_architect_signature')}
                 </motion.h2>
                 <motion.p
                     initial={{ y: -10, opacity: 0 }}
@@ -52,7 +54,7 @@ export const ProtocolWizard: React.FC<ProtocolWizardProps> = ({ userId, onProtoc
                     transition={{ delay: 0.2 }}
                     className="text-[10px] uppercase tracking-[0.4em] text-cyan-400 mb-10 text-center font-bold"
                 >
-                    Sello de Compromiso • 21 Días
+                    {t('protocol_seal_commitment')}
                 </motion.p>
 
                 <form onSubmit={handleSubmit} className="w-full flex flex-col gap-8">
@@ -63,11 +65,11 @@ export const ProtocolWizard: React.FC<ProtocolWizardProps> = ({ userId, onProtoc
                         className="flex flex-col gap-3 group/input"
                     >
                         <label className="text-[10px] uppercase tracking-widest text-white/40 group-focus-within/input:text-cyan-400 transition-colors">
-                            ¿Qué estructura deseas integrar?
+                            {t('protocol_structure_prompt')}
                         </label>
                         <input
                             type="text"
-                            placeholder="Ej. Meditación Consciente al despertar"
+                            placeholder={t('protocol_structure_placeholder')}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:border-cyan-500/50 focus:bg-cyan-950/20 outline-none text-sm transition-all shadow-inner focus:shadow-[0_0_15px_rgba(6,182,212,0.1)] text-white/90 placeholder:text-white/20"
@@ -82,10 +84,10 @@ export const ProtocolWizard: React.FC<ProtocolWizardProps> = ({ userId, onProtoc
                         className="flex flex-col gap-3 group/input"
                     >
                         <label className="text-[10px] uppercase tracking-widest text-white/40 group-focus-within/input:text-amber-500/70 transition-colors">
-                            Propósito de la Modificación
+                            {t('protocol_purpose_prompt')}
                         </label>
                         <textarea
-                            placeholder="Ej. Para anclar mi energía vital antes de interactuar con el mundo..."
+                            placeholder={t('protocol_purpose_placeholder')}
                             value={purpose}
                             onChange={(e) => setPurpose(e.target.value)}
                             className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:border-amber-500/50 focus:bg-amber-950/20 outline-none text-sm transition-all resize-none h-24 shadow-inner focus:shadow-[0_0_15px_rgba(245,158,11,0.1)] text-white/90 placeholder:text-white/20"
@@ -105,14 +107,14 @@ export const ProtocolWizard: React.FC<ProtocolWizardProps> = ({ userId, onProtoc
                             className="flex-1 py-3 px-4 text-[10px] uppercase tracking-widest text-white/30 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                             disabled={isSubmitting}
                         >
-                            Abordar
+                            {t('protocol_abort')}
                         </button>
                         <button
                             type="submit"
-                            className="flex-2 py-3 px-8 bg-cyan-500/10 border border-cyan-500/50 text-cyan-400 text-[10px] uppercase tracking-widest font-black rounded-xl hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all disabled:opacity-50"
+                            className="flex-2 py-3 px-8 bg-cyan-500/10 border border-cyan-500/50 text-cyan-400 text-[10px] uppercase tracking-widest font-black rounded-xl hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_20_px_rgba(6,182,212,0.4)] transition-all disabled:opacity-50"
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? 'Iniciando Secuencia...' : 'Sellar Código'}
+                            {isSubmitting ? t('protocol_synchronizing') : t('protocol_seal_code')}
                         </button>
                     </motion.div>
                 </form>

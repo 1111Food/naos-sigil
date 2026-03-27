@@ -143,7 +143,7 @@ export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) =>
     };
 
     return (
-        <div className="w-full flex flex-col items-center justify-center min-h-screen sm:min-h-[70vh] relative px-4 py-12 md:py-20">
+        <div className="w-full flex flex-col items-center justify-center min-h-[100dvh] relative px-4 pt-12 pb-[calc(env(safe-area-inset-bottom)+2rem)] md:py-20">
             {view !== 'CONSOLE' && <AstralVortex />}
 
             <AnimatePresence mode="wait">

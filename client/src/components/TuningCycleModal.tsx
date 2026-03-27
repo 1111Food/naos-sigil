@@ -4,6 +4,7 @@ import { Sparkles, X, Zap, Target, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getAsyncAuthHeaders } from '../lib/api';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../i18n';
 
 interface TuningCycleModalProps {
     isOpen: boolean;
@@ -13,32 +14,27 @@ interface TuningCycleModalProps {
     practiceIcon?: React.ReactNode;
 }
 
-const CYCLE_PLANS = [
+const CYCLE_PLANS_CONFIG = [
     {
         id: 'monje',
-        title: 'Ciclo del Monje',
-        subtitle: 'Inmersión Total',
-        description: '4 recordatorios al día (08:00, 12:00, 16:00, 20:00). Para quienes buscan una transformación profunda y constante.',
+        key: 'monk',
         schedule: '08:00,12:00,16:00,20:00',
         icon: <Target className="w-5 h-5 text-purple-400" />
     },
     {
         id: 'guerrero',
-        title: 'Ciclo del Guerrero',
-        subtitle: 'Disciplina Solar y Lunar',
-        description: '2 recordatorios al día (08:00 y 20:00). Equilibrio entre acción y descanso.',
+        key: 'warrior',
         schedule: '08:00,20:00',
         icon: <Zap className="w-5 h-5 text-amber-400" />
     },
     {
         id: 'microdosis',
-        title: 'Micro-Dosis',
-        subtitle: 'Sintonía Sutil',
-        description: '1 recordatorio al día (15:00 hrs). Un ancla de consciencia en medio del caos.',
+        key: 'micro',
         schedule: '15:00',
         icon: <Sparkles className="w-5 h-5 text-cyan-400" />
     }
 ];
+
 // @ts-ignore
 export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
     isOpen,
@@ -47,6 +43,7 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
     practiceName,
     practiceIcon
 }) => {
+    const { t } = useTranslation();
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [customTime, setCustomTime] = useState<string>('18:00');
     const [loading, setLoading] = useState(false);
@@ -129,8 +126,8 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                                     {practiceIcon || <Sparkles className="w-6 h-6" />}
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-serif italic text-white">Programar Ciclo</h3>
-                                    <p className="text-[10px] uppercase tracking-widest text-white/40">Sintonización: {practiceName}</p>
+                                    <h3 className="text-xl font-serif italic text-white">{t('tuning_modal_title')}</h3>
+                                    <p className="text-[10px] uppercase tracking-widest text-white/40">{t('tuning_modal_subtitle')}: {practiceName}</p>
                                 </div>
                             </div>
                             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-white/20 hover:text-white">
@@ -160,17 +157,17 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                                     <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                                         <Zap className="w-8 h-8 animate-pulse" />
                                     </div>
-                                    <p className="text-white font-serif italic text-lg">Ciclo sincronizado con el Sigil</p>
-                                    <p className="text-[10px] uppercase tracking-widest text-white/40">Tu energía comenzará a resonar pronto.</p>
+                                    <p className="text-white font-serif italic text-lg">{t('tuning_success_title')}</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-white/40">{t('tuning_success_sub')}</p>
                                 </motion.div>
                             ) : (
                                 <>
                                     <p className="text-xs text-white/60 mb-6 font-light leading-relaxed">
-                                        Elige la frecuencia con la que el Sigil inyectará recordatorios místicos en tu canal para realizar esta práctica.
+                                        {t('tuning_modal_desc')}
                                     </p>
 
                                     <div className="space-y-3">
-                                        {CYCLE_PLANS.map((plan) => (
+                                        {CYCLE_PLANS_CONFIG.map((plan) => (
                                             <button
                                                 key={plan.id}
                                                 disabled={loading}
@@ -187,10 +184,10 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <h4 className="text-sm font-bold text-white/90">{plan.title}</h4>
-                                                        <span className="text-[8px] uppercase tracking-widest text-cyan-400 opacity-60 group-hover:opacity-100">{plan.subtitle}</span>
+                                                        <h4 className="text-sm font-bold text-white/90">{t(`tuning_plan_${plan.key}_title` as any)}</h4>
+                                                        <span className="text-[8px] uppercase tracking-widest text-cyan-400 opacity-60 group-hover:opacity-100">{t(`tuning_plan_${plan.key}_sub` as any)}</span>
                                                     </div>
-                                                    <p className="text-[10px] text-white/40 leading-relaxed italic">{plan.description}</p>
+                                                    <p className="text-[10px] text-white/40 leading-relaxed italic">{t(`tuning_plan_${plan.key}_desc` as any)}</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -210,10 +207,10 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <h4 className="text-sm font-bold text-white/90">Personalizado</h4>
-                                                        <span className="text-[8px] uppercase tracking-widest text-emerald-400 opacity-60 group-hover:opacity-100">Frecuencia Única</span>
+                                                        <h4 className="text-sm font-bold text-white/90">{t('tuning_plan_custom_title')}</h4>
+                                                        <span className="text-[8px] uppercase tracking-widest text-emerald-400 opacity-60 group-hover:opacity-100">{t('tuning_plan_custom_sub')}</span>
                                                     </div>
-                                                    <p className="text-[10px] text-white/40 leading-relaxed italic">Elige la hora exacta para tu meditación.</p>
+                                                    <p className="text-[10px] text-white/40 leading-relaxed italic">{t('tuning_plan_custom_desc')}</p>
                                                 </div>
                                             </div>
 
@@ -236,7 +233,7 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                                                     disabled={loading || selectedPlan !== 'custom'}
                                                     className="px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-lg hover:bg-cyan-500/30 transition-colors disabled:opacity-50"
                                                 >
-                                                    Agendar
+                                                    {t('tuning_btn_schedule')}
                                                 </button>
                                             </div>
                                         </div>
@@ -247,7 +244,7 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
 
                         {/* Footer */}
                         <div className="px-8 py-6 bg-white/5 border-t border-white/5 flex items-center justify-center">
-                            <p className="text-[8px] uppercase tracking-[0.3em] text-white/20">NAOS Protocol: Behavioral Architecture</p>
+                            <p className="text-[8px] uppercase tracking-[0.3em] text-white/20">{t('tuning_footer')}</p>
                         </div>
                     </motion.div>
                 </div>

@@ -4,6 +4,7 @@ import { Users, Plus, X, ArrowLeft, Loader2, Trash2, Edit, Building2, Workflow, 
 import { RosterService } from '../services/rosterService';
 import type { RosterProfile } from '../services/rosterService';
 import { API_BASE_URL, getAuthHeaders } from '../lib/api';
+import { useTranslation } from '../i18n';
 
 interface GroupDynamicsModuleProps {
     initialReport?: any;
@@ -11,6 +12,7 @@ interface GroupDynamicsModuleProps {
 }
 
 export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initialReport, onClearReport }) => {
+    const { t } = useTranslation();
     const [roster, setRoster] = useState<RosterProfile[]>([]);
     const [selectedMembers, setSelectedMembers] = useState<RosterProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +73,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
 
     const handleDeleteMember = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!window.confirm("¿Eliminar perfil del Roster?")) return;
+        if (!window.confirm(t('synastry_delete_roster_confirm'))) return;
         try {
             await RosterService.deleteProfile(id);
             setRoster(prev => prev.filter(m => m.id !== id));
@@ -88,7 +90,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                 return prev.filter(m => m.id !== member.id);
             } else {
                 if (prev.length >= 5) {
-                    alert("Máximo 5 perfiles para Dinámica de Grupo.");
+                    alert(t('synastry_max_profiles'));
                     return prev;
                 }
                 return [...prev, member];
@@ -98,7 +100,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
 
     const handleAnalyze = async () => {
         if (selectedMembers.length < 3) {
-            alert("Mínimo 3 perfiles requeridos para un equipo.");
+            alert(t('synastry_min_profiles'));
             return;
         }
 
@@ -133,14 +135,14 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
         }
     };
 
-    const getElementColor = (element: string) => {
-        switch (element) {
-            case 'Fuego': return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
-            case 'Tierra': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-            case 'Aire': return 'text-sky-400 bg-sky-400/10 border-sky-400/20';
-            case 'Agua': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
-            default: return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
-        }
+    const getElementStyles = (element: string) => {
+        // Handle both Spanish/English inputs from common service or internal mapping
+        const el = element.toLowerCase();
+        if (el.includes('fuego') || el.includes('fire')) return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
+        if (el.includes('tierra') || el.includes('earth')) return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+        if (el.includes('aire') || el.includes('air')) return 'text-sky-400 bg-sky-400/10 border-sky-400/20';
+        if (el.includes('agua') || el.includes('water')) return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+        return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
     };
 
     if (isAnalyzing) {
@@ -151,8 +153,8 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                     <motion.div animate={{ rotate: -360 }} transition={{ duration: 6, repeat: Infinity, ease: "linear" }} className="absolute inset-4 rounded-[2rem] border border-blue-400/20" />
                     <Building2 className="text-blue-400/40 w-16 h-16 animate-pulse" />
                 </div>
-                <h3 className="tracking-[0.4em] uppercase text-blue-300 font-bold mt-8 text-sm animate-pulse">Consultando Arquitectura B2B...</h3>
-                <p className="text-[10px] text-white/30 uppercase tracking-widest mt-2">Mapeando Sinergia de {selectedMembers.length} Nodos</p>
+                <h3 className="tracking-[0.4em] uppercase text-blue-300 font-bold mt-8 text-sm animate-pulse">{t('synastry_consulting_b2b')}</h3>
+                <p className="text-[10px] text-white/30 uppercase tracking-widest mt-2">{t('synastry_mapping_nodes', { count: selectedMembers.length })}</p>
             </div>
         );
     }
@@ -164,7 +166,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                     setReport(null);
                     if (onClearReport) onClearReport();
                 }} className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors">
-                    <ArrowLeft size={14} /> Limpiar Tablero
+                    <ArrowLeft size={14} /> {t('synastry_clear_board')}
                 </button>
 
                 <div className="bg-black/40 border border-blue-500/20 rounded-[2rem] p-8 md:p-12 backdrop-blur-xl relative overflow-hidden">
@@ -172,10 +174,10 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
 
                     <div className="text-center mb-12">
                         <div className="inline-flex px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded mb-4">
-                            Reporte Organizacional
+                            {t('synastry_org_report')}
                         </div>
-                        <h2 className="text-4xl font-serif text-white mb-2">Malla Elemental Operativa</h2>
-                        <p className="text-white/40 uppercase tracking-[0.2em] text-xs">Puntuación de Eficiencia: <span className="text-white font-serif text-xl ml-2">{report.technicalReport.score}%</span></p>
+                        <h2 className="text-4xl font-serif text-white mb-2">{t('synastry_elemental_mesh')}</h2>
+                        <p className="text-white/40 uppercase tracking-[0.2em] text-xs">{t('synastry_efficiency_score')} <span className="text-white font-serif text-xl ml-2">{report.technicalReport.score}%</span></p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -183,23 +185,23 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                         <div className="space-y-8">
                             <div>
                                 <h3 className="text-[10px] uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
-                                    <Workflow size={14} /> Distribución de Carga
+                                    <Workflow size={14} /> {t('synastry_load_distribution')}
                                 </h3>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className={`p-4 rounded-xl border ${getElementColor('Fuego')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">Iniciativa (Fuego)</div>
+                                    <div className={`p-4 rounded-xl border ${getElementStyles('fire')}`}>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_fire')} ({t('synastry_initiative_fire').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.fire}%</div>
                                     </div>
-                                    <div className={`p-4 rounded-xl border ${getElementColor('Tierra')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">Ejecución (Tierra)</div>
+                                    <div className={`p-4 rounded-xl border ${getElementStyles('earth')}`}>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_earth')} ({t('synastry_execution_earth').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.earth}%</div>
                                     </div>
-                                    <div className={`p-4 rounded-xl border ${getElementColor('Aire')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">Estrategia (Aire)</div>
+                                    <div className={`p-4 rounded-xl border ${getElementStyles('air')}`}>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_air')} ({t('synastry_strategy_air').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.air}%</div>
                                     </div>
-                                    <div className={`p-4 rounded-xl border ${getElementColor('Agua')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">Cohesión (Agua)</div>
+                                    <div className={`p-4 rounded-xl border ${getElementStyles('water')}`}>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_water')} ({t('synastry_cohesion_water').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.water}%</div>
                                     </div>
                                 </div>
@@ -208,9 +210,9 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                             {report.technicalReport.mesh.voids.length > 0 && (
                                 <div className="bg-rose-500/10 border border-rose-500/20 p-5 rounded-xl">
                                     <h3 className="text-[10px] uppercase tracking-widest text-rose-400 mb-2 font-bold flex items-center gap-2">
-                                        <ShieldAlert size={14} /> Vacíos Operativos Detectados
+                                        <ShieldAlert size={14} /> {t('synastry_voids_detected')}
                                     </h3>
-                                    <p className="text-white/60 text-sm">El ensamble carece peligrosamente de energía en: <span className="text-white font-bold">{report.technicalReport.mesh.voids.join(', ')}</span></p>
+                                    <p className="text-white/60 text-sm">{t('synastry_voids_desc')} <span className="text-white font-bold">{report.technicalReport.mesh.voids.join(', ')}</span></p>
                                 </div>
                             )}
                         </div>
@@ -218,15 +220,15 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                         {/* Synthesis Right */}
                         <div className="space-y-6">
                             <h3 className="text-[10px] uppercase tracking-widest text-blue-400 mb-4 font-bold flex items-center gap-2 border-b border-blue-500/20 pb-4">
-                                <Cpu size={14} /> Dictamen de Arquitectura Organizacional
+                                <Cpu size={14} /> {t('synastry_org_dictum')}
                             </h3>
 
                             {[
-                                { key: 'sinergia_global', label: 'Sinergia del Ensamble', icon: Zap },
-                                { key: 'friccion_operativa', label: 'Fricciones Sistémicas', icon: ShieldAlert },
-                                { key: 'liderazgo_distribuido', label: 'Estructura de Poder', icon: Target },
-                                { key: 'flujo_informacion', label: 'Flujo de Datos', icon: Brain },
-                                { key: 'veredicto_arquitecto', label: 'Veredicto del Arquitecto', icon: Sparkles }
+                                { key: 'sinergia_global', label: t('synastry_global_synergy'), icon: Zap },
+                                { key: 'friccion_operativa', label: t('synastry_op_friction'), icon: ShieldAlert },
+                                { key: 'liderazgo_distribuido', label: t('synastry_power_structure'), icon: Target },
+                                { key: 'flujo_informacion', label: t('synastry_data_flow'), icon: Brain },
+                                { key: 'veredicto_arquitecto', label: t('synastry_arch_verdict'), icon: Sparkles }
                             ].map((item) => (
                                 <div 
                                     key={item.key} 
@@ -270,12 +272,12 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                         <div className="mt-8 pt-8 border-t border-blue-500/20 grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-white/5 p-6 rounded-2xl border border-white/5 space-y-3">
                                 <h4 className="text-[10px] uppercase tracking-widest text-cyan-400 font-bold flex items-center gap-2">
-                                    <Users size={14} /> Roles Sugeridos
+                                    <Users size={14} /> {t('synastry_suggested_roles')}
                                 </h4>
                                 <div className="space-y-2 text-xs text-white/80 font-light">
-                                    <p><strong className="text-white">Liderazgo:</strong> {report.synthesis.roles_sugeridos.liderazgo}</p>
-                                    <p><strong className="text-white">Ejecución:</strong> {report.synthesis.roles_sugeridos.ejecucion}</p>
-                                    <p><strong className="text-white">Creación:</strong> {report.synthesis.roles_sugeridos.creacion}</p>
+                                    <p><strong className="text-white">{t('synastry_leadership')}:</strong> {report.synthesis.roles_sugeridos.liderazgo}</p>
+                                    <p><strong className="text-white">{t('synastry_execution')}:</strong> {report.synthesis.roles_sugeridos.ejecucion}</p>
+                                    <p><strong className="text-white">{t('synastry_creation')}:</strong> {report.synthesis.roles_sugeridos.creacion}</p>
                                 </div>
                             </div>
 
@@ -283,7 +285,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                 <div className="bg-rose-500/10 p-6 rounded-2xl border border-rose-500/20 space-y-2 flex flex-col justify-center">
                                     <div className="flex items-center gap-2">
                                         <ShieldAlert size={14} className="text-rose-400" />
-                                        <h4 className="text-[10px] uppercase tracking-widest text-rose-400 font-bold">Alerta de Riesgo</h4>
+                                        <h4 className="text-[10px] uppercase tracking-widest text-rose-400 font-bold">{t('synastry_risk_alert')}</h4>
                                     </div>
                                     <p className="text-xs text-white/80 font-light leading-relaxed">{report.synthesis.alerta_riesgo}</p>
                                 </div>
@@ -293,7 +295,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                 <div className="bg-blue-500/10 p-6 rounded-2xl border border-blue-500/20 space-y-2 flex flex-col justify-center">
                                     <div className="flex items-center gap-2">
                                         <Target size={14} className="text-blue-400" />
-                                        <h4 className="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Acción Recomendada</h4>
+                                        <h4 className="text-[10px] uppercase tracking-widest text-blue-400 font-bold">{t('synastry_recommended_action')}</h4>
                                     </div>
                                     <p className="text-xs text-white/80 font-light leading-relaxed">{report.synthesis.accion_recomendada}</p>
                                 </div>
@@ -311,7 +313,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
             <div className="flex-1 bg-black/40 border border-white/10 rounded-[2rem] p-6 backdrop-blur-xl flex flex-col max-h-[70vh]">
                 <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
                     <h3 className="text-white font-serif text-xl italic flex items-center gap-3">
-                        <Users className="text-purple-400 opacity-50" /> Roster B2B
+                        <Users className="text-purple-400 opacity-50" /> {t('synastry_roster_b2b')}
                     </h3>
                     <button
                         onClick={() => setShowAddForm(!showAddForm)}
@@ -328,38 +330,38 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                         className="mb-6 space-y-4 bg-white/5 p-4 rounded-xl border border-white/5"
                         onSubmit={handleAddMember}
                     >
-                        <input required type="text" placeholder="Nombre (Ej: M. Zuckerberg)" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.name} onChange={e => setNewMember({ ...newMember, name: e.target.value })} />
+                        <input required type="text" placeholder={t('synastry_name_placeholder')} className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.name} onChange={e => setNewMember({ ...newMember, name: e.target.value })} />
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex flex-col">
-                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">Fecha Solar</label>
+                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_sun_date')}</label>
                                 <input required type="date" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm invert-calendar-icon outline-none" value={newMember.birthDate} onChange={e => setNewMember({ ...newMember, birthDate: e.target.value })} />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">Hora</label>
+                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_hour')}</label>
                                 <input type="time" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm outline-none" value={newMember.birthTime} onChange={e => setNewMember({ ...newMember, birthTime: e.target.value })} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex flex-col">
-                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">País</label>
-                                <input type="text" placeholder="Ej: México" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.birthCountry} onChange={e => setNewMember({ ...newMember, birthCountry: e.target.value })} />
+                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_country')}</label>
+                                <input type="text" placeholder={t('synastry_country_placeholder')} className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.birthCountry} onChange={e => setNewMember({ ...newMember, birthCountry: e.target.value })} />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">Estado</label>
+                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_state_province')}</label>
                                 <input type="text" placeholder="Ej: CDMX" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.birthState} onChange={e => setNewMember({ ...newMember, birthState: e.target.value })} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex flex-col">
-                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">Ciudad</label>
-                                <input type="text" placeholder="Ej: Cuauhtémoc" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.birthCity} onChange={e => setNewMember({ ...newMember, birthCity: e.target.value })} />
+                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_base_city')}</label>
+                                <input type="text" placeholder={t('synastry_city_placeholder')} className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.birthCity} onChange={e => setNewMember({ ...newMember, birthCity: e.target.value })} />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">Rol Operativo</label>
+                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_op_role')}</label>
                                 <input required type="text" placeholder="Ej: CEO" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.roleLabel} onChange={e => setNewMember({ ...newMember, roleLabel: e.target.value })} />
                             </div>
                         </div>
-                        <button type="submit" className="w-full bg-purple-500/20 text-purple-300 border border-purple-500/30 p-2 rounded uppercase text-[10px] tracking-widest font-bold hover:bg-purple-500/30">Guardar Perfil</button>
+                        <button type="submit" className="w-full bg-purple-500/20 text-purple-300 border border-purple-500/30 p-2 rounded uppercase text-[10px] tracking-widest font-bold hover:bg-purple-500/30">{t('synastry_save_profile')}</button>
                     </motion.form>
                 )}
 
@@ -368,13 +370,13 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                         <div className="flex justify-center p-8"><Loader2 className="animate-spin text-white/30" /></div>
                     ) : roster.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                            <p className="text-center text-[10px] uppercase tracking-widest text-white/40">El roster B2B está vacío.</p>
+                            <p className="text-center text-[10px] uppercase tracking-widest text-white/40">{t('synastry_roster_empty')}</p>
                             <button
                                 onClick={() => setShowAddForm(true)}
                                 className="px-6 py-3 bg-white/5 border border-white/10 hover:border-blue-500/40 hover:bg-blue-500/10 rounded-xl text-white font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 group shadow-[0_0_15px_rgba(0,0,0,0.2)]"
                             >
                                 <Plus size={16} className="text-blue-400 group-hover:scale-110 transition-transform" />
-                                Crear Nuevo Vínculo
+                                {t('synastry_create_link')}
                             </button>
                         </div>
                     ) : (
@@ -418,8 +420,8 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent to-blue-500/50" />
 
                 <div>
-                    <h2 className="text-3xl font-serif text-white mb-2 italic text-left">Ensamblaje Organizacional</h2>
-                    <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] mb-8 text-left">Selecciona de 3 a 5 nodos para calcular Malla Elemental</p>
+                    <h2 className="text-3xl font-serif text-white mb-2 italic text-left">{t('synastry_group_assembly')}</h2>
+                    <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] mb-8 text-left">{t('synastry_group_select_prompt')}</p>
 
                     <div className="flex flex-wrap gap-2 mb-8">
                         <AnimatePresence>
@@ -445,7 +447,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                         </AnimatePresence>
                         {selectedMembers.length === 0 && (
                             <div className="w-full text-center py-10 border border-dashed border-white/10 rounded-xl text-white/20 text-xs italic font-serif">
-                                Selecciona miembros en el Roster (Panel Izquierdo)
+                                {t('synastry_group_roster_prompt')}
                             </div>
                         )}
                     </div>
@@ -458,28 +460,28 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                         className={`w-full py-4 rounded-xl border border-blue-500/30 uppercase tracking-[0.2em] text-xs font-bold transition-all shadow-[0_0_20px_rgba(59,130,246,0.1)] flex justify-center items-center gap-2 ${selectedMembers.length >= 3 ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 cursor-pointer' : 'bg-black/40 text-white/20 cursor-not-allowed opacity-50'}`}
                     >
                         <Building2 size={16} />
-                        {selectedMembers.length < 3 ? 'Requiere mínimo 3 nodos' : 'Ejecutar Algoritmo Táctico'}
+                        {selectedMembers.length < 3 ? t('synastry_min_nodes_error') : t('synastry_execute_tactical')}
                     </button>
                 </div>
             </div>
             {editingMember && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-panel w-full max-w-md p-6 rounded-3xl z-10 border border-white/10 relative">
-                        <h3 className="text-lg font-serif text-white mb-6">Editar Perfil</h3>
+                        <h3 className="text-lg font-serif text-white mb-6">{t('synastry_edit_profile')}</h3>
                         <form onSubmit={handleUpdateMember} className="space-y-4">
-                            <input required type="text" placeholder="Nombre" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm" value={editingMember.name} onChange={e => setEditingMember({ ...editingMember, name: e.target.value })} />
+                            <input required type="text" placeholder={t('synastry_name_placeholder')} className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm" value={editingMember.name} onChange={e => setEditingMember({ ...editingMember, name: e.target.value })} />
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex flex-col">
-                                    <label className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Fecha</label>
+                                    <label className="text-[10px] uppercase tracking-widest text-white/30 mb-1">{t('synastry_sun_date')}</label>
                                     <input required type="date" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm" value={editingMember.birthDate} onChange={e => setEditingMember({ ...editingMember, birthDate: e.target.value })} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <label className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Hora</label>
+                                    <label className="text-[10px] uppercase tracking-widest text-white/30 mb-1">{t('synastry_hour')}</label>
                                     <input type="time" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm" value={editingMember.birthTime} onChange={e => setEditingMember({ ...editingMember, birthTime: e.target.value })} />
                                 </div>
                             </div>
-                            <button type="submit" className="w-full bg-blue-500/20 text-blue-300 border border-blue-500/30 p-2 rounded uppercase text-[10px] font-bold">Guardar</button>
-                            <button type="button" onClick={() => setEditingMember(null)} className="w-full bg-white/5 text-white/60 p-2 rounded text-xs">Cancelar</button>
+                            <button type="submit" className="w-full bg-blue-500/20 text-blue-300 border border-blue-500/30 p-2 rounded uppercase text-[10px] font-bold">{t('synastry_save')}</button>
+                            <button type="button" onClick={() => setEditingMember(null)} className="w-full bg-white/5 text-white/60 p-2 rounded text-xs">{t('synastry_cancel')}</button>
                         </form>
                     </motion.div>
                 </div>

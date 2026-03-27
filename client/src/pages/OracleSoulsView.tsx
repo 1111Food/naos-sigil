@@ -4,7 +4,7 @@ import { Flower2, Users, ArrowLeft, Eye, History, X, Calendar, ChevronDown, Info
 import { OracleExplainer } from '../components/OracleExplainer';
 import { OracleOnboarding } from '../components/OracleOnboarding';
 const Spline = React.lazy(() => import('@splinetool/react-spline'));
- // Added History, X, ChevronDown, Calendar
+
 import { Tarot } from './Tarot';
 import { SynastryModule } from '../components/SynastryModule';
 import { useCoherence } from '../hooks/useCoherence';
@@ -35,7 +35,7 @@ interface OracleSoulsViewProps {
 type Tab = 'TAROT' | 'SOULS';
 
 export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavigate }) => {
-    const { t, language } = useTranslation();
+    const { t } = useTranslation();
     const { score } = useCoherence();
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
     const [step, setStep] = useState<'LOBBY' | 'INTENTION' | 'ACTIVE'>('LOBBY');
@@ -118,8 +118,8 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
     const tabs = [
         {
             id: 'TAROT',
-            label: language === 'en' ? 'Individual Reading' : 'Consulta Individual',
-            subtitle: language === 'en' ? 'Consult the Arcana or your Archetype to guide your own path.' : 'Consulta los Arcanos o tu Arquetipo para guiar tu propio camino.',
+            label: t('oracle_individual_label'),
+            subtitle: t('oracle_individual_subtitle'),
             icon: Flower2,
             color: 'text-rose-400',
             gradient: "from-rose-500/20 to-orange-500/10",
@@ -129,8 +129,8 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
         },
         {
             id: 'SOULS',
-            label: language === 'en' ? 'Link Dynamics' : 'Dinámicas de Vínculos',
-            subtitle: language === 'en' ? 'Analyze the synergy, clashes and purposes between you and another soul.' : 'Analiza la sinergia, choques y propósitos entre tú y otra alma.',
+            label: t('oracle_links_label'),
+            subtitle: t('oracle_links_subtitle'),
             icon: Users,
             color: 'text-purple-400',
             gradient: "from-purple-500/20 to-indigo-500/10",
@@ -181,10 +181,10 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
 
                         <div className="text-center mb-16 space-y-4">
                             <h2 className="text-4xl md:text-5xl font-serif italic text-primary tracking-wide">
-                                {language === 'en' ? "The Temple Threshold" : "El Umbral del Templo"}
+                                {t('oracle_threshold_title')}
                             </h2>
                             <div className="h-px w-32 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent mx-auto" />
-                            <p className="text-[11px] uppercase tracking-[0.6em] text-secondary font-black">{language === 'en' ? "Welcome to the Oracular Nexus" : "Bienvenido al Nexo Oracular"}</p>
+                            <p className="text-[11px] uppercase tracking-[0.6em] text-secondary font-black">{t('oracle_welcome_nexus')}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl z-10">
@@ -234,7 +234,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                         </div>
 
                                         <div className="pt-6 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
-                                            <span className="text-[11px] uppercase tracking-[0.4em] font-black text-rose-400">{language === 'en' ? "Transcend" : "Trascender"}</span>
+                                            <span className="text-[11px] uppercase tracking-[0.4em] font-black text-rose-400">{t('oracle_transcend')}</span>
                                             <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.5)]" />
                                         </div>
                                     </div>
@@ -252,7 +252,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                         >
                             <History size={16} className="group-hover:rotate-[-45deg] transition-transform duration-700" />
                             <span className="text-[10px] uppercase tracking-[0.4em] font-black">
-                                {language === 'en' ? "My Akashic Record" : "Mi Registro Akáshico"}
+                                {t('oracle_akashic_record')}
                             </span>
                         </motion.button>
                     </motion.div>
@@ -272,20 +272,20 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                         >
                             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                             <span className="text-[10px] uppercase tracking-[0.3em] font-black">
-                                {language === 'en' ? "Back to Threshold" : "Regresar al Umbral"}
+                                {t('back')}
                             </span>
                         </button>
 
                         <div className="space-y-12 w-full max-w-xl">
                             <div className="space-y-6">
                                 <h1 className="text-4xl md:text-5xl font-serif italic text-white/90 tracking-wide">
-                                    {language === 'en' ? "What does your soul seek today?" : "¿Qué busca tu alma hoy?"}
+                                    {t('oracle_soul_seek')}
                                 </h1>
                                 <div className="h-px w-24 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent mx-auto" />
                                 <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">
                                     {pendingTab === 'TAROT' 
-                                        ? (language === 'en' ? 'Individual Reading' : 'Consulta Individual') 
-                                        : (language === 'en' ? 'Link Dynamics' : 'Dinámicas de Vínculos')}
+                                        ? t('oracle_individual_label')
+                                        : t('oracle_links_label')}
                                 </p>
                             </div>
 
@@ -294,7 +294,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                     type="text"
                                     value={intention}
                                     onChange={(e) => setIntention(e.target.value)}
-                                    placeholder={language === 'en' ? "Manifest your intention..." : "Manifiesta tu intención..."}
+                                    placeholder={t('oracle_manifest_placeholder')}
                                     className="w-full bg-transparent border-b border-white/10 px-4 py-8 text-2xl md:text-3xl text-center text-white placeholder:text-white/5 focus:outline-none focus:border-rose-500/40 transition-all font-serif italic"
                                     autoFocus
                                     onKeyDown={(e) => e.key === 'Enter' && handleStartRitual()}
@@ -316,7 +316,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                         : "text-white/10 border-white/5 opacity-50 cursor-not-allowed"
                                 )}
                             >
-                                {language === 'en' ? "Start Tuning" : "Iniciar Sintonización"}
+                                {t('oracle_start_tuning')}
                             </button>
                         </div>
                     </motion.div>
@@ -340,10 +340,10 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                     <div>
                                         <h1 className="text-xl font-serif text-white italic flex items-center gap-2">
                                             <Eye size={16} className="text-rose-400" />
-                                            {language === 'en' ? "Oracle & Bonds" : "Oráculo & Vínculos"}
+                                            {t('oracle_bonds_header')}
                                         </h1>
                                         <p className="text-[10px] uppercase tracking-widest text-white/40">
-                                            {language === 'en' ? "Mystical & Relational Exploration" : "Exploración Mística & Relacional"}
+                                            {t('oracle_mystical_sub')}
                                         </p>
                                     </div>
                                 </div>
@@ -367,8 +367,8 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                                 <tab.icon size={14} className={isActive ? tab.color : ""} />
                                                 <span className="text-xs uppercase tracking-wider font-medium">
                                                     {tab.id === 'TAROT' 
-                                                        ? (language === 'en' ? 'Oracle' : 'Oráculo') 
-                                                        : (language === 'en' ? 'Bonds' : 'Vínculos')}
+                                                        ? t('oracle_tab_oracle')
+                                                        : t('oracle_tab_bonds')}
                                                 </span>
 
                                                 {isActive && (
@@ -428,7 +428,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                         />
                         <motion.div
                             initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
+                            animate={{ x: '0%' }}
                             exit={{ x: '100%' }}
                              className="fixed top-0 right-0 bottom-0 w-full max-w-md glass-panel border-l border-white/10 z-[101] flex flex-col shadow-2xl rounded-l-[3rem] md:rounded-none"
                         >
@@ -439,12 +439,10 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                     </div>
                                     <div className="space-y-3">
                                         <h3 className="text-2xl font-serif text-primary italic">
-                                            {language === 'en' ? "Akashic Record" : "Registro Akáshico"}
+                                            {t('akashic_title')}
                                         </h3>
                                         <p className="text-secondary text-label leading-normal">
-                                            {language === 'en' 
-                                                ? "Access the memory of your past rituals and observe the evolution of your destiny thread." 
-                                                : "Accede a la memoria de tus rituales pasados y observa la evolución de tu hilo del destino."}
+                                            {t('akashic_desc')}
                                         </p>
                                     </div>
                                 </div>
@@ -461,13 +459,13 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                     <div className="flex flex-col items-center justify-center h-40 space-y-4">
                                         <div className="w-6 h-6 border-t-2 border-rose-500 rounded-full animate-spin" />
                                         <p className="text-[10px] uppercase tracking-widest text-white/20 italic">
-                                            {language === 'en' ? "Accessing record..." : "Accediendo al registro..."}
+                                            {t('akashic_accessing')}
                                         </p>
                                     </div>
                                 ) : historyRecords.length === 0 ? (
                                     <div className="text-center py-20 space-y-4">
                                         <p className="text-[11px] uppercase tracking-widest text-white/20">
-                                            {language === 'en' ? "No traces in the ether yet." : "Aún no hay huellas en el éte."}
+                                            {t('akashic_empty')}
                                         </p>
                                     </div>
                                 ) : (
@@ -500,7 +498,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                                 }}
                                                 className="w-full flex items-center justify-between py-3 px-4 rounded-2xl bg-black/40 text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-all group/btn"
                                             >
-                                                <span>{language === 'en' ? "View Interpretation" : "Ver Interpretación"}</span>
+                                                <span>{t('akashic_view_interpretation')}</span>
                                                 <ChevronDown 
                                                     size={14} 
                                                     className={cn("transition-transform duration-500", expandedRecord === record.id && "rotate-180")} 
@@ -537,7 +535,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
 
                             <div className="p-8 border-t border-white/5 text-center">
                                 <p className="text-[9px] uppercase tracking-[0.4em] text-white/10 italic">
-                                    {language === 'en' ? "Only the last 3 memories are kept." : "Solo se conservan las últimas 3 memorias."}
+                                    {t('akashic_limit_note')}
                                 </p>
                             </div>
                         </motion.div>

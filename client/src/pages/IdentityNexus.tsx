@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, User, ArrowLeft, Info } from 'lucide-react';
+import { Book, User, ArrowLeft, Info, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { OracleExplainer } from '../components/OracleExplainer';
 import { useSound } from '../hooks/useSound';
@@ -19,6 +19,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
     const { playSound } = useSound();
     const { profile } = useProfile();
     const isAdmin = profile?.plan_type === 'admin';
+    const isPremium = profile?.plan_type === 'premium' || isAdmin;
 
     React.useEffect(() => {
         window.scrollTo(0, 0);
@@ -37,7 +38,8 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
             icon: User,
             color: "from-blue-500/20 to-cyan-500/10",
             border: "border-blue-500/30",
-            glow: "shadow-[0_0_40px_-10px_rgba(30,64,175,0.4)]"
+            glow: "shadow-[0_0_40px_-10px_rgba(30,64,175,0.4)]",
+            locked: !isPremium
         },
         {
             id: 'MANUALS',
@@ -46,7 +48,8 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
             icon: Book,
             color: "from-purple-500/20 to-magenta-500/10",
             border: "border-purple-500/30",
-            glow: "shadow-[0_0_40px_-10px_rgba(139,92,246,0.4)]"
+            glow: "shadow-[0_0_40px_-10px_rgba(139,92,246,0.4)]",
+            locked: false
         }
     ];
 
@@ -95,14 +98,28 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        onClick={() => { playSound('click'); onNavigate(opt.id); }}
+                        onClick={() => { 
+                            if (opt.locked) {
+                                playSound('error');
+                                setExplainerType('IDENTITY_COMPLETE'); // Or show an upgrade modal
+                                return;
+                            }
+                            playSound('click'); 
+                            onNavigate(opt.id); 
+                        }}
                         className={cn(
                             "relative group cursor-pointer p-10 rounded-[3rem] border transition-all duration-700 overflow-hidden bg-black/40 backdrop-blur-3xl",
                             opt.border,
                             opt.glow,
-                            "hover:scale-[1.02] hover:bg-white/5"
+                            opt.locked ? "opacity-75 grayscale-[0.5]" : "hover:scale-[1.02] hover:bg-white/5"
                         )}
                     >
+                        {opt.locked && (
+                            <div className="absolute top-6 left-6 p-2 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-500 z-20">
+                                <Lock size={12} />
+                            </div>
+                        )}
+
                         <button 
                             onClick={(e) => { e.stopPropagation(); playSound('click'); setExplainerType(opt.id === 'PROFILE' ? 'IDENTITY_COMPLETE' : 'IDENTITY_WISDOM'); }}
                             className="absolute top-6 right-6 p-2 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white hover:scale-110 hover:bg-white/10 transition-all z-20 group/info"
@@ -121,6 +138,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                             <div className="space-y-3">
                                 <h3 className="text-xl font-serif italic tracking-wider text-white/90">
                                     {opt.title}
+                                    {opt.locked && <span className="ml-2 inline-block"><Lock size={14} className="text-amber-500" /></span>}
                                 </h3>
                                 <p className="text-[11px] text-white/40 uppercase tracking-widest leading-relaxed">
                                     {opt.subtitle}
@@ -128,8 +146,10 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                             </div>
 
                             <div className="pt-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
-                                <span className="text-[10px] uppercase tracking-[0.3em] font-black text-blue-400">{t('access')}</span>
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                <span className="text-[10px] uppercase tracking-[0.3em] font-black text-blue-400">
+                                    {opt.locked ? t('upgrade_required' as any) : t('access')}
+                                </span>
+                                <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", opt.locked ? "bg-amber-500" : "bg-blue-500")} />
                             </div>
                         </div>
                     </motion.div>

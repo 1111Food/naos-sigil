@@ -212,6 +212,15 @@ export function AdminView() {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
+                                                {u.plan_type !== 'admin' && (
+                                                    <button 
+                                                        onClick={() => handleRoleChange(u.email, 'admin', u.id)}
+                                                        disabled={updating === u.id || !u.email}
+                                                        className="p-1 px-2 bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/30 rounded-lg text-[10px] font-bold text-amber-300 transition-all hover:scale-105"
+                                                    >
+                                                        Hacer Admin
+                                                    </button>
+                                                )}
                                                 {u.plan_type !== 'premium' && (
                                                     <button 
                                                         onClick={() => handleRoleChange(u.email, 'premium', u.id)}
@@ -221,7 +230,7 @@ export function AdminView() {
                                                         Hacer Premium
                                                     </button>
                                                 )}
-                                                {u.plan_type !== 'free' && u.plan_type !== 'admin' && (
+                                                {u.plan_type !== 'free' && (!u.email?.includes('luisalfredoherreramendez')) && (
                                                     <button 
                                                         onClick={() => handleRoleChange(u.email, 'free', u.id)}
                                                         disabled={updating === u.id || !u.email}

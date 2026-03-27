@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Trash2 } from 'lucide-react';
 import { API_BASE_URL, getAuthHeaders } from '../lib/api';
+import { useTranslation } from '../i18n';
 
 interface GroupHistoryModuleProps {
     profileId: string;
@@ -9,6 +10,7 @@ interface GroupHistoryModuleProps {
 }
 
 export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileId, onSelectHistory }) => {
+    const { t } = useTranslation();
     const [history, setHistory] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,7 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
         setError(null);
         try {
             const response = await fetch(`${API_BASE_URL}/api/synastry/history`, { headers: getAuthHeaders() });
-            if (!response.ok) throw new Error("Registros inalcanzables.");
+            if (!response.ok) throw new Error(t('synastry_fetch_error'));
             const result = await response.json();
 
             // Filter strictly for GROUP_DYNAMICS
@@ -27,7 +29,7 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
             setHistory(groupHistory || []);
         } catch (err) {
             console.error("❌ Group History Error:", err);
-            setError("Fallo al acceder a los registros de red.");
+            setError(t('synastry_fetch_error'));
         } finally {
             setIsLoading(false);
         }
@@ -43,17 +45,17 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
         if (id && typeof id === 'string' && id.startsWith('r_')) {
             sanitizedId = id.substring(2);
         }
-        if (!window.confirm("¿Seguro que deseas disolver este ensamble del historial?")) return;
+        if (!window.confirm(t('synastry_dissolve_confirm'))) return;
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/synastry/record/${sanitizedId}`, {
                 method: 'DELETE',
                 headers: (() => { const h = getAuthHeaders(); delete h['Content-Type']; return h; })()
             });
-            if (!response.ok) throw new Error("No se pudo borrar.");
+            if (!response.ok) throw new Error(t('synastry_delete_error'));
             setHistory(prev => prev.filter(item => item.id !== id && item.id !== sanitizedId));
         } catch (err) {
-            alert("No se pudo borrar el registro.");
+            alert(t('synastry_delete_error'));
         }
     };
 
@@ -66,7 +68,7 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
     }
 
     if (history.length === 0) {
-        return <div className="w-full text-center py-20 text-white/30 text-xs uppercase tracking-widest">No existen ensambles organizacionales registrados.</div>;
+        return <div className="w-full text-center py-20 text-white/30 text-xs uppercase tracking-widest">{t('synastry_no_group_history')}</div>;
     }
 
     return (
@@ -81,11 +83,11 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
                     <div>
                         <div className="flex justify-between items-start mb-4 relative z-10">
                             <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">
-                                Eficiencia: <span className="text-white text-[11px]">{item.calculated_results?.technicalReport?.score || '0'}%</span>
+                                {t('synastry_efficiency_score')} <span className="text-white text-[11px]">{item.calculated_results?.technicalReport?.score || '0'}%</span>
                             </span>
                             <div className="flex items-center gap-2">
                                 <span className="text-[9px] uppercase tracking-widest text-white/30 font-bold flex items-center gap-1">
-                                    Red B2B
+                                    {t('synastry_red_b2b')}
                                 </span>
                             </div>
                         </div>
@@ -96,11 +98,11 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
                     </div>
 
                     <div className="flex justify-between items-center pt-4 border-t border-white/5 relative z-10">
-                        <span className="text-[9px] uppercase tracking-[0.3em] font-black text-blue-400 group-hover:translate-x-1 transition-transform">Ver Malla Elemental</span>
+                        <span className="text-[9px] uppercase tracking-[0.3em] font-black text-blue-400 group-hover:translate-x-1 transition-transform">{t('synastry_view_mesh')}</span>
                         <button
                             onClick={(e) => handleDeleteHistory(e, item.id)}
                             className="w-8 h-8 rounded-full bg-red-500/5 text-red-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 transition-all"
-                            title="Disolver Ensamble"
+                            title={t('synastry_dissolve_link')}
                         >
                             <Trash2 size={12} />
                         </button>

@@ -1,4 +1,4 @@
-export const ORACLE_QUOTES = [
+const ORACLE_QUOTES_ES = [
     "La quietud no es ausencia de movimiento, es el eje central de la rueda.",
     "No construyas sobre la motivación; la disciplina es la verdadera arquitectura.",
     "El vacío no está desolado, está lleno de pura potencialidad.",
@@ -21,19 +21,43 @@ export const ORACLE_QUOTES = [
     "Tú eres tanto el laberinto como el Minotauro; resuelve tu propio enigma."
 ];
 
+const ORACLE_QUOTES_EN = [
+    "Stillness is not absence of movement, it is the center axis of the wheel.",
+    "Do not build on motivation; discipline is the true architecture.",
+    "The void is not desolate, it is full of pure potentiality.",
+    "Inhabit the silence before attempting to master the word.",
+    "Friction is the alchemical fire that transmutes your character.",
+    "Observe the storm without becoming the rain.",
+    "True power resides in the space between stimulus and your reaction.",
+    "If you cannot flow like water, be the rock that breaks the current.",
+    "Every broken habit is an empty room in your new mental architecture.",
+    "Coherence is the unmistakable language of inner truth.",
+    "Do not demand clarity from the waters you yourself blew upon.",
+    "The shadow is not your enemy, it is the construction blueprint of your absolute light.",
+    "Design your mind as you would design a temple: with no space for distractions.",
+    "Growth requires the abandonment of the mold that is already too small for you.",
+    "The gravity of your purpose will determine which orbits you attract.",
+    "Before destroying ignorance, make sure you have wisdom to replace it.",
+    "Your attention is the only valid chisel to sculpt reality.",
+    "Fear is the centrifugal force; intention is the central gravity.",
+    "Align your perception, and the entire Universe will reorganize itself before you.",
+    "You are both the labyrinth and the Minotaur; solve your own enigma."
+];
+
 /**
  * Retorna la frase del día calculada de forma determinista 
  * usando los días transcurridos desde el Unix Epoch acorde a la zona local.
  */
-export function getDailySynchronyQuote(): string {
+export function getDailySynchronyQuote(lang: 'es' | 'en' = 'es'): string {
+    const quotes = lang === 'en' ? ORACLE_QUOTES_EN : ORACLE_QUOTES_ES;
+    
     // Calculamos el índice diario en función de los días totales locales (ms / 1000 / 60 / 60 / 24)
-    // Se resta el offset de zona horaria para coincidir con la medianoche local del usuario
     const nowLocal = new Date();
     const tzOffsetMs = nowLocal.getTimezoneOffset() * 60 * 1000;
     const localTimestamp = nowLocal.getTime() - tzOffsetMs;
 
     const daysSinceEpoch = Math.floor(localTimestamp / 86400000);
-    const index = daysSinceEpoch % ORACLE_QUOTES.length;
+    const index = daysSinceEpoch % quotes.length;
 
-    return ORACLE_QUOTES[index];
+    return quotes[index];
 }

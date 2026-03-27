@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Send, Sparkles, Loader2, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
+import { useTranslation } from '../i18n';
+import { StatusBadge } from './StatusBadge';
 
 interface LoginViewProps {
     onCancel?: () => void;
@@ -10,6 +12,7 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -27,7 +30,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
             let { data, error } = await signInWithPassword(cleanEmail, password);
 
             if (error) {
-                alert(`Identidad no reconocida o llave incorrecta.\n\nFallo de Supabase: ${error.message}\n\nSi eres nuevo, regresa y elige 'Desliza para conectar'.`);
+                alert(`${t('login_error_title')}\n\n${t('login_error_fallback')}`);
                 setLoading(false);
                 return;
             }
@@ -49,7 +52,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
             }
         } catch (err: any) {
             console.error('Error fatal en el portal de acceso:', err);
-            alert(`Hubo un problema inseperado al abrir el portal: ${err.message}`);
+            alert(`${t('login_error_fatal')}: ${err.message}`);
         } finally {
             setLoading(false);
         }
@@ -64,9 +67,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
             const { error } = await resetPasswordForEmail(cleanEmail);
 
             if (error) {
-                alert(`Error al solicitar enlace de recuperación.\n\nFallo: ${error.message}`);
+                alert(`Error: ${error.message}`);
             } else {
-                alert("Te hemos enviado un enlace mágico a tu correo. Revisa tu buzón (o la carpeta de SPAM) y haz clic en el enlace secreto para forjar una nueva llave.");
+                alert(t('login_reset_desc') + " (Email sent)");
                 setMode('LOGIN');
             }
         } catch (err: any) {
@@ -94,12 +97,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
             <div className="text-center space-y-4">
                 <Sparkles className="mx-auto text-amber-300/40 w-12 h-12" />
                 <h1 className="text-3xl md:text-4xl font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-300">
-                    {mode === 'LOGIN' ? 'ACCESO DE VIAJERO' : 'RECUPERAR LLAVE'}
+                    {mode === 'LOGIN' ? t('login_title') : t('login_reset_title')}
                 </h1>
                 <p className="text-cyan-200/40 text-[10px] uppercase tracking-[0.4em] font-light italic">
                     {mode === 'LOGIN' 
-                        ? 'Escribe tu llave secreta para entrar al Templo.' 
-                        : 'Ingresa tu correo para revivir tu conexión.'}
+                        ? t('login_desc') 
+                        : t('login_reset_desc')}
                 </p>
             </div>
 
@@ -108,7 +111,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Correo Electrónico"
+                    placeholder={t('login_email_placeholder')}
                     required
                     className="w-full bg-[#0a0a1f]/60 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 focus:bg-white/5 transition-all text-sm tracking-widest text-center"
                 />
@@ -117,7 +120,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Contraseña Secreta"
+                        placeholder={t('login_password_placeholder')}
                         required
                         className="w-full bg-[#0a0a1f]/60 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 focus:bg-white/5 transition-all text-sm tracking-widest text-center"
                     />
@@ -130,18 +133,22 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                     className="w-full py-6 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white font-bold uppercase tracking-[0.5em] text-[11px] shadow-[0_10px_40px_rgba(139,92,246,0.2)] hover:shadow-[0_15px_60px_rgba(139,92,246,0.4)] transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:pointer-events-none mt-4"
                 >
                     {loading ? <Loader2 className="animate-spin" /> : <Send size={16} />}
-                    {loading ? "PROCESANDO..." : mode === 'LOGIN' ? "INGRESAR AL TEMPLO" : "ENVIAR ENLACE SECRETO"}
+                    {loading ? t('login_processing') : mode === 'LOGIN' ? t('login_btn') : t('login_reset_btn')}
                 </motion.button>
             </form>
 
             <div className="pt-8 space-y-6 text-center">
+                <div className="flex justify-center mb-4">
+                    <StatusBadge plan="FREE" />
+                </div>
+
                 {mode === 'LOGIN' ? (
                     <button
                         onClick={() => setMode('RESET')}
                         type="button"
                         className="text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-colors border-b border-transparent hover:border-white/20 pb-1"
                     >
-                        ¿Olvidaste tu llave secreta?
+                        {t('login_forgot_key')}
                     </button>
                 ) : (
                     <button
@@ -149,12 +156,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                         type="button"
                         className="text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-colors border-b border-white/10 hover:border-white/30 pb-1"
                     >
-                        Volver a Ingresar
+                        {t('login_back_btn')}
                     </button>
                 )}
 
                 <p className="text-[9px] uppercase tracking-[0.2em] text-white/20 italic leading-relaxed pt-2 border-t border-white/5 mx-8">
-                    Acceso Instantáneo • Identidad Protegida • Propósito Manifestado
+                    {t('login_footer_motto')}
                 </p>
             </div>
         </motion.div>

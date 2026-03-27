@@ -9,6 +9,7 @@ import { useProfile } from '../hooks/useProfile';
 import { TuningCycleModal } from './TuningCycleModal';
 import { ElementalOnboarding } from './ElementalOnboarding';
 import { Info } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 interface ElementalLabProps {
     onStartTechnique: (type: 'BREATH' | 'MEDITATION', techId: string) => void;
@@ -17,6 +18,7 @@ interface ElementalLabProps {
 export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) => {
     const { profile } = useProfile();
     const { openWisdom } = useWisdom();
+    const { t } = useTranslation();
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -48,10 +50,10 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
     const content = availablePaths[selectedPathIndex] || availablePaths[0];
 
     const elements: { id: keyof typeof RITUAL_LIBRARY; icon: string; label: string }[] = [
-        { id: 'FIRE', icon: '🔥', label: 'Fuego' },
-        { id: 'WATER', icon: '💧', label: 'Agua' },
-        { id: 'EARTH', icon: '🌱', label: 'Tierra' },
-        { id: 'AIR', icon: '🌬️', label: 'Aire' }
+        { id: 'FIRE', icon: '🔥', label: t('element_fire') },
+        { id: 'WATER', icon: '💧', label: t('element_water') },
+        { id: 'EARTH', icon: '🌱', label: t('element_earth') },
+        { id: 'AIR', icon: '🌬️', label: t('element_air') }
     ];
 
     const accentColors = {
@@ -75,11 +77,11 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-[10px] uppercase tracking-widest text-white/40 font-black">Selección Elemental</span>
+                        <span className="text-[10px] uppercase tracking-widest text-white/40 font-black">{t('lab_selection_header')}</span>
                         <button
                             onClick={() => setShowOnboarding(true)}
                             className="p-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5 group"
-                            title="Guía de Iniciación"
+                            title={t('lab_onboarding_tooltip')}
                         >
                             <Info size={10} className="text-white/40 group-hover:text-white/60" />
                         </button>
@@ -116,7 +118,7 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
 
                 {/* PATH SELECTOR (The "Books") */}
                 <div className="flex flex-col gap-2">
-                    <span className="text-[8px] uppercase tracking-widest text-white/30 font-black mb-1">Libro de Práctica</span>
+                    <span className="text-[8px] uppercase tracking-widest text-white/30 font-black mb-1">{t('lab_ritual_book')}</span>
                     <div className="flex gap-2">
                         {availablePaths.map((path, idx) => (
                             <button
@@ -130,7 +132,7 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
                                 )}
                             >
                                 <BookOpen size={10} className={selectedPathIndex === idx ? "text-amber-400" : "opacity-40"} />
-                                {path.name.replace('Manual del ', '')}
+                                {t(path.name as any).replace('Manual del ', '').replace("The Architect's ", "")}
                             </button>
                         ))}
                     </div>
@@ -140,7 +142,7 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
             <div className="space-y-4">
                 <div className="flex flex-col gap-2">
                     <span className="text-[8px] uppercase tracking-widest text-white/30 font-black mb-1">
-                        Técnica de {selectedElement === 'AIR' ? 'Aire' : selectedElement === 'FIRE' ? 'Fuego' : selectedElement === 'EARTH' ? 'Tierra' : 'Agua'}
+                        {t('lab_breath_mechanic')} {t(('element_' + selectedElement.toLowerCase()) as any)}
                     </span>
                     <button
                         onClick={() => onStartTechnique('BREATH', content.breath.id)}
@@ -152,15 +154,15 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
                         <div className="flex items-center gap-3">
                             <Wind size={18} className="opacity-60" />
                             <div className="text-left">
-                                <div className="text-[11px] font-bold uppercase tracking-tight">{content.breath.label}</div>
-                                <div className="text-[8px] opacity-40 uppercase">{content.breath.copy}</div>
+                                <div className="text-[11px] font-bold uppercase tracking-tight">{t(content.breath.label as any)}</div>
+                                <div className="text-[8px] opacity-40 uppercase">{t(content.breath.copy as any)}</div>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    openScheduling(content.breath.label, <Wind size={20} />);
+                                    openScheduling(t(content.breath.label as any), <Wind size={20} />);
                                 }}
                                 className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                             >
@@ -172,7 +174,7 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <span className="text-[8px] uppercase tracking-widest text-white/30 font-black mb-1">Exploración Profunda</span>
+                    <span className="text-[8px] uppercase tracking-widest text-white/30 font-black mb-1">{t('lab_deep_exploration')}</span>
                     <div className="grid grid-cols-1 gap-2">
                         {[content.meditation, content.anchor].map((med) => (
                             <button
@@ -183,15 +185,15 @@ export const ElementalLab: React.FC<ElementalLabProps> = ({ onStartTechnique }) 
                                 <div className="flex items-center gap-3">
                                     <Brain size={16} className="text-white/40" />
                                     <div className="text-left">
-                                        <div className="text-[10px] font-bold text-white/80">{med.title}</div>
-                                        <div className="text-[8px] text-white/30 uppercase">Integración Sistémica</div>
+                                        <div className="text-[10px] font-bold text-white/80">{t(med.title as any)}</div>
+                                        <div className="text-[8px] text-white/30 uppercase">{t('lab_systemic_integration')}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            openScheduling(med.title, <Brain size={18} />);
+                                            openScheduling(t(med.title as any), <Brain size={18} />);
                                         }}
                                         className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                                     >

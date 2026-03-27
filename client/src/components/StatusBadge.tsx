@@ -1,5 +1,6 @@
 import React from 'react';
 import { Crown, Sparkles, ShieldCheck } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 interface StatusBadgeProps {
     plan: 'FREE' | 'PREMIUM' | 'EXTENDED';
@@ -7,6 +8,8 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ plan, className = "" }) => {
+    const { t } = useTranslation();
+
     if (plan === 'PREMIUM' || plan === 'EXTENDED') {
         return (
             <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)] animate-in fade-in zoom-in duration-500 ${className}`}>
@@ -25,7 +28,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ plan, className = "" }
         <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 ${className}`}>
             <ShieldCheck className="w-3.5 h-3.5 text-white/40" />
             <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">
-                NAOS INICIADO
+                {t('status_naos_started')}
             </span>
         </div>
     );

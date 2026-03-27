@@ -2,45 +2,47 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Users, User, X, ChevronRight, ChevronLeft, Hexagon } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../i18n';
 
 interface OracleOnboardingProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-const STEPS = [
-    {
-        title: "El Umbral del Templo",
-        subtitle: "Nexo de Sabiduría Oracular",
-        content: "Bienvenido a la interfaz de sincronización cuántica. Aquí no hacemos adivinación pasiva, sino Lectura de Patrones. Es un espacio para traducir las fuerzas de tu presente en directrices de poder para tu arquitectura de vida.",
-        icon: <Sparkles className="w-12 h-12 text-amber-400" />,
-        color: "amber"
-    },
-    {
-        title: "Consulta Individual",
-        subtitle: "Tarot de Arcanos & Arquetipos",
-        content: "Accede al Oráculo para sintonizar con los Arcanos Tradicionales o los 16 Arquetipos de NAOS. Al formular una 'Intención del Alma', las cartas revelarán los vectores activos, luces y sombras que guían tu camino hoy.",
-        icon: <User className="w-12 h-12 text-red-400" />,
-        color: "red"
-    },
-    {
-        title: "Dinámica de Vínculos",
-        subtitle: "Sinastría Relacional",
-        content: "Cruza tu código de identidad con el de otra persona. Analiza choques, propósitos y sinergias en relaciones amorosas, fraternales, de negocios o familiares para descifrar el diseño de vuestro hilo del destino.",
-        icon: <Users className="w-12 h-12 text-purple-400" />,
-        color: "purple"
-    },
-    {
-        title: "Sinergia Grupal",
-        subtitle: "Dinámicas de Equipo",
-        content: "La Sinastría Grupal te permite integrar la energía de múltiples personas en un solo nodo. Ideal para grupos de trabajo o células operacionales; descubre las fortalezas basales y los puntos ciegos del colectivo.",
-        icon: <Hexagon className="w-12 h-12 text-cyan-400" />,
-        color: "cyan"
-    }
-];
-
 export const OracleOnboarding: React.FC<OracleOnboardingProps> = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const [currentStep, setCurrentStep] = useState(0);
+
+    const STEPS = [
+        {
+            title: t('onboarding_step1_title'),
+            subtitle: t('onboarding_step1_subtitle'),
+            content: t('onboarding_step1_content'),
+            icon: <Sparkles className="w-12 h-12 text-amber-400" />,
+            color: "amber"
+        },
+        {
+            title: t('onboarding_step2_title'),
+            subtitle: t('onboarding_step2_subtitle'),
+            content: t('onboarding_step2_content'),
+            icon: <User className="w-12 h-12 text-red-400" />,
+            color: "red"
+        },
+        {
+            title: t('onboarding_step3_title'),
+            subtitle: t('onboarding_step3_subtitle'),
+            content: t('onboarding_step3_content'),
+            icon: <Users className="w-12 h-12 text-purple-400" />,
+            color: "purple"
+        },
+        {
+            title: t('onboarding_step4_title'),
+            subtitle: t('onboarding_step4_subtitle'),
+            content: t('onboarding_step4_content'),
+            icon: <Hexagon className="w-12 h-12 text-cyan-400" />,
+            color: "cyan"
+        }
+    ];
 
     const handleNext = () => {
         if (currentStep < STEPS.length - 1) {
@@ -137,7 +139,7 @@ export const OracleOnboarding: React.FC<OracleOnboardingProps> = ({ isOpen, onCl
                             >
                                 <div>
                                     <span className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-black">
-                                        Nexo del Umbral
+                                        {t('onboarding_nexus_label')}
                                     </span>
                                     <h2 className="text-2xl font-serif italic text-white mt-1 leading-tight">
                                         {step.title}
@@ -168,7 +170,7 @@ export const OracleOnboarding: React.FC<OracleOnboardingProps> = ({ isOpen, onCl
                                     )}
                                 >
                                     <ChevronLeft size={14} />
-                                    Atrás
+                                    {t('onboarding_back')}
                                 </button>
 
                                 <button
@@ -181,7 +183,7 @@ export const OracleOnboarding: React.FC<OracleOnboardingProps> = ({ isOpen, onCl
                                                     'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
                                     )}
                                 >
-                                    {currentStep === STEPS.length - 1 ? "Entrar al Umbral" : "Continuar"}
+                                    {currentStep === STEPS.length - 1 ? t('onboarding_enter') : t('onboarding_continue')}
                                     <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </div>

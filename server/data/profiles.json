@@ -1,37 +1,7 @@
 {
-  "22325a10-7b9f-4606-8a54-574bb63ba6a8": {
-    "usage_stats": {
-      "naos_code_count": 3,
-      "last_active_date": "2026-03-23",
-      "tarot_draw_count": 1,
-      "synastry_dual_count": 0,
-      "sigil_messages_count": 1,
-      "synastry_group_count": 0
-    },
-    "naos_identity_code": {
-      "arquetipo": {
-        "rol": "Analista",
-        "nombre": "El Arquitecto",
-        "elemento": "tierra",
-        "frecuencia": "Telúrica",
-        "descripcion": "Tejedor de lo visible; dibuja los planos de la existencia y materializa los sueños etéreos en estructuras de roca y luz."
-      },
-      "patron_sombra": "El patrón de sombra se activa ante la desconexión. La tensión entre tu fuego instintivo de Dragón y tu misión de Analista es tu crisol de crecimiento.",
-      "nucleo_interno": "Tu núcleo es un santuario del arquetipo El Arquitecto. Operas bajo la sabiduría de que el amor y la verdad consolidan tu poder.",
-      "direccion_vital": "Avanzas hacia una expresión sagrada de tu ser. Tu destino florece al compás de la frecuencia Telúrica y tu arte constructivo.",
-      "interfaz_social": "Proyectas un aura de Analista bajo la mirada de Cancer. Tu danza social es un puente entre tu instinto de Dragón y tu esencia sagrada.",
-      "alquimia_vinculos": "En tus relaciones actúas como un espejo de la frecuencia Telúrica. Buscas destilar amor y verdad con otros caminantes.",
-      "tension_evolutiva": "Evolucionas al sanar la paradoja interna. Tu frecuencia Telúrica te invita a una síntesis amorosa de tus dones innatos.",
-      "arquitectura_entorno": "Tu espacio es un templo para el elemento undefined. Crea un santuario de paz y belleza que eleve y sostenga tu espíritu de Analista.",
-      "umbral_manifestacion": "Tu abundancia florece cuando actúas en sincronicidad con el El Arquitecto. La vida se despliega sin esfuerzo ante tu luz."
-    },
-    "onboarding_completed": true,
-    "id": "22325a10-7b9f-4606-8a54-574bb63ba6a8",
+  "cb113ece-7196-42b6-ab74-64058d19ce9d": {
+    "id": "cb113ece-7196-42b6-ab74-64058d19ce9d",
     "name": "Luis Alfredo Herrera Mendez",
-    "guardian_notes": "Usuario se identifica como Luis Alfredo. Sigil se presenta como Guardián de NAOS y guía en la \"arquitectura de consciencia\".\n",
-    "birthDate": "1986-07-12",
-    "birthTime": "09:40:00",
-    "birthCity": "",
     "astrology": {
       "houses": [
         {
@@ -204,311 +174,39 @@
       },
       "timezone_offset": -6
     },
-    "coordinates": {
-      "lat": 14.6349,
-      "lng": -90.5069
-    },
-    "utcOffset": -6,
-    "birthPlace": "",
-    "birthState": "",
-    "birthCountry": "Guatemala",
-    "subscription": {
-      "plan": "FREE",
-      "features": []
-    },
-    "plan_type": "admin",
-    "usage_level": "normal",
-    "daily_interactions": 0,
-    "consciousness_level": "Iniciado",
-    "consciousness_points": 0
-  },
-  "14bd699d-a1b0-4c18-baa0-6202a01ac031": {
-    "id": "14bd699d-a1b0-4c18-baa0-6202a01ac031",
-    "name": "Luis Alfredo Herrera Mendez",
-    "mayan": {
-      "tone": 4,
-      "meaning": "Cocodrilo, Agua, Locura Divina",
-      "mission": "Misión de Imox: Cocodrilo, Agua, Locura Divina. Expandir la conciencia a través de La esencia del agua y lo subconsciente.",
-      "glyphUrl": "/nawales/imox.svg",
-      "toneName": "Kajib' (4) - Estabilidad, Los 4 Rumbos",
-      "kicheName": "Imox",
-      "challenges": "Desafío: Integrar la sombra de Imox y usar su energía para construir, no para destruir.",
-      "nawal_maya": "Imox",
-      "nawal_tono": 4,
-      "description": "La esencia del agua y lo subconsciente. Creatividad desbordante, intuición profunda y conexión con el origen."
-    },
-    "astrology": {
-      "houses": [
-        {
-          "sign": "Virgo",
-          "house": 1,
-          "degree": 15.089684582810946,
-          "absDegree": 165.08968458281095
-        },
-        {
-          "sign": "Libra",
-          "house": 2,
-          "degree": 15.089684582810946,
-          "absDegree": 195.08968458281095
-        },
-        {
-          "sign": "Scorpio",
-          "house": 3,
-          "degree": 15.089684582810946,
-          "absDegree": 225.08968458281095
-        },
-        {
-          "sign": "Sagittarius",
-          "house": 4,
-          "degree": 15.089684582810946,
-          "absDegree": 255.08968458281095
-        },
-        {
-          "sign": "Capricorn",
-          "house": 5,
-          "degree": 15.089684582810946,
-          "absDegree": 285.08968458281095
-        },
-        {
-          "sign": "Aquarius",
-          "house": 6,
-          "degree": 15.089684582810946,
-          "absDegree": 315.08968458281095
-        },
-        {
-          "sign": "Pisces",
-          "house": 7,
-          "degree": 15.089684582810946,
-          "absDegree": 345.08968458281095
-        },
-        {
-          "sign": "Aries",
-          "house": 8,
-          "degree": 15.089684582810946,
-          "absDegree": 15.089684582810946
-        },
-        {
-          "sign": "Taurus",
-          "house": 9,
-          "degree": 15.089684582810946,
-          "absDegree": 45.089684582810946
-        },
-        {
-          "sign": "Gemini",
-          "house": 10,
-          "degree": 15.089684582810946,
-          "absDegree": 75.08968458281095
-        },
-        {
-          "sign": "Cancer",
-          "house": 11,
-          "degree": 15.089684582810946,
-          "absDegree": 105.08968458281095
-        },
-        {
-          "sign": "Leo",
-          "house": 12,
-          "degree": 15.089684582810946,
-          "absDegree": 135.08968458281095
-        }
-      ],
-      "planets": [
-        {
-          "name": "Sun",
-          "sign": "Cancer",
-          "house": 11,
-          "degree": 20,
-          "absDegree": 109.99502986277126,
-          "retrograde": false
-        },
-        {
-          "name": "Moon",
-          "sign": "Virgo",
-          "house": 1,
-          "degree": 23.83,
-          "absDegree": 173.83045563479573,
-          "retrograde": false
-        },
-        {
-          "name": "Mercury",
-          "sign": "Leo",
-          "house": 11,
-          "degree": 6.12,
-          "absDegree": 126.1171621946723,
-          "retrograde": true
-        },
-        {
-          "name": "Venus",
-          "sign": "Virgo",
-          "house": 12,
-          "degree": 1.1,
-          "absDegree": 151.10457760122466,
-          "retrograde": false
-        },
-        {
-          "name": "Mars",
-          "sign": "Capricorn",
-          "house": 5,
-          "degree": 16.97,
-          "absDegree": 286.9682176014637,
-          "retrograde": true
-        },
-        {
-          "name": "Jupiter",
-          "sign": "Pisces",
-          "house": 7,
-          "degree": 22.86,
-          "absDegree": 352.85752739399595,
-          "retrograde": false
-        },
-        {
-          "name": "Saturn",
-          "sign": "Sagittarius",
-          "house": 3,
-          "degree": 3.58,
-          "absDegree": 243.57814889142412,
-          "retrograde": true
-        },
-        {
-          "name": "Uranus",
-          "sign": "Sagittarius",
-          "house": 4,
-          "degree": 19.19,
-          "absDegree": 259.18677320995045,
-          "retrograde": true
-        },
-        {
-          "name": "Neptune",
-          "sign": "Capricorn",
-          "house": 4,
-          "degree": 4,
-          "absDegree": 273.9964754722916,
-          "retrograde": true
-        },
-        {
-          "name": "Pluto",
-          "sign": "Scorpio",
-          "house": 2,
-          "degree": 4.54,
-          "absDegree": 214.53987163706836,
-          "retrograde": true
-        }
-      ],
-      "elements": {
-        "air": 0,
-        "fire": 3,
-        "earth": 4,
-        "water": 3
-      },
-      "ascendant": 165.08968458281095,
-      "midheaven": 75.93999088935038,
-      "modalities": {
-        "fixed": 2,
-        "mutable": 5,
-        "cardinal": 3
-      }
-    },
     "birthCity": "",
     "birthDate": "1986-07-12",
     "birthTime": "09:40:00",
-    "plan_type": "free",
+    "plan_type": "premium",
     "utcOffset": -6,
     "birthPlace": "",
     "birthState": "",
-    "nawal_maya": "4 Imox",
-    "numerology": {
-      "pinaculo": {
-        "a": 7,
-        "b": 3,
-        "c": 6,
-        "d": 7,
-        "e": 1,
-        "f": 9,
-        "g": 1,
-        "h": 22,
-        "i": 11,
-        "j": 11,
-        "o": 3,
-        "p": 4,
-        "q": 1,
-        "r": 7,
-        "s": 8
-      },
-      "nameNumber": 1,
-      "lifePathNumber": 7
-    },
     "coordinates": {
       "lat": 14.6349,
       "lng": -90.5069
     },
     "usage_level": "normal",
+    "usage_stats": {
+      "naos_code_count": 0,
+      "last_active_date": "2026-03-25",
+      "tarot_draw_count": 0,
+      "synastry_dual_count": 0,
+      "sigil_messages_count": 2,
+      "synastry_group_count": 0
+    },
     "birthCountry": "Guatemala",
     "subscription": {
       "plan": "FREE",
       "features": []
     },
-    "chinese_animal": "Tigre",
-    "guardian_notes": "Notas del Guardián: Tigre de Fuego: Auto-sabotaje latente. Protocolo 21: día 7 crítico. Inercia = riesgo (estancamiento). Foco en cierre diario (3 pilares). Complacencia: némesis. Reactivar voluntad. Meditación NAOS + Lab Elemental (Fuego). SINCRONIZAR CÓDIGO IDENTIDAD (perfil incompleto = data genérica). Silencio = oportunidad/desconexión. Revisar metas/Código Identidad. URGENTE: completar datos.\n",
-    "chinese_element": "Fuego",
-    "chinese_birth_year": 1986,
+    "guardian_notes": "Notas del Guardián: Usuario: Luis Alfredo Herrera Mendez (Iniciado). Frecuencia: Ígnea/Catalizadora. Sigil: Arquitecto de Consciencia. Luis está en fase de reconocimiento de la arquitectura NAOS. Debe superar la inercia mediante el Protocolo 21 y la calibración de Fuego en el Laboratorio Elemental. Mi función es traducir su Código de Identidad en ejecución técnica y biológica, transformando su voluntad en impacto real y tangible dentro del ecosistema.",
     "daily_interactions": 0,
     "consciousness_level": "Iniciado",
     "consciousness_points": 0,
-    "onboarding_completed": true
+    "onboarding_completed": true,
+    "telegram_voice_enabled": false
   },
-  "cc61ce3d-ce8b-4afe-86c4-514fa57dcd40": {
-    "id": "cc61ce3d-ce8b-4afe-86c4-514fa57dcd40",
-    "name": "Viajero cosmico",
-    "guardian_notes": {},
-    "birthDate": "",
-    "birthTime": "",
-    "birthCity": "",
-    "coordinates": {
-      "lat": 14.6349,
-      "lng": -90.5069
-    },
-    "utcOffset": -6,
-    "birthPlace": "",
-    "birthState": "",
-    "birthCountry": "Guatemala",
-    "subscription": {
-      "plan": "FREE",
-      "features": []
-    },
-    "plan_type": "free",
-    "usage_level": "normal",
-    "daily_interactions": 0,
-    "onboarding_completed": false,
-    "consciousness_level": "Iniciado",
-    "consciousness_points": 0
-  },
-  "27c0bd67-362a-48eb-b2ed-463ef24c132c": {
-    "id": "27c0bd67-362a-48eb-b2ed-463ef24c132c",
-    "name": "Viajero cosmico",
-    "guardian_notes": {},
-    "birthDate": "",
-    "birthTime": "",
-    "birthCity": "",
-    "coordinates": {
-      "lat": 14.6349,
-      "lng": -90.5069
-    },
-    "utcOffset": -6,
-    "birthPlace": "",
-    "birthState": "",
-    "birthCountry": "Guatemala",
-    "subscription": {
-      "plan": "FREE",
-      "features": []
-    },
-    "plan_type": "free",
-    "usage_level": "normal",
-    "daily_interactions": 0,
-    "onboarding_completed": false,
-    "consciousness_level": "Iniciado",
-    "consciousness_points": 0
-  },
-  "cb113ece-7196-42b6-ab74-64058d19ce9d": {
+  "2c48f84f-2c2e-4b0d-b799-166709fd1d1f": {
     "onboarding_completed": true
   }
 }

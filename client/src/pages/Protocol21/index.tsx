@@ -9,6 +9,7 @@ import { ProtocolVault } from '../../components/Protocol21/ProtocolVault';
 import { ProtocolRitual } from '../../components/Protocol21/ProtocolRitual';
 import { useProfile } from '../../hooks/useProfile';
 import { DailyCheckIn } from '../../components/DailyCheckIn';
+import { useTranslation } from '../../i18n';
 import { cn } from '../../lib/utils';
 import { getDailySynchronyQuote } from '../../utils/dailyOracle';
 
@@ -17,6 +18,7 @@ interface Protocol21Props {
 }
 
 export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
+    const { t } = useTranslation();
     const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, startProtocol } = useProtocol21();
     const { profile } = useProfile();
     const [showDailySuccess, setShowDailySuccess] = useState(false);
@@ -66,12 +68,12 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
     };
 
     const handleReset = async () => {
-        if (window.confirm("¿Reiniciar protocolo?")) {
+        if (window.confirm(t('protocol_reset_confirm'))) {
             await resetProtocol();
         }
     };
 
-    if (loading) return <TempleLoading text="Sincronizando Frecuencia..." />;
+    if (loading) return <TempleLoading text={t('protocol_synchronizing')} />;
 
     if (!activeProtocol) {
         return (
@@ -87,7 +89,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         className="text-center mt-6 px-4"
                     >
                         <p className="font-serif italic text-white/50 text-sm md:text-base tracking-wide drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-                            "{getDailySynchronyQuote()}"
+                            "{getDailySynchronyQuote(t('lang' as any) as any)}"
                         </p>
                     </motion.div>
                 </header>
@@ -100,7 +102,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                             try {
                                 await startProtocol();
                             } catch (err: any) {
-                                alert(err.message || 'Error iniciando ciclo de 21 días');
+                                alert(err.message || t('identity_error_generic'));
                             }
                         }}
                         onCancel={onBack}
@@ -117,7 +119,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                     <button onClick={() => setShowVault(false)} className="p-2 -ml-2 text-white/40 hover:text-white transition-colors">
                         <ArrowLeft size={20} />
                     </button>
-                    <h1 className="text-xl font-serif italic text-amber-500 text-center">Archivo Akáshico</h1>
+                    <h1 className="text-xl font-serif italic text-amber-500 text-center">{t('akashic_title')}</h1>
                 </header>
                 <ProtocolVault userId={profile?.id || ''} onClose={() => setShowVault(false)} />
             </div>
@@ -136,8 +138,8 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                             <Shield size={120} className="text-amber-500" fill="currentColor" fillOpacity={0.2} />
                             <Check size={40} className="absolute bottom-0 right-0 text-white bg-amber-600 rounded-full p-2" />
                         </motion.div>
-                        <h2 className="mt-12 text-3xl font-serif italic text-amber-100">¡FRECUENCIA ELEVADA!</h2>
-                        <p className="mt-4 text-amber-500 uppercase tracking-widest text-sm">Día {currentDay} Completado</p>
+                        <h2 className="mt-12 text-3xl font-serif italic text-amber-100">{t('protocol_frequency_elevated')}</h2>
+                        <p className="mt-4 text-amber-500 uppercase tracking-widest text-sm">{t('protocol_day_completed', { day: currentDay })}</p>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -155,7 +157,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                             <div className="flex items-center justify-between mb-12 sticky top-0 py-4 bg-[#0a0a0b]/80 z-10 border-b border-white/5">
                                 <h2 className="text-2xl font-serif italic text-white flex items-center gap-3">
                                     <BookOpen className="text-cyan-500" />
-                                    Bitácora de Coherencia
+                                    {t('protocol_log_title')}
                                 </h2>
                                 <button onClick={() => setShowHistory(false)} className="p-2 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all">
                                     <X size={20} />
@@ -165,7 +167,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                             <div className="space-y-6">
                                 {dailyLogs.length === 0 ? (
                                     <div className="text-center py-20 text-white/30 italic font-serif">
-                                        No hay registros en el archivo aún. Inicia tu alquimia hoy.
+                                        {t('protocol_empty_log')}
                                     </div>
                                 ) : (
                                     dailyLogs
@@ -173,10 +175,10 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                                         .sort((a, b) => b.day_number - a.day_number) // Newest first
                                         .map((log) => {
                                             // Parse the [PILLARS: X, Y] tag from the note
-                                            const noteStr = log.notes || "Día documentado sin reflexiones extensas.";
+                                            const noteStr = log.notes || t('protocol_day_validated');
                                             const pillarMatch = noteStr.match(/\[PILLARS: (.*?)\]/);
-                                            const pillarsText = pillarMatch ? pillarMatch[1] : "No documentados";
-                                            const cleanNote = noteStr.replace(/\[PILLARS: .*?\]\s*/, "").trim() || "Sin reflexión documentada.";
+                                            const pillarsText = pillarMatch ? pillarMatch[1] : t('unknown');
+                                            const cleanNote = noteStr.replace(/\[PILLARS: .*?\]\s*/, "").trim() || t('protocol_day_validated');
 
                                             return (
                                                 <motion.div
@@ -191,7 +193,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
 
                                                     <div className="flex items-center justify-between mb-4 pl-4">
                                                         <span className="text-xs uppercase tracking-[0.2em] font-black text-cyan-400">
-                                                            Día {log.day_number}
+                                                            {t('protocol_day_label')} {log.day_number}
                                                         </span>
                                                         <span className="text-[10px] text-white/20 uppercase tracking-widest">
                                                             {new Date((log as any).created_at || Date.now()).toLocaleDateString()}
@@ -199,13 +201,13 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                                                     </div>
 
                                                     <p className="text-white/80 font-serif leading-relaxed mb-6 pl-4 text-sm md:text-base">
-                                                        "{cleanNote || "Sin reflexión documentada."}"
+                                                        "{cleanNote || t('protocol_no_reflection')}"
                                                     </p>
 
                                                     <div className="pl-4 border-t border-white/5 pt-4 flex items-start gap-2">
                                                         <Sparkles size={12} className="text-amber-500 mt-0.5" />
                                                         <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold leading-tight">
-                                                            Pilares Activos: <span className="text-amber-500/80">{pillarsText}</span>
+                                                            {t('protocol_active_pillars')}: <span className="text-amber-500/80">{pillarsText}</span>
                                                         </p>
                                                     </div>
                                                 </motion.div>
@@ -224,8 +226,8 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         <button onClick={onBack} className="p-2 -ml-2 text-white/40 hover:text-white transition-colors">
                             <ArrowLeft size={20} />
                         </button>
-                        <h1 className="text-xl font-serif italic">Protocolo 21</h1>
-                        <span className="text-[10px] uppercase tracking-widest text-cyan-400">Día {currentDay} / 21</span>
+                        <h1 className="text-xl font-serif italic">{t('protocols')}</h1>
+                        <span className="text-[10px] uppercase tracking-widest text-cyan-400">{t('protocol_day_label')} {currentDay} / 21</span>
                     </div>
                     <div className="flex items-center gap-4">
                         {/* Modified Info Button calling ProtocolRitual instead of WisdomOverlay */}
@@ -234,17 +236,17 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         {/* Bitácora History Button */}
                         <button onClick={() => setShowHistory(true)} className="text-[10px] uppercase tracking-[0.2em] text-cyan-500/70 hover:text-cyan-400 flex items-center gap-2 border border-cyan-500/20 bg-cyan-900/10 px-4 py-2 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.05)] hover:shadow-[0_0_20px_rgba(6,182,212,0.2)]">
                             <BookOpen size={12} />
-                            Bitácoras
+                            {t('protocol_log_title')}
                         </button>
 
                         {completedCount > 0 && (
                             <button onClick={() => setShowVault(true)} className="text-[10px] uppercase tracking-[0.2em] text-amber-500/70 hover:text-amber-400 flex items-center gap-2 border border-amber-500/20 bg-amber-900/10 px-4 py-2 rounded-full transition-all duration-300 relative group shadow-[0_0_15px_rgba(245,158,11,0.05)] hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-                                Bóveda
+                                {t('protocol_vault_title')}
                                 <span className="bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full text-[9px] font-black">{completedCount}</span>
                             </button>
                         )}
                         <button onClick={handleReset} className="text-[10px] uppercase tracking-wider text-white/30 hover:text-red-400 flex items-center gap-1">
-                            <RotateCcw size={12} /> Reiniciar
+                            <RotateCcw size={12} /> {t('protocol_reset_confirm').split('?')[0]}
                         </button>
                     </div>
                 </div>
@@ -258,7 +260,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                     className="max-w-md mx-auto mt-6 px-5 py-2.5 bg-red-950/20 border border-red-500/20 rounded-full text-center text-red-400 text-[10px] uppercase tracking-widest backdrop-blur-md flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.05)]"
                 >
                     <Shield size={12} className="text-red-500 animate-pulse" />
-                    El ciclo quedó incompleto ayer
+                    {t('protocol_incomplete_warning')}
                 </motion.div>
             )}
 
@@ -270,7 +272,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                 className="max-w-2xl mx-auto px-6 pt-8 pb-2 text-center"
             >
                 <p className="font-serif italic text-white/50 text-sm md:text-base tracking-wide drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                    "{getDailySynchronyQuote()}"
+                    "{getDailySynchronyQuote(t('lang' as any) as any)}"
                 </p>
             </motion.div>
 
@@ -303,8 +305,8 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         >
                             <div className="flex items-center justify-between mb-3">
                                 <div>
-                                    <span className="text-[9px] uppercase tracking-[0.2em] text-cyan-400 font-black">Integración del Sello</span>
-                                    <p className="text-[10px] text-white/30 tracking-wider">Frecuencia en resonancia</p>
+                                    <span className="text-[9px] uppercase tracking-[0.2em] text-cyan-400 font-black">{t('protocol_integration_seal')}</span>
+                                    <p className="text-[10px] text-white/30 tracking-wider">{t('protocol_resonance_freq')}</p>
                                 </div>
                                 <span className={cn(
                                     "text-lg font-black font-mono transition-all duration-1000",
@@ -332,8 +334,8 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                 {/* 21-Day Progress Grid */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between px-2">
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-serif">Alineación del Sello</span>
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-amber-500/70 font-black">Día {activeProtocol.current_day} / {activeProtocol.target_days || 21}</span>
+                        <span className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-serif">{t('protocol_alignment_seal')}</span>
+                        <span className="text-[10px] uppercase tracking-[0.3em] text-amber-500/70 font-black">{t('protocol_day_label')} {activeProtocol.current_day} / {activeProtocol.target_days || 21}</span>
                     </div>
                     <div className="grid grid-cols-7 gap-3">
                         {Array.from({ length: activeProtocol.target_days || 21 }).map((_, i) => {
@@ -388,7 +390,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                     className="pointer-events-auto bg-black/80 backdrop-blur-xl border border-white/10 text-white/70 hover:text-white px-6 py-3 rounded-full flex items-center gap-3 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] group"
                 >
                     <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-xs uppercase tracking-widest font-black">Volver al Templo</span>
+                    <span className="text-xs uppercase tracking-widest font-black">{t('protocol_back_temple')}</span>
                 </button>
             </div>
 

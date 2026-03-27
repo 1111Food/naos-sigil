@@ -41,10 +41,11 @@ export class NaosCompilerService {
     private static TARGET_MODEL = "gemini-flash-latest";
     private static API_VERSION = "v1beta";
 
-    static async compile(userId: string, forceRefresh = false): Promise<NaosIdentitySynthesis> {
-        console.log(`[NAOS_COMPILER_v2.7+] Incoming request for ${userId} (Force: ${forceRefresh})`);
+    static async compile(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es'): Promise<NaosIdentitySynthesis> {
+        const isEn = language === 'en';
+        console.log(`[NAOS_COMPILER_v2.7+] Incoming request for ${userId} (Force: ${forceRefresh}, Lang: ${language})`);
         const userProfile = await this.getCompleteProfile(userId);
-        const { bible, archetype } = await this.consolidateBible(userProfile);
+        const { bible, archetype } = await this.consolidateBible(userProfile, language);
 
         if (!forceRefresh) {
             const { data: profile } = await supabase
@@ -54,8 +55,9 @@ export class NaosCompilerService {
                 .maybeSingle();
 
             let cachedCode = profile?.naos_identity_code || profile?.profile_data?.naos_identity_code;
-
-            if (cachedCode) {
+            
+            // Check if cached code matches requested language
+            if (cachedCode && (cachedCode as any).language === language) {
                 if (typeof cachedCode === 'string') {
                     try { cachedCode = JSON.parse(cachedCode); } catch (e) {}
                 }
@@ -106,8 +108,8 @@ export class NaosCompilerService {
         }
 
         try {
-            console.log(`🚀 NaosCompiler: Starting full compilation for ${userId}...`);
-            const synthesis = await this.callGeminiCompiler(bible, archetype, userId);
+            console.log(`🚀 NaosCompiler: Starting full compilation for ${userId} (${language})...`);
+            const synthesis = await this.callGeminiCompiler(bible, archetype, language, userId);
 
             const isValid = Object.entries(synthesis).every(([k, v]) => {
                 if (k === 'arquetipo') return true;
@@ -120,6 +122,7 @@ export class NaosCompilerService {
             
             const finalSynthesis = {
                 ...synthesis,
+                language, // Store language to validate cache
                 arquetipo: {
                     nombre: archetype.nombre,
                     frecuencia: archetype.frecuencia,
@@ -155,7 +158,7 @@ export class NaosCompilerService {
                                         (typeof val === 'string' && val.includes("...") && val.length < 50);
                         
                         if (isInvalid) {
-                            repaired[key] = NaosCompilerService.generateLocalNarrative(key, bible, archetype);
+                            repaired[key] = NaosCompilerService.generateLocalNarrative(key, bible, archetype, language);
                         }
                     });
 
@@ -179,7 +182,8 @@ export class NaosCompilerService {
                     'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
                     'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'
                 ];
-                keys.forEach(k => { fallback[k] = NaosCompilerService.generateLocalNarrative(k, bible, archetype); });
+                keys.forEach(k => { fallback[k] = NaosCompilerService.generateLocalNarrative(k, bible, archetype, language); });
+                fallback.language = language;
                 fallback.arquetipo = {
                     nombre: archetype.nombre,
                     frecuencia: archetype.frecuencia,
@@ -193,12 +197,13 @@ export class NaosCompilerService {
         }
     }
 
-    private static generateLocalNarrative(id: string, bible: any, archetype: any): string {
-        const sign = bible.astrology?.sun || 'Leo';
-        const animal = bible.chinese_animal || 'Dragón';
+    private static generateLocalNarrative(id: string, bible: any, archetype: any, language: 'es' | 'en' = 'es'): string {
+        const isEn = language === 'en';
+        const sign = bible.astrology?.sun || (isEn ? 'Leo' : 'Leo'); // Signs are same for now
+        const animal = bible.chinese_animal || (isEn ? 'Dragon' : 'Dragón');
         const role = archetype.rol;
         
-        const templates: Record<string, string[]> = {
+        const templates_es: Record<string, string[]> = {
             interfaz_social: [
                 `Proyectas un aura de ${role} bajo la mirada de ${sign}. Tu danza social es un puente entre tu instinto de ${animal} y tu esencia sagrada.`,
                 `Te manifiestas como un ${role} despierto. Tu máscara social equilibra la marea del ${animal} con la luz de tus coordenadas celestiales.`
@@ -233,7 +238,43 @@ export class NaosCompilerService {
             ]
         };
 
-        const list = templates[id] || [`Sincronizando la frecuencia de ${archetype.nombre} en el campo de manifestación.`];
+        const templates_en: Record<string, string[]> = {
+            interfaz_social: [
+                `You project an aura of ${role} under the gaze of ${sign}. Your social dance is a bridge between your ${animal} instinct and your sacred essence.`,
+                `You manifest as an awakened ${role}. Your social mask balances the tide of the ${animal} with the light of your celestial coordinates.`
+            ],
+            nucleo_interno: [
+                `In your center dwells the whisper of the ${archetype.nombre}. Your heart beats with the ${archetype.frecuencia} frequency, driving your constant awakening.`,
+                `Your core is a sanctuary for the ${archetype.nombre} archetype. You operate under the wisdom that love and truth consolidate your power.`
+            ],
+            patron_sombra: [
+                `Your shadow emerges when the tide of the ${animal} floods the lighthouse. The challenge is to embrace chaos so that the ${role} finds its light.`,
+                `The shadow pattern activates upon disconnection. The tension between your instinctive ${animal} fire and your ${role} mission is your crucible of growth.`
+            ],
+            direccion_vital: [
+                `Your path is traced toward the peak of the ${archetype.nombre}. Each step is an echo of your role as a ${role} in the great symphony of the universe.`,
+                `You advance toward a sacred expression of your being. Your destiny flourishes to the beat of the ${archetype.frecuencia} frequency and your constructive art.`
+            ],
+            tension_evolutiva: [
+                `Tension is the violin of your soul. As a ${role}, you evolve by transmuting the strength of the ${animal} into songs of light and harmony.`,
+                `You evolve by healing the internal paradox. Your ${archetype.frecuencia} frequency invites you to a loving synthesis of your innate gifts.`
+            ],
+            alquimia_vinculos: [
+                `In your relationships you act as a mirror of the ${archetype.frecuencia} frequency. You seek to distill love and truth with other wayfarers.`,
+                `Your bonds are mirror lakes. As the ${archetype.nombre}, you attract souls who remind you of your divinity and expand your vision.`
+            ],
+            arquitectura_entorno: [
+                `Your space is a temple for the ${archetype.elemento} element. Create a sanctuary of peace and beauty that elevates and sustains your spirit as a ${role}.`,
+                `Your environment requires peace and sacred purpose. You design nests that act as amplifiers of your base frequency ${archetype.frecuencia}.`
+            ],
+            umbral_manifestacion: [
+                `Your abundance flourishes when you act in synchronicity with the ${archetype.nombre}. Life unfolds effortlessly before your light.`,
+                `You manifest with grace when your role as a ${role} and the tide of the ${animal} are a single song under the NAOS sky.`
+            ]
+        };
+
+        const templates = isEn ? templates_en : templates_es;
+        const list = templates[id] || (isEn ? [`Synchronizing the frequency of ${archetype.nombre} in the manifestation field.`] : [`Sincronizando la frecuencia de ${archetype.nombre} en el campo de manifestación.`]);
         return list[Math.floor(Math.random() * list.length)];
     }
 
@@ -241,7 +282,7 @@ export class NaosCompilerService {
         return await UserService.getProfile(userId);
     }
 
-    private static async consolidateBible(profile: any) {
+    private static async consolidateBible(profile: any, language: 'es' | 'en' = 'es') {
         const birthDate = profile.birthDate || new Date().toISOString().split('T')[0];
         const birthTime = profile.birthTime || "12:00";
         const lat = profile.coordinates?.lat || 14.6349;
@@ -274,11 +315,11 @@ export class NaosCompilerService {
         
         let archetype;
         try {
-            archetype = ArchetypeEngine.calculate(enrichedProfile);
+            archetype = ArchetypeEngine.calculate(enrichedProfile, language);
         } catch (engineError) {
             archetype = {
-                nombre: "El Viajero de NAOS",
-                frecuencia: "Etérea",
+                nombre: language === 'en' ? "The NAOS Traveler" : "El Viajero de NAOS",
+                frecuencia: language === 'en' ? "Ethereal" : "Etérea",
                 rol: "Constructor",
                 descripcion: "Un alma en búsqueda de su verdadera frecuencia operativa.",
                 elemento_dominante: "aire",
@@ -303,14 +344,21 @@ export class NaosCompilerService {
         };
     }
 
-    private static async callGeminiCompiler(bible: any, archetype: any, userId?: string): Promise<NaosIdentitySynthesis> {
+    private static async callGeminiCompiler(bible: any, archetype: any, language: 'es' | 'en' = 'es', userId?: string): Promise<NaosIdentitySynthesis> {
+        const isEn = language === 'en';
         const apiKey = config.GOOGLE_API_KEY;
         const url = `https://generativelanguage.googleapis.com/${this.API_VERSION}/models/${this.TARGET_MODEL}:generateContent?key=${apiKey}`;
 
-        const systemPrompt = `Eres el Compilador NAOS v2.7. Tu función es consolidar una identidad arquitectónica de forma poética y mística.
+        const systemPrompt = isEn 
+            ? `You are the NAOS Compiler v2.7. Your function is to consolidate an architectural identity in a poetic and mystical way.
+The user is: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
+Avoid excessive technicalities (no "algorithm", "friction", "optimize", or "paradigms"). Use an evocative, mystical, and fluid tone to describe the interfaces of the human soul.
+Respond ONLY in JSON with the 8 blocks of narrative interfaces in ENGLISH.
+FIELDS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital', 'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'.`
+            : `Eres el Compilador NAOS v2.7. Tu función es consolidar una identidad arquitectónica de forma poética y mística.
 El usuario es: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
 Evita tecnicismos excesivos (no uses "algoritmo", "fricción", "optimizar" o "paradigmas"). Usa un tono evocador, místico y fluido para describir las interfaces del alma humana.
-Responde ÚNICAMENTE en JSON con los 8 bloques de interfaces narrativas.
+Responde ÚNICAMENTE en JSON con los 8 bloques de interfaces narrativas en ESPAÑOL.
 CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital', 'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'.`;
 
         const payload = {
@@ -337,7 +385,7 @@ CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
             if (!text) throw new Error("No synthesis generated");
 
             const rawJson = JSON.parse(text);
-            const normalized = this.normalizeSynthesis(rawJson, bible, archetype);
+            const normalized = this.normalizeSynthesis(rawJson, bible, archetype, language);
             
             return {
                 ...normalized,
@@ -379,7 +427,7 @@ CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
         }
     }
 
-    private static normalizeSynthesis(raw: any, bible: any, archetype: any): Omit<NaosIdentitySynthesis, 'arquetipo'> {
+    private static normalizeSynthesis(raw: any, bible: any, archetype: any, language: 'es' | 'en' = 'es'): Omit<NaosIdentitySynthesis, 'arquetipo'> {
         const findValue = (keys: string[]) => {
             for (const key of keys) {
                 if (raw[key]) return raw[key];
@@ -393,14 +441,14 @@ CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
             return typeof val === 'string' ? val.trim() : JSON.stringify(val);
         };
         return {
-            interfaz_social: normalize(findValue(['interfaz_social']), NaosCompilerService.generateLocalNarrative('interfaz_social', bible, archetype)),
-            nucleo_interno: normalize(findValue(['nucleo_interno']), NaosCompilerService.generateLocalNarrative('nucleo_interno', bible, archetype)),
-            patron_sombra: normalize(findValue(['patron_sombra']), NaosCompilerService.generateLocalNarrative('patron_sombra', bible, archetype)),
-            direccion_vital: normalize(findValue(['direccion_vital']), NaosCompilerService.generateLocalNarrative('direccion_vital', bible, archetype)),
-            tension_evolutiva: normalize(findValue(['tension_evolutiva']), NaosCompilerService.generateLocalNarrative('tension_evolutiva', bible, archetype)),
-            alquimia_vinculos: normalize(findValue(['alquimia_vinculos']), NaosCompilerService.generateLocalNarrative('alquimia_vinculos', bible, archetype)),
-            arquitectura_entorno: normalize(findValue(['arquitectura_entorno']), NaosCompilerService.generateLocalNarrative('arquitectura_entorno', bible, archetype)),
-            umbral_manifestacion: normalize(findValue(['umbral_manifestacion']), NaosCompilerService.generateLocalNarrative('umbral_manifestacion', bible, archetype))
+            interfaz_social: normalize(findValue(['interfaz_social']), NaosCompilerService.generateLocalNarrative('interfaz_social', bible, archetype, language)),
+            nucleo_interno: normalize(findValue(['nucleo_interno']), NaosCompilerService.generateLocalNarrative('nucleo_interno', bible, archetype, language)),
+            patron_sombra: normalize(findValue(['patron_sombra']), NaosCompilerService.generateLocalNarrative('patron_sombra', bible, archetype, language)),
+            direccion_vital: normalize(findValue(['direccion_vital']), NaosCompilerService.generateLocalNarrative('direccion_vital', bible, archetype, language)),
+            tension_evolutiva: normalize(findValue(['tension_evolutiva']), NaosCompilerService.generateLocalNarrative('tension_evolutiva', bible, archetype, language)),
+            alquimia_vinculos: normalize(findValue(['alquimia_vinculos']), NaosCompilerService.generateLocalNarrative('alquimia_vinculos', bible, archetype, language)),
+            arquitectura_entorno: normalize(findValue(['arquitectura_entorno']), NaosCompilerService.generateLocalNarrative('arquitectura_entorno', bible, archetype, language)),
+            umbral_manifestacion: normalize(findValue(['umbral_manifestacion']), NaosCompilerService.generateLocalNarrative('umbral_manifestacion', bible, archetype, language))
         };
     }
 }

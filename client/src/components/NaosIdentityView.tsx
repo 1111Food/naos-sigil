@@ -8,6 +8,7 @@ import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 import { ArchetypeLibrary } from './ArchetypeLibrary';
 import { NAOS_ARCHETYPES } from '../constants/archetypeData';
+import { useTranslation } from '../i18n';
 import { ArchetypeDecodifier } from './ArchetypeDecodifier';
 
 interface NaosIdentitySynthesis {
@@ -55,7 +56,8 @@ const frequencyConfig: Record<string, { main: string, glow: string, bg: string }
 };
 
 export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile }) => {
-    const cacheKey = `naos_identity_${_profile?.id || 'guest'}`;
+    const { t, language } = useTranslation();
+    const cacheKey = `naos_identity_${_profile?.id || 'guest'}_${language}`;
     
     // Initial state hydration: Prop > LocalStorage > null
     const [synthesis, setSynthesis] = useState<NaosIdentitySynthesis | null>(() => {
@@ -86,25 +88,24 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         try {
             console.log("🔑 [NaosIdentityView] Fetching async auth headers...");
             const authHeaders = await getAsyncAuthHeaders();
-            console.log("📡 [NaosIdentityView] Requesting /api/naos-code...");
-            const res = await fetch(`${API_BASE_URL}/api/naos-code${refresh ? '?refresh=true' : ''}`, {
+            console.log(`📡 [NaosIdentityView] Requesting /api/naos-code (lang: ${language})...`);
+            const res = await fetch(`${API_BASE_URL}/api/naos-code?lang=${language}${refresh ? '&refresh=true' : ''}`, {
                 headers: authHeaders as HeadersInit
             });
             console.log("🔌 [NaosIdentityView] Response status:", res.status);
             if (!res.ok) {
-                // ... (existing error handling)
-                let errMsg = 'Error al compilar el código';
+                let errMsg = t('identity_error_generic');
                 try {
                     const errData = await res.json();
                     console.error("❌ [NaosIdentityView] API Error Data:", errData);
                     if (errData.details && (errData.details.includes('429') || errData.details.includes('RESOURCE_EXHAUSTED'))) {
-                        errMsg = 'El oráculo está en meditación profunda (Límite de Cuota). Intenta de nuevo en unos minutos.';
+                        errMsg = t('identity_error_quota');
                     } else if (errData.details && errData.details.includes('TIMEOUT')) {
-                        errMsg = 'La red estelar está saturada. El oráculo no respondió a tiempo.';
+                        errMsg = t('identity_error_timeout');
                     } else if (errData.details && errData.details.includes('SÍNTESIS_INCOMPLETA')) {
-                        errMsg = 'La alineación ha sido fragmentada. Por favor, reinicia la sincronización.';
+                        errMsg = t('identity_error_incomplete');
                     } else if (errData.details) {
-                        errMsg = `Error de síntesis: ${errData.details}`;
+                        errMsg = `${t('identity_error_prefix')}: ${errData.details}`;
                     }
                 } catch (e) { }
                 throw new Error(errMsg);
@@ -187,17 +188,18 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
 
     const getFormula = (id: string) => {
         try {
+            const isEn = language === 'en';
             const astro = _profile?.astrology || {};
             const num = _profile?.numerology || {};
             const pin = num.pinaculo || {};
             const maya = _profile?.mayan || {};
 
-            const sun = astro.planets?.find((p: any) => p.name === 'Sun')?.sign || astro.sun?.sign || astro.sunSign || 'Sol';
-            const moon = astro.moon?.sign || astro.moonSign || 'Luna';
+            const sun = astro.planets?.find((p: any) => p.name === 'Sun')?.sign || astro.sun?.sign || astro.sunSign || (isEn ? 'Sun' : 'Sol');
+            const moon = astro.moon?.sign || astro.moonSign || (isEn ? 'Moon' : 'Luna');
             const rising = astro.rising?.sign || astro.risingSign || 'Asc';
             const venus = astro.venus?.sign || astro.venusSign || (astro.planets?.find((p: any) => p.name === 'Venus')?.sign) || 'Venus';
-            const node = astro.planets?.find((p: any) => p.name === 'North Node' || p.name === 'Nodo Norte')?.sign || 'Nodo';
-            const house4 = astro.house4 || (astro.planets?.find((p: any) => p.house === 4 || p.name === 'House 4')?.sign) || 'Casa 4';
+            const node = astro.planets?.find((p: any) => p.name === 'North Node' || p.name === 'Nodo Norte')?.sign || (isEn ? 'Node' : 'Nodo');
+            const house4 = astro.house4 || (astro.planets?.find((p: any) => p.house === 4 || p.name === 'House 4')?.sign) || (isEn ? 'House 4' : 'Casa 4');
 
             const personality = pin.b || num.tantric?.soul || '?';
             const essence = pin.d || '?';
@@ -207,10 +209,24 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             const shadow = pin.q || '?';
             const lifePath = num.lifePathNumber || '?';
 
-            const animal = _profile?.chinese_animal || 'Animal';
-            const element = _profile?.chinese_element || 'Elemento';
+            const animal = _profile?.chinese_animal || (isEn ? 'Animal' : 'Animal');
+            const element = _profile?.chinese_element || (isEn ? 'Element' : 'Elemento');
             const nawal = maya.kicheName || 'Nawal';
             const tone = maya.tone || '?';
+
+            if (isEn) {
+                switch (id) {
+                    case 'social': return `Integrating the Rising imprint in ${rising} with Personality ${personality} and the elemental essence of the ${animal}.`;
+                    case 'inner': return `Tuning the Solar core in ${sun} with the soul pulsation ${essence} and the Mayan Nawal ${nawal}.`;
+                    case 'shadow': return `Exploring the Moon resonance in ${moon} with the unconscious shadows ${unconscious} and the karmic pattern ${shadow}.`;
+                    case 'vital': return `Tracing the path from ${node} toward Mission ${mission} and the Realization Gradient ${realization}.`;
+                    case 'tension': return `Unifying the Rising ${rising} and the Life Path ${lifePath} under the evolutionary frequency of Kin ${nawal} ${tone}.`;
+                    case 'vinculos': return `Synchronizing the frequency of Venus in ${venus}, the cycles of the ${animal}, and your Soul Number ${personality} for dual alchemy.`;
+                    case 'entorno': return `Architecture of the sacred space through House 4 in ${house4}, the ${element} element, and your home vibration.`;
+                    case 'manifestacion': return `2026 Success Threshold: Jupiter transits, your Personal Year ${mission}, and the energetic flow of the ${animal}.`;
+                    default: return '';
+                }
+            }
 
             switch (id) {
                 case 'social':
@@ -234,7 +250,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             }
         } catch (e) {
             console.warn("⚠️ Error calculating formula for", id, e);
-            return "Sincronizando escuelas energéticas...";
+            return t('identity_syncing_msg');
         }
     };
 
@@ -246,8 +262,8 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                     <Hexagon className="absolute inset-0 m-auto w-8 h-8 text-cyan-500 animate-pulse" />
                 </div>
                 <div className="text-center space-y-2">
-                    <p className="text-[10px] uppercase tracking-[0.6em] text-cyan-400 font-black animate-pulse">Invocando Código de Identidad</p>
-                    <p className="text-[8px] uppercase tracking-widest text-white/20">Sincronizando Escuelas Energéticas...</p>
+                    <p className="text-[10px] uppercase tracking-[0.6em] text-cyan-400 font-black animate-pulse">{t('identity_invoking_msg')}</p>
+                    <p className="text-[8px] uppercase tracking-widest text-white/20">{t('identity_syncing_msg')}</p>
                 </div>
             </div>
         );
@@ -259,27 +275,27 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                 <div className="p-6 rounded-full bg-rose-500/10 border border-rose-500/20 mb-6">
                     <AlertTriangle className="w-10 h-10 text-rose-500" />
                 </div>
-                <h3 className="text-xl font-serif italic text-white mb-2">Fallo en la Compilación</h3>
+                <h3 className="text-xl font-serif italic text-white mb-2">{t('identity_fail_title')}</h3>
                 <p className="text-white/40 mb-8 text-xs uppercase tracking-widest max-w-md leading-relaxed">{error}</p>
                 <button
                     onClick={() => fetchSynthesis(true)}
                     className="px-8 py-3 rounded-full bg-white/5 border border-white/10 text-[9px] uppercase tracking-[0.3em] text-white/60 hover:text-white hover:bg-white/10 transition-all font-bold"
                 >
-                    Reiniciar Núcleo
+                    {t('identity_retry_btn')}
                 </button>
             </div>
         );
     }
 
     const modules = [
-        { id: 'social', title: 'Interfaz Social', icon: User, content: synthesis?.interfaz_social || "Alineando...", color: 'cyan', formula: getFormula('social') },
-        { id: 'inner', title: 'Núcleo Interno', icon: Shield, content: synthesis?.nucleo_interno || "Alineando...", color: 'amber', formula: getFormula('inner') },
-        { id: 'shadow', title: 'Patrón Sombra', icon: AlertTriangle, content: synthesis?.patron_sombra || "Alineando...", color: 'rose', formula: getFormula('shadow') },
-        { id: 'vital', title: 'Dirección Vital', icon: Target, content: synthesis?.direccion_vital || "Alineando...", color: 'emerald', formula: getFormula('vital') },
-        { id: 'tension', title: 'Tensión Evolutiva', icon: Zap, content: synthesis?.tension_evolutiva || "Alineando...", color: 'indigo', formula: getFormula('tension') },
-        { id: 'vinculos', title: 'Alquimia de Vínculos', icon: Heart, content: synthesis?.alquimia_vinculos || "Alineando...", color: 'fuchsia', formula: getFormula('vinculos') },
-        { id: 'entorno', title: 'Arquitectura del Entorno', icon: Home, content: synthesis?.arquitectura_entorno || "Alineando...", color: 'cyan', formula: getFormula('entorno') },
-        { id: 'manifestacion', title: 'Umbral de Manifestación', icon: Wind, content: synthesis?.umbral_manifestacion || "Alineando...", color: 'amber', formula: getFormula('manifestacion') },
+        { id: 'social', title: t('identity_social'), icon: User, content: synthesis?.interfaz_social || t('identity_aligning'), color: 'cyan', formula: getFormula('social') },
+        { id: 'inner', title: t('identity_inner'), icon: Shield, content: synthesis?.nucleo_interno || t('identity_aligning'), color: 'amber', formula: getFormula('inner') },
+        { id: 'shadow', title: t('identity_shadow'), icon: AlertTriangle, content: synthesis?.patron_sombra || t('identity_aligning'), color: 'rose', formula: getFormula('shadow') },
+        { id: 'vital', title: t('identity_vital'), icon: Target, content: synthesis?.direccion_vital || t('identity_aligning'), color: 'emerald', formula: getFormula('vital') },
+        { id: 'tension', title: t('identity_tension'), icon: Zap, content: synthesis?.tension_evolutiva || t('identity_aligning'), color: 'indigo', formula: getFormula('tension') },
+        { id: 'vinculos', title: t('identity_vinculos'), icon: Heart, content: synthesis?.alquimia_vinculos || t('identity_aligning'), color: 'fuchsia', formula: getFormula('vinculos') },
+        { id: 'entorno', title: t('identity_entorno'), icon: Home, content: synthesis?.arquitectura_entorno || t('identity_aligning'), color: 'cyan', formula: getFormula('entorno') },
+        { id: 'manifestacion', title: t('identity_manifestacion'), icon: Wind, content: synthesis?.umbral_manifestacion || t('identity_aligning'), color: 'amber', formula: getFormula('manifestacion') },
     ];
 
     const archetype = synthesis?.arquetipo;
@@ -292,9 +308,9 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                 <div className="space-y-1 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-3 text-cyan-400 mb-2">
                         <Sparkles size={14} />
-                        <span className="text-[10px] uppercase tracking-[0.4em] font-black">Bio-Architectural Master Hub</span>
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-black">{t('identity_hub_label')}</span>
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-serif italic text-primary tracking-tight">CÓDIGO DE IDENTIDAD</h2>
+                    <h2 className="text-4xl md:text-5xl font-serif italic text-primary tracking-tight">{t('identity_main_title')}</h2>
                 </div>
 
                 <button
@@ -309,7 +325,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                 >
                     <RefreshCw className={cn("w-3 h-3 text-cyan-400 transition-transform duration-700", isRefreshing && "animate-spin")} />
                     <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-white/40 group-hover:text-white transition-colors">
-                        {isRefreshing ? 'Re-Calculando ADN...' : 'Sincronizar Oráculo'}
+                        {isRefreshing ? t('identity_recalculating') : t('identity_sync_btn')}
                     </span>
                 </button>
             </div>
@@ -340,7 +356,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                             )}
                         >
                             <Sparkles className={cn("w-3 h-3 transition-transform", isArchetypeExpanded && "scale-110")} />
-                            {isArchetypeExpanded ? 'Ocultar Ecuación' : 'Decodificar Frecuencia'}
+                            {isArchetypeExpanded ? t('identity_hide_eq') : t('identity_decode_freq')}
                         </button>
 
                         <button 
@@ -348,7 +364,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                             className="flex items-center gap-2 px-6 py-2 rounded-full bg-white/[0.03] border border-white/10 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-cyan-400 hover:border-cyan-400/30 transition-all group"
                         >
                             <BookOpen className="w-3 h-3 group-hover:scale-110 transition-transform" />
-                            Explorar Códice
+                            {t('identity_explore_codex')}
                         </button>
                     </div>
 
@@ -380,7 +396,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                     
                     <div className="relative space-y-6">
                         <div className="flex items-center gap-4">
-                            <span className="text-[10px] uppercase tracking-[0.6em] font-black text-white/30 italic">Síntesis Canalizada</span>
+                            <span className="text-[10px] uppercase tracking-[0.6em] font-black text-white/30 italic">{t('identity_sythesis_label')}</span>
                             <div className="h-px w-12" style={{ backgroundColor: archColor.main }} />
                         </div>
                         
@@ -482,7 +498,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                     <div className="flex items-center gap-3">
                                                         <div className="h-px w-6" style={{ backgroundColor: config.main }} />
                                                         <span className="text-[10px] uppercase tracking-[0.5em] font-black" style={{ color: config.main }}>
-                                                            COMPUESTO ALQUÍMICO
+                                                            {t('identity_compound_label')}
                                                         </span>
                                                     </div>
                                                     <p className="text-[13px] font-serif italic text-pretty leading-relaxed"
@@ -511,7 +527,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                                 className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-cyan-400 hover:text-white transition-colors animate-pulse"
                                                             >
                                                                 <RefreshCw size={10} className={isRefreshing ? "animate-spin" : ""} />
-                                                                Re-sincronizar Nodo
+                                                                {t('identity_resync_node')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -596,6 +612,7 @@ interface InnerStatCardProps {
 const InnerStatCard: React.FC<InnerStatCardProps> = ({ 
     label, value, image, assetType, isNeonNumber, isArchetype, archColor, color, delay, onClick, onInfoClick 
 }) => {
+    const { t } = useTranslation();
     const [imgError, setImgError] = React.useState(false);
     const config = archColor || (color ? colorConfig[color] : colorConfig.cyan);
 
@@ -634,7 +651,8 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                         {/* Render Official Arcano if available */}
                         {(() => {
                             const archInfo = NAOS_ARCHETYPES.find((a: any) => 
-                                a.nombre.toLowerCase().trim() === value?.toLowerCase().trim()
+                                a.nombre.toLowerCase().trim() === value?.toLowerCase().trim() ||
+                                (a as any).nombre_en?.toLowerCase().trim() === value?.toLowerCase().trim()
                             );
                             if (archInfo?.imagePath) {
                                 return (
@@ -675,7 +693,7 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                             <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/40 to-transparent my-2" />
                             
                             <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-60 text-white drop-shadow-md">
-                                Esencia Primordial
+                                {t('identity_essence_label')}
                             </span>
                         </div>
                     </div>

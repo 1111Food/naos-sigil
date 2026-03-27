@@ -5,12 +5,14 @@ import { cn } from '../lib/utils';
 import { API_BASE_URL, getAuthHeaders } from '../lib/api';
 import { SynastryResultView } from './SynastryResultView';
 import { RelationshipType } from './SynastryModule';
+import { useTranslation } from '../i18n';
 
 interface DualSynastryViewProps {
     profile: any;
 }
 
 export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) => {
+    const { t } = useTranslation();
     const [step, setStep] = useState<'FORM' | 'TUNING' | 'RESULT'>('FORM');
     const [activeTab, setActiveTab] = useState<'FORM' | 'HISTORY'>('FORM');
 
@@ -26,7 +28,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
 
     const handleCalculate = async () => {
         if (!partnerData.name || !partnerData.birthDate || !partnerData.birthCity || !partnerData.birthCountry) {
-            setError("La profundidad requiere todos los datos (Nombre, Fecha, Ciudad, País).");
+            setError(t('synastry_form_incomplete'));
             return;
         }
 
@@ -45,7 +47,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
 
             if (!response.ok) {
                 const err = await response.json();
-                throw new Error(err.message || err.error || 'Error en el análisis');
+                throw new Error(err.message || err.error || t('synastry_fetch_error'));
             }
 
             const result = await response.json();
@@ -58,7 +60,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
 
         } catch (err: any) {
             console.error("❌ Synastry Error:", err);
-            setError(err.message || "Interferencia en la red astral. Verifica el servidor.");
+            setError(err.message || t('synastry_network_error'));
             setStep('FORM');
             setIsLoading(false);
         }
@@ -70,7 +72,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
         setError(null);
         try {
             const response = await fetch(`${API_BASE_URL}/api/synastry/history`, { headers: getAuthHeaders() });
-            if (!response.ok) throw new Error("Registros inalcanzables.");
+            if (!response.ok) throw new Error(t('synastry_fetch_error'));
             const result = await response.json();
             // Filter to only non-group history if possible, though backend returns all
             // We can filter by type here to ensure Dual History only shows Dual types
@@ -78,7 +80,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
             setHistory(dualHistory || []);
         } catch (err) {
             console.error("❌ History Error:", err);
-            setError("Fallo al acceder a los registros.");
+            setError(t('akashic_empty'));
         } finally {
             setIsLoading(false);
         }
@@ -112,17 +114,17 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
         if (id && typeof id === 'string' && id.startsWith('r_')) {
             sanitizedId = id.substring(2);
         }
-        if (!window.confirm("¿Seguro que deseas liberar este registro de tu historial?")) return;
+        if (!window.confirm(t('synastry_delete_confirm'))) return;
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/synastry/record/${sanitizedId}`, {
                 method: 'DELETE',
                 headers: (() => { const h = getAuthHeaders(); delete h['Content-Type']; return h; })()
             });
-            if (!response.ok) throw new Error("No se pudo borrar.");
+            if (!response.ok) throw new Error(t('synastry_delete_error'));
             setHistory(prev => prev.filter(item => item.id !== id && item.id !== sanitizedId));
         } catch (err) {
-            alert("No se pudo borrar el registro.");
+            alert(t('synastry_delete_error'));
         }
     };
 
@@ -139,13 +141,13 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                         onClick={() => handleTabChange('FORM')}
                         className={`text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-full transition-all ${activeTab === 'FORM' ? 'bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30' : 'text-white/40 hover:text-white/80'}`}
                     >
-                        Invocar Espejo
+                        {t('synastry_invoke_mirror')}
                     </button>
                     <button
                         onClick={() => handleTabChange('HISTORY')}
                         className={`text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-full transition-all ${activeTab === 'HISTORY' ? 'bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30' : 'text-white/40 hover:text-white/80'}`}
                     >
-                        Historial Dual
+                        {t('synastry_dual_history')}
                     </button>
                 </div>
             </div>
@@ -160,8 +162,8 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                 className="w-full max-w-2xl bg-black/40 border border-purple-500/20 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl shrink-0"
                             >
                                 <div className="text-center mb-8">
-                                    <h3 className="text-3xl font-serif text-primary mb-3">Resonancia Arquitectónica</h3>
-                                    <p className="text-secondary text-label leading-relaxed px-4">Configura los vectores de sincronización para mapear la sinergia oculta entre tú y el Vínculo.</p>
+                                    <h3 className="text-3xl font-serif text-primary mb-3">{t('synastry_arch_resonance')}</h3>
+                                    <p className="text-secondary text-label leading-relaxed px-4">{t('synastry_arch_resonance_desc')}</p>
                                 </div>
 
                                 {error && (
@@ -180,11 +182,11 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                             >
                                                 <span>
                                                     {[
-                                                        { id: RelationshipType.ROMANTIC, label: 'Sinergia Romántica' },
-                                                        { id: RelationshipType.AMISTAD, label: 'Sinergia de la Amistad' },
-                                                        { id: RelationshipType.PARENTAL, label: 'Sinergia Parental' },
-                                                        { id: RelationshipType.BUSINESS, label: 'Sinergia de Negocios' },
-                                                    ].find(t => t.id === relationshipType)?.label || 'Seleccionar Sinergia'}
+                                                        { id: RelationshipType.ROMANTIC, label: t('synastry_romantic') },
+                                                        { id: RelationshipType.AMISTAD, label: t('synastry_friendship') },
+                                                        { id: RelationshipType.PARENTAL, label: t('synastry_parental') },
+                                                        { id: RelationshipType.BUSINESS, label: t('synastry_business') },
+                                                    ].find(t => t.id === relationshipType)?.label || t('synastry_access')}
                                                 </span>
                                                 <ChevronDown size={14} className={cn("transition-transform duration-300 text-purple-400", isDropdownOpen && "rotate-180")} />
                                             </button>
@@ -199,10 +201,10 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                                         className="absolute top-14 left-1/2 -translate-x-1/2 w-56 bg-black/90 border border-purple-500/20 rounded-2xl p-1.5 z-30 shadow-2xl backdrop-blur-xl flex flex-col gap-1"
                                                     >
                                                         {[
-                                                            { id: RelationshipType.ROMANTIC, label: 'Sinergia Romántica' },
-                                                            { id: RelationshipType.AMISTAD, label: 'Sinergia de la Amistad' },
-                                                            { id: RelationshipType.PARENTAL, label: 'Sinergia Parental' },
-                                                            { id: RelationshipType.BUSINESS, label: 'Sinergia de Negocios' },
+                                                            { id: RelationshipType.ROMANTIC, label: t('synastry_romantic') },
+                                                            { id: RelationshipType.AMISTAD, label: t('synastry_friendship') },
+                                                            { id: RelationshipType.PARENTAL, label: t('synastry_parental') },
+                                                            { id: RelationshipType.BUSINESS, label: t('synastry_business') },
                                                         ].map(opt => (
                                                             <button
                                                                 key={opt.id}
@@ -227,11 +229,11 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
 
                                     <div className="space-y-4">
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-label text-secondary ml-2">Identidad del Vínculo</label>
+                                            <label className="text-label text-secondary ml-2">{t('synastry_identity_label')}</label>
                                             <input
                                                 type="text"
                                                 className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-purple-500/50 transition-colors"
-                                                placeholder="Nombre (Ej. Nikola Tesla)"
+                                                placeholder={t('synastry_name_placeholder')}
                                                 value={partnerData.name}
                                                 onChange={e => setPartnerData({ ...partnerData, name: e.target.value })}
                                             />
@@ -239,7 +241,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-label text-secondary ml-2">Punto Temporal</label>
+                                                <label className="text-label text-secondary ml-2">{t('synastry_temporal_point')}</label>
                                                 <input
                                                     type="date"
                                                     className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-purple-500/50 invert-calendar-icon"
@@ -248,7 +250,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-label text-secondary ml-2">Hora (Aprox)</label>
+                                                <label className="text-label text-secondary ml-2">{t('synastry_approx_hour')}</label>
                                                 <input
                                                     type="time"
                                                     className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-purple-500/50 invert-calendar-icon"
@@ -260,21 +262,21 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-label text-secondary ml-2">Ciudad Base</label>
+                                                <label className="text-label text-secondary ml-2">{t('synastry_base_city')}</label>
                                                 <input
                                                     type="text"
                                                     className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-purple-500/50 transition-colors"
-                                                    placeholder="Ej: Smiljan"
+                                                    placeholder={t('synastry_city_placeholder')}
                                                     value={partnerData.birthCity}
                                                     onChange={e => setPartnerData({ ...partnerData, birthCity: e.target.value })}
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-label text-secondary ml-2">País</label>
+                                                <label className="text-label text-secondary ml-2">{t('synastry_country')}</label>
                                                 <input
                                                     type="text"
                                                     className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-purple-500/50 transition-colors"
-                                                    placeholder="Ej: Croacia"
+                                                    placeholder={t('synastry_country_placeholder')}
                                                     value={partnerData.birthCountry}
                                                     onChange={e => setPartnerData({ ...partnerData, birthCountry: e.target.value })}
                                                 />
@@ -288,7 +290,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                         className={`w-full py-5 rounded-2xl border flex items-center justify-center gap-3 transition-all ${(!partnerData.name || !partnerData.birthDate) ? 'bg-black border-white/5 text-white/20' : 'bg-purple-600/20 text-purple-300 border-purple-500/30 hover:bg-purple-600/30 hover:border-purple-500/50 cursor-pointer shadow-[0_0_20px_rgba(168,85,247,0.15)]'}`}
                                     >
                                         <span className="text-[11px] uppercase tracking-[0.3em] font-black">
-                                            Sincronizar Códigos
+                                            {t('synastry_sync_codes')}
                                         </span>
                                         <ArrowRight size={16} className={(!partnerData.name || !partnerData.birthDate) ? 'opacity-0' : 'opacity-100'} />
                                     </button>
@@ -303,8 +305,8 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                     <motion.div animate={{ rotate: -360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="absolute inset-4 rounded-full border border-pink-500/20 border-b-pink-500/60" />
                                     <InfinityIcon className="w-12 h-12 text-purple-400/50 animate-pulse" />
                                 </div>
-                                <h3 className="tracking-[0.4em] uppercase text-purple-300 font-bold text-sm animate-pulse">Codificando Vínculo Dual</h3>
-                                <p className="text-[10px] text-white/30 uppercase tracking-widest mt-4 max-w-sm text-center">Invocando motores de Astrología, Numerología y Diseño Humano</p>
+                                <h3 className="tracking-[0.4em] uppercase text-purple-300 font-bold text-sm animate-pulse">{t('synastry_coding_dual')}</h3>
+                                <p className="text-[10px] text-white/30 uppercase tracking-widest mt-4 max-w-sm text-center">{t('synastry_engines_invoked')}</p>
                             </div>
                         )}
 
@@ -312,7 +314,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                             <div className="w-full">
                                 <div className="flex justify-center mb-6">
                                     <button onClick={() => setStep('FORM')} className="text-[10px] uppercase tracking-widest border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 text-white/50 hover:text-white transition-colors">
-                                        Limpiar Análisis
+                                        {t('synastry_clear_analysis')}
                                     </button>
                                 </div>
                                 <SynastryResultView
@@ -334,7 +336,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                         {isLoading ? (
                             <div className="col-span-full flex justify-center py-20"><Loader2 className="animate-spin text-white/30" /></div>
                         ) : history.length === 0 ? (
-                            <div className="col-span-full flex justify-center py-20 text-white/30 text-xs uppercase tracking-widest">No existe registro akáshico.</div>
+                            <div className="col-span-full flex justify-center py-20 text-white/30 text-xs uppercase tracking-widest">{t('synastry_no_history')}</div>
                         ) : (
                             history.map(item => (
                                 <div
@@ -350,9 +352,9 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                             </span>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[9px] uppercase tracking-widest text-white/30 font-bold flex items-center gap-1">
-                                                    {item.relationship_type === RelationshipType.ROMANTIC ? 'Romántico' :
-                                                        item.relationship_type === RelationshipType.AMISTAD ? 'Amistad' :
-                                                            item.relationship_type === RelationshipType.BUSINESS ? 'Negocios' : 'Familiar'}
+                                                    {item.relationship_type === RelationshipType.ROMANTIC ? t('synastry_romantic') :
+                                                        item.relationship_type === RelationshipType.AMISTAD ? t('synastry_friendship') :
+                                                            item.relationship_type === RelationshipType.BUSINESS ? t('synastry_business') : t('synastry_family')}
                                                 </span>
                                             </div>
                                         </div>
@@ -363,11 +365,11 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                     </div>
 
                                     <div className="flex justify-between items-center pt-4 border-t border-white/5 relative z-10">
-                                        <span className="text-[9px] uppercase tracking-[0.3em] font-black text-purple-400 group-hover:translate-x-1 transition-transform">Revisar</span>
+                                        <span className="text-[9px] uppercase tracking-[0.3em] font-black text-purple-400 group-hover:translate-x-1 transition-transform">{t('synastry_review')}</span>
                                         <button
                                             onClick={(e) => handleDeleteHistory(e, item.id)}
                                             className="w-8 h-8 rounded-full bg-red-500/5 text-red-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 transition-all"
-                                            title="Liberar Registro"
+                                            title={t('synastry_release_record')}
                                         >
                                             <Trash2 size={12} />
                                         </button>

@@ -5,6 +5,8 @@ import { cn } from '../lib/utils';
 import { StrategicCard } from '../components/StrategicCard';
 import { BreathingEngine } from '../components/BreathingEngine';
 import { useSound } from '../hooks/useSound';
+import { useTranslation } from '../i18n';
+import type { Translations } from '../i18n';
 
 // --- Ritual States ---
 type RitualState = 'INVOCATION' | 'CALIBRATION' | 'BREATH_SELECTION' | 'BREATHING' | 'ENGINE_SELECTION' | 'SPREAD_SELECTION' | 'CARD_SELECTION' | 'REVELATION' | 'INTERPRETATION' | 'CLOSING';
@@ -27,23 +29,14 @@ const THEME = {
     glassHover: 'hover:border-white/20 transition-all duration-700',
 };
 
-const MAJOR_ARCANA = [
-    "El Loco", "El Mago", "La Sacerdotisa", "La Emperatriz", "El Emperador",
-    "El Hierofante", "Los Enamorados", "El Carro", "La Fuerza", "El Ermitaño",
-    "La Rueda de la Fortuna", "La Justicia", "El Colgado", "La Muerte", "La Templanza",
-    "El Diablo", "La Torre", "La Estrella", "La Luna", "El Sol", "El Juicio", "El Mundo"
-];
-
-const NAOS_ARCHETYPES = [
-    "El Arquitecto", "El Estratega", "El Custodio", "El Alquimista",
-    "El Comandante", "El Orador", "El Visionario", "El Embajador",
-    "El Analista", "El Mediador", "El Explorador", "El Guía",
-    "El Innovador", "El Guardián", "El Maestro", "El Mentor"
-];
 
 import { useCoherence } from '../hooks/useCoherence';
 export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
     const { score } = useCoherence();
+    const { t } = useTranslation();
+
+    const MAJOR_ARCANA = Array.from({ length: 22 }, (_, i) => t(`arcano_${i}` as keyof Translations));
+    const NAOS_ARCHETYPES = Array.from({ length: 16 }, (_, i) => t(`archetype_${i}` as keyof Translations));
     const [ritualState, setRitualState] = useState<RitualState>(initialIntent ? 'CALIBRATION' : 'INVOCATION');
     const [oracleState, setOracleState] = useState<OracleState>('VOCAL');
     const [soulIntent, setSoulIntent] = useState(initialIntent || '');
@@ -139,7 +132,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
             return {
                 id: cardId,
                 name: cardNames[cardId],
-                meaning: "La esencia del arcano aguarda tu introspección.",
+                meaning: t('tarot_meaning_placeholder'),
             };
         });
 
@@ -171,7 +164,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
             console.error("Oracle Silence:", error);
             setReading({
                 cards: finalCards,
-                interpretation: "Los arcanos se han manifestado, pero la voz del oráculo está en silencio momentáneo. Permanece en la contemplación de los símbolos o intenta profundizar el ritual."
+                interpretation: t('tarot_silent_oracle')
             });
             setOracleState('SILENT');
         }
@@ -199,7 +192,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `Error ${response.status} al sellar`);
+                throw new Error(errorData.error || `${t('tarot_seal_error')} (${response.status})`);
             }
             
             setRitualState('CLOSING');
@@ -213,7 +206,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
 
             // If retries fail, we alert the user but let them proceed to close 
             // so they don't get stuck, while acknowledging the data might not be in history.
-            alert("El Registro Akáshico está saturado en este momento. Tu ritual ha sido presenciado, pero no pudo ser guardado permanentemente.");
+            alert(t('tarot_akashic_full_error'));
             setRitualState('CLOSING');
         } finally {
             setIsSaving(false);
@@ -247,7 +240,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                 </button>
                 <div className="flex items-center gap-3 tracking-[0.6em] text-[11px] uppercase font-bold text-red-500/60 transition-all duration-1000">
                     <Moon className="w-3.5 h-3.5 opacity-40 animate-pulse" />
-                    <span>Radiografía Estratégica</span>
+                    <span>{t('tarot_strategic_radiography')}</span>
                 </div>
                 <div className="w-9" />
             </header>
@@ -263,14 +256,14 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             className="w-full max-w-xl text-center space-y-12 mt-20"
                         >
                             <div className="space-y-6">
-                                <h1 className="text-[32px] md:text-[38px] font-light tracking-wide text-primary">¿Qué busca tu alma hoy?</h1>
-                                <p className="text-secondary uppercase tracking-[0.2em] text-[10px]">Concentra tu energía en una intención clara para el universo.</p>
+                                <h1 className="text-[32px] md:text-[38px] font-light tracking-wide text-primary">{t('tarot_soul_seek')}</h1>
+                                <p className="text-secondary uppercase tracking-[0.2em] text-[10px]">{t('tarot_intent_desc')}</p>
                             </div>
 
                             <div className="relative">
                                 <input
                                     type="text" value={soulIntent} onChange={(e) => setSoulIntent(e.target.value)}
-                                    placeholder="Manifestar intención..."
+                                    placeholder={t('tarot_manifest_placeholder')}
                                     className="w-full bg-transparent border-b border-white/5 px-4 py-6 text-[26px] text-center text-amber-50 placeholder:text-white/5 focus:outline-none focus:border-red-500/20 transition-all font-light italic"
                                     autoFocus
                                 />
@@ -285,7 +278,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     soulIntent.trim() ? "text-primary hover:border-white/20 glass-card" : "text-white/10 opacity-50 cursor-not-allowed"
                                 )}
                             >
-                                Iniciar Ritual
+                                {t('tarot_start_ritual')}
                             </button>
                         </motion.div>
                     )}
@@ -297,11 +290,11 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             className="w-full max-w-xl text-center space-y-12 mt-20"
                         >
                             <div className="space-y-6">
-                                <h1 className="text-[28px] font-light tracking-widest text-amber-50/90 uppercase">Sintonización Requerida</h1>
+                                <h1 className="text-[28px] font-light tracking-widest text-amber-50/90 uppercase">{t('tarot_tuning_required')}</h1>
                                 <div className="w-16 h-[1px] bg-red-500/30 mx-auto" />
                                 <p className={cn(THEME.textSoft, "text-lg font-light leading-relaxed px-8")}>
-                                    Has invocado al oráculo por <span className="text-amber-100 italic">"{soulIntent}"</span>.
-                                    Para recibir la verdad sin ruido, se recomienda limpiar tu canal.
+                                    {t('tarot_invoked_for')} <span className="text-amber-100 italic">"{soulIntent}"</span>.
+                                    {t('tarot_clean_channel_desc')}
                                 </p>
                             </div>
 
@@ -313,7 +306,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     }}
                                     className="px-8 py-4 rounded-full bg-red-900/10 border border-red-500/20 text-red-100 hover:bg-red-900/20 hover:border-red-500/40 transition-all uppercase tracking-[0.2em] text-[10px] flex items-center gap-3 group"
                                 >
-                                    <span>🧘‍♂️ Calibrar (1 min)</span>
+                                    <span>{t('tarot_calibrate_btn')}</span>
                                 </button>
 
                                 <button
@@ -323,7 +316,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     }}
                                     className="px-8 py-4 rounded-full border border-white/5 text-white/30 hover:text-white/60 hover:bg-white/5 transition-all uppercase tracking-[0.2em] text-[10px] flex items-center gap-3"
                                 >
-                                    <span>⚡ Proceder Directamente</span>
+                                    <span>{t('tarot_proceed_direct')}</span>
                                 </button>
                             </div>
                         </motion.div>
@@ -336,9 +329,9 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             className="w-full max-w-xl text-center space-y-12 mt-10"
                         >
                             <div className="space-y-4">
-                                <h1 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">Elige tu Frecuencia</h1>
+                                <h1 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">{t('tarot_choose_frequency')}</h1>
                                 <div className="w-12 h-[1px] bg-red-500/20 mx-auto" />
-                                <p className={cn(THEME.textSoft, "text-sm lowercase tracking-widest")}>Kit de Respuesta Rápida (S.O.S)</p>
+                                <p className={cn(THEME.textSoft, "text-sm lowercase tracking-widest")}>{t('tarot_sos_kit')}</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
@@ -347,8 +340,8 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     className="p-6 rounded-2xl bg-cyan-900/10 border border-cyan-500/20 text-cyan-100 hover:bg-cyan-900/20 hover:border-cyan-500/40 transition-all flex flex-col items-center gap-2"
                                 >
                                     <span className="text-xl">💧</span>
-                                    <span className="text-xs uppercase tracking-widest font-bold">Calmarme</span>
-                                    <span className="text-[9px] text-cyan-300/60">Agua</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">{t('tarot_calm_me')}</span>
+                                    <span className="text-[9px] text-cyan-300/60">{t('element_water')}</span>
                                 </button>
 
                                 <button
@@ -356,8 +349,8 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     className="p-6 rounded-2xl bg-amber-900/10 border border-amber-500/20 text-amber-100 hover:bg-amber-900/20 hover:border-amber-500/40 transition-all flex flex-col items-center gap-2"
                                 >
                                     <span className="text-xl">🔥</span>
-                                    <span className="text-xs uppercase tracking-widest font-bold">Activarme</span>
-                                    <span className="text-[9px] text-amber-300/60">Fuego</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">{t('tarot_activate_me')}</span>
+                                    <span className="text-[9px] text-amber-300/60">{t('element_fire')}</span>
                                 </button>
 
                                 <button
@@ -365,8 +358,8 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     className="p-6 rounded-2xl bg-emerald-900/10 border border-emerald-500/20 text-emerald-100 hover:bg-emerald-900/20 hover:border-emerald-500/40 transition-all flex flex-col items-center gap-2"
                                 >
                                     <span className="text-xl">🌱</span>
-                                    <span className="text-xs uppercase tracking-widest font-bold">Concretar</span>
-                                    <span className="text-[9px] text-emerald-300/60">Tierra</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">{t('tarot_ground_me')}</span>
+                                    <span className="text-[9px] text-emerald-300/60">{t('element_earth')}</span>
                                 </button>
 
                                 <button
@@ -374,8 +367,8 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     className="p-6 rounded-2xl bg-violet-900/10 border border-violet-500/20 text-violet-100 hover:bg-violet-900/20 hover:border-violet-500/40 transition-all flex flex-col items-center gap-2"
                                 >
                                     <span className="text-xl">🎐</span>
-                                    <span className="text-xs uppercase tracking-widest font-bold">Fluir</span>
-                                    <span className="text-[9px] text-violet-300/60">Aire</span>
+                                    <span className="text-xs uppercase tracking-widest font-bold">{t('tarot_flow_me')}</span>
+                                    <span className="text-[9px] text-violet-300/60">{t('element_air')}</span>
                                 </button>
                             </div>
 
@@ -383,7 +376,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                 onClick={() => { setBypassedCoherence(true); setRitualState('ENGINE_SELECTION'); }}
                                 className="text-white/20 hover:text-white/40 text-[9px] uppercase tracking-[0.3em] transition-colors mt-4"
                             >
-                                Saltar Sintonización
+                                {t('tarot_skip_tuning')}
                             </button>
                         </motion.div>
                     )}
@@ -407,7 +400,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                 }}
                                 className="text-white/20 hover:text-white/40 text-[9px] uppercase tracking-[0.3em] transition-colors"
                             >
-                                Saltar Sintonización
+                                {t('tarot_skip_tuning')}
                             </button>
                         </motion.div>
                     )}
@@ -419,9 +412,9 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             className="w-full text-center space-y-16 mt-10"
                         >
                             <div className="space-y-4">
-                                <h2 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">Delinea el Motor Oracular</h2>
+                                <h2 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">{t('tarot_delineate_engine')}</h2>
                                 <div className="w-12 h-[1px] bg-red-500/20 mx-auto" />
-                                <p className={THEME.textSoft}>¿Qué lenguaje debe usar el Templo hoy?</p>
+                                <p className={THEME.textSoft}>{t('tarot_temple_language')}</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -430,9 +423,9 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     className={cn("flex flex-col items-center justify-center p-10 rounded-[2rem] text-center group relative overflow-hidden transition-all duration-700", THEME.glass, THEME.glassHover)}
                                 >
                                     <Sparkles className="w-8 h-8 mb-6 text-amber-100/20 group-hover:text-amber-100 group-hover:scale-110 transition-all duration-700" />
-                                    <h3 className="text-[19px] font-light mb-3 tracking-widest text-amber-50/80 uppercase">Los 22 Arcanos</h3>
+                                    <h3 className="text-[19px] font-light mb-3 tracking-widest text-amber-50/80 uppercase">{t('tarot_arcanos_22')}</h3>
                                     <p className="text-[13px] leading-relaxed text-amber-100/20 group-hover:text-amber-100/40 transition-colors uppercase tracking-[0.1em]">
-                                        Lee la energía del universo y las fuerzas arquetípicas que envuelven tu consulta.
+                                        {t('tarot_arcanos_desc')}
                                     </p>
                                 </button>
 
@@ -441,9 +434,9 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                     className={cn("flex flex-col items-center justify-center p-10 rounded-[2rem] text-center group relative overflow-hidden transition-all duration-700", THEME.glass, THEME.glassHover)}
                                 >
                                     <Layers className="w-8 h-8 mb-6 text-red-500/40 group-hover:text-red-500 group-hover:scale-110 transition-all duration-700" />
-                                    <h3 className="text-[19px] font-light mb-3 tracking-widest text-amber-50/80 uppercase">Los 16 Arquetipos</h3>
+                                    <h3 className="text-[19px] font-light mb-3 tracking-widest text-amber-50/80 uppercase">{t('tarot_archetypes_16')}</h3>
                                     <p className="text-[13px] leading-relaxed text-amber-100/20 group-hover:text-amber-100/40 transition-colors uppercase tracking-[0.1em]">
-                                        Lee la postura operativa y el rol táctico que debes tomar frente a la situación.
+                                        {t('tarot_archetypes_desc')}
                                     </p>
                                 </button>
                             </div>
@@ -457,15 +450,15 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             className="w-full text-center space-y-16 mt-10"
                         >
                             <div className="space-y-4">
-                                <h2 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">Elige la estructura del ritual</h2>
+                                <h2 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">{t('tarot_structure_ritual')}</h2>
                                 <div className="w-12 h-[1px] bg-red-500/20 mx-auto" />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                                <SpreadCard title="Carta Única" desc="Mensaje esencial del oráculo." icon={Moon} onClick={() => handleSpreadSelect('ONE_CARD')} />
-                                <SpreadCard title="Dualidad" desc="Claridad para una duda específica." icon={HelpCircle} onClick={() => handleSpreadSelect('YES_NO')} />
-                                <SpreadCard title="Temporalidad" desc="Pasado, presente y el devenir." icon={Layers} onClick={() => handleSpreadSelect('THREE_CARD')} />
-                                <SpreadCard title="El Compás NAOS" desc="Fuego, Tierra, Aire y Agua aplicados." icon={Sparkles} onClick={() => handleSpreadSelect('COMPASS')} />
+                                <SpreadCard title={t('tarot_one_card')} desc={t('tarot_one_card_desc')} icon={Moon} onClick={() => handleSpreadSelect('ONE_CARD')} />
+                                <SpreadCard title={t('tarot_duality')} desc={t('tarot_duality_desc')} icon={HelpCircle} onClick={() => handleSpreadSelect('YES_NO')} />
+                                <SpreadCard title={t('tarot_temporality')} desc={t('tarot_temporality_desc')} icon={Layers} onClick={() => handleSpreadSelect('THREE_CARD')} />
+                                <SpreadCard title={t('tarot_compass')} desc={t('tarot_compass_desc')} icon={Sparkles} onClick={() => handleSpreadSelect('COMPASS')} />
                             </div>
                         </motion.div>
                     )}
@@ -478,9 +471,9 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                         >
                             <div className="space-y-4">
                                 <h2 className="text-[26px] font-light tracking-widest text-amber-50/60 uppercase">
-                                    Sintoniza con los {selectedEngine === 'ARCANOS' ? 'Arcanos' : 'Arquetipos'}
+                                    {t(selectedEngine === 'ARCANOS' ? 'tarot_sync_with_arcanos' : 'tarot_sync_with_archetypes')}
                                 </h2>
-                                <p className={THEME.textSoft}>Selecciona {requiredCards - selectedCards.length} más según tu intuición.</p>
+                                <p className={THEME.textSoft}>{t('tarot_select_count', { count: requiredCards - selectedCards.length })}</p>
                             </div>
 
                             <div className="flex flex-wrap justify-center gap-3 max-w-5xl mx-auto px-4">
@@ -508,7 +501,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                 <Sparkles className="w-8 h-8 text-amber-100/20 animate-pulse" />
                                 <div className="absolute inset-0 bg-amber-500/5 blur-3xl animate-pulse" />
                             </div>
-                            <p className="text-amber-100/40 tracking-[0.4em] text-[11px] uppercase animate-pulse">Los arcanos se manifiestan...</p>
+                            <p className="text-amber-100/40 tracking-[0.4em] text-[11px] uppercase animate-pulse">{t('tarot_manifesting')}</p>
                         </motion.div>
                     )}
 
@@ -519,7 +512,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             className="w-full text-center pb-32 space-y-16"
                         >
                             <div className="space-y-4">
-                                <p className="text-[11px] uppercase tracking-[0.5em] text-red-500/40">Intención del Alma</p>
+                                <p className="text-[11px] uppercase tracking-[0.5em] text-red-500/40">{t('tarot_soul_intention')}</p>
                                 <h2 className="text-[26px] md:text-[32px] font-light italic text-amber-50/80">"{soulIntent}"</h2>
                             </div>
 
@@ -542,13 +535,13 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                             className="absolute inset-0 w-20 bg-amber-500/20"
                                         />
                                     </div>
-                                    <p className="text-[11px] uppercase tracking-[0.3em] text-amber-100/20 italic">Traduciendo el lenguaje estelar...</p>
+                                    <p className="text-[11px] uppercase tracking-[0.3em] text-amber-100/20 italic">{t('tarot_stellar_language')}</p>
                                 </div>
                             ) : (
                                 <div className="max-w-2xl mx-auto space-y-12">
                                     <div className="relative p-10 glass-panel overflow-hidden">
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-[1px] bg-red-500/20" />
-                                        <p className="text-[17px] uppercase tracking-widest text-red-500/60 mb-6 font-bold">ANÁLISIS SIMBÓLICO</p>
+                                        <p className="text-[17px] uppercase tracking-widest text-red-500/60 mb-6 font-bold">{t('tarot_symbolic_analysis')}</p>
                                         <p className="text-[19px] leading-relaxed text-amber-50/70 font-light italic">
                                             {reading?.interpretation}
                                         </p>
@@ -560,7 +553,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                                 onClick={() => handleFetchReading(selectedCards)}
                                                 className="px-8 py-3 rounded-full border border-red-500/20 text-red-500/60 uppercase tracking-[0.3em] text-[11px] hover:bg-red-500/5 transition-all duration-700"
                                             >
-                                                Sintonizar de nuevo
+                                                {t('tarot_re_tune')}
                                             </button>
                                         )}
                                         <button
@@ -574,10 +567,10 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                             {isSaving ? (
                                                 <>
                                                     <div className="w-3 h-3 border-t-2 border-red-500 rounded-full animate-spin" />
-                                                    Sellando...
+                                                    {t('tarot_sealing')}
                                                 </>
                                             ) : (
-                                                "Sellar Ritual"
+                                                t('tarot_seal')
                                             )}
                                         </button>
                                     </div>
@@ -588,7 +581,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                             {score < 40 && !bypassedCoherence && (
                                 <div className="mt-8 p-4 rounded-xl bg-red-900/10 border border-red-500/20 text-center animate-pulse">
                                     <p className="text-[10px] uppercase tracking-widest text-red-400/60">
-                                        ⚠️ Interpretación generada bajo turbulencia energética. Tómalo con calma.
+                                        {t('tarot_turbulence_warning')}
                                     </p>
                                 </div>
                             )}
@@ -609,14 +602,14 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                 <Sparkles className="w-10 h-10 text-amber-100/20" />
                             </motion.div>
                             <div className="space-y-3">
-                                <h3 className="text-[21px] font-light tracking-widest text-amber-50/60 uppercase">Ritual Sellado</h3>
-                                <p className={THEME.textSoft}>Que la luz de los Arcanos guíe tu camino.</p>
+                                <h3 className="text-[21px] font-light tracking-widest text-amber-50/60 uppercase">{t('tarot_sealed_title')}</h3>
+                                <p className={THEME.textSoft}>{t('tarot_sealed_desc')}</p>
                             </div>
                             <button
                                 onClick={() => { playSound('click'); onBack(); }}
                                 className="px-12 py-3 rounded-full border border-white/10 text-amber-50 hover:bg-white/5 transition-all uppercase tracking-[0.3em] text-[11px]"
                             >
-                                Volver al Templo
+                                {t('tarot_back_temple')}
                             </button>
                         </motion.div>
                     )}

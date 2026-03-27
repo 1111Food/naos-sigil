@@ -4,6 +4,7 @@ import { Users, Diamond, ArrowLeft, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { WisdomButton } from './WisdomOverlay';
 import { OracleExplainer } from './OracleExplainer';
+import { useTranslation } from '../i18n';
 import { AnimatePresence } from 'framer-motion';
 
 interface SynastryHubProps {
@@ -13,13 +14,14 @@ interface SynastryHubProps {
 }
 
 export const SynastryHub: React.FC<SynastryHubProps> = ({ onSelectView, onBack, onShowWisdom }) => {
+    const { t } = useTranslation();
     const [explainerType, setExplainerType] = React.useState<'DUAL' | 'GROUP' | null>(null);
 
     const cards = [
         {
             id: 'DUAL',
-            label: 'Sinergia Dual',
-            subtitle: 'Exploración de Vínculo 1 a 1',
+            label: t('synastry_dual_label'),
+            subtitle: t('synastry_dual_sub'),
             icon: Diamond,
             color: 'text-purple-400',
             gradient: "from-purple-500/20 to-pink-500/10",
@@ -28,8 +30,8 @@ export const SynastryHub: React.FC<SynastryHubProps> = ({ onSelectView, onBack, 
         },
         {
             id: 'GROUP',
-            label: 'NAOS TEAMS',
-            subtitle: 'Análisis de compatibilidad operativa para equipos',
+            label: t('synastry_teams_label'),
+            subtitle: t('synastry_teams_sub'),
             icon: Users,
             color: 'text-blue-400',
             gradient: "from-blue-500/20 to-cyan-500/10",
@@ -52,18 +54,18 @@ export const SynastryHub: React.FC<SynastryHubProps> = ({ onSelectView, onBack, 
             <div className="relative z-10 text-center mb-16 space-y-4">
                 <div className="flex justify-center mb-6">
                     <button onClick={onBack} className="p-2 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-[10px] uppercase tracking-widest bg-white/5 border border-white/10 rounded-full hover:bg-white/10">
-                        <ArrowLeft size={14} /> Volver a Selección
+                        <ArrowLeft size={14} /> {t('synastry_back_selection')}
                     </button>
                 </div>
 
                 <div className="flex items-center justify-center gap-4 mb-2">
                     <h3 className="font-serif text-xl sm:text-3xl md:text-5xl text-white tracking-[0.2em] uppercase flex items-center justify-center gap-4">
-                        <span className="text-white/30">−</span> Sinastría Maestra <span className="text-white/30">−</span>
+                        <span className="text-white/30">−</span> {t('synastry_master_title')} <span className="text-white/30">−</span>
                     </h3>
                     <WisdomButton onClick={onShowWisdom} color="purple" className="translate-y-1" />
                 </div>
                 <div className="h-px w-24 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent mx-auto" />
-                <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">Elige la Magnitud del Análisis</p>
+                <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">{t('synastry_magnitude_prompt')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl relative z-10">
@@ -105,7 +107,7 @@ export const SynastryHub: React.FC<SynastryHubProps> = ({ onSelectView, onBack, 
                             </div>
 
                             <div className="pt-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
-                                <span className={cn("text-[10px] uppercase tracking-[0.3em] font-black", card.color)}>Acceder</span>
+                                <span className={cn("text-[10px] uppercase tracking-[0.3em] font-black", card.color)}>{t('synastry_access')}</span>
                                 <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", card.color.replace('text', 'bg'))} />
                             </div>
                         </div>

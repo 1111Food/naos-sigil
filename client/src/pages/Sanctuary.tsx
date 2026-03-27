@@ -13,35 +13,36 @@ import { RITUAL_LIBRARY } from '../constants/ritualContent';
 import type { ElementRitual } from '../constants/ritualContent';
 import { useSound } from '../hooks/useSound';
 import { useFrequency } from '../hooks/useFrequency';
+import { useTranslation } from '../i18n';
 
 const ELEMENT_THEMES = {
     FIRE: {
-        title: 'Forja Elemental',
-        subtitle: 'Sintonía de Fuego',
+        title: 'ritual_fire_title', // We'll translate this in the component
+        subtitle: 'element_fire',
         color: 'text-orange-400',
         glow: 'shadow-[0_0_40px_rgba(249,115,22,0.3)]',
         bg: 'bg-orange-950/40',
         border: 'border-orange-500/50 hover:bg-orange-500/10'
     },
     WATER: {
-        title: 'Inmersión Zen',
-        subtitle: 'Sintonía de Agua',
+        title: 'ritual_water_title',
+        subtitle: 'element_water',
         color: 'text-cyan-400',
         glow: 'shadow-[0_0_40px_rgba(6,182,212,0.3)]',
         bg: 'bg-cyan-950/40',
         border: 'border-cyan-500/50 hover:bg-cyan-500/10'
     },
     EARTH: {
-        title: 'Enraizamiento Activo',
-        subtitle: 'Frecuencia de Tierra',
+        title: 'ritual_earth_title',
+        subtitle: 'element_earth',
         color: 'text-emerald-400',
         glow: 'shadow-[0_0_40px_rgba(16,185,129,0.3)]',
         bg: 'bg-emerald-950/40',
         border: 'border-emerald-500/50 hover:bg-emerald-500/10'
     },
     AIR: {
-        title: 'Expansión Perceptiva',
-        subtitle: 'Respiración de Aire',
+        title: 'ritual_air_title',
+        subtitle: 'element_air',
         color: 'text-fuchsia-400',
         glow: 'shadow-[0_0_40px_rgba(217,70,239,0.3)]',
         bg: 'bg-fuchsia-950/40',
@@ -63,6 +64,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
     const { profile, refreshProfile } = useProfile();
     const { logAction } = useCoherence();
     const { playSound } = useSound();
+    const { t } = useTranslation();
     const {
         activeElement: activeAudioElement,
         stopFrequency,
@@ -176,16 +178,16 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
 
         switch (element) {
             case 'WATER': // Calm
-                need = 'Calmarme';
+                need = t('sanctuary_need_calm_title');
                 break;
             case 'FIRE': // Energy
-                need = 'Activarme';
+                need = t('sanctuary_need_activate_title');
                 break;
             case 'EARTH': // Grounding
-                need = 'Concretar';
+                need = t('sanctuary_need_ground_title');
                 break;
             case 'AIR': // Flow
-                need = 'Fluir';
+                need = t('sanctuary_need_flow_title');
                 break;
         }
 
@@ -260,7 +262,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
     }, [elapsedTime, timerActive, viewMode, ritualState.element, ritualState.selectedPathId]);
 
     const handleExit = () => {
-        if (window.confirm("¿Detener el ritual sagrado? El progreso no se guardará.")) {
+        if (window.confirm(t('stop_ritual_confirm'))) {
             setTimerActive(false);
             setRitualState({
                 element: null,
@@ -318,7 +320,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
             expiresAt.setHours(expiresAt.getHours() + 24);
             await supabase.from('daily_anchor').upsert({
                 user_id: profile.id,
-                anchor_text: `Ciclo ${ritualState.element} Completado (+${regulationDelta}%)`,
+                anchor_text: `${t('cycle_completed')} ${t(('element_' + ritualState.element.toLowerCase()) as any)} (+${regulationDelta}%)`,
                 type: 'MEDITATION',
                 expires_at: expiresAt.toISOString(),
                 created_at: new Date().toISOString()
@@ -394,8 +396,8 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                                     : "text-white/30 hover:text-white/50"
                                             )}
                                         >
-                                            <span className="hidden sm:inline">Onda Pura</span>
-                                            <span className="sm:hidden">Pura</span>
+                                            <span className="hidden sm:inline">{t('pure_wave')}</span>
+                                            <span className="sm:hidden">{t('pure_wave')}</span>
                                         </button>
                                         <button
                                             onClick={() => { playSound('click'); setIsAtmosphereEnabled(true); if(activeAudioElement !== ritualState.element) toggleFrequency(ritualState.element as any); }}
@@ -406,8 +408,8 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                                     : "text-white/30 hover:text-white/50"
                                             )}
                                         >
-                                            <span className="hidden sm:inline">Inmersivo</span>
-                                            <span className="sm:hidden">Inmers.</span>
+                                            <span className="hidden sm:inline">{t('immersive')}</span>
+                                            <span className="sm:hidden">{t('immersive')}</span>
                                         </button>
                                         
                                         {/* Global OFF */}
@@ -428,7 +430,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                 )}
 
                 <span className="text-[10px] uppercase tracking-[0.4em] text-white/30 hidden md:block">
-                    {viewMode === 'CHECKIN' ? 'El Santuario' : `Ritual de ${ritualState.element || 'Iniciación'}`}
+                    {viewMode === 'CHECKIN' ? t('temple' as any) : `${t('ritual' as any)} ${t(('element_' + (ritualState.element?.toLowerCase() || 'initiation')) as any)}`}
                 </span>
 
                 {viewMode !== 'CHECKIN' && viewMode !== 'CLOSURE' && (
@@ -448,31 +450,31 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                         className="flex-1 w-full flex flex-col items-center justify-center p-6 z-20"
                     >
                         <div className="w-full max-w-5xl text-center">
-                            <h1 className="text-3xl md:text-5xl font-serif text-white/90 italic mb-6">¿Qué necesitas ahora?</h1>
-                            <p className="text-white/40 text-sm uppercase tracking-widest mb-16">Selecciona tu propósito ritual</p>
+                            <h1 className="text-3xl md:text-5xl font-serif text-white/90 italic mb-6">{t('sanctuary_header_question')}</h1>
+                            <p className="text-white/40 text-sm uppercase tracking-widest mb-16">{t('sanctuary_header_subtitle')}</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {/* WATER */}
                                 <NeedCard
-                                    icon={Waves} title="Necesito Calmarme" sub="Agua - Regulación Emocional"
+                                    icon={Waves} title={t('sanctuary_need_calm_title')} sub={t('sanctuary_need_calm_sub')}
                                     color="text-cyan-200" borderColor="hover:border-cyan-500/50"
                                     onClick={() => handleSelectNeed('WATER')}
                                 />
                                 {/* FIRE */}
                                 <NeedCard
-                                    icon={Flame} title="Necesito Activarme" sub="Fuego - Energía y Voluntad"
+                                    icon={Flame} title={t('sanctuary_need_activate_title')} sub={t('sanctuary_need_activate_sub')}
                                     color="text-amber-200" borderColor="hover:border-amber-500/50"
                                     onClick={() => handleSelectNeed('FIRE')}
                                 />
                                 {/* EARTH */}
                                 <NeedCard
-                                    icon={Mountain} title="Necesito Concretar" sub="Tierra - Enfoque y Materialización"
+                                    icon={Mountain} title={t('sanctuary_need_ground_title')} sub={t('sanctuary_need_ground_sub')}
                                     color="text-emerald-200" borderColor="hover:border-emerald-500/50"
                                     onClick={() => handleSelectNeed('EARTH')}
                                 />
                                 {/* AIR */}
                                 <NeedCard
-                                    icon={Wind} title="Necesito Fluir" sub="Aire - Soltar y Perspectiva"
+                                    icon={Wind} title={t('sanctuary_need_flow_title')} sub={t('sanctuary_need_flow_sub')}
                                     color="text-violet-200" borderColor="hover:border-violet-500/50"
                                     onClick={() => handleSelectNeed('AIR')}
                                 />
@@ -525,7 +527,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                         {includeIntention && <Check size={14} />}
                                     </div>
                                     <div>
-                                        <div className="text-xs uppercase tracking-widest text-white/50 mb-1">Integrar Intención Activa</div>
+                                        <div className="text-xs uppercase tracking-widest text-white/50 mb-1">{t('sanctuary_integrate_intention')}</div>
                                         <div className="text-white/90 font-serif italic line-clamp-2">"{activeIntention}"</div>
                                     </div>
                                 </div>
@@ -541,7 +543,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                     isStarting ? "scale-90 opacity-0" : `hover:scale-105 ${ELEMENT_THEMES[ritualState.element].glow}`
                                 )}
                             >
-                                Iniciar Ciclo
+                                {t('start_cycle')}
                             </button>
                         </div>
                     </motion.div>
@@ -564,7 +566,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
 
                         <div className="relative mt-8 w-full flex justify-center z-10">
                             <button onClick={finishBreathwork} className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 bg-white/10 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm transition-colors">
-                                Saltar Respiración
+                                {t('skip_breath')}
                             </button>
                         </div>
                     </motion.div>
@@ -601,7 +603,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                 onClick={finishMeditation}
                                 className="px-8 py-3 rounded-full border border-white/10 hover:bg-white/5 text-white/50 hover:text-white transition-all text-xs uppercase tracking-widest"
                             >
-                                Siguiente Paso
+                                {t('next_step')}
                             </button>
                         </div>
                     </motion.div>
@@ -640,7 +642,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                 onClick={finishAnchor}
                                 className="px-8 py-3 rounded-full bg-white/10 border border-white/20 text-white transition-all text-xs uppercase tracking-widest font-black"
                             >
-                                Sellar Ritual
+                                {t('seal_ritual')}
                             </button>
                         </div>
                     </motion.div>
@@ -653,9 +655,9 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                         className="flex-1 flex flex-col items-center justify-center z-30 p-6 text-center w-full"
                     >
-                        <h2 className="text-4xl font-serif text-white italic mb-2">Ciclo Completado</h2>
+                        <h2 className="text-4xl font-serif text-white italic mb-2">{t('cycle_completed')}</h2>
                         <p className="text-white/40 text-sm uppercase tracking-widest mb-8 flex items-center gap-2 justify-center">
-                            <Clock size={14} /> Tiempo Total: <span className="text-white">{formatTime(elapsedTime)}</span>
+                            <Clock size={14} /> {t('total_time')}: <span className="text-white">{formatTime(elapsedTime)}</span>
                         </p>
 
                         {/* SCIENTIFIC BIOMETRIC FEEDBACK EXCLUSIVO (BILLION DOLLAR LAYOUT) */}
@@ -688,8 +690,8 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                                 <Brain size={18} className={ELEMENT_THEMES[ritualState.element || 'WATER'].color} />
                                             </motion.div>
                                             <div>
-                                                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/90">Impacto Biométrico</span>
-                                                <span className="block text-[8px] text-white/40 font-mono tracking-widest mt-0.5">ESTADO: COMPLETO (100%)</span>
+                                                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/90">{t('biometric_impact')}</span>
+                                                <span className="block text-[8px] text-white/40 font-mono tracking-widest mt-0.5">{t('status_complete')}</span>
                                             </div>
                                         </div>
                                         <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
@@ -703,10 +705,10 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                             className="space-y-1"
                                         >
                                             <h3 className={cn("text-[11px] font-serif italic", ELEMENT_THEMES[ritualState.element || 'WATER'].color)}>
-                                                Modulación Diafragmática: {getActivePath()?.breath.label}
+                                                {t('diaphragmatic_modulation')}: {t(getActivePath()?.breath.label as any)}
                                             </h3>
                                             <p className="text-white/80 text-sm max-w-sm leading-relaxed font-light">
-                                                {getActivePath()?.breath.scientificImpact}
+                                                {t(getActivePath()?.breath.scientificImpact as any)}
                                             </p>
                                         </motion.div>
                                     )}
@@ -719,10 +721,10 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                             className="pt-4 border-t border-white/5 space-y-1"
                                         >
                                             <h3 className={cn("text-[11px] font-serif italic", ELEMENT_THEMES[ritualState.element || 'WATER'].color)}>
-                                                Ajuste Neuro-Cognitivo: {getActivePath()?.meditation.title}
+                                                {t('neuro_cognitive_adjustment')}: {t(getActivePath()?.meditation.title as any)}
                                             </h3>
                                             <p className="text-white/80 text-sm max-w-sm leading-relaxed font-light">
-                                                {getActivePath()?.meditation.scientificImpact}
+                                                {t(getActivePath()?.meditation.scientificImpact as any)}
                                             </p>
                                         </motion.div>
                                     )}
@@ -731,25 +733,25 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                         )}
 
                         <div className="p-8 rounded-2xl bg-white/5 border border-white/10 w-full max-w-md backdrop-blur-md">
-                            <p className="text-white/80 mb-8 border-b border-white/5 pb-6">¿Lograste tu objetivo con esta práctica?</p>
+                            <p className="text-white/80 mb-8 border-b border-white/5 pb-6">{t('goal_achieved_question')}</p>
 
                             <div className="space-y-4">
                                 <button
                                     onClick={() => handleSaveSession('CALM')}
                                     className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-emerald-200 hover:text-emerald-100 transition-colors flex items-center justify-center gap-3 group"
                                 >
-                                    <Sparkles size={18} className="group-hover:scale-110 transition-transform" /> Sí, logré sintonizar
+                                    <Sparkles size={18} className="group-hover:scale-110 transition-transform" /> {t('yes_tuned')}
                                 </button>
                                 <button
                                     onClick={() => handleSaveSession('NEUTRAL')}
                                     className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-amber-200 hover:text-amber-100 transition-colors flex items-center justify-center gap-3 group"
                                 >
-                                    <RotateCcw size={18} className="group-hover:-rotate-90 transition-transform" /> No, necesito otra técnica
+                                    <RotateCcw size={18} className="group-hover:-rotate-90 transition-transform" /> {t('no_need_other')}
                                 </button>
                             </div>
                         </div>
 
-                        {saving && <TempleLoading variant="text" text="Guardando en el éter..." className="mt-8" />}
+                        {saving && <TempleLoading variant="text" text={t('saving_ether')} className="mt-8" />}
                     </motion.div>
                 )}
 

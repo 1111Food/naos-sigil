@@ -9,6 +9,7 @@ import { HexagonToggle } from './HexagonToggle';
 import { useGuardianState } from '../contexts/GuardianContext';
 import { SigilSyncToggle } from './SigilSyncToggle';
 import { EvolutionBridge } from './EvolutionBridge';
+import { useTranslation } from '../i18n';
 
 interface DailyCheckInProps {
     currentDay: number;
@@ -18,36 +19,26 @@ interface DailyCheckInProps {
     onSuccess?: () => void;
 }
 
-const PILLARS = [
-    {
-        id: 'nutrition', icon: Leaf, title: 'Nutrición', color: 'emerald',
-        info: 'Nutrición consciente de alta vibración. Mantener una estructura alta en proteína para síntesis óptima, baja en carbohidratos simples para estabilidad glucémica, y rica en grasas saludables. Mantiene tu cerebro activo, sin los picos de azúcar que distraen y agotan tu energía vital. Tu vehículo exige calidad.'
-    },
-    {
-        id: 'movement', icon: Flame, title: 'Movimiento', color: 'orange',
-        info: 'Ejercicio diario como transmutador natural. Estimula la circulación, oxigena tus músculos y segrega un coctel esencial de endorfinas y dopamina. Te ayuda a liberar el estrés acumulado (cortisol) y ancla tu sistema nervioso central en un estado de resiliencia y acción.'
-    },
-    {
-        id: 'sleep', icon: Moon, title: 'Sueño', color: 'indigo',
-        info: 'Calidad de descanso 8+ horas. Es el laboratorio de la neuroplasticidad. Mientras duermes, tu cerebro consolida los aprendizajes del día y limpia toxinas. Mantener un ritmo circadiano estable es el cimiento absoluto para una arquitectura mental invencible.'
-    },
-    {
-        id: 'connection', icon: Brain, title: 'Conexión', color: 'violet',
-        info: '20 minutos de meditación o respiración táctica diaria. Calibra tu córtex prefrontal, mejora el enfoque y diluye la reactividad emocional. Es el momento arquitectónico donde pasas de estar en "modo supervivencia" a "modo diseño de realidad".'
-    },
-    {
-        id: 'gratitude', icon: Heart, title: 'Gratitud', color: 'rose',
-        info: 'El código fuente vibracional. Al agradecer genuinamente lo que posees y lo que estás construyendo, reprogramas el Sistema Activador Reticular (SAR) del cerebro para buscar oportunidades en lugar de amenazas. Transforma el paradigma mental de la escasez a la abundancia estructural.'
-    }
+const PILLARS_DATA = [
+    { id: 'nutrition', icon: Leaf, titleKey: 'protocol_pillar_nutrition', color: 'emerald', infoKey: 'protocol_desc_nutrition' },
+    { id: 'movement', icon: Flame, titleKey: 'protocol_pillar_movement', color: 'orange', infoKey: 'protocol_desc_movement' },
+    { id: 'sleep', icon: Moon, titleKey: 'protocol_pillar_sleep', color: 'indigo', infoKey: 'protocol_desc_sleep' },
+    { id: 'connection', icon: Brain, titleKey: 'protocol_pillar_connection', color: 'violet', infoKey: 'protocol_desc_connection' },
+    { id: 'gratitude', icon: Heart, titleKey: 'protocol_pillar_gratitude', color: 'rose', infoKey: 'protocol_desc_gratitude' }
 ];
 
 export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
     currentDay,
-    title = 'Integrar un nuevo hábito',
-    purpose = 'Evolución guiada por la disciplina',
+    title,
+    purpose,
     isCompletedToday = false,
     onSuccess
 }) => {
+    const { t } = useTranslation();
+    
+    // Fallback localized defaults
+    const displayTitle = title || t('protocol_integration_title' as any) || 'Integrar un nuevo hábito';
+    const displayPurpose = purpose || t('protocol_evolution_purpose' as any) || 'Evolución guiada por la disciplina';
     const { completeDay, activeProtocol, evolveProtocol, archiveProtocol } = useProtocol21();
     const { logAction } = useCoherence();
     const { playSound } = useSound();
@@ -114,7 +105,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
             // Sync with Guardian Context
             await saveRituals(currentDay, checks as any);
 
-            const rewards = ["+3 Disciplina", "Día Validado", "Racha Sostenida"];
+            const rewards = [`+3 ${t('discipline')}`, t('protocol_day_validated'), t('protocol_streak_sustained')];
             const randomText = rewards[Math.floor(Math.random() * rewards.length)];
 
             // Trigger floating dopamine score
@@ -148,27 +139,27 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
                 <p className="text-[8px] uppercase tracking-[0.3em] text-cyan-500 mb-2 font-black flex items-center justify-center gap-2">
                     <span className="w-4 h-[1px] bg-cyan-500/40"></span>
-                    Objetivo Alquímico
+                    {t('protocol_alchemical_objective')}
                     <span className="w-4 h-[1px] bg-cyan-500/40"></span>
                 </p>
-                <h2 className="text-2xl text-white font-light tracking-wide">{title}</h2>
-                <p className="text-xs text-white/40 italic mt-3 max-w-xl mx-auto leading-relaxed">"{purpose}"</p>
+                <h2 className="text-2xl text-white font-light tracking-wide">{displayTitle}</h2>
+                <p className="text-xs text-white/40 italic mt-3 max-w-xl mx-auto leading-relaxed">"{displayPurpose}"</p>
             </motion.div>
 
             {/* Daily Input */}
             <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                <h3 className="text-[10px] uppercase tracking-widest text-white/50 mb-6 px-2 text-center">Ritual de Cierre - Día {currentDay}</h3>
+                <h3 className="text-[10px] uppercase tracking-widest text-white/50 mb-6 px-2 text-center">{t('protocol_closing_ritual')} - {t('protocol_day_label')} {currentDay}</h3>
 
                 {isCompletedToday ? (
                     <div className="p-6 text-center text-cyan-500/80 italic text-sm">
-                        El día {currentDay} ha sido sellado exitosamente. Descansa, Arquitecto.
+                        {t('protocol_day_completed', { day: currentDay })}. {t('protocol_rest_architect') || 'Descansa, Arquitecto.'}
                     </div>
                 ) : (
                     <div className="space-y-8">
                         {/* Biophysical Pillars */}
                         <div className="relative">
                             <div className="flex justify-center gap-6 sm:gap-10 py-6 px-4 overflow-x-auto pb-8 border-b border-white/5 relative z-10">
-                                {PILLARS.map((pillar) => (
+                                {PILLARS_DATA.map((pillar) => (
                                     <div key={pillar.id} className="relative flex flex-col items-center gap-4 min-w-[100px]">
 
                                         {/* Main Hexagon Marker */}
@@ -183,7 +174,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                                                 "text-[9px] uppercase font-black tracking-[0.2em] block",
                                                 checks[pillar.id] ? `text-${pillar.color}-400` : "text-white/30"
                                             )}>
-                                                {pillar.title}
+                                                {t(pillar.titleKey as any)}
                                             </span>
 
                                             {/* Control Console */}
@@ -229,9 +220,9 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                                         transition={{ duration: 0.3, ease: 'easeOut' }}
                                         className="overflow-hidden relative z-0"
                                     >
-                                        <div className="mt-4 p-5 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-xl relative">
+                                            <div className="mt-4 p-5 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-xl relative">
                                             {(() => {
-                                                const activeData = PILLARS.find(p => p.id === activeInfo);
+                                                const activeData = PILLARS_DATA.find(p => p.id === activeInfo);
                                                 if (!activeData) return null;
                                                 return (
                                                     <div className="flex items-start gap-4">
@@ -239,8 +230,8 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                                                             <activeData.icon size={18} />
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <h4 className={cn(`text-xs font-bold uppercase tracking-widest text-${activeData.color}-400`)}>Arquitectura de {activeData.title}</h4>
-                                                            <p className="text-sm text-white/80 leading-relaxed font-serif italic">"{activeData.info}"</p>
+                                                            <h4 className={cn(`text-xs font-bold uppercase tracking-widest text-${activeData.color}-400`)}>{t('identity_nexus_title')}: {t(activeData.titleKey as any)}</h4>
+                                                            <p className="text-sm text-white/80 leading-relaxed font-serif italic">"{t(activeData.infoKey as any)}"</p>
                                                         </div>
                                                     </div>
                                                 );
@@ -252,11 +243,11 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                         </div>
 
                         <div className="space-y-4">
-                            <label className="text-[8px] uppercase tracking-widest text-white/30 ml-2">Bitácora de Coherencia</label>
+                            <label className="text-[8px] uppercase tracking-widest text-white/30 ml-2">{t('protocol_log_title')}</label>
                             <textarea
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}
-                                placeholder="¿Cómo mantuviste el pacto hoy? Escribe tus reflexiones..."
+                                placeholder={t('protocol_log_placeholder') || "¿Cómo mantuviste el pacto hoy? Escribe tus reflexiones..."}
                                 className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-white/90 placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 resize-none transition-colors"
                             />
                         </div>
@@ -264,7 +255,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                         {/* Minimum pillars warning */}
                         {Object.values(checks).filter(Boolean).length < 3 && (
                             <p className="text-center text-[10px] text-amber-500/80 uppercase tracking-widest font-mono">
-                                🔒 Se requieren al menos 3 pilares para sellar el día
+                                {t('protocol_min_pillars_warning')}
                             </p>
                         )}
 
@@ -283,7 +274,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                                 )}
                             >
                                 {note.trim() && <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />}
-                                <span className="relative z-10">{completing ? "Sellando..." : "Sellar Día"}</span>
+                                <span className="relative z-10">{completing ? t('protocol_sealing') : t('protocol_seal_code')}</span>
                             </button>
                         </motion.div>
 

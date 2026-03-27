@@ -1,6 +1,7 @@
 export interface ArchetypeInfo {
     id: string;
     nombre: string;
+    nombre_en: string;
     frecuencia: string;
     elemento: 'fuego' | 'tierra' | 'aire' | 'agua';
     rol: string;
@@ -16,6 +17,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'fuego-1',
         nombre: "El Catalizador",
+        nombre_en: "The Catalyst",
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Iniciador",
@@ -27,6 +29,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'fuego-2',
         nombre: "El Forjador",
+        nombre_en: "The Forger",
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Constructor",
@@ -38,6 +41,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'fuego-3',
         nombre: "El Regente Central",
+        nombre_en: "The Central Regent",
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Conector",
@@ -49,6 +53,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'fuego-4',
         nombre: "El Vector",
+        nombre_en: "The Vector",
         frecuencia: "Ígnea",
         elemento: 'fuego',
         rol: "Analista",
@@ -62,6 +67,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'tierra-1',
         nombre: "El Optimizador",
+        nombre_en: "The Optimizer",
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Iniciador",
@@ -73,6 +79,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'tierra-2',
         nombre: "El Custodio",
+        nombre_en: "The Custodian",
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Constructor",
@@ -84,6 +91,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'tierra-3',
         nombre: "El Ancla",
+        nombre_en: "The Anchor",
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Conector",
@@ -95,6 +103,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'tierra-4',
         nombre: "El Arquitecto",
+        nombre_en: "The Architect",
         frecuencia: "Telúrica",
         elemento: 'tierra',
         rol: "Analista",
@@ -108,6 +117,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'aire-1',
         nombre: "El Ingeniero de Paradigmas",
+        nombre_en: "The Paradigm Engineer",
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Iniciador",
@@ -119,6 +129,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'aire-2',
         nombre: "El Decodificador",
+        nombre_en: "The Decoder",
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Constructor",
@@ -130,6 +141,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'aire-3',
         nombre: "El Nodo",
+        nombre_en: "The Node",
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Conector",
@@ -141,6 +153,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'aire-4',
         nombre: "El Observador",
+        nombre_en: "The Observer",
         frecuencia: "Etérea",
         elemento: 'aire',
         rol: "Analista",
@@ -154,6 +167,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'agua-1',
         nombre: "El Transmutador",
+        nombre_en: "The Transmuter",
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Iniciador",
@@ -165,6 +179,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'agua-2',
         nombre: "El Sismógrafo",
+        nombre_en: "The Seismograph",
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Constructor",
@@ -176,6 +191,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'agua-3',
         nombre: "El Espejo",
+        nombre_en: "The Mirror",
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Conector",
@@ -187,6 +203,7 @@ export const NAOS_ARCHETYPES: ArchetypeInfo[] = [
     {
         id: 'agua-4',
         nombre: "El Navegante",
+        nombre_en: "The Navigator",
         frecuencia: "Abisal",
         elemento: 'agua',
         rol: "Analista",

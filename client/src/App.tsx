@@ -84,6 +84,13 @@ function App() {
   // 0. GHOST SESSION PURGE (SECURITY UPGRADE)
   useEffect(() => {
     const checkPhantom = async () => {
+      // PROT: Don't purge if we are in a recovery flow (hash contains recovery type)
+      const isRecoveryFlow = window.location.hash.includes('type=recovery') || window.location.hash.includes('type=email_change');
+      if (isRecoveryFlow) {
+        console.log("🔑 [AUTH_GUARD] Recovery flow detected. Skipping ghost purge.");
+        return;
+      }
+
       const { data } = await supabase.auth.getUser();
       if (data?.user?.is_anonymous) {
         console.warn("👻 GHOST ANONYMOUS SESSION DETECTED. PURGING PARA HABILITAR LOGIN...");
@@ -104,7 +111,7 @@ function App() {
         try {
           const parsed = JSON.parse(savedUser);
           if (parsed && parsed.nickname) {
-            console.log("🏺 Memoria del Templo encontrada:", parsed.nickname);
+            console.log(`🏺 ${t('akashic_sync')} ${parsed.nickname}`);
             setWelcomeUser(parsed);
             setActiveView('WELCOME_BACK');
             setStorageReady(true);
@@ -163,14 +170,14 @@ function App() {
 
   const handleWelcomeContinue = async () => {
     if (!welcomeUser) return;
-    console.log("🔓 Abriendo Templo para:", welcomeUser.nickname);
+    console.log(`🔓 ${t('identity_invoking_msg')} ${welcomeUser.nickname}`);
     // Force profile refresh to ensure context is hot (even if session existed)
     await refreshProfile();
     setActiveView('TEMPLE');
   };
 
   const handleWelcomeReset = async () => {
-    console.log("🧹 Olvidando viajero...");
+    console.log("🧹 Resetting traveler...");
     localStorage.removeItem('naos_active_user');
     setWelcomeUser(null);
     await signOut();
@@ -451,25 +458,20 @@ function App() {
                     </span>
                     <div className="w-px h-2 bg-white/10" />
                     {(() => {
-                      const sign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign;
+                      const sign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || '';
                       const getElement = (s: string) => {
-                        const map: Record<string, { name: string, color: string }> = {
-                          'Aries': { name: t('fuego'), color: 'text-rose-400' },
-                          'Leo': { name: t('fuego'), color: 'text-rose-400' },
-                          'Sagitario': { name: t('fuego'), color: 'text-rose-400' },
-                          'Tauro': { name: t('tierra'), color: 'text-emerald-400' },
-                          'Virgo': { name: t('tierra'), color: 'text-emerald-400' },
-                          'Capricornio': { name: t('tierra'), color: 'text-emerald-400' },
-                          'Géminis': { name: t('aire'), color: 'text-cyan-400' },
-                          'Libra': { name: t('aire'), color: 'text-cyan-400' },
-                          'Acuario': { name: t('aire'), color: 'text-cyan-400' },
-                          'Cáncer': { name: t('agua'), color: 'text-blue-400' },
-                          'Escorpio': { name: t('agua'), color: 'text-blue-400' },
-                          'Piscis': { name: t('agua'), color: 'text-blue-400' },
-                        };
-                        return map[s] || { name: t('agua'), color: 'text-blue-400' };
+                        const s_lower = s.toLowerCase();
+                        // Support both languages in the match
+                        const fireSigns = ['aries', 'leo', 'sagitario', 'sagittarius'];
+                        const earthSigns = ['tauro', 'taurus', 'virgo', 'capricornio', 'capricorn'];
+                        const airSigns = ['géminis', 'gemini', 'libra', 'acuario', 'aquarius'];
+
+                        if (fireSigns.includes(s_lower)) return { name: t('fuego'), color: 'text-rose-400' };
+                        if (earthSigns.includes(s_lower)) return { name: t('tierra'), color: 'text-emerald-400' };
+                        if (airSigns.includes(s_lower)) return { name: t('aire'), color: 'text-cyan-400' };
+                        return { name: t('agua'), color: 'text-blue-400' };
                       };
-                      const info = getElement(sign || '');
+                      const info = getElement(sign);
                       return (
                         <span className={`${info.color}/80 font-bold`}>
                           {t('element_label')}: {info.name}

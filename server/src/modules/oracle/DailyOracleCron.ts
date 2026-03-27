@@ -19,7 +19,7 @@ export class DailyOracleCron {
 
         const query = supabase
             .from('profiles')
-            .select('id, full_name, nickname, astrology, numerology, mayan, telegram_chat_id, oracle_time, language')
+            .select('id, full_name, nickname, astrology, numerology, mayan, nawal_maya, chinese_animal, telegram_chat_id, oracle_time, language')
             .not('telegram_chat_id', 'is', null);
 
         // Standard dispatch at 8:00 AM includes users with NULL (defaults)
@@ -46,9 +46,24 @@ export class DailyOracleCron {
 
         for (const user of users) {
             const userName = user.nickname || user.full_name || 'Arquitecto';
-            console.log(`[ORACLE_CRON] Processing daily oracle for ${userName} (${user.id})...`);
-
+            
             try {
+                // 0. Check for duplicates in same-day UTC to prevent multi-instance overlaps
+                const todayStr = new Date().toISOString().split('T')[0];
+                const { data: existingLogs } = await supabase
+                    .from('interaction_logs')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .ilike('user_message', `%[ORACLE_TRIGGER_DAILY: ${todayStr}]%`)
+                    .limit(1);
+
+                if (existingLogs && existingLogs.length > 0) {
+                    console.log(`[ORACLE_CRON] ⏭️ Skipping ${userName} (${user.id}) - Already processed today.`);
+                    continue;
+                }
+
+                console.log(`[ORACLE_CRON] Processing daily oracle for ${userName} (${user.id})...`);
+
                 // 1. Fetch Coherence Context
                 const coherenceData = await CoherenceService.getCoherence(user.id);
                 const discipline = coherenceData.discipline_score || 50;
@@ -70,10 +85,21 @@ export class DailyOracleCron {
                     }
                 }
 
+                // Correct extraction of Solar Sign from Natal Chart
+                const sunPlanet = user.astrology?.planets?.find((p: any) => p.name === 'Sun');
+
                 const userPillars = {
-                    numerology: user.numerology,
-                    mayan: user.mayan,
-                    astrology: { element: dominantElement } 
+                    numerology: user.numerology, // Contains lifePathNumber, pinaculo
+                    mayan: { 
+                        nawal: user.nawal_maya || user.mayan?.kicheName || "Unknown" 
+                    },
+                    astrology: { 
+                        sign: sunPlanet?.sign || "Unknown",
+                        element: dominantElement 
+                    },
+                    chinese: {
+                        animal: user.chinese_animal || "Unknown"
+                    }
                 };
 
                 // 3. Scoring
@@ -83,7 +109,8 @@ export class DailyOracleCron {
                 // 4. Generate AI Reading
                 const readingText = await DailyOracleOracle.generateDailyReading({
                     userName,
-                    dayPillars,
+                    userPillars, // Pass full Natal Data
+                    dayPillars,  // Pass Today's Pulse
                     interaction: adjustedScores,
                     coherence,
                     toneProfile,

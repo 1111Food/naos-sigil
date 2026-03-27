@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../i18n';
 
 interface BreathingEngineProps {
     technique: 'WATER_CALM' | 'EARTH_GROUND' | 'FIRE_ACTIVATE' | 'AIR_FLOW' | 'BHASTRIKA' | 'BOX' | 'COHERENCE' | 'UJJAYI' | 'NADI' | 'BUMBLEBEE' | 'HYPEROX' | 'INTERMITTENT';
@@ -10,131 +11,128 @@ interface BreathingEngineProps {
 
 const TECHNIQUES = {
     'WATER_CALM': {
-        name: 'Respiración de Agua',
+        name: 'breath_water_name',
         cycle: [
-            { label: 'Inhala', duration: 4, scale: 1.5, opacity: 1 },
-            { label: 'Retén', duration: 7, scale: 1.5, opacity: 0.8 },
-            { label: 'Exhala', duration: 8, scale: 1, opacity: 0.5 }
+            { label: 'breath_inhale', duration: 4, scale: 1.5, opacity: 1 },
+            { label: 'breath_hold', duration: 7, scale: 1.5, opacity: 0.8 },
+            { label: 'breath_exhale', duration: 8, scale: 1, opacity: 0.5 }
         ],
-        // Agua: Cyan (19s cycle)
         color: 'from-cyan-500 to-blue-500',
-        cyclesToComplete: 6 // 114s (~2 min)
+        cyclesToComplete: 6
     },
     'EARTH_GROUND': {
-        name: 'Respiración de Tierra',
+        name: 'breath_earth_name',
         cycle: [
-            { label: 'Inhala', duration: 4, scale: 1.5, opacity: 1 },
-            { label: 'Retén', duration: 4, scale: 1.5, opacity: 0.8 },
-            { label: 'Exhala', duration: 4, scale: 1, opacity: 0.5 },
-            { label: 'Retén (Vacío)', duration: 4, scale: 1, opacity: 0.3 }
+            { label: 'breath_inhale', duration: 4, scale: 1.5, opacity: 1 },
+            { label: 'breath_hold', duration: 4, scale: 1.5, opacity: 0.8 },
+            { label: 'breath_exhale', duration: 4, scale: 1, opacity: 0.5 },
+            { label: 'breath_hold_empty', duration: 4, scale: 1, opacity: 0.3 }
         ],
-        // Tierra: Emerald (16s cycle)
         color: 'from-emerald-500 to-green-600',
-        cyclesToComplete: 8 // 128s (~2 min)
+        cyclesToComplete: 8
     },
     'FIRE_ACTIVATE': {
-        name: 'Respiración de Fuego',
+        name: 'breath_fire_name',
         cycle: [
-            { label: 'Bombea', duration: 0.5, scale: 1.2, opacity: 1 },
-            { label: 'Suelta', duration: 0.5, scale: 1, opacity: 0.6 }
+            { label: 'breath_pump', duration: 0.5, scale: 1.2, opacity: 1 },
+            { label: 'breath_release', duration: 0.5, scale: 1, opacity: 0.6 }
         ],
-        // Fuego: Amber (1s cycle)
         color: 'from-amber-500 to-orange-600',
-        cyclesToComplete: 120 // 120s (2 min)
+        cyclesToComplete: 120
     },
     'AIR_FLOW': {
-        name: 'Respiración de Aire',
+        name: 'breath_air_name',
         cycle: [
-            { label: 'Inhala Izq', duration: 4, scale: 1.5, opacity: 1 },
-            { label: 'Retén', duration: 4, scale: 1.5, opacity: 0.8 },
-            { label: 'Exhala Der', duration: 4, scale: 1, opacity: 0.5 },
-            { label: 'Inhala Der', duration: 4, scale: 1.5, opacity: 1 },
-            { label: 'Retén', duration: 4, scale: 1.5, opacity: 0.8 },
-            { label: 'Exhala Izq', duration: 4, scale: 1, opacity: 0.5 }
+            { label: 'breath_inhale_left', duration: 4, scale: 1.5, opacity: 1 },
+            { label: 'breath_hold', duration: 4, scale: 1.5, opacity: 0.8 },
+            { label: 'breath_exhale_right', duration: 4, scale: 1, opacity: 0.5 },
+            { label: 'breath_inhale_right', duration: 4, scale: 1.5, opacity: 1 },
+            { label: 'breath_hold', duration: 4, scale: 1.5, opacity: 0.8 },
+            { label: 'breath_exhale_left', duration: 4, scale: 1, opacity: 0.5 }
         ],
-        // Aire: Lavender/Violet (24s cycle)
         color: 'from-violet-400 to-fuchsia-300',
-        cyclesToComplete: 5 // 120s (2 min)
+        cyclesToComplete: 5
     },
     'BHASTRIKA': {
-        name: 'Fuelle de Bhastrika',
+        name: 'breath_bhastrika_name',
         cycle: [
-            { label: 'Inhala Fuerte', duration: 1, scale: 1.4, opacity: 1 },
-            { label: 'Exhala Fuerte', duration: 1, scale: 0.9, opacity: 0.6 }
+            { label: 'breath_strong_inhale', duration: 1, scale: 1.4, opacity: 1 },
+            { label: 'breath_strong_exhale', duration: 1, scale: 0.9, opacity: 0.6 }
         ],
         color: 'from-orange-600 to-red-600',
-        cyclesToComplete: 60 // 120s
+        cyclesToComplete: 60
     },
     'BOX': {
-        name: 'Respiración Cuadrada',
+        name: 'breath_box_name',
         cycle: [
-            { label: 'Inhala', duration: 4, scale: 1.5, opacity: 1 },
-            { label: 'Retén', duration: 4, scale: 1.5, opacity: 0.8 },
-            { label: 'Exhala', duration: 4, scale: 1, opacity: 0.5 },
-            { label: 'Vacío', duration: 4, scale: 1, opacity: 0.3 }
+            { label: 'breath_inhale', duration: 4, scale: 1.5, opacity: 1 },
+            { label: 'breath_hold', duration: 4, scale: 1.5, opacity: 0.8 },
+            { label: 'breath_exhale', duration: 4, scale: 1, opacity: 0.5 },
+            { label: 'breath_empty', duration: 4, scale: 1, opacity: 0.3 }
         ],
         color: 'from-emerald-600 to-teal-700',
-        cyclesToComplete: 7 // 112s
+        cyclesToComplete: 7
     },
     'COHERENCE': {
-        name: 'Coherencia Cardíaca',
+        name: 'breath_coherence_name',
         cycle: [
-            { label: 'Inhala', duration: 5, scale: 1.4, opacity: 1 },
-            { label: 'Exhala', duration: 5, scale: 1, opacity: 0.6 }
+            { label: 'breath_inhale', duration: 5, scale: 1.4, opacity: 1 },
+            { label: 'breath_exhale', duration: 5, scale: 1, opacity: 0.6 }
         ],
         color: 'from-blue-400 to-cyan-400',
-        cyclesToComplete: 12 // 120s
+        cyclesToComplete: 12
     },
     'UJJAYI': {
-        name: 'Océano Ujjayi',
+        name: 'breath_ujjayi_name',
         cycle: [
-            { label: 'Océano (In)', duration: 6, scale: 1.5, opacity: 1 },
-            { label: 'Océano (Out)', duration: 6, scale: 1, opacity: 0.4 }
+            { label: 'breath_ocean_in', duration: 6, scale: 1.5, opacity: 1 },
+            { label: 'breath_ocean_out', duration: 6, scale: 1, opacity: 0.4 }
         ],
         color: 'from-blue-600 to-indigo-800',
-        cyclesToComplete: 10 // 120s
+        cyclesToComplete: 10
     },
     'BUMBLEBEE': {
-        name: 'Humming Bee',
+        name: 'breath_bumblebee_name',
         cycle: [
-            { label: 'Inhala Profundo', duration: 4, scale: 1.3, opacity: 1 },
-            { label: 'Zumbido (Mmmm)', duration: 8, scale: 1.1, opacity: 0.3 }
+            { label: 'breath_inhale_deep', duration: 4, scale: 1.3, opacity: 1 },
+            { label: 'breath_humming', duration: 8, scale: 1.1, opacity: 0.3 }
         ],
         color: 'from-yellow-400 to-amber-600',
-        cyclesToComplete: 10 // 120s
+        cyclesToComplete: 10
     },
     'HYPEROX': {
-        name: 'Hiper-Oxigenación',
+        name: 'breath_hyperox_name',
         cycle: [
-            { label: 'Carga (In)', duration: 1.5, scale: 1.6, opacity: 1 },
-            { label: 'Suelta (Out)', duration: 1, scale: 1, opacity: 0.4 }
+            { label: 'breath_charge', duration: 1.5, scale: 1.6, opacity: 1 },
+            { label: 'breath_release_out', duration: 1, scale: 1, opacity: 0.4 }
         ],
         color: 'from-cyan-300 to-white',
-        cyclesToComplete: 48 // 120s
+        cyclesToComplete: 48
     },
     'NADI': {
-        name: 'Relajación Alterna',
+        name: 'breath_nadi_name',
         cycle: [
-            { label: 'Izquierda', duration: 5, scale: 1.3, opacity: 1 },
-            { label: 'Derecha', duration: 5, scale: 1.3, opacity: 1 }
+            { label: 'breath_left', duration: 5, scale: 1.3, opacity: 1 },
+            { label: 'breath_right', duration: 5, scale: 1.3, opacity: 1 }
         ],
         color: 'from-purple-400 to-violet-600',
-        cyclesToComplete: 12 // 120s
+        cyclesToComplete: 12
     },
     'INTERMITTENT': {
-        name: 'Intermitencia Terapéutica',
+        name: 'breath_intermittent_name',
         cycle: [
-            { label: 'Inhala Profundo', duration: 4, scale: 1.5, opacity: 1 },
-            { label: 'Retén (Lleno)', duration: 10, scale: 1.5, opacity: 0.8 },
-            { label: 'Exhala Todo', duration: 4, scale: 1, opacity: 0.4 },
-            { label: 'Retén (Vacío)', duration: 10, scale: 1, opacity: 0.2 }
+            { label: 'breath_inhale_deep', duration: 4, scale: 1.5, opacity: 1 },
+            { label: 'breath_hold_full', duration: 10, scale: 1.5, opacity: 0.8 },
+            { label: 'breath_exhale_all', duration: 4, scale: 1, opacity: 0.4 },
+            { label: 'breath_hold_empty', duration: 10, scale: 1, opacity: 0.2 }
         ],
         color: 'from-slate-400 to-indigo-300',
-        cyclesToComplete: 4 // ~112s
+        cyclesToComplete: 4
     }
 };
 
 export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, instruction, onComplete }) => {
+    const { t } = useTranslation();
     const config = TECHNIQUES[technique] || TECHNIQUES.WATER_CALM;
     const [stepIndex, setStepIndex] = useState(0);
     const [cycleCount, setCycleCount] = useState(0);
@@ -359,8 +357,8 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
                 <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-white/20 to-white/5 border border-white/20 flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.2)]">
                     <span className="text-3xl">✨</span>
                 </div>
-                <h3 className="text-2xl font-serif text-white mb-2">Energía Integrada</h3>
-                <p className="text-white/60 text-sm">Tu frecuencia ha sido elevada.</p>
+                <h3 className="text-2xl font-serif text-white mb-2">{t('breath_integrated')}</h3>
+                <p className="text-white/60 text-sm">{t('breath_frequency_raised')}</p>
             </motion.div>
         );
     }
@@ -432,14 +430,14 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
                                 className="text-center"
                             >
                                 <p className="text-white/30 text-[8px] mb-2 uppercase tracking-[0.3em] font-black">
-                                    {config.name}
+                                    {t(config.name as any)}
                                 </p>
                                 <h2 className="text-3xl font-light text-white tracking-[0.2em] uppercase drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-                                    {currentStep.label}
+                                    {t(currentStep.label as any)}
                                 </h2>
                                 {instruction && (
                                     <p className="text-white/60 text-[10px] mt-2 uppercase tracking-[0.1em] max-w-[180px]">
-                                        {instruction}
+                                        {t(instruction as any)}
                                     </p>
                                 )}
                                 <p className="text-white/70 text-xs mt-2 uppercase tracking-[0.2em] font-mono">
@@ -447,13 +445,13 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
                                 </p>
                             </motion.div>
                         ) : (
-                            <motion.button
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-white/80 uppercase tracking-[0.3em] text-sm animate-pulse font-medium"
-                            >
-                                Iniciar
-                            </motion.button>
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="text-white/80 uppercase tracking-[0.3em] text-sm animate-pulse font-medium"
+                                >
+                                    {t('breath_start')}
+                                </motion.button>
                         )}
                     </AnimatePresence>
                 </div>
@@ -467,7 +465,7 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
                     onClick={handleStart}
                     className="mt-12 px-8 py-3 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all font-serif italic backdrop-blur-md"
                 >
-                    Comenzar {config.name}
+                    {t('breath_start')} {t(config.name as any)}
                 </motion.button>
             )}
 
@@ -478,7 +476,7 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
                     onClick={() => setIsActive(false)}
                     className="mt-12 text-white/30 hover:text-white/60 text-xs uppercase tracking-widest transition-colors z-20"
                 >
-                    Detener Práctica
+                    {t('breath_stop')}
                 </motion.button>
             )}
         </div>

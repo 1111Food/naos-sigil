@@ -5,17 +5,24 @@ import { cn } from '../lib/utils';
 import { useProfile } from '../hooks/useProfile';
 import { useEnergy } from '../hooks/useEnergy';
 import { generateDailyInsight } from '../lib/energyUtils';
+import { useTranslation } from '../i18n';
 
 
 
 export const EnergiaDelDia: React.FC = () => {
 
+    const { t } = useTranslation();
+
     const ElementIcon = ({ element, className }: { element: string, className?: string }) => {
         switch (element) {
-            case 'Fuego': return <Sun className={className} />;
-            case 'Aire': return <Wind className={className} />;
-            case 'Tierra': return <Mountain className={className} />;
-            case 'Agua': return <Moon className={className} />;
+            case 'Fuego': 
+            case 'FIRE': return <Sun className={className} />;
+            case 'Aire': 
+            case 'AIR': return <Wind className={className} />;
+            case 'Tierra': 
+            case 'EARTH': return <Mountain className={className} />;
+            case 'Agua': 
+            case 'WATER': return <Moon className={className} />;
             default: return <Sparkles className={className} />;
         }
     };
@@ -57,9 +64,9 @@ export const EnergiaDelDia: React.FC = () => {
         elementOfDay: energy?.dominantElement || 'Eter',
         userElement: 'Tu Elemento', // Todo: map sign to element
         guidance: {
-            favored: insight.advice, // Using main advice for now
-            sensitive: "Sintoniza con tu intuición...",
-            advice: insight.advice,
+            favored: t(insight.adviceKey as any), // Using main advice for now
+            sensitive: t('conscious_presence'),
+            advice: t(insight.adviceKey as any),
             warning: undefined
         }
     };
@@ -82,7 +89,7 @@ export const EnergiaDelDia: React.FC = () => {
                         <div className="w-16 h-16 rounded-full border border-amber-500/20 flex items-center justify-center text-3xl font-serif text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.1)]">
                             {personalNumber}
                         </div>
-                        <span className="text-[9px] uppercase tracking-[0.3em] text-amber-500/40">Vibración Natal</span>
+                        <span className="text-[9px] uppercase tracking-[0.3em] text-amber-500/40">{t('vibration_natal')}</span>
                     </div>
 
                     <div className="hidden md:block w-px h-16 bg-gradient-to-b from-transparent via-red-500/20 to-transparent" />
@@ -91,12 +98,12 @@ export const EnergiaDelDia: React.FC = () => {
                         <div className="w-16 h-16 rounded-full border border-red-500/20 flex items-center justify-center text-3xl font-serif text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
                             {dayNumber}
                         </div>
-                        <span className="text-[9px] uppercase tracking-[0.3em] text-red-500/40">Pulso Diario</span>
+                        <span className="text-[9px] uppercase tracking-[0.3em] text-red-500/40">{t('pulse_daily')}</span>
                     </div>
                 </div>
 
                 <h1 className="text-[28px] sm:text-[38px] font-light tracking-[0.2em] text-amber-50/90 font-serif lowercase italic">
-                    Energía del día
+                    {t('energy_day_title')}
                 </h1>
             </header>
 
@@ -104,15 +111,15 @@ export const EnergiaDelDia: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 {/* Armonía Card */}
                 <RitualCard
-                    title="Energía en Armonía"
-                    content={guidance.favored}
+                    title={t('energy_harmony')}
+                    content={t(insight.titleKey as any)}
                     icon={<ElementIcon element={elementOfDay} className="w-6 h-6" />}
                     color="amber"
                 />
 
                 {/* Sensible Card */}
                 <RitualCard
-                    title="Presencia Consciente"
+                    title={t('conscious_presence')}
                     content={guidance.sensitive}
                     icon={<ElementIcon element={userElement} className="w-6 h-6" />}
                     color="red"
@@ -121,8 +128,8 @@ export const EnergiaDelDia: React.FC = () => {
                 {/* Advice Card - Full Width */}
                 <div className="md:col-span-2">
                     <RitualCard
-                        title="Consejo del Oráculo"
-                        content={guidance.advice}
+                        title={t('oracle_advice')}
+                        content={t(insight.adviceKey as any)}
                         icon={<Sparkles className="w-6 h-6" />}
                         color="gold"
                         big

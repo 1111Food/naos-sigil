@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Sparkles, Archive, Calendar, Hexagon, Trophy, Sword } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getDailySynchronyQuote } from '../../utils/dailyOracle';
+import { useTranslation } from '../../i18n';
 
 interface ProtocolVaultProps {
     userId: string;
@@ -19,6 +20,7 @@ interface Relic {
 }
 
 export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose }) => {
+    const { t } = useTranslation();
     const [relics, setRelics] = useState<Relic[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -50,8 +52,8 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
                     const intent = intents?.find(i => i.title !== ''); // Placeholder matching logic
                     return {
                         id: p.id,
-                        title: intent?.title || 'Protocolo NAOS',
-                        purpose: intent?.purpose || 'Evolución Consciente',
+                        title: intent?.title || t('protocol_label' as any) || 'Protocolo NAOS',
+                        purpose: intent?.purpose || t('evolution_conscious' as any) || 'Evolución Consciente',
                         target_days: p.target_days || 21,
                         end_date: p.end_date,
                         protocol_stage: p.protocol_stage
@@ -87,11 +89,11 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
                         <div className="space-y-2">
                             <div className="flex items-center gap-3 text-amber-500">
                                 <Archive size={16} />
-                                <span className="text-[10px] uppercase tracking-[0.4em] font-black">Registro de Ascensión</span>
+                                <span className="text-[10px] uppercase tracking-[0.4em] font-black">{t('akashic_ascent_record')}</span>
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-serif italic text-white tracking-tight">BÓVEDA ALQUÍMICA</h2>
+                            <h2 className="text-3xl md:text-4xl font-serif italic text-white tracking-tight">{t('akashic_vault_title')}</h2>
                             <p className="text-sm text-white/40 font-sans font-light">
-                                "El historial de tu voluntad grabada en el Reino de lo Real."
+                                "{t('akashic_vault_desc')}"
                             </p>
                         </div>
                         <button
@@ -105,11 +107,11 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
                     {/* Simple Stats/Status */}
                     <div className="mt-8 flex gap-8">
                         <div className="flex flex-col">
-                            <span className="text-[8px] uppercase tracking-widest text-white/30 font-bold">Reliquias Forjadas</span>
+                            <span className="text-[8px] uppercase tracking-widest text-white/30 font-bold">{t('relics_forged')}</span>
                             <span className="text-xl font-serif text-amber-200">{relics.length}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[8px] uppercase tracking-widest text-white/30 font-bold">Coherencia Acumulada</span>
+                            <span className="text-[8px] uppercase tracking-widest text-white/30 font-bold">{t('coherence_accumulated')}</span>
                             <span className="text-xl font-serif text-cyan-200">MAX</span>
                         </div>
                     </div>
@@ -120,7 +122,7 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
                     {isLoading ? (
                         <div className="h-full flex flex-col items-center justify-center space-y-4 opacity-50">
                             <div className="w-12 h-12 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
-                            <span className="text-[10px] uppercase tracking-widest text-amber-500 font-bold">Invocando Registros...</span>
+                            <span className="text-[10px] uppercase tracking-widest text-amber-500 font-bold">{t('invoking_records')}</span>
                         </div>
                     ) : relics.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40">
@@ -128,8 +130,8 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
                                 <Sword size={48} className="text-white/20" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-serif italic text-white/60">La Bóveda está silente</h3>
-                                <p className="text-xs uppercase tracking-widest text-white/30">Forja tu primer sello para verlo brillar aquí.</p>
+                                <h3 className="text-xl font-serif italic text-white/60">{t('vault_silent')}</h3>
+                                <p className="text-xs uppercase tracking-widest text-white/30">{t('forge_first_seal')}</p>
                             </div>
                         </div>
                     ) : (
@@ -146,7 +148,7 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
                 {/* Footer Subliminal */}
                 <div className="px-12 py-6 border-t border-white/5 bg-white/[0.01]">
                     <p className="text-center font-serif italic text-white/20 text-xs tracking-widest leading-relaxed">
-                        "{getDailySynchronyQuote()}"
+                        "{getDailySynchronyQuote(t('lang' as any) as any)}"
                     </p>
                 </div>
             </motion.div>
@@ -155,6 +157,7 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
 };
 
 const RelicCard: React.FC<{ relic: Relic; index: number }> = ({ relic, index }) => {
+    const { t } = useTranslation();
     const is90Days = relic.target_days === 90;
 
     return (
@@ -197,7 +200,7 @@ const RelicCard: React.FC<{ relic: Relic; index: number }> = ({ relic, index }) 
                     <div className="flex-1 flex flex-col items-center justify-center py-4">
                         <div className={`text-[9px] uppercase tracking-[0.5em] font-black mb-1 ${is90Days ? "text-amber-500" : "text-white/40"
                             }`}>
-                            Ciclo {relic.target_days} Completado
+                            {t('cycle_completed', { days: relic.target_days })}
                         </div>
                         <div className={`h-[2px] w-12 rounded-full ${is90Days ? "bg-amber-500/50" : "bg-white/10"
                             }`} />
@@ -207,10 +210,10 @@ const RelicCard: React.FC<{ relic: Relic; index: number }> = ({ relic, index }) 
                     <div className="mt-6 flex justify-between items-center border-t border-white/5 pt-4">
                         <div className="flex items-center gap-2 text-white/20">
                             <Sparkles size={12} />
-                            <span className="text-[10px] uppercase tracking-widest font-bold">Reliquia Grabada</span>
+                            <span className="text-[10px] uppercase tracking-widest font-bold">{t('relic_engraved')}</span>
                         </div>
                         <span className="text-[10px] text-white/40 font-mono">
-                            {new Date(relic.end_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                            {new Date(relic.end_date).toLocaleDateString(t('lang' as any) === 'en' ? 'en-US' : 'es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
                         </span>
                     </div>
                 </div>
