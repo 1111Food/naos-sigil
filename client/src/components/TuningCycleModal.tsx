@@ -63,7 +63,7 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
             const { data: existing } = await supabase
                 .from('coherence_tunings')
                 .select('id')
-                .match({ user_id: userId, module_type: 'elemental_lab', aspect: practiceName })
+                .match({ user_id: userId, aspect: practiceName })
                 .maybeSingle();
 
             if (existing) {
@@ -80,7 +80,6 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                     .from('coherence_tunings')
                     .insert({
                         user_id: userId,
-                        module_type: 'elemental_lab',
                         aspect: practiceName,
                         cron_schedule: schedule,
                         is_active: true

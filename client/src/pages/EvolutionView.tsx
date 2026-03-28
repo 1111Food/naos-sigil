@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Wind, Mountain, Droplets, ChevronLeft, Play, Quote } from 'lucide-react';
 import { useSound } from '../hooks/useSound';
+import { useTranslation } from '../i18n';
 
 interface EvolutionViewProps {
     onBack: () => void;
@@ -11,15 +12,15 @@ type ElementType = 'FUEGO' | 'AIRE' | 'TIERRA' | 'AGUA';
 
 interface Practice {
     id: string;
-    title: string;
+    titleKey: string;
     duration: string;
-    description: string;
-    type: 'RESPIRACIÓN' | 'MEDITACIÓN' | 'DECLARACIÓN';
+    descriptionKey: string;
+    typeKey: string;
 }
 
 const ELEMENT_DATA: Record<ElementType, {
-    title: string,
-    subtitle: string,
+    titleKey: string,
+    subtitleKey: string,
     color: string,
     accent: string,
     icon: any,
@@ -28,73 +29,74 @@ const ELEMENT_DATA: Record<ElementType, {
     declarations: Practice[]
 }> = {
     FUEGO: {
-        title: 'Fuego',
-        subtitle: 'Activar & Transmutar',
+        titleKey: 'element_fire',
+        subtitleKey: 'synastry_activar_transmutar',
         color: 'rose',
         accent: '#f43f5e',
         icon: Flame,
         breathwork: [
-            { id: 'f1', title: 'Aliento de Fuego (Kapalabhati)', duration: '5 min', description: 'Purifica la sangre y activa el plexo solar.', type: 'RESPIRACIÓN' },
-            { id: 'f-b1', title: 'Respiración de Poder', duration: '3 min', description: 'Aumento rápido de energía y enfoque.', type: 'RESPIRACIÓN' }
+            { id: 'f1', titleKey: 'practice_f1_title', duration: '5 min', descriptionKey: 'practice_f1_desc', typeKey: 'practice_type_breath' },
+            { id: 'f-b1', titleKey: 'practice_fb1_title', duration: '3 min', descriptionKey: 'practice_fb1_desc', typeKey: 'practice_type_breath' }
         ],
         meditations: [
-            { id: 'f2', title: 'Meditación de la Voluntad', duration: '10 min', description: 'Visualización de fuego interno para la acción.', type: 'MEDITACIÓN' }
+            { id: 'f2', titleKey: 'practice_f2_title', duration: '10 min', descriptionKey: 'practice_f2_desc', typeKey: 'practice_type_meditation' }
         ],
         declarations: [
-            { id: 'f3', title: 'Decreto de Soberanía', duration: '1 min', description: 'Afirmación de poder personal y límites.', type: 'DECLARACIÓN' }
+            { id: 'f3', titleKey: 'practice_f3_title', duration: '1 min', descriptionKey: 'practice_f3_desc', typeKey: 'practice_type_declaration' }
         ]
     },
     AIRE: {
-        title: 'Aire',
-        subtitle: 'Fluir & Adaptar',
+        titleKey: 'element_air',
+        subtitleKey: 'synastry_fluir_adaptar',
         color: 'cyan',
         accent: '#06b6d4',
         icon: Wind,
         breathwork: [
-            { id: 'a1', title: 'Respiración Alternada (Nadi Shodhana)', duration: '7 min', description: 'Equilibra los hemisferios cerebrales.', type: 'RESPIRACIÓN' }
+            { id: 'a1', titleKey: 'practice_a1_title', duration: '7 min', descriptionKey: 'practice_a1_desc', typeKey: 'practice_type_breath' }
         ],
         meditations: [
-            { id: 'a2', title: 'Meditación del Observador', duration: '12 min', description: 'Observar pensamientos como nubes que pasan.', type: 'MEDITACIÓN' }
+            { id: 'a2', titleKey: 'practice_a2_title', duration: '12 min', descriptionKey: 'practice_a2_desc', typeKey: 'practice_type_meditation' }
         ],
         declarations: [
-            { id: 'a3', title: 'Decreto de Claridad', duration: '1 min', description: 'Apertura a nuevas perspectivas y verdad.', type: 'DECLARACIÓN' }
+            { id: 'a3', titleKey: 'practice_a3_title', duration: '1 min', descriptionKey: 'practice_a3_desc', typeKey: 'practice_type_declaration' }
         ]
     },
     TIERRA: {
-        title: 'Tierra',
-        subtitle: 'Concretar & Arraigar',
+        titleKey: 'element_earth',
+        subtitleKey: 'synastry_concretar_arraigar',
         color: 'emerald',
         accent: '#10b981',
         icon: Mountain,
         breathwork: [
-            { id: 't1', title: 'Respiración Cuadrada (Box Breathing)', duration: '4 min', description: 'Calma el sistema nervioso y centra el cuerpo.', type: 'RESPIRACIÓN' }
+            { id: 't1', titleKey: 'practice_t1_title', duration: '4 min', descriptionKey: 'practice_t1_desc', typeKey: 'practice_type_breath' }
         ],
         meditations: [
-            { id: 't2', title: 'Visualización de Arraigo (Grounding)', duration: '15 min', description: 'Conexión profunda con el núcleo de la tierra.', type: 'MEDITACIÓN' }
+            { id: 't2', titleKey: 'practice_t2_title', duration: '15 min', descriptionKey: 'practice_t2_desc', typeKey: 'practice_type_meditation' }
         ],
         declarations: [
-            { id: 't3', title: 'Decreto de Manifestación', duration: '1 min', description: 'Anclaje de intenciones en la materia.', type: 'DECLARACIÓN' }
+            { id: 't3', titleKey: 'practice_t3_title', duration: '1 min', descriptionKey: 'practice_t3_desc', typeKey: 'practice_type_declaration' }
         ]
     },
     AGUA: {
-        title: 'Agua',
-        subtitle: 'Regular & Sanar',
+        titleKey: 'element_water',
+        subtitleKey: 'synastry_regular_sanar',
         color: 'blue',
         accent: '#3b82f6',
         icon: Droplets,
         breathwork: [
-            { id: 'ag1', title: 'Respiración 4-7-8', duration: '6 min', description: 'El sedante natural del sistema nervioso.', type: 'RESPIRACIÓN' }
+            { id: 'ag1', titleKey: 'practice_ag1_title', duration: '6 min', descriptionKey: 'practice_ag1_desc', typeKey: 'practice_type_breath' }
         ],
         meditations: [
-            { id: 'ag2', title: 'Fluidez Emocional', duration: '10 min', description: 'Aceptar y liberar corrientes internas.', type: 'MEDITACIÓN' }
+            { id: 'ag2', titleKey: 'practice_ag2_title', duration: '10 min', descriptionKey: 'practice_ag2_desc', typeKey: 'practice_type_meditation' }
         ],
         declarations: [
-            { id: 'ag3', title: 'Decreto de Purificación', duration: '1 min', description: 'Liberación de cargas emocionales obsoletas.', type: 'DECLARACIÓN' }
+            { id: 'ag3', titleKey: 'practice_ag3_title', duration: '1 min', descriptionKey: 'practice_ag3_desc', typeKey: 'practice_type_declaration' }
         ]
     }
 };
 
 export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
+    const { t } = useTranslation();
     const [selectedElement, setSelectedElement] = useState<ElementType | null>(null);
     const { playSound } = useSound();
 
@@ -116,11 +118,11 @@ export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
                     className="flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-white/30 hover:text-white transition-colors group"
                 >
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    Regresar
+                    {t('synastry_regresar')}
                 </button>
                 <div className="text-right">
-                    <h2 className="text-3xl font-thin tracking-[0.4em] text-white uppercase select-none">Laboratorio</h2>
-                    <p className="text-[9px] text-purple-400 font-black uppercase tracking-[0.5em] mt-2">NAOS Evolution Stream</p>
+                    <h2 className="text-3xl font-thin tracking-[0.4em] text-white uppercase select-none">{t('synastry_laboratorio')}</h2>
+                    <p className="text-[9px] text-purple-400 font-black uppercase tracking-[0.5em] mt-2">{t('synastry_evolution_stream')}</p>
                 </div>
             </header>
 
@@ -158,9 +160,9 @@ export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
                                         <Icon className={`w-8 h-8 ${isSelected ? `text-${data.color}-400` : 'text-white/20'}`} />
                                     </div>
 
-                                    <h3 className="text-2xl font-thin tracking-[0.2em] text-white uppercase mb-2">{data.title}</h3>
+                                    <h3 className="text-2xl font-thin tracking-[0.2em] text-white uppercase mb-2">{t(data.titleKey as any)}</h3>
                                     <p className={`text-[9px] uppercase tracking-[0.3em] font-black ${isSelected ? `text-${data.color}-400` : 'text-white/20'}`}>
-                                        {data.subtitle}
+                                        {t(data.subtitleKey as any)}
                                     </p>
 
                                     <AnimatePresence>
@@ -172,9 +174,9 @@ export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
                                                 className="mt-10 w-full space-y-8"
                                             >
                                                 {/* SECTIONS: BREATH, MEDIT, DECLAR */}
-                                                <PracticeSection title="Respiración y Energía" practices={ELEMENT_DATA[selectedElement].breathwork} />
-                                                <PracticeSection title="Meditaciones Guiadas" practices={ELEMENT_DATA[selectedElement].meditations} />
-                                                <PracticeSection title="Decretos y Declaraciones" practices={ELEMENT_DATA[selectedElement].declarations} />
+                                                <PracticeSection t={t} title={t('synastry_respiracion_energia')} practices={ELEMENT_DATA[selectedElement].breathwork} />
+                                                <PracticeSection t={t} title={t('synastry_meditaciones_guiadas')} practices={ELEMENT_DATA[selectedElement].meditations} />
+                                                <PracticeSection t={t} title={t('synastry_decretos_declaraciones')} practices={ELEMENT_DATA[selectedElement].declarations} />
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
@@ -189,21 +191,21 @@ export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
     );
 };
 
-const PracticeSection = ({ title, practices }: { title: string, practices: Practice[] }) => (
+const PracticeSection = ({ t, title, practices }: { t: any, title: string, practices: Practice[] }) => (
     <div className="space-y-4">
         <h4 className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-black border-b border-white/5 pb-2 text-left">{title}</h4>
         <div className="space-y-3">
             {practices.map((p) => (
                 <div key={p.id} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all text-left flex items-start gap-4 active:scale-[0.98] group/practice">
                     <div className="mt-1">
-                        {p.type === 'DECLARACIÓN' ? <Quote className="w-3 h-3 text-white/20" /> : <Play className="w-3 h-3 text-white/20" />}
+                        {p.typeKey === 'practice_type_declaration' ? <Quote className="w-3 h-3 text-white/20" /> : <Play className="w-3 h-3 text-white/20" />}
                     </div>
                     <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
-                            <h5 className="text-[11px] font-bold text-white/80 transition-colors group-hover/practice:text-white">{p.title}</h5>
+                            <h5 className="text-[11px] font-bold text-white/80 transition-colors group-hover/practice:text-white">{t(p.titleKey as any)}</h5>
                             <span className="text-[8px] text-white/20 font-black">{p.duration}</span>
                         </div>
-                        <p className="text-[10px] text-zinc-500 leading-tight">{p.description}</p>
+                        <p className="text-[10px] text-zinc-500 leading-tight">{t(p.descriptionKey as any)}</p>
                     </div>
                 </div>
             ))}

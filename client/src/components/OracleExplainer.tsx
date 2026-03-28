@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Target, Zap, Shield, Heart, Users, Compass, BookOpen, Eye, Info, X, ChevronRight, ArrowLeft, Lock } from 'lucide-react';
+import { Sparkles, Target, Zap, Shield, Heart, Users, Compass, BookOpen, Eye, X, ChevronRight, ArrowLeft, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
 import { useTranslation } from '../i18n';
@@ -65,56 +65,56 @@ const getLocalizedContent = (t: any) => ({
         ]
     },
     IDENTITY_NEXUS: {
-        title: t('identity_nexus_title'),
-        subtitle: t('identity_nexus_sub'),
+        title: t('oracle_nexus_title'),
+        subtitle: t('oracle_nexus_subtitle'),
         color: "text-blue-400",
         gradient: "from-blue-500/20 to-cyan-500/10",
         border: "border-blue-500/30",
         icon: Compass,
         steps: [
-            { number: "01", title: t('identity_nexus_step1_title'), description: t('identity_nexus_step1_desc'), icon: Target, iconColor: "text-blue-400" },
-            { number: "02", title: t('identity_nexus_step2_title'), description: t('identity_nexus_step2_desc'), icon: BookOpen, iconColor: "text-purple-400" },
-            { number: "03", title: t('identity_nexus_step3_title'), description: t('identity_nexus_step3_desc'), icon: Shield, iconColor: "text-emerald-400" }
+            { number: "01", title: t('oracle_nexus_step1_title'), description: t('oracle_nexus_step1_desc'), icon: Target, iconColor: "text-blue-400" },
+            { number: "02", title: t('oracle_nexus_step2_title'), description: t('oracle_nexus_step2_desc'), icon: BookOpen, iconColor: "text-purple-400" },
+            { number: "03", title: t('oracle_nexus_step3_title'), description: t('oracle_nexus_step3_desc'), icon: Shield, iconColor: "text-emerald-400" }
         ]
     },
     IDENTITY_COMPLETE: {
-        title: t('view_full_code'),
-        subtitle: t('view_full_code_sub'),
+        title: t('oracle_complete_title'),
+        subtitle: t('oracle_complete_subtitle'),
         color: "text-indigo-400",
         gradient: "from-indigo-500/20 to-purple-500/10",
         border: "border-indigo-500/30",
         icon: BookOpen,
         steps: [
-            { number: "01", title: t('identity_step1_title'), description: t('identity_step1_desc'), icon: Target, iconColor: "text-blue-400" },
-            { number: "02", title: t('identity_step2_title'), description: t('identity_step2_desc'), icon: Zap, iconColor: "text-amber-400" },
-            { number: "03", title: t('identity_step3_title'), description: t('identity_step3_desc'), icon: Eye, iconColor: "text-purple-400" },
-            { number: "04", title: t('identity_step4_title'), description: t('identity_step4_desc'), icon: Shield, iconColor: "text-emerald-400" }
+            { number: "01", title: t('oracle_complete_step1_title'), description: t('oracle_complete_step1_desc'), icon: Target, iconColor: "text-blue-400" },
+            { number: "02", title: t('oracle_complete_step2_title'), description: t('oracle_complete_step2_desc'), icon: Zap, iconColor: "text-amber-400" },
+            { number: "03", title: t('oracle_complete_step3_title'), description: t('oracle_complete_step3_desc'), icon: Eye, iconColor: "text-purple-400" },
+            { number: "04", title: t('oracle_complete_step4_title'), description: t('oracle_complete_step4_desc'), icon: Shield, iconColor: "text-emerald-400" }
         ]
     },
     IDENTITY_WISDOM: {
-        title: t('wisdom_library'),
-        subtitle: t('wisdom_library_sub'),
+        title: t('oracle_wisdom_title'),
+        subtitle: t('oracle_wisdom_subtitle'),
         color: "text-emerald-400",
         gradient: "from-emerald-500/20 to-teal-500/10",
         border: "border-emerald-500/30",
         icon: BookOpen,
         steps: [
-            { number: "01", title: t('wisdom_step1_title'), description: t('wisdom_step1_desc'), icon: BookOpen, iconColor: "text-emerald-400" },
-            { number: "02", title: t('wisdom_step2_title'), description: t('wisdom_step2_desc'), icon: Target, iconColor: "text-blue-400" },
-            { number: "03", title: t('wisdom_step3_title'), description: t('wisdom_step3_desc'), icon: Zap, iconColor: "text-amber-400" }
+            { number: "01", title: t('oracle_wisdom_step1_title'), description: t('oracle_wisdom_step1_desc'), icon: BookOpen, iconColor: "text-emerald-400" },
+            { number: "02", title: t('oracle_wisdom_step2_title'), description: t('oracle_wisdom_step2_desc'), icon: Target, iconColor: "text-blue-400" },
+            { number: "03", title: t('oracle_wisdom_step3_title'), description: t('oracle_wisdom_step3_desc'), icon: Zap, iconColor: "text-amber-400" }
         ]
     },
     IDENTITY_ARCHETYPE: {
-        title: t('identity_archetype_title'),
-        subtitle: t('identity_archetype_sub'),
+        title: t('oracle_archetype_title'),
+        subtitle: t('oracle_archetype_subtitle'),
         color: "text-amber-400",
         gradient: "from-amber-500/20 to-yellow-500/10",
         border: "border-amber-500/30",
         icon: Shield,
         steps: [
-            { number: "01", title: t('archetype_step1_title'), description: t('archetype_step1_desc'), icon: Shield, iconColor: "text-emerald-400" },
-            { number: "02", title: t('archetype_step2_title'), description: t('archetype_step2_desc'), icon: Target, iconColor: "text-blue-400" },
-            { number: "03", title: t('archetype_step3_title'), description: t('archetype_step3_desc'), icon: Zap, iconColor: "text-amber-400" }
+            { number: "01", title: t('oracle_archetype_step1_title'), description: t('oracle_archetype_step1_desc'), icon: Shield, iconColor: "text-emerald-400" },
+            { number: "02", title: t('oracle_archetype_step2_title'), description: t('oracle_archetype_step2_desc'), icon: Target, iconColor: "text-blue-400" },
+            { number: "03", title: t('oracle_archetype_step3_title'), description: t('oracle_archetype_step3_desc'), icon: Zap, iconColor: "text-amber-400" }
         ]
     }
 });

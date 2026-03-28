@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import crypto from 'crypto';
 import { DailyOracleEngine } from './DailyOracleEngine';
 import { DailyOracleOracle } from './DailyOracleOracle';
 import { CoherenceService } from '../coherence/service';
@@ -19,7 +20,7 @@ export class DailyOracleCron {
 
         const query = supabase
             .from('profiles')
-            .select('id, full_name, nickname, astrology, numerology, mayan, nawal_maya, chinese_animal, telegram_chat_id, oracle_time, language')
+            .select('id, full_name, nickname, astrology, numerology, mayan, nawal_maya, chinese_animal, telegram_chat_id, oracle_time, language, profile_data')
             .not('telegram_chat_id', 'is', null);
 
         // Standard dispatch at 8:00 AM includes users with NULL (defaults)
@@ -53,29 +54,32 @@ export class DailyOracleCron {
                 const jitter = Math.floor(Math.random() * 2000);
                 await new Promise(resolve => setTimeout(resolve, jitter));
 
-                // 0. Check for duplicates using both Trigger and potential Lock tags
+                // 0. ATOMIC LOCKING: Stake a claim using a deterministic UUID in interaction_logs
+                // This ensures that even if multiple processes launch simultaneously, only the first one to insert wins.
                 const todayStr = new Date().toISOString().split('T')[0];
-                const { data: existingLogs } = await supabase
-                    .from('interaction_logs')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .or(`user_message.ilike.%[ORACLE_TRIGGER_DAILY: ${todayStr}]%,user_message.ilike.%[ORACLE_DAILY_LOCK: ${todayStr}]%`)
-                    .limit(1);
-
-                if (existingLogs && existingLogs.length > 0) {
-                    console.log(`[ORACLE_CRON] ⏭️ Skipping ${userName} (${user.id}) - Already processed or locked today.`);
-                    continue;
-                }
-
-                // 0.1 Stake a claim (Insert Lock)
-                // This informs other parallel processes that we're taking this one.
-                await supabase.from('interaction_logs').insert({
+                const lockString = `ORACLE_LOCK:${user.id}:${todayStr}`;
+                const hash = crypto.createHash('sha1').update(lockString).digest('hex');
+                // Format hash as UUID (8-4-4-4-12)
+                const lockId = `${hash.substring(0,8)}-${hash.substring(8,12)}-4${hash.substring(13,16)}-a${hash.substring(17,20)}-${hash.substring(20,32)}`;
+                
+                const { error: claimError } = await supabase.from('interaction_logs').insert({
+                    id: lockId,
                     user_id: user.id,
-                    user_message: `[ORACLE_DAILY_LOCK: ${todayStr}]`,
+                    user_message: `[ORACLE_TRIGGER_DAILY: ${todayStr}]`,
                     sigil_response: 'Processing...'
                 });
 
-                console.log(`[ORACLE_CRON] Processing daily oracle for ${userName} (${user.id})...`);
+                if (claimError) {
+                    // Check if it's a unique constraint violation (PGRST23505 or code 23505)
+                    if ((claimError as any).code === '23505' || (claimError as any).code === 'PGRST23505') {
+                        console.log(`[ORACLE_CRON] ⏭️ Skipping ${userName} (${user.id}) - Lock already acquired by another instance.`);
+                    } else {
+                        console.error(`[ORACLE_CRON] ❌ Error staking claim for ${userName}:`, claimError);
+                    }
+                    continue;
+                }
+
+                console.log(`[ORACLE_CRON] 🛡️ Atomic lock (ID: ${lockId}) acquired for ${userName}. Processing reading...`);
 
                 // 1. Fetch Coherence Context
                 const coherenceData = await CoherenceService.getCoherence(user.id);
@@ -134,19 +138,12 @@ export class DailyOracleCron {
                 const { error: updateError } = await supabase
                     .from('interaction_logs')
                     .update({
-                        user_message: `[ORACLE_TRIGGER_DAILY: ${todayStr}]`,
                         sigil_response: readingText
                     })
-                    .eq('user_id', user.id)
-                    .eq('user_message', `[ORACLE_DAILY_LOCK: ${todayStr}]`);
+                    .eq('id', lockId);
 
                 if (updateError) {
-                    console.error("[ORACLE_CRON] ❌ Failed to finalize report, inserting new one as fallback", updateError);
-                    await supabase.from('interaction_logs').insert({
-                        user_id: user.id,
-                        user_message: `[ORACLE_TRIGGER_DAILY: ${todayStr}]`,
-                        sigil_response: readingText
-                    });
+                    console.error("[ORACLE_CRON] ❌ Failed to finalize report by ID:", updateError);
                 }
 
                 // 6. Deliver to Telegram

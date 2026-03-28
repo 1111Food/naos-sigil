@@ -77,19 +77,33 @@ export class SigilService {
                 rankResponse,
                 logsResponse,
                 intentionsResponse,
-                lastSessionResponse,
-                evolutionData,
-                toneData
+                lastSessionResponse
             ] = await Promise.all([
                 UserService.getProfile(userId),
                 this.getSigilState(userId),
                 supabase.from('user_performance_stats').select('tier_label').eq('user_id', userId).maybeSingle(),
                 supabase.from('interaction_logs').select('user_message, sigil_response').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
                 supabase.from('intentions').select('intention_text').eq('user_id', userId).gte('created_at', today.toISOString()),
-                supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle(),
-                supabase.rpc('calculate_evolution_stage', { target_user_id: userId }),
-                supabase.rpc('determine_preferred_tone', { target_user_id: userId })
+                supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle()
             ]);
+
+            // RPC safe fallbacks
+            let evolutionStage = 1;
+            let preferredTone = 'MISTICO';
+
+            try {
+                const { data: evo } = await supabase.rpc('calculate_evolution_stage', { target_user_id: userId });
+                if (evo !== null) evolutionStage = evo;
+            } catch (e) {
+                console.warn("⚠️ RPC calculate_evolution_stage missing, using fallback 1.");
+            }
+
+            try {
+                const { data: tone } = await supabase.rpc('determine_preferred_tone', { target_user_id: userId });
+                if (tone !== null) preferredTone = tone;
+            } catch (e) {
+                console.warn("⚠️ RPC determine_preferred_tone missing, using fallback MISTICO.");
+            }
 
             const energy = EnergyService.getDailySnapshot(userProfile);
             let userTier = rankResponse.data?.tier_label || 'Fragmentado';
@@ -115,8 +129,6 @@ export class SigilService {
                 : segments.intentions_none;
 
             const lastSession = lastSessionResponse.data;
-            let evolutionStage = evolutionData.data || 1;
-            let preferredTone = toneData.data || 'MISTICO';
 
             // Phase 1: Canonize the Bible of Data
             const energeticBible = ProfileConsolidator.consolidate(userProfile);
@@ -623,7 +635,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
         }
     }
 
-    async generateColdRead(userId: string): Promise<string> {
+    async generateColdRead(userId: string, language: string = 'es'): Promise<string> {
         const userProfile = await UserService.getProfile(userId);
         const energeticBible = ProfileConsolidator.consolidate(userProfile);
 
@@ -641,16 +653,19 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             
             REGLAS ESTÉTICAS:
             - Tono: Místico, profundo, elegante, pero directo.
-            - Idioma: Español Latinoamericano.
+            - Language: ${language === 'es' ? 'Español Latinoamericano' : 'English'}.
             - Formato: Solo texto fluido, sin encabezados Markdown (##).
             - Brevedad: Máximo 150 palabras.
-            - Empieza siempre con: "Saludos, ${userProfile.nickname || userProfile.name}. Has cruzado el umbral."
+            - ${language === 'es' ? 'Empieza siempre con' : 'Always start with'}: "${language === 'es' ? 'Saludos' : 'Greetings'}, ${userProfile.nickname || userProfile.name}. ${language === 'es' ? 'Has cruzado el umbral.' : 'You have crossed the threshold.'}"
         `;
 
         try {
-            return await this.callGeminiAPI("Realiza mi lectura de iniciación inicial.", systemPrompt);
+            return await this.callGeminiAPI(language === 'es' ? "Realiza mi lectura de iniciación inicial." : "Perform my initial initiation reading.", systemPrompt);
         } catch (error) {
             console.warn("⚠️ Cold Read AI initiation failed, using mystical fallback.", error);
+            if (language === 'en') {
+                return `Greetings, ${userProfile.nickname || userProfile.name}. You have crossed the threshold. Although the data network is in flux, your presence here is clear. Your architecture suggests a search for balance between what you know and what you feel. This is the space to build your stability. Welcome to NAOS.`;
+            }
             return `Saludos, ${userProfile.nickname || userProfile.name}. Has cruzado el umbral. Aunque la red de datos está en flujo, tu presencia aquí es clara. Tu arquitectura sugiere una búsqueda de equilibrio entre lo que sabes y lo que sientes. Este es el espacio para construir tu estabilidad. Bienvenido a NAOS.`;
         }
     }

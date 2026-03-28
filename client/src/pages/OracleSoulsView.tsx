@@ -24,16 +24,14 @@ class SplineErrorBoundary extends React.Component<{ children: React.ReactNode, f
     render() {
         if (this.state.hasError) {
             return this.props.fallback || (
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-purple-900/10 to-black/40 flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 rounded-full border border-purple-500/20 flex items-center justify-center animate-pulse">
-                        <Users size={20} className="text-purple-500/20" />
-                    </div>
-                    <button 
-                        onClick={() => this.setState({ hasError: false })}
-                        className="mt-6 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[8px] uppercase tracking-[0.2em] text-white/30 hover:text-white hover:bg-white/10 transition-all"
-                    >
-                        Re-invoke 3D Geometry
-                    </button>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    {/* Atmospheric Glow Fallback - subtle and doesn't compete with the icon */}
+                    <div className="w-full h-full bg-gradient-to-b from-purple-900/10 via-transparent to-black/40 blur-xl opacity-50" />
+                    <motion.div 
+                        animate={{ opacity: [0.1, 0.3, 0.1], scale: [1, 1.1, 1] }}
+                        transition={{ duration: 4, repeat: Infinity }}
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)] from-purple-500/10"
+                    />
                 </div>
             );
         }
@@ -176,7 +174,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
             gradient: "from-rose-500/20 to-orange-500/10",
             border: "border-rose-500/30",
             glow: "shadow-[0_0_40px_-10px_rgba(244,63,94,0.4)]",
-            scene: "https://prod.spline.design/kZSsq6RJS9Yk4zJS/scene.splinecode"
+            scene: "https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode"
         },
         {
             id: 'SOULS',
@@ -187,7 +185,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
             gradient: "from-purple-500/20 to-indigo-500/10",
             border: "border-purple-500/30",
             glow: "shadow-[0_0_40px_-10px_rgba(139,92,246,0.4)]",
-            scene: "https://prod.spline.design/kZSsq6RJS9Yk4zJS/scene.splinecode"
+            scene: "https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode"
         },
     ];
 

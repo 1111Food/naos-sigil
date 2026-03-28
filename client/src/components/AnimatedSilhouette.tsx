@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { useBreathingSound } from '../hooks/useBreathingSound';
 
 interface AnimatedSilhouetteProps {
     className?: string;
@@ -8,15 +9,47 @@ interface AnimatedSilhouetteProps {
     showEnergyCenters?: boolean;
     // The architect will inject the exact SVG path d="..." string here later
     silhouettePath?: string;
+    isAudible?: boolean;
 }
 
 export const AnimatedSilhouette: React.FC<AnimatedSilhouetteProps> = ({
     className,
     showBreathing = true,
     showEnergyCenters = true,
-    silhouettePath = "M50,20c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12S56.6,20,50,20z M50,48c-13.2,0-26,7.7-26,22.2v50.3 c0,2.1,1.7,3.8,3.8,3.8l0,0l12.4,0c2.1,0,3.8-1.7,3.8-3.8V79.2c0-2.1,1.7-3.8,3.8-3.8l0,0l2.4,0c2.1,0,3.8,1.7,3.8,3.8v41.3 c0,2.1,1.7,3.8,3.8,3.8l0,0l12.4,0c2.1,0,3.8-1.7,3.8-3.8V70.2C76,55.7,63.2,48,50,48z"
-
+    silhouettePath = "M50,20c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12S56.6,20,50,20z M50,48c-13.2,0-26,7.7-26,22.2v50.3 c0,2.1,1.7,3.8,3.8,3.8l0,0l12.4,0c2.1,0,3.8-1.7,3.8-3.8V79.2c0-2.1,1.7-3.8,3.8-3.8l0,0l2.4,0c2.1,0,3.8,1.7,3.8,3.8v41.3 c0,2.1,1.7,3.8,3.8,3.8l0,0l12.4,0c2.1,0,3.8-1.7,3.8-3.8V70.2C76,55.7,63.2,48,50,48z",
+    isAudible = false
 }) => {
+    const { setPhase, resume, stop } = useBreathingSound();
+
+    // 🎵 Sync Audio with Visual Breath (Loop: 4s inhale, 6s exhale)
+    React.useEffect(() => {
+        if (!showBreathing || !isAudible) {
+            stop();
+            return;
+        }
+
+        resume();
+        let isCancelled = false;
+        
+        const runCycle = async () => {
+            while (!isCancelled) {
+                // Inhale (4s)
+                setPhase('inhale', 4);
+                await new Promise(r => setTimeout(r, 4000));
+                if (isCancelled) break;
+
+                // Exhale (6s)
+                setPhase('exhale', 6);
+                await new Promise(r => setTimeout(r, 6000));
+            }
+        };
+
+        runCycle();
+        return () => { 
+            isCancelled = true;
+            stop();
+        };
+    }, [showBreathing, isAudible, setPhase, resume, stop]);
     // 7 Energy centers (from root to crown) mapped along a vertical axis
     // Assuming a 100x100 viewBox for the placeholder
     const energyCenters = [

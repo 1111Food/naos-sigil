@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
+import { useBreathingSound, type BreathPhase } from '../hooks/useBreathingSound';
 
 interface BreathingEngineProps {
     technique: 'WATER_CALM' | 'EARTH_GROUND' | 'FIRE_ACTIVATE' | 'AIR_FLOW' | 'BHASTRIKA' | 'BOX' | 'COHERENCE' | 'UJJAYI' | 'NADI' | 'BUMBLEBEE' | 'HYPEROX' | 'INTERMITTENT';
@@ -139,119 +140,25 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
     const [isActive, setIsActive] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
 
-    const audioCtxRef = React.useRef<AudioContext | null>(null);
-    const swellGainRef = React.useRef<GainNode | null>(null);
-    const subGainRef = React.useRef<GainNode | null>(null);
-    const pannerRef = React.useRef<StereoPannerNode | null>(null);
-    const filterRef = React.useRef<BiquadFilterNode | null>(null);
-    const noiseSourceRef = React.useRef<AudioBufferSourceNode | null>(null);
-    const subOscRef = React.useRef<OscillatorNode | null>(null);
+    const { setPhase, stop, resume } = useBreathingSound();
 
-    // Audio Cleanup on Unmount
+    // v9.9 Enhanced Audio Synchronization
     useEffect(() => {
-        return () => {
-            if (audioCtxRef.current) {
-                try {
-                    audioCtxRef.current.close().catch(() => {});
-                } catch (e) {}
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!isActive && audioCtxRef.current) {
-            // Ramp down volume immediately to avoid clicks
-            const ctx = audioCtxRef.current;
-            try {
-                const now = ctx.currentTime;
-                swellGainRef.current?.gain.cancelScheduledValues(now);
-                swellGainRef.current?.gain.linearRampToValueAtTime(0, now + 0.3);
-                
-                subGainRef.current?.gain.cancelScheduledValues(now);
-                subGainRef.current?.gain.linearRampToValueAtTime(0, now + 0.3);
-                
-                // Suspend context to save CPU
-                const timeout = setTimeout(() => {
-                    if (!isActive && audioCtxRef.current && audioCtxRef.current.state === 'running') {
-                        audioCtxRef.current.suspend().catch(() => {});
-                    }
-                }, 500);
-                return () => clearTimeout(timeout);
-            } catch (e) {}
+        if (!isActive || isFinished) {
+            stop();
+            return;
         }
-    }, [isActive]);
-
-    useEffect(() => {
-        if (!isActive || isFinished) return;
 
         const currentStep = config.cycle[stepIndex];
-        const ctx = audioCtxRef.current;
-        
-        // --- DYNAMIC CINEMATIC AUDIO AUTOMATION ---
-        if (ctx && ctx.state === 'running') {
-            const now = ctx.currentTime;
-            const duration = currentStep.duration;
+        const label = currentStep.label;
 
-            // 🎵 Chime Node (Soft Crystal Ring to announce start of step)
-            const chime = ctx.createOscillator();
-            const chimeGain = ctx.createGain();
-            chime.type = 'sine';
-            chime.connect(chimeGain);
-            chimeGain.connect(ctx.destination);
-            chimeGain.gain.setValueAtTime(0, now);
-            chimeGain.gain.linearRampToValueAtTime(0.12, now + 0.05);
-            chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+        // Determine phase for the hook
+        let phase: BreathPhase = 'none';
+        if (label.includes('inhale') || label.includes('pump') || label.includes('charge')) phase = 'inhale';
+        else if (label.includes('exhale') || label.includes('release') || label.includes('humming')) phase = 'exhale';
+        else if (label.includes('hold') || label.includes('empty') || label.includes('wait')) phase = 'hold';
 
-            if (currentStep.label.includes('Inhala') || currentStep.label.includes('Bombea')) {
-                // Tono Ascendente Brillante (A4 -> C5)
-                chime.frequency.setValueAtTime(440, now);
-                chime.frequency.linearRampToValueAtTime(523.25, now + 0.3);
-
-                // Swell WIND Up (Filter opening & Volume Rise)
-                swellGainRef.current?.gain.cancelScheduledValues(now);
-                swellGainRef.current?.gain.linearRampToValueAtTime(0.35, now + duration * 0.5);
-                filterRef.current?.frequency.linearRampToValueAtTime(1400, now + duration * 0.5);
-
-                // Sub-Bass On (Drives physical presence)
-                subGainRef.current?.gain.cancelScheduledValues(now);
-                subGainRef.current?.gain.linearRampToValueAtTime(0.25, now + duration * 0.5);
-
-                // Panner Left to Right
-                pannerRef.current?.pan.cancelScheduledValues(now);
-                pannerRef.current?.pan.linearRampToValueAtTime(1, now + duration * 0.8);
-
-            } else if (currentStep.label.includes('Exhala') || currentStep.label.includes('Suelta')) {
-                // Tono Descendente Profundo (C5 -> F4)
-                chime.frequency.setValueAtTime(523.25, now);
-                chime.frequency.linearRampToValueAtTime(349.23, now + 0.4);
-
-                // Swell WIND Down
-                swellGainRef.current?.gain.cancelScheduledValues(now);
-                swellGainRef.current?.gain.linearRampToValueAtTime(0.005, now + duration);
-                filterRef.current?.frequency.linearRampToValueAtTime(350, now + duration);
-
-                // Sub-Bass Off
-                subGainRef.current?.gain.cancelScheduledValues(now);
-                subGainRef.current?.gain.linearRampToValueAtTime(0.001, now + duration);
-
-                // Panner Right to Left
-                pannerRef.current?.pan.cancelScheduledValues(now);
-                pannerRef.current?.pan.linearRampToValueAtTime(-1, now + duration * 0.8);
-
-            } else if (currentStep.label.includes('Retén') || currentStep.label.includes('Vacío')) {
-                // Tono Estático Hueco (G4)
-                chime.frequency.setValueAtTime(392, now);
-
-                swellGainRef.current?.gain.cancelScheduledValues(now);
-                swellGainRef.current?.gain.linearRampToValueAtTime(0.05, now + 0.3);
-                
-                subGainRef.current?.gain.cancelScheduledValues(now);
-                subGainRef.current?.gain.linearRampToValueAtTime(0.05, now + 0.3);
-            }
-
-            chime.start(now);
-            chime.stop(now + 1.5);
-        }
+        setPhase(phase, currentStep.duration);
 
         const timer = setTimeout(() => {
             const nextStep = (stepIndex + 1) % config.cycle.length;
@@ -263,10 +170,6 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
                     setIsFinished(true);
                     onComplete();
                     setIsActive(false);
-                    try {
-                        noiseSourceRef.current?.stop();
-                        subOscRef.current?.stop();
-                    } catch (e) {}
                     return;
                 }
             }
@@ -279,72 +182,11 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
     const currentStep = config.cycle[stepIndex];
 
     const handleStart = () => {
+        resume();
         setIsActive(true);
         setStepIndex(0);
         setCycleCount(0);
         setIsFinished(false);
-
-        // --- WEB AUDIO API INIT ---
-        if (!audioCtxRef.current) {
-            try {
-                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                audioCtxRef.current = ctx;
-
-                // 1. White Noise Generator (Lung Swoosh Effect)
-                const bufferSize = ctx.sampleRate * 2;
-                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    data[i] = Math.random() * 2 - 1;
-                }
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
-                noise.loop = true;
-                noiseSourceRef.current = noise;
-
-                // 2. High Shaper (Bandpass filter shaping the swoosh sound)
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.value = 400;
-                filterRef.current = filter;
-
-                // 3. Stereo Panner for 3D Panning effect
-                const panner = ctx.createStereoPanner();
-                panner.pan.value = 0;
-                pannerRef.current = panner;
-
-                // 4. Swell Node (Riding volume curves)
-                const swell = ctx.createGain();
-                swell.gain.value = 0.001;
-                swellGainRef.current = swell;
-
-                // 5. Sub-Bass Oscillator set to 40Hz
-                const subOsc = ctx.createOscillator();
-                subOsc.type = 'sine';
-                subOsc.frequency.value = 40;
-                subOscRef.current = subOsc;
-
-                const subGain = ctx.createGain();
-                subGain.gain.value = 0.001;
-                subGainRef.current = subGain;
-
-                // Connect nodes
-                noise.connect(filter);
-                filter.connect(panner);
-                panner.connect(swell);
-                swell.connect(ctx.destination);
-
-                subOsc.connect(subGain);
-                subGain.connect(ctx.destination);
-
-                noise.start();
-                subOsc.start();
-            } catch (err) {
-                console.error("AudioContext initialization failed:", err);
-            }
-        } else if (audioCtxRef.current.state === 'suspended') {
-            audioCtxRef.current.resume();
-        }
     };
 
     if (isFinished) {

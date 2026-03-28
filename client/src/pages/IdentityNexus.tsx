@@ -73,7 +73,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                             className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 mb-2"
                         >
                             <ShieldCheck size={12} className="text-amber-400" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500/80">Acceso Admin</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500/80">{t('admin_access')}</span>
                         </motion.div>
                     )}
                     <div className="flex items-center justify-center gap-4">
@@ -100,7 +100,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                         transition={{ delay: i * 0.1 }}
                         onClick={() => { 
                             if (opt.locked) {
-                                playSound('error');
+                                playSound('click');
                                 setExplainerType('IDENTITY_COMPLETE'); // Or show an upgrade modal
                                 return;
                             }

@@ -74,7 +74,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             // Buscamos todas las preferencias activas
             const { data: tunings, error } = await supabase
                 .from('coherence_tunings')
-                .select('user_id, aspect, module_type, cron_schedule, last_triggered_at')
+                .select('user_id, aspect, cron_schedule, last_triggered_at')
                 .eq('is_active', true);
 
             if (error) throw error;
@@ -224,7 +224,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             await supabase.from('coherence_tunings')
                 .update({ last_triggered_at: new Date().toISOString() })
                 .eq('user_id', userId)
-                .eq('module_type', moduleType || 'protocol21')
                 .eq('aspect', aspect);
 
             return {

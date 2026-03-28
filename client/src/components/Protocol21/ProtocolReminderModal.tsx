@@ -32,10 +32,10 @@ export const ProtocolReminderModal: React.FC<ProtocolReminderModalProps> = ({ is
                 .maybeSingle();
 
             if (data) {
-                if (data.reminder_time) {
-                    setReminderTime(data.reminder_time.substring(0, 5));
+                if (data.cron_schedule) {
+                    setReminderTime(data.cron_schedule.substring(0, 5));
                 }
-                setIsTelegramEnabled(data.telegram_enabled || false);
+                setIsTelegramEnabled(data.is_active || false);
             }
             setLoading(false);
         };
@@ -46,19 +46,33 @@ export const ProtocolReminderModal: React.FC<ProtocolReminderModalProps> = ({ is
     const handleSave = async () => {
         setSaving(true);
         try {
-            const { error } = await supabase
+            // Match-then-Update/Insert pattern to bypass missing unique constraint
+            const { data: existing } = await supabase
                 .from('coherence_tunings')
-                .upsert({
-                    user_id: userId,
-                    module_type: 'protocol21',
-                    aspect: 'protocol21',
-                    reminder_time: reminderTime,
-                    telegram_enabled: isTelegramEnabled,
-                    instagram_enabled: false,
-                    is_active: isTelegramEnabled
-                }, { onConflict: 'user_id,aspect' });
+                .select('id')
+                .match({ user_id: userId, aspect: 'protocol21' })
+                .maybeSingle();
 
-            if (error) throw error;
+            if (existing) {
+                const { error: updateError } = await supabase
+                    .from('coherence_tunings')
+                    .update({
+                        cron_schedule: reminderTime,
+                        is_active: isTelegramEnabled
+                    })
+                    .eq('id', existing.id);
+                if (updateError) throw updateError;
+            } else {
+                const { error: insertError } = await supabase
+                    .from('coherence_tunings')
+                    .insert({
+                        user_id: userId,
+                        aspect: 'protocol21',
+                        cron_schedule: reminderTime,
+                        is_active: isTelegramEnabled
+                    });
+                if (insertError) throw insertError;
+            }
             
             setSuccess(true);
             setTimeout(() => {

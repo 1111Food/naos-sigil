@@ -10,6 +10,16 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { PerformanceProvider } from './context/PerformanceContext'
 import { LanguageProvider } from './i18n';
 
+// --- SERVICE WORKER KILL SWITCH (FORCED UNREGISTRATION) ---
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (const registration of registrations) {
+      console.warn("🛡️ NAOS: Unregistering stale Service Worker:", registration);
+      registration.unregister();
+    }
+  });
+}
+
 // Global Fetch Interceptor for 401 Graceful Degradation - TEMPORARILY DISABLED TO STOP REDIRECT LOOP
 const originalFetch = window.fetch;
 window.fetch = async (...args) => {

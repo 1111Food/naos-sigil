@@ -548,7 +548,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                     {isPlaceHolder && (
                                                         <div className="mt-8 flex items-center gap-3 px-4 py-2 rounded-full bg-rose-500/5 border border-rose-500/10 w-fit">
                                                             <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)] animate-pulse" />
-                                                            <span className="text-[9px] uppercase tracking-[0.4em] font-black text-rose-500/60">SECUENCIA INTERRUMPIDA</span>
+                                                            <span className="text-[9px] uppercase tracking-[0.4em] font-black text-rose-500/60">{t('identity_interrupted')}</span>
                                                         </div>
                                                     )}
                                                 </div>

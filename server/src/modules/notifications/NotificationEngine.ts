@@ -2,7 +2,7 @@ import { supabase } from '../../lib/supabase';
 import { sendProactiveMessage, sendProactiveVoice } from '../sigil/telegramService';
 import { SigilService } from '../sigil/service';
 import { CoherenceService } from '../coherence/service';
-import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS, SIGIL_STRUCTURE_PROMPT, SIGIL_DISCIPLINE_TEMPLATE, SIGIL_INACTIVITY_TEMPLATE } from '../sigil/prompts';
+import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS } from '../sigil/prompts';
 import { TTSService } from '../sigil/ttsService';
 
 export class NotificationEngine {
@@ -28,36 +28,32 @@ export class NotificationEngine {
 
         for (const user of users) {
              try {
-                 // Check if user has active triggers in 21 days
-                 const { data: cycles } = await supabase
-                    .from('energy_logs') // Assuming energy_logs or protocol_tracker exists
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-
-                 // Check condition: if not closed today
-                 const hasClosedToday = false; // Mock/placeholder condition for check routine
+                 // Check condition: if not closed today (Placeholder logic)
+                 const hasClosedToday = false; 
 
                  if (!hasClosedToday && user.telegram_chat_id) {
                      const userName = user.nickname || user.full_name || 'Arquitecto';
+                     const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
                      
-                     // Trigger Sigil message addressing the Protocol stall
-                     const promptContext = `${SIGIL_STRUCTURE_PROMPT}\n${SIGIL_DISCIPLINE_TEMPLATE.replace('{current}', '7').replace('{target}', '21')}`;
-                                          const sigil = new SigilService();
-                      const sigilResponse = await sigil.processMessage(user.id, promptContext, undefined, undefined, 'maestro', false, undefined, user.language || 'es');
+                     // Trigger Sigil message addressing the Protocol stall using bilingual templates
+                     const structure = SYSTEM_PROMPTS[lang].templates.structure;
+                     const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '7').replace('{target}', '21');
+                     const promptContext = `${structure}\n${discipline}`;
+                     
+                     const sigil = new SigilService();
+                     const sigilResponse = await sigil.processMessage(user.id, promptContext, undefined, undefined, 'maestro', false, undefined, lang);
 
-                     console.log(`[NOTIF_ENGINE] Sending reminder to ${userName}`);
+                     console.log(`[NOTIF_ENGINE] Sending reminder to ${userName} in ${lang}`);
                      
                      const tts = new TTSService();
                      const { buffer } = await tts.generateVoice(sigilResponse);
 
-                      const useVoice = user.profile_data?.telegram_voice_enabled !== false; 
-                      if (useVoice && buffer) {
-                          await sendProactiveVoice(user.telegram_chat_id, buffer, sigilResponse);
-                      } else {
-                          await sendProactiveMessage(user.telegram_chat_id, sigilResponse);
-                      }
+                     const useVoice = user.profile_data?.telegram_voice_enabled !== false; 
+                     if (useVoice && buffer) {
+                         await sendProactiveVoice(user.telegram_chat_id, buffer, sigilResponse);
+                     } else {
+                         await sendProactiveMessage(user.telegram_chat_id, sigilResponse);
+                     }
                  }
              } catch (e) {
                  console.error(`[NOTIF_ENGINE] Failed processing user ${user.id}`, e);
@@ -84,10 +80,13 @@ export class NotificationEngine {
             if (!user.telegram_chat_id) continue;
 
             const userName = user.nickname || user.full_name || 'Arquitecto';
-            const contextMsg = `${SIGIL_STRUCTURE_PROMPT}\n${SIGIL_INACTIVITY_TEMPLATE}`;
+            const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
+            const structure = SYSTEM_PROMPTS[lang].templates.structure;
+            const inactivity = SYSTEM_PROMPTS[lang].templates.inactivity;
+            const contextMsg = `${structure}\n${inactivity}`;
             
             const sigil = new SigilService();
-            const message = await sigil.processMessage(user.id, contextMsg, undefined, undefined, 'maestro', false, undefined, user.language || 'es');
+            const message = await sigil.processMessage(user.id, contextMsg, undefined, undefined, 'maestro', false, undefined, lang);
 
             const tts = new TTSService();
             const { buffer } = await tts.generateVoice(message);
@@ -129,41 +128,42 @@ export class NotificationEngine {
 
         if (!users) return;
 
-        const userMap = users.reduce((acc: any, u: any) => {
-            if (u.telegram_chat_id) acc[u.id] = u;
-            return acc;
-        }, {});
+        for (const user of users) {
+            if (!user.telegram_chat_id) continue;
 
-        for (const tuning of tunings) {
-            const user = userMap[tuning.user_id];
-            if (!user) continue;
+            // Group tunings for this specific user
+            const userTunings = tunings.filter(t => t.user_id === user.id);
+            const activeAspects: string[] = [];
 
-            // Logic: Adjust server time to user local time
-            // utcOffset is expected in hours (e.g., -6)
+            // Timezone logic
             const profileData = user.profile_data || {};
             const offset = (profileData.utcOffset !== undefined) 
                 ? profileData.utcOffset 
                 : (profileData.timezone_offset !== undefined ? profileData.timezone_offset : -6);
             
-            // Generate clean User Local Time
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const userLocal = new Date(utc + (3600000 * offset));
-            
-            const userHour = String(userLocal.getHours()).padStart(2, '0');
-            const userMin = String(userLocal.getMinutes()).padStart(2, '0');
-            const userTimeStr = `${userHour}:${userMin}`;
+            const userTimeStr = `${String(userLocal.getHours()).padStart(2, '0')}:${String(userLocal.getMinutes()).padStart(2, '0')}`;
 
-            const schedules = tuning.cron_schedule.split(',');
-            const hasMatch = schedules.includes(userTimeStr);
+            for (const tuning of userTunings) {
+                const schedules = tuning.cron_schedule.split(',');
+                if (schedules.includes(userTimeStr)) {
+                    activeAspects.push(tuning.aspect);
+                }
+            }
 
-            if (hasMatch) {
-                console.log(`🚨 [NOTIF_ENGINE] Timezone Match (${offset}): ${userTimeStr} for ${user.nickname || user.full_name} (Aspect: ${tuning.aspect})`);
+            if (activeAspects.length > 0) {
+                console.log(`🚨 [NOTIF_ENGINE] Consolidating ${activeAspects.length} aspects for ${user.nickname || user.full_name} at ${userTimeStr}`);
                 
                 try {
                     const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
-                    const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(tuning.aspect);
+                    
+                    // NEW: Consolidate prompt
+                    const aspectsStr = activeAspects.join(', ');
+                    const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(aspectsStr);
+                    
                     const sigil = new SigilService();
-                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, user.language || 'es');
+                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
 
                     const tts = new TTSService();
                     const { buffer } = await tts.generateVoice(message);
@@ -175,11 +175,12 @@ export class NotificationEngine {
                         await sendProactiveMessage(user.telegram_chat_id, message);
                     }
                 } catch (e) {
-                    console.error(`[NOTIF_ENGINE] Failed sending tuning for ${user.id}`, e);
+                    console.error(`[NOTIF_ENGINE] Failed sending consolidated tuning for ${user.id}`, e);
                 }
             }
         }
     }
+
 
     /**
      * Central schedule daemon executing contextual check loops.

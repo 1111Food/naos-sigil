@@ -51,17 +51,21 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
     const { playSound } = useSound();
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-    // Audio Logic Placeholder
+    // Audio Logic - Standardized with explicit cleanup to prevent "Phantom" sounds
     React.useEffect(() => {
         const audioUrl = '/audio/atmospheres/clientpublicaudioatmospheresearth.mp3';
         const audio = new Audio(encodeURI(audioUrl));
         audio.loop = true;
-        audio.volume = 0.3;
+        audio.volume = 0.2; // Slightly lower default
         audioRef.current = audio;
 
         return () => {
-            audio.pause();
-            audioRef.current = null;
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = ""; // Force garbage collection/resource release
+                audioRef.current.load();
+                audioRef.current = null;
+            }
         };
     }, []);
 
@@ -637,32 +641,38 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                 </AnimatePresence>
             </main>
 
-            {/* Ritual Red Neon Frame */}
-            <div className="fixed inset-0 pointer-events-none z-50">
-                <div className="absolute inset-0 border-[1px] border-red-500/20 shadow-[inset_0_0_40px_rgba(239,68,68,0.15)]" />
+            {/* Ritual Red Neon Frame - Simplified to resolve "Double Shadow" regression */}
+            <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+                {/* Single outer glow for the viewport edges */}
+                <div className="absolute inset-0 border-[1px] border-red-500/10" />
+                
+                {/* Top Edge */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 2 }}
-                    className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-red-500/40 to-transparent shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                    className="absolute inset-x-0 top-0 h-[1.5px] bg-red-500/30 shadow-[0_1px_10px_rgba(239,68,68,0.3)]"
                 />
+                {/* Bottom Edge */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 2 }}
-                    className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-red-500/40 to-transparent shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                    className="absolute inset-x-0 bottom-0 h-[1.5px] bg-red-500/30 shadow-[0_-1px_10px_rgba(239,68,68,0.3)]"
                 />
+                {/* Left Edge */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 2 }}
-                    className="absolute inset-y-0 left-0 w-[2px] bg-gradient-to-b from-transparent via-red-500/40 to-transparent shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                    className="absolute inset-y-0 left-0 w-[1.5px] bg-red-500/30 shadow-[1px_0_10px_rgba(239,68,68,0.3)]"
                 />
+                {/* Right Edge */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 2 }}
-                    className="absolute inset-y-0 right-0 w-[2px] bg-gradient-to-b from-transparent via-red-500/40 to-transparent shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                    className="absolute inset-y-0 right-0 w-[1.5px] bg-red-500/30 shadow-[-1px_0_10px_rgba(239,68,68,0.3)]"
                 />
 
                 {/* Subtle Pulse Atmosphere */}

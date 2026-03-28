@@ -74,7 +74,8 @@ async function wakeUpConsciousness(client: Client) {
             const projectName = contextData.protocol?.projectName || 'Tu Gran Obra';
             const purpose = contextData.protocol?.purpose || 'Evolución y Maestría';
 
-            const isLab = habit.module_type === 'elemental_lab';
+            const aspectLower = habit.aspect.toLowerCase();
+            const isLab = ['fuego', 'agua', 'tierra', 'aire', 'meditación', 'respiración'].some(el => aspectLower.includes(el));
 
             // 3. Prompt the LLM to generate a mystical suggestion
             let systemPrompt = '';
@@ -151,8 +152,6 @@ Coherencia Global: ${contextData.coherence.global.toFixed(1)}%
             // 4. Logic for Habit-Specific Buttons
             let buttonLabel: string | undefined;
             let buttonUrl: string | undefined;
-
-            const aspectLower = habit.aspect.toLowerCase();
 
             if (isLab) {
                 buttonLabel = `✨ Iniciar ${habit.aspect}`;

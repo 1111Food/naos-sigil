@@ -4,18 +4,18 @@ import { useGuardianState } from '../contexts/GuardianContext';
 import { useTranslation } from '../i18n';
 
 export function useSigil(userName?: string, energyContext?: any) {
-    const { language } = useTranslation();
+    const { language, t } = useTranslation();
     const { oracleState, addMessage: addGlobalMessage, isHistoryLoading } = useGuardianState();
 
     const getWelcomeMessage = useCallback(() => {
-        const cleanName = (userName || 'Viajero').replace(/\.+$/, '');
+        const cleanName = (userName || t('viajero')).replace(/\.+$/, '');
         const intros = [
-            `El silencio ha terminado. NAOS te reconoce, ${cleanName}.`,
-            `Las esferas se han alineado. ¿Qué buscas en el tejido del tiempo?`,
-            `Bienvenido al Templo, ${cleanName}. Tu rastro estelar nos guía.`
+            t('sigil_welcome_1', { name: cleanName }),
+            t('sigil_welcome_2'),
+            t('sigil_welcome_3', { name: cleanName })
         ];
         return intros[Math.floor(Math.random() * intros.length)];
-    }, [userName]);
+    }, [userName, t]);
 
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -42,7 +42,7 @@ export function useSigil(userName?: string, energyContext?: any) {
     const sendMessage = async (text: string, role: 'maestro' | 'guardian' = 'maestro', retryCount = 0) => {
         const now = Date.now();
         if (now - lastCallRef.current < 2000 && retryCount === 0) {
-            setMessages(prev => [...prev, { role: 'model', text: "⏳ Calibrando frecuencia... espera un momento." }]);
+            setMessages(prev => [...prev, { role: 'model', text: `${t('calibrating_frequency')}` }]);
             return;
         }
         lastCallRef.current = now;
@@ -69,7 +69,7 @@ export function useSigil(userName?: string, energyContext?: any) {
 
             if (!response.ok) {
                 if (response.status === 429 && retryCount < 1) {
-                    setMessages(prev => [...prev, { id: `local-s-timeout-${now}`, role: 'model', text: "La red estelar está saturada... Recalibrando energía." }]);
+                    setMessages(prev => [...prev, { id: `local-s-timeout-${now}`, role: 'model', text: `${t('network_saturated')}` }]);
                     setTimeout(() => sendMessage(text, role, retryCount + 1), 2000);
                     return;
                 }
@@ -100,8 +100,8 @@ export function useSigil(userName?: string, energyContext?: any) {
         } catch (err) {
             console.error("Sigil Connection Error:", err);
             setMessages(prev => [
-                ...prev.filter(m => m.text !== "La red estelar está saturada... Recalibrando energía."),
-                { id: `local-err-${Date.now()}`, role: 'model', text: "La conexión estelar está inestable. Revisa tu red mística o intenta más tarde." }
+                ...prev.filter(m => m.text !== `${t('network_saturated')}`),
+                { id: `local-err-${Date.now()}`, role: 'model', text: `${t('connection_unstable')}` }
             ]);
         } finally {
             setLoading(false);

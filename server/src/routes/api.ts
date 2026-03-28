@@ -42,7 +42,8 @@ export async function apiRoutes(app: FastifyInstance) {
 
     // 🗺️ GeoIP Middleware
     app.addHook('preHandler', async (req: any) => {
-        req.userGeo = detectRegionFromIP(req.ip);
+        // req.userGeo = detectRegionFromIP(req.ip);
+        req.userGeo = { country: "unknown", region: "global" };
     });
 
     // Serve Cached TTS Audio file buffer
@@ -119,7 +120,9 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
 
-    // Chat
+    app.get('/ping', async () => ({ status: 'vibrant', message: 'Cosmos is alive on Port 3002' }));
+
+    // 🔮 Sigil Chat / Interaction Endpoint
     app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
         const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
         const userId = (req as any).user_id;
@@ -131,6 +134,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
 
         try {
+            console.log(`🌀 INCOMING MESSAGE from ${userId}: "${message}"`);
             const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo);
 
             // Generate TTS Audio Buffer for the response
@@ -146,21 +150,18 @@ export async function apiRoutes(app: FastifyInstance) {
             };
         } catch (error: any) {
             console.error("🔥 SIGIL ERROR:", error);
+            // Deep file logging
+            try {
+                const fs = require('fs');
+                const logPath = require('path').join(process.cwd(), 'critical_error.log');
+                fs.appendFileSync(logPath, `[${new Date().toISOString()}] SIGIL ERROR: ${error.message}\n${error.stack}\n`);
+            } catch (e) {}
 
             if (error.message?.includes('LIMITE_CUOTA')) {
                 return reply.status(429).send({
-                    error: "El Oráculo ha alcanzado su límite de expansión hoy. Tu energía es tan profunda que hemos agotado los recursos temporales. Revisa tu plan o intenta de nuevo en unos minutos.",
+                    error: "El Oráculo ha alcanzado su límite de expansión hoy.",
                     details: "QUOTA_EXCEEDED"
                 });
-            }
-
-            try {
-                const fs = require('fs');
-                const path = require('path');
-                const logPath = path.join(process.cwd(), 'debug_sigil.log');
-                fs.appendFileSync(logPath, `\n[${new Date().toISOString()}] ${error.message}\nStack: ${error.stack}\n`);
-            } catch (e) {
-                console.error("Log failed", e);
             }
 
             return reply.status(500).send({
@@ -169,6 +170,7 @@ export async function apiRoutes(app: FastifyInstance) {
             });
         }
     });
+
 
     // Prompt 5: Lab Session Trigger
     app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
@@ -304,6 +306,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
         console.log(`🧬 [NAOS_CODE_START] Compilación solicitada para: ${userId} | Refresh: ${forceRefresh} | Lang: ${lang}`);
         try {
+
             const res = await NaosCompilerService.compile(userId, forceRefresh, lang as any);
             if (forceRefresh) {
                  await UsageGuardService.incrementUsage(userId, 'naos_code');

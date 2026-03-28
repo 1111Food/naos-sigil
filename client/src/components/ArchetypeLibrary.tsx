@@ -19,17 +19,14 @@ class SplineErrorBoundary extends React.Component<{ children: React.ReactNode, f
     render() {
         if (this.state.hasError) {
             return this.props.fallback || (
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/[0.02] flex flex-col items-center justify-center p-4">
-                    <motion.div animate={{ opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 3, repeat: Infinity }} className="relative">
-                        <Hexagon className="w-12 h-12 text-white/10" />
-                        <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-cyan-500/30" />
-                    </motion.div>
-                    <button 
-                        onClick={() => this.setState({ hasError: false })}
-                        className="mt-4 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                    >
-                        Retry Resonance
-                    </button>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4">
+                    {/* Atmospheric Glow Fallback - subtle and doesn't compete with the card content */}
+                    <div className="w-full h-full bg-gradient-to-br from-cyan-900/10 to-transparent blur-xl opacity-30" />
+                    <motion.div 
+                        animate={{ opacity: [0.1, 0.2, 0.1], scale: [1, 1.05, 1] }}
+                        transition={{ duration: 5, repeat: Infinity }}
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)] from-cyan-500/10"
+                    />
                 </div>
             );
         }
@@ -198,7 +195,7 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                                      </div>
                                                  }>
                                                      {/* @ts-ignore */}
-                                                     <Spline scene={selectedArchetype?.scene || "https://prod.spline.design/kZSsq6RJS9Yk4zJS/scene.splinecode"} />
+                                                     <Spline scene={selectedArchetype?.scene || "https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode"} />
                                                  </SplineErrorBoundary>
                                              </div>
 

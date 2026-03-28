@@ -255,14 +255,42 @@ export const useFrequency = () => {
         prevAtmosphereRef.current = isAtmosphereEnabled;
     }, [isAtmosphereEnabled, activeElement, playFrequency]);
 
-    // Cleanup on unmount
+    // Cleanup on unmount - Stop EVERYTHING immediately to prevent "Phantom Frequencies"
     useEffect(() => {
         return () => {
+            // Unconditional stop: if anything is playing (oscillators or atmosphere), kill it.
+            // We use a direct cleanup here to bypass the 1.5s fade-out of stopFrequency 
+            // when the component is unmounting to avoid sound "leaking" between views.
+            
             if (oscillatorsRef.current.length > 0) {
-                stopFrequency();
+                oscillatorsRef.current.forEach(osc => {
+                    try { osc.stop(); osc.disconnect(); } catch (e) { }
+                });
+                oscillatorsRef.current = [];
+            }
+            
+            if (lfoRef.current) {
+                try { lfoRef.current.stop(); lfoRef.current.disconnect(); } catch (e) { }
+                lfoRef.current = null;
+            }
+
+            if (atmosphereNodeRef.current) {
+                try { atmosphereNodeRef.current.stop(); } catch(e) {}
+                try { atmosphereNodeRef.current.disconnect(); } catch(e) {}
+                atmosphereNodeRef.current = null;
+            }
+
+            atmosphereOscillatorsRef.current.forEach(osc => {
+                try { osc.stop(); osc.disconnect(); } catch (e) {}
+            });
+            atmosphereOscillatorsRef.current = [];
+
+            if (gainNodeRef.current) {
+                try { gainNodeRef.current.disconnect(); } catch(e) {}
+                gainNodeRef.current = null;
             }
         };
-    }, [stopFrequency]);
+    }, []); // Empty dependency array ensures this ONLY runs on unmount
 
     return {
         activeElement,

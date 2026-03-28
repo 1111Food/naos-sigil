@@ -8,6 +8,11 @@ let bot: Telegraf | null = null;
 const sigilService = new SigilService();
 
 export const initTelegramBot = () => {
+    if (bot) {
+        console.log("ℹ️ Telegram Bot already initialized. Skipping...");
+        return;
+    }
+
     if (!config.TELEGRAM_BOT_TOKEN) {
         console.warn("⚠️ Telegram Bot Token not found. Telegram service deactivated.");
         return;

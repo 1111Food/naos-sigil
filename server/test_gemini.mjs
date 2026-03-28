@@ -1,6 +1,9 @@
 import fetch from 'node-fetch';
 
-const apiKey = 'AIzaSyCXwyuNgxyhdfls-A1Lxh8ds70Rptdk6Tg';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const apiKey = process.env.GOOGLE_API_KEY;
 const TARGET_MODEL = 'gemini-2.0-flash';
 const API_VERSION = 'v1beta';
 const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;

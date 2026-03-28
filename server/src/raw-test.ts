@@ -2,7 +2,8 @@ import { config } from './config/env';
 
 async function rawTest() {
     console.log("📡 LISTANDO MODELOS...");
-    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${config.GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${config.GOOGLE_API_KEY}`;
+
 
     try {
         const response = await fetch(url);

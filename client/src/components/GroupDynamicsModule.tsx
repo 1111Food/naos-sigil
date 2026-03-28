@@ -12,7 +12,7 @@ interface GroupDynamicsModuleProps {
 }
 
 export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initialReport, onClearReport }) => {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const [roster, setRoster] = useState<RosterProfile[]>([]);
     const [selectedMembers, setSelectedMembers] = useState<RosterProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -22,9 +22,16 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
 
     // Form for new roster member
     const [showAddForm, setShowAddForm] = useState(false);
-    const [newMember, setNewMember] = useState<Partial<RosterProfile>>({
-        name: '', birthDate: '', birthTime: '12:00', birthCountry: '', birthState: '', birthCity: '', roleLabel: 'Miembro'
-    });
+    const initialProfile = {
+        name: '',
+        birthDate: '',
+        birthTime: '12:00',
+        birthCity: '',
+        birthState: '',
+        birthCountry: '',
+        roleLabel: t('synastry_member')
+    };
+    const [newMember, setNewMember] = useState<Partial<RosterProfile>>(initialProfile);
     const [editingMember, setEditingMember] = useState<RosterProfile | null>(null);
 
     useEffect(() => {
@@ -65,7 +72,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
             const added = await RosterService.addProfile(newMember as RosterProfile);
             setRoster([added, ...roster]);
             setShowAddForm(false);
-            setNewMember({ name: '', birthDate: '', birthTime: '12:00', birthCountry: '', birthState: '', birthCity: '', roleLabel: 'Miembro' });
+            setNewMember(initialProfile);
         } catch (err: any) {
             alert(err.message);
         }
@@ -112,13 +119,16 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
 
             const response = await fetch(`${API_BASE_URL}/api/synastry/analyze/group`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
+                headers: {
+                    ...getAuthHeaders(),
+                    'Accept-Language': language
+                },
                 body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
                 const err = await response.json();
-                throw new Error(err.message || 'Error en el análisis de grupo');
+                throw new Error(err.message || (language === 'es' ? 'Error en el análisis de grupo' : 'Error in group analysis'));
             }
 
             const data = await response.json();
@@ -189,19 +199,19 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                 </h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className={`p-4 rounded-xl border ${getElementStyles('fire')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_fire')} ({t('synastry_initiative_fire').split(' (')[0]})</div>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t(`element_fire_short` as any)} ({t('synastry_initiative_fire').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.fire}%</div>
                                     </div>
                                     <div className={`p-4 rounded-xl border ${getElementStyles('earth')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_earth')} ({t('synastry_execution_earth').split(' (')[0]})</div>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t(`element_earth_short` as any)} ({t('synastry_execution_earth').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.earth}%</div>
                                     </div>
                                     <div className={`p-4 rounded-xl border ${getElementStyles('air')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_air')} ({t('synastry_strategy_air').split(' (')[0]})</div>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t(`element_air_short` as any)} ({t('synastry_strategy_air').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.air}%</div>
                                     </div>
                                     <div className={`p-4 rounded-xl border ${getElementStyles('water')}`}>
-                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t('element_water')} ({t('synastry_cohesion_water').split(' (')[0]})</div>
+                                        <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">{t(`element_water_short` as any)} ({t('synastry_cohesion_water').split(' (')[0]})</div>
                                         <div className="text-2xl font-serif">{report.technicalReport.mesh.water}%</div>
                                     </div>
                                 </div>
@@ -212,7 +222,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                     <h3 className="text-[10px] uppercase tracking-widest text-rose-400 mb-2 font-bold flex items-center gap-2">
                                         <ShieldAlert size={14} /> {t('synastry_voids_detected')}
                                     </h3>
-                                    <p className="text-white/60 text-sm">{t('synastry_voids_desc')} <span className="text-white font-bold">{report.technicalReport.mesh.voids.join(', ')}</span></p>
+                                    <p className="text-white/60 text-sm">{t('synastry_voids_desc')} <span className="text-white font-bold">{report.technicalReport.mesh.voids.map((v: string) => t(`element_${v.toLowerCase()}_short` as any)).join(', ')}</span></p>
                                 </div>
                             )}
                         </div>

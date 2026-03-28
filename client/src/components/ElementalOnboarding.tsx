@@ -82,6 +82,7 @@ export const ElementalOnboarding: React.FC<ElementalOnboardingProps> = ({ isOpen
                                 <AnimatedSilhouette
                                     showBreathing={currentStep >= 3}
                                     showEnergyCenters={currentStep >= 1}
+                                    isAudible={currentStep >= 3}
                                 />
                             </div>
 

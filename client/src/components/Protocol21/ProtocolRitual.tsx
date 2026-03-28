@@ -94,7 +94,7 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
 
                         {/* Silhouette Watermark Background */}
                         <div className="absolute inset-0 z-0 flex items-center justify-center opacity-30 pointer-events-none scale-150 md:scale-125 translate-y-10">
-                            <AnimatedSilhouette showBreathing={true} showEnergyCenters={true} />
+                            <AnimatedSilhouette showBreathing={true} showEnergyCenters={true} isAudible={true} />
                         </div>
 
                         <div className="relative z-10 flex flex-col items-center text-center space-y-10">
