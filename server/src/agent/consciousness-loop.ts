@@ -1,15 +1,11 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from '../config/env';
 import path from 'path';
 
 const TICK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
 const isProd = __dirname.includes('dist') || process.env.NODE_ENV === 'production';
 const MCP_SERVER_PATH = path.join(__dirname, `../mcp/naos-mcp-server.${isProd ? 'js' : 'ts'}`);
-
-const genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 async function createMcpClient() {
     const transport = new StdioClientTransport({
@@ -126,8 +122,31 @@ Coherencia Global: ${contextData.coherence.global.toFixed(1)}%
             }
 
             console.log(`[SIGIL_CONSCIOUSNESS] Dreaming a response via Gemini...`);
-            const chatResult = await model.generateContent(systemPrompt);
-            const mysticNudge = chatResult.response.text();
+            
+            const apiKey = config.GOOGLE_API_KEY;
+            const TARGET_MODEL = "gemini-flash-latest";
+            const API_VERSION = "v1beta";
+            const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;
+
+            const payload = {
+                system_instruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ role: "user", parts: [{ text: "Genera el recordatorio asíncrono respetando mi arquitectura." }] }],
+                generationConfig: { temperature: 0.8, maxOutputTokens: 200 }
+            };
+
+            const response = await fetch(GENERATE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
+                throw new Error(`Google API Error ${response.status}: ${errorData.error?.message || response.statusText}`);
+            }
+
+            const data = await response.json();
+            const mysticNudge = data.candidates?.[0]?.content?.parts?.[0]?.text || "Fluye en tu ritmo...";
 
             // 4. Logic for Habit-Specific Buttons
             let buttonLabel: string | undefined;

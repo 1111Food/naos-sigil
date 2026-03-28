@@ -32,16 +32,17 @@ export const StrategicCard: React.FC<StrategicCardProps> = ({
     className,
     type = 'ARCANOS'
 }) => {
-    const arcanaName = (name || (type === 'ARQUETIPOS' ? NAOS_ARCHETYPES[id]?.nombre : ARCANA_NAMES[id]) || "Arcano").trim();
-
-    let filename = `arcano-${id}.jpg (${arcanaName}).jpg`;
+    // Filenames in Supabase are hardcoded in Spanish: "arcano-ID.jpg (Spanish Name).jpg"
+    const storageName = (type === 'ARQUETIPOS' ? NAOS_ARCHETYPES[id]?.nombre : ARCANA_NAMES[id]) || "Arcano";
+    let filename = `arcano-${id}.jpg (${storageName}).jpg`;
 
     // Hard overrides to ensure matching with Supabase storage case/accentuation
-    if (id === 9) filename = "arcano-9-ermitano.jpg";
-    if (id === 6) filename = "arcano-6.jpg (Los Enamorados).jpg";
+    if (id === 9 && type === 'ARCANOS') filename = "arcano-9-ermitano.jpg";
+    if (id === 6 && type === 'ARCANOS') filename = "arcano-6.jpg (Los Enamorados).jpg";
 
-    // Encode URI component to handle spaces and the 'ñ' in Ermitaño correctly for HTTP requests
+    // Encode URI component to handle spaces and accents correctly for HTTP requests
     let imageUrl = `${SUPABASE_BASE_URL}${encodeURIComponent(filename)}`;
+    const arcanaName = (name || storageName).trim();
     const backImageUrl = `/assets/arcano-back.jpg`;
 
     if (type === 'ARQUETIPOS' && NAOS_ARCHETYPES[id]?.imagePath) {

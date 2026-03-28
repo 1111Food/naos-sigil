@@ -77,6 +77,9 @@ export class UsageGuardService {
         else if (action === 'synastry_group') { count = stats.synastry_group_count; actionLabel = "Sinastría Grupal"; }
         else if (action === 'naos_code') { count = stats.naos_code_count; actionLabel = "Código de Identidad"; }
 
+        // Admins have no limits
+        if (planType === 'admin') return { ok: true };
+
         if (count >= limit) {
             let limitMessage = `Has agotado tu energía para ${actionLabel} por hoy (${limit}/${limit}). Medita en el Santuario y regresa al amanecer.`;
             if (action === 'naos_code') limitMessage = "El Código de Identidad solo se puede consultar 1 vez al día para evitar sobrecarga del Oráculo.";

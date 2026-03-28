@@ -20,20 +20,33 @@ export class SynastryController {
     public static async analyze(request: FastifyRequest, reply: FastifyReply) {
         const userId = (request as any).user_id;
 
+        const { language } = request.body as any;
+        const lang = language || 'es';
+        const isEn = lang === 'en';
+
         // 🛡️ UsageGuard Limit Check (Dual)
         const limitCheck = await UsageGuardService.checkLimit(userId, 'synastry_dual');
         if (!limitCheck.ok) {
-            return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+            return reply.status(403).send({ 
+                error: isEn ? "Energy Limit Exceeded" : "Límite de Energía Agotado", 
+                message: limitCheck.message 
+            });
         }
 
         try {
-            const { userProfile, partnerData, relationshipType } = request.body as any;
+            const { userProfile, partnerData, relationshipType, language: bodyLang } = request.body as any;
+            const lang = bodyLang || language || userProfile.language || 'es';
+            const isEn = lang === 'en';
+
             const type = relationshipType || RelationshipType.ROMANTIC;
 
             console.log(`🔮 Synastry Inversion: ${userProfile?.id} <-> ${partnerData?.name} (${type})`);
 
             if (!userProfile?.birthDate || !partnerData?.birthDate) {
-                return reply.status(400).send({ error: "Fechas requeridas.", message: "Missing birth dates for synchronization." });
+                return reply.status(400).send({ 
+                    error: isEn ? "Dates required." : "Fechas requeridas.", 
+                    message: isEn ? "Missing birth dates for synchronization." : "Faltan fechas de nacimiento para la sincronización."
+                });
             }
 
             // Backend Geocoding Resolution
@@ -75,12 +88,12 @@ export class SynastryController {
                         ...userProfile,
                         astrology: userProfile.astrology || (await SynastryController.calculatePillarsB(userProfile)).astrology,
                         numerology: userProfile.numerology || (await SynastryController.calculatePillarsB(userProfile)).numerology
-                    });
+                    }, lang);
                     const archB = ArchetypeEngine.calculate({
                         ...partnerData,
                         astrology: pillarsB.astrology,
                         numerology: pillarsB.numerology
-                    });
+                    }, lang);
 
                     const newReport = SynastryEngine.calculate(userProfile, pillarsB, type, nameA, nameB);
                     results.report = newReport;
@@ -89,7 +102,8 @@ export class SynastryController {
                     if (hasReflejo) {
                         console.log("🤖 Purging Reflejo and Injecting Archetypes into Oracle...");
                         const timeWindows = TemporalEngine.project(userProfile, pillarsB);
-                        results.synthesis = await SynastryOracle.generateSynthesis(newReport, timeWindows, type, nameA, nameB, archA, archB);
+                        results.synthesis = await SynastryOracle.generateSynthesis(newReport, timeWindows, type, nameA, nameB, archA, archB, lang);
+
                     }
 
                     // Fire-and-forget update to Supabase
@@ -112,8 +126,10 @@ export class SynastryController {
             // If not cached and already at limit, block calculation
             if (count && count >= 5) {
                 return reply.status(403).send({
-                    error: "Límite Alcanzado",
-                    message: "Tu historial astral está saturado (Máx. 5). Debes liberar un registro akáshico para invocar uno nuevo."
+                    error: isEn ? "Limit Reached" : "Límite Alcanzado",
+                    message: isEn 
+                        ? "Your astral history is full (Max. 5). You must release an akashic record to invoke a new one." 
+                        : "Tu historial astral está saturado (Máx. 5). Debes liberar un registro akáshico para invocar uno nuevo."
                 });
             }
 
@@ -128,19 +144,19 @@ export class SynastryController {
                 ...userProfile,
                 astrology: userProfile.astrology || (await SynastryController.calculatePillarsB(userProfile)).astrology,
                 numerology: userProfile.numerology || (await SynastryController.calculatePillarsB(userProfile)).numerology
-            });
+            }, lang);
             const archB = ArchetypeEngine.calculate({
                 ...partnerData,
                 astrology: pillarsB.astrology,
                 numerology: pillarsB.numerology
-            });
+            }, lang);
 
-            const report = SynastryEngine.calculate(userProfile, pillarsB, type, nameA, nameB);
+            const report = SynastryEngine.calculate(userProfile, pillarsB, type, nameA, nameB, lang);
             const timeWindows = TemporalEngine.project(userProfile, pillarsB);
 
             // Generate Premium AI Narration
             console.log(`🤖 Invoking Archetypal Oracle Synthesis... (${archA.nombre} <-> ${archB.nombre})`);
-            const synthesis = await SynastryOracle.generateSynthesis(report, timeWindows, type, nameA, nameB, archA, archB);
+            const synthesis = await SynastryOracle.generateSynthesis(report, timeWindows, type, nameA, nameB, archA, archB, lang);
 
             const finalResult = {
                 report,
@@ -186,10 +202,17 @@ export class SynastryController {
         }
 
         try {
-            const { rosterProfiles } = request.body as any;
+            const { rosterProfiles, language } = request.body as any;
+            const lang = language || 'es';
+            const isEn = lang === 'en';
 
             if (!rosterProfiles || !Array.isArray(rosterProfiles) || rosterProfiles.length < 3 || rosterProfiles.length > 5) {
-                return reply.status(400).send({ error: "Datos Inválidos", message: "Se requieren entre 3 y 5 perfiles para Dinámica de Grupo." });
+                return reply.status(400).send({ 
+                    error: isEn ? "Invalid Data" : "Datos Inválidos", 
+                    message: isEn 
+                        ? "3 to 5 profiles are required for Group Dynamics." 
+                        : "Se requieren entre 3 y 5 perfiles para Dinámica de Grupo." 
+                });
             }
 
             console.log(`🔮 B2B Group Dynamics Analysis: ${rosterProfiles.length} members`);
@@ -202,11 +225,11 @@ export class SynastryController {
             }));
 
             // Calculate Elemental Mesh (Engine)
-            const groupReport = GroupSynastryEngine.generateTechnicalReport(calculatedMembers);
+            const groupReport = GroupSynastryEngine.generateTechnicalReport(calculatedMembers, lang);
 
             // Generate Organizational Oracle Synthesis
             console.log("🤖 Invoking Group Oracle Synthesis...");
-            const synthesis = await GroupOracle.generateSynthesis(groupReport);
+            const synthesis = await GroupOracle.generateSynthesis(groupReport, lang);
 
             const finalResult = {
                 technicalReport: groupReport,
@@ -236,7 +259,11 @@ export class SynastryController {
 
         } catch (error: any) {
             console.error("❌ Group Dynamics Critical Failure:", error);
-            return reply.status(500).send({ error: "System failure.", message: error.message });
+            const isEn = (request.body as any)?.language === 'en';
+            return reply.status(500).send({ 
+                error: isEn ? "System failure." : "Falla del sistema.", 
+                message: error.message 
+            });
         }
     }
 
@@ -339,9 +366,15 @@ export class SynastryController {
 
         if (error) {
             console.error("❌ Deletion Error:", error);
-            return reply.status(500).send({ error: "No se pudo borrar el registro." });
+            const isEn = (request as any).headers?.['accept-language']?.includes('en'); // Fallback check
+            return reply.status(500).send({ 
+                error: isEn ? "Could not delete record." : "No se pudo borrar el registro." 
+            });
         }
 
-        return reply.send({ success: true, message: "Registro liberado." });
+        return reply.send({ 
+            success: true, 
+            message: (request as any).headers?.['accept-language']?.includes('en') ? "Record released." : "Registro liberado." 
+        });
     }
 }

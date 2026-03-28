@@ -4,14 +4,19 @@ import { useCallback } from 'react';
 export const useSound = () => {
     const playSound = useCallback((type: 'click' | 'success' | 'transition' = 'click') => {
         const soundUrls = {
-            click: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
-            success: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
-            transition: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'
+            click: '/audio/atmospheres/clientpublicaudioatmospheresearth.mp3', // Using atmosphere as placeholder
+            success: '/audio/atmospheres/clientpublicaudioatmosphereswater.mp3',
+            transition: '/audio/atmospheres/clientpublicaudioatmospheresair.mp3'
         };
 
         const audio = new Audio(soundUrls[type]);
-        audio.volume = 0.2;
-        audio.play().catch(e => console.log('Audio play blocked:', e));
+        audio.volume = 0.15;
+        audio.play().catch(e => {
+            // Silently handle autoplay blocks or 403s
+            if (e.name !== 'NotAllowedError') {
+                console.warn(`[useSound] Audio ${type} could not play:`, e.message);
+            }
+        });
     }, []);
 
     return { playSound };

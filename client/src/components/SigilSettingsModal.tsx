@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Clock, Sparkles, Info } from 'lucide-react';
+import { X, Send, Clock, Sparkles, Info, MessageCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
@@ -12,7 +12,11 @@ interface SigilSettingsModalProps {
     onOpenTelegram: () => void;
 }
 
-export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, onClose, onOpenTelegram }) => {
+export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ 
+    isOpen, 
+    onClose, 
+    onOpenTelegram
+}) => {
     const { t } = useTranslation();
     const [time, setTime] = useState('08:00');
     const [saving, setSaving] = useState(false);
@@ -117,19 +121,35 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({ isOpen, 
                             <p className="text-[10px] text-white/30">{t('daily_reading_desc')}</p>
                         </div>
 
-                        {/* Section 2: Telegram */}
-                        <div className="space-y-2">
+                        {/* Section 2: Channels */}
+                        <div className="space-y-3">
                             <label className="text-xs uppercase tracking-wider font-semibold text-white/50">{t('dispatch_channels')}</label>
-                            <button 
-                                onClick={onOpenTelegram}
-                                className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 hover:border-cyan-500/30 rounded-xl transition-all group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Send size={20} className="text-cyan-400 group-hover:scale-110 transition-transform"/>
-                                    <span className="text-sm font-light text-white/80">{t('link_telegram')}</span>
-                                </div>
-                                <span className="text-xs text-cyan-400/50">{t('open')}</span>
-                            </button>
+                            
+                            <div className="flex flex-col gap-2">
+                                <button 
+                                    onClick={onOpenTelegram}
+                                    className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 hover:border-cyan-500/30 rounded-xl transition-all group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Send size={20} className="text-cyan-400 group-hover:scale-110 transition-transform"/>
+                                        <span className="text-sm font-light text-white/80">{t('link_telegram')}</span>
+                                    </div>
+                                    <span className="text-xs text-cyan-400/50">{t('open')}</span>
+                                </button>
+
+                                <button 
+                                    disabled
+                                    className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 opacity-40 grayscale cursor-not-allowed rounded-xl transition-all group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <MessageCircle size={20} className="text-green-400"/>
+                                        <span className="text-sm font-light text-white/40">{t('link_whatsapp')}</span>
+                                    </div>
+                                    <span className="text-[8px] uppercase tracking-tighter text-white/30 bg-white/5 px-2 py-1 rounded-full border border-white/10 group-hover:text-cyan-400 group-hover:border-cyan-500/30 transition-colors font-black">
+                                        {t('whatsapp_coming_soon')}
+                                    </span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Section 3: Voz del Sigil */}

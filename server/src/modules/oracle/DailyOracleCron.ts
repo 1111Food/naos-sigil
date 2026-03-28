@@ -48,19 +48,32 @@ export class DailyOracleCron {
             const userName = user.nickname || user.full_name || 'Arquitecto';
             
             try {
-                // 0. Check for duplicates in same-day UTC to prevent multi-instance overlaps
+                // --- RACE CONDITION MITIGATION (JITTER) ---
+                // Wait a random jitter (0-2000ms) to stagger different server instances (e.g. Render autoscaling nodes)
+                const jitter = Math.floor(Math.random() * 2000);
+                await new Promise(resolve => setTimeout(resolve, jitter));
+
+                // 0. Check for duplicates using both Trigger and potential Lock tags
                 const todayStr = new Date().toISOString().split('T')[0];
                 const { data: existingLogs } = await supabase
                     .from('interaction_logs')
                     .select('id')
                     .eq('user_id', user.id)
-                    .ilike('user_message', `%[ORACLE_TRIGGER_DAILY: ${todayStr}]%`)
+                    .or(`user_message.ilike.%[ORACLE_TRIGGER_DAILY: ${todayStr}]%,user_message.ilike.%[ORACLE_DAILY_LOCK: ${todayStr}]%`)
                     .limit(1);
 
                 if (existingLogs && existingLogs.length > 0) {
-                    console.log(`[ORACLE_CRON] ⏭️ Skipping ${userName} (${user.id}) - Already processed today.`);
+                    console.log(`[ORACLE_CRON] ⏭️ Skipping ${userName} (${user.id}) - Already processed or locked today.`);
                     continue;
                 }
+
+                // 0.1 Stake a claim (Insert Lock)
+                // This informs other parallel processes that we're taking this one.
+                await supabase.from('interaction_logs').insert({
+                    user_id: user.id,
+                    user_message: `[ORACLE_DAILY_LOCK: ${todayStr}]`,
+                    sigil_response: 'Processing...'
+                });
 
                 console.log(`[ORACLE_CRON] Processing daily oracle for ${userName} (${user.id})...`);
 
@@ -117,12 +130,24 @@ export class DailyOracleCron {
                     language: user.language || 'es'
                 });
 
-                // 5. Save report (Step 11) using interaction_logs
-                await supabase.from('interaction_logs').insert({
-                    user_id: user.id,
-                    user_message: `[ORACLE_TRIGGER_DAILY: ${new Date().toISOString().split('T')[0]}]`,
-                    sigil_response: readingText
-                });
+                // 5. Update lock to actual report
+                const { error: updateError } = await supabase
+                    .from('interaction_logs')
+                    .update({
+                        user_message: `[ORACLE_TRIGGER_DAILY: ${todayStr}]`,
+                        sigil_response: readingText
+                    })
+                    .eq('user_id', user.id)
+                    .eq('user_message', `[ORACLE_DAILY_LOCK: ${todayStr}]`);
+
+                if (updateError) {
+                    console.error("[ORACLE_CRON] ❌ Failed to finalize report, inserting new one as fallback", updateError);
+                    await supabase.from('interaction_logs').insert({
+                        user_id: user.id,
+                        user_message: `[ORACLE_TRIGGER_DAILY: ${todayStr}]`,
+                        sigil_response: readingText
+                    });
+                }
 
                 // 6. Deliver to Telegram
                 if (user.telegram_chat_id) {

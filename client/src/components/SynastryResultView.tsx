@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import { Sparkles, ShieldAlert, Zap, Brain, Heart, Target, Compass, Activity, X, ArrowRight } from 'lucide-react';
 import { SYNASTRY_GLOSSARY } from '../constants/synastryGlossary';
 import { WisdomOverlay } from './WisdomOverlay';
+import { useTranslation } from '../i18n';
 
 interface IndexCardProps {
     label: string;
@@ -72,6 +73,7 @@ const IndexCard: React.FC<IndexCardProps> = ({ label, value, icon: Icon, delay =
 };
 
 export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA: any; userB: any }> = ({ data, onNew, userA, userB }) => {
+    const { t } = useTranslation();
     const { report, timeWindows, synthesis } = data;
     const indices = report.indices;
     const [activeExplanation, setActiveExplanation] = useState<{ key: string, label: string, text: string, icon: any, color: string } | null>(null);
@@ -83,12 +85,12 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
     const getDeepExplanations = () => synthesis?.explicaciones_pilares || report.explanations || {};
 
     const indexConfig = [
-        { key: 'sexual_erotic', label: report.labels?.['sexual_erotic'] || 'Sinergia de Atracción', icon: Zap, color: 'text-orange-400' },
-        { key: 'intellectual_mercurial', label: report.labels?.['intellectual_mercurial'] || 'Estructura Cognitiva', icon: Brain, color: 'text-indigo-400' },
-        { key: 'emotional_lunar', label: report.labels?.['emotional_lunar'] || 'Resonancia del Alma', icon: Heart, color: 'text-rose-400' },
-        { key: 'karmic_saturnian', label: report.labels?.['karmic_saturnian'] || 'Contrato Kármico', icon: ShieldAlert, color: 'text-amber-500' },
-        { key: 'spiritual_neptunian', label: report.labels?.['spiritual_neptunian'] || 'Portal Transpersonal', icon: Compass, color: 'text-blue-400' },
-        { key: 'action_martial', label: report.labels?.['action_martial'] || 'Arquitectura de Poder', icon: Target, color: 'text-emerald-400' }
+        { key: 'sexual_erotic', label: report.labels?.['sexual_erotic'] || t('synastry_dual_label'), icon: Zap, color: 'text-orange-400' },
+        { key: 'intellectual_mercurial', label: report.labels?.['intellectual_mercurial'] || t('synastry_strategy_air'), icon: Brain, color: 'text-indigo-400' },
+        { key: 'emotional_lunar', label: report.labels?.['emotional_lunar'] || t('synastry_cohesion_water'), icon: Heart, color: 'text-rose-400' },
+        { key: 'karmic_saturnian', label: report.labels?.['karmic_saturnian'] || t('synastry_op_friction'), icon: ShieldAlert, color: 'text-amber-500' },
+        { key: 'spiritual_neptunian', label: report.labels?.['spiritual_neptunian'] || t('oracle_souls_title'), icon: Compass, color: 'text-blue-400' },
+        { key: 'action_martial', label: report.labels?.['action_martial'] || t('synastry_power_structure'), icon: Target, color: 'text-emerald-400' }
     ];
 
     const openGlossary = (item: any) => {
@@ -122,14 +124,14 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                             className="bg-zinc-900 border border-white/10 p-8 rounded-[2rem] max-w-lg w-full relative"
                             onClick={e => e.stopPropagation()}
                         >
-                            <h3 className="text-xl font-serif text-white mb-6 italic">Guía de Interpretación</h3>
+                            <h3 className="text-xl font-serif text-white mb-6 italic">{t('synastry_guide_title')}</h3>
                             <div className="space-y-4 text-xs text-white/60 leading-relaxed font-light">
-                                <p><strong className="text-emerald-400">80% - 100%</strong>: resonancia de alta frecuencia. Sincronía natural y empuje mutuo.</p>
-                                <p><strong className="text-amber-400">50% - 79%</strong>: equilibrio dinámico. Requiere ajuste consciente pero ofrece gran crecimiento.</p>
-                                <p><strong className="text-rose-400">0% - 49%</strong>: fricción radical. El vínculo actúa como un espejo de sombras para la evolución.</p>
-                                <p className="mt-4 border-t border-white/5 pt-4">Cada pilar representa un área de la vida. Haz clic en ellos para leer la síntesis de la IA dedicada a tu vínculo.</p>
+                                <p dangerouslySetInnerHTML={{ __html: t('synastry_guide_high').replace(/(\d+%\s*-\s*\d+%)/, '<strong class="text-emerald-400">$1</strong>') }} />
+                                <p dangerouslySetInnerHTML={{ __html: t('synastry_guide_mid').replace(/(\d+%\s*-\s*\d+%)/, '<strong class="text-amber-400">$1</strong>') }} />
+                                <p dangerouslySetInnerHTML={{ __html: t('synastry_guide_low').replace(/(\d+%\s*-\s*\d+%)/, '<strong class="text-rose-400">$1</strong>') }} />
+                                <p className="mt-4 border-t border-white/5 pt-4">{t('synastry_guide_footer')}</p>
                             </div>
-                            <button onClick={() => setShowGuide(false)} className="mt-8 w-full py-3 rounded-full bg-white/5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-white/40">Cerrar</button>
+                            <button onClick={() => setShowGuide(false)} className="mt-8 w-full py-3 rounded-full bg-white/5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-white/40">{t('synastry_close')}</button>
                         </motion.div>
                     </motion.div>
                 )}
@@ -143,12 +145,12 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                     className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card border-white/10 text-primary text-label"
                 >
                     <Sparkles size={14} className="text-amber-500" />
-                    <span>Sincronización de Hilos del Destino</span>
+                    <span>{t('synastry_thread_sync')}</span>
                 </motion.div>
 
-                <h2 className="text-5xl md:text-6xl font-serif italic text-primary tracking-tight">MATRIZ DE SINASTRIÍA</h2>
+                <h2 className="text-5xl md:text-6xl font-serif italic text-primary tracking-tight">{t('synastry_matrix_title')}</h2>
                 <p className="text-secondary max-w-xl mx-auto text-sm tracking-widest font-light leading-relaxed">
-                    Entrelazando las frecuencias de {userA.name || 'Espectro A'} y {userB.name || 'Espectro B'} en el tejido del Nexo.
+                    {t('synastry_matrix_desc', { nameA: userA.name || 'Espectro A', nameB: userB.name || 'Espectro B' })}
                 </p>
             </div>
 
@@ -162,7 +164,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                     </div>
                     <div className="text-center md:text-right">
                         <h4 className="text-2xl font-serif text-primary truncate max-w-[200px]">{userA?.name}</h4>
-                        <p className="text-label text-secondary">Arquitecto</p>
+                        <p className="text-label text-secondary">{t('synastry_role_architect')}</p>
                     </div>
                 </div>
 
@@ -184,7 +186,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                                 {synthesis.subtitulo_score}
                             </span>
                         )}
-                        <span className="text-[7px] uppercase tracking-[0.4em] text-secondary mt-2 relative z-10 group-hover:text-white transition-colors">Info</span>
+                        <span className="text-[7px] uppercase tracking-[0.4em] text-secondary mt-2 relative z-10 group-hover:text-white transition-colors">{t('onboarding_nexus_label')}</span>
                     </motion.div>
                 </div>
 
@@ -195,8 +197,8 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                         <span className="text-3xl font-serif text-primary relative z-10">{userB?.name?.[0]}</span>
                     </div>
                     <div className="text-center md:text-left">
-                        <h4 className="text-2xl font-serif text-primary truncate max-w-[200px]">{userB?.name || 'Vínculo'}</h4>
-                        <p className="text-label text-secondary">Vínculo</p>
+                        <h4 className="text-2xl font-serif text-primary truncate max-w-[200px]">{userB?.name || t('synastry_role_bond')}</h4>
+                        <p className="text-label text-secondary">{t('synastry_role_bond')}</p>
                     </div>
                 </div>
             </div>
@@ -212,7 +214,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                     {/* Diagnóstico */}
                     <div className="md:col-span-2 glass-panel relative overflow-hidden flex flex-col justify-center p-6 bg-black/40 border border-white/5 rounded-3xl">
                         <div className="absolute top-0 left-0 w-1.5 h-full bg-cyan-500/30" />
-                        <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-cyan-400 mb-3">Diagnóstico del Vínculo</h4>
+                        <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-cyan-400 mb-3">{t('synastry_diagnosis_title')}</h4>
                         <p className="font-serif italic text-lg md:text-xl text-primary leading-relaxed">
                             "{synthesis.diagnostico}"
                         </p>
@@ -223,7 +225,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                         <div className="absolute top-0 left-0 w-1 h-full bg-rose-500/40" />
                         <div className="flex items-center gap-2 mb-3">
                             <ShieldAlert size={14} className="text-rose-400" />
-                            <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-rose-400">Punto de Riesgo</h4>
+                            <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-rose-400">{t('synastry_risk_point')}</h4>
                         </div>
                         <p className="text-xs text-secondary leading-relaxed font-light">
                             {synthesis.riesgo}
@@ -232,7 +234,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
 
                     {/* Acciones */}
                     <div className="md:col-span-3 glass-panel p-6 bg-black/40 border border-white/5 rounded-3xl">
-                        <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-400 mb-4 border-b border-white/5 pb-2">Estrategias de Coherencia (Acciones)</h4>
+                        <h4 className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-400 mb-4 border-b border-white/5 pb-2">{t('synastry_coherence_strategies')}</h4>
                         <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {synthesis.acciones?.map((action: string, i: number) => (
                                 <li key={i} className="flex gap-3 items-start text-xs text-secondary leading-relaxed bg-white/3 p-4 rounded-2xl border border-white/5">
@@ -257,7 +259,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                         onClick={() => setIsOrigenExpanded(!isOrigenExpanded)}
                         className="w-full flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.3em] text-purple-400 mb-2 pb-2 border-b border-white/5 group"
                     >
-                        <span>Cómo se calculó esto</span>
+                        <span>{t('synastry_calculation_basis')}</span>
                         <motion.div
                             animate={{ rotate: isOrigenExpanded ? 180 : 0 }}
                             className="text-white/40 group-hover:text-white transition-colors"
@@ -279,26 +281,26 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                                     {synthesis.origen_calculo.astrologia && (
                                         <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
-                                            <span className="text-purple-400 font-bold block mb-1">Astrología</span>
+                                            <span className="text-purple-400 font-bold block mb-1">{t('synastry_pillar_astrology')}</span>
                                             <p className="italic">"{synthesis.origen_calculo.astrologia}"</p>
                                         </div>
                                     )}
                                     {synthesis.origen_calculo.numerologia && (
                                         <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
-                                            <span className="text-purple-400 font-bold block mb-1">Numerología</span>
+                                            <span className="text-purple-400 font-bold block mb-1">{t('synastry_pillar_numerology')}</span>
                                             <p className="italic">"{synthesis.origen_calculo.numerologia}"</p>
                                         </div>
                                     )}
                                     {synthesis.origen_calculo.maya && (
                                         <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
-                                            <span className="text-purple-400 font-bold block mb-1">Maya</span>
+                                            <span className="text-purple-400 font-bold block mb-1">{t('synastry_pillar_mayan')}</span>
                                             <p className="italic">"{synthesis.origen_calculo.maya}"</p>
                                         </div>
                                     )}
                                     {/* Prompt Bloque 2: China Option */}
                                     <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-xs text-secondary leading-relaxed font-light">
-                                        <span className="text-purple-400 font-bold block mb-1">China</span>
-                                        <p className="italic">"{synthesis.origen_calculo.china || "Comparación de signos anuales y elementos."}"</p>
+                                        <span className="text-purple-400 font-bold block mb-1">{t('synastry_pillar_chinese')}</span>
+                                        <p className="italic">"{synthesis.origen_calculo.china || t('synastry_engines_invoked')}"</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -354,9 +356,9 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
 
                             {/* Conceptual Definition from Glossary */}
                             <div className="space-y-2">
-                                <span className="text-[8px] uppercase tracking-[0.2em] text-secondary font-bold">Definición Alquímica</span>
+                                <span className="text-[8px] uppercase tracking-[0.2em] text-secondary font-bold">{t('synastry_alchemical_definition')}</span>
                                 <p className="text-sm text-secondary font-light leading-relaxed">
-                                    {SYNASTRY_GLOSSARY[`PILLAR_${(activeExplanation as any).key?.toUpperCase()}`]?.description || "Analizando la esencia de este pilar..."}
+                                    {SYNASTRY_GLOSSARY[`PILLAR_${(activeExplanation as any).key?.toUpperCase()}`]?.description || t('tarot_meaning_placeholder')}
                                 </p>
                             </div>
 
@@ -364,7 +366,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
 
                             {/* AI Synthesis */}
                             <div className="space-y-2">
-                                <span className="text-[8px] uppercase tracking-[0.2em] text-secondary font-bold">Síntesis del Oráculo</span>
+                                <span className="text-[8px] uppercase tracking-[0.2em] text-secondary font-bold">{t('synastry_oracle_synthesis')}</span>
                                 <p className="text-lg md:text-xl text-primary font-serif leading-relaxed tracking-wide italic font-light">
                                     "{(activeExplanation as any).text}"
                                 </p>
@@ -372,7 +374,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
 
                             <div className="pt-4 flex items-center gap-2 justify-center md:justify-start opacity-30 group cursor-help">
                                 <Brain size={12} />
-                                <span className="text-[8px] uppercase tracking-widest text-secondary">Memoria de Sistema v3.0 | Proyectado para {userA?.name?.split(' ')[0]} y {userB?.name?.split(' ')[0] || 'Vínculo'}</span>
+                                <span className="text-[8px] uppercase tracking-widest text-secondary">System Memory v4.0 | Projected for {userA?.name?.split(' ')[0]} and {userB?.name?.split(' ')[0] || t('synastry_role_bond')}</span>
                             </div>
                         </div>
                     </motion.div>
@@ -384,11 +386,11 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                 <div className="lg:col-span-2 glass-panel">
                     <div className="flex items-center gap-3 mb-8 border-b border-primary/5 pb-4">
                         <Sparkles className="text-amber-500/50" size={16} />
-                        <h3 className="text-sm font-serif italic text-secondary tracking-widest uppercase">Inteligencia Relacional</h3>
+                        <h3 className="text-sm font-serif italic text-secondary tracking-widest uppercase">{t('synastry_relational_intelligence')}</h3>
                     </div>
                     <div className="space-y-8">
                         <div>
-                            <span className="text-[9px] uppercase tracking-[0.3em] text-secondary font-black block mb-3 border-l tracking-widest pl-3 border-emerald-500/50 uppercase">Palancas de Fusión (Espejos Dorados)</span>
+                            <span className="text-[9px] uppercase tracking-[0.3em] text-secondary font-black block mb-3 border-l tracking-widest pl-3 border-emerald-500/50 uppercase">{t('synastry_fusion_levers')}</span>
                             <div className="flex flex-wrap gap-2 pl-3">
                                 {report.A_StrongCompatibilities.map((s: any, i: number) => (
                                     <button
@@ -405,7 +407,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                             </div>
                         </div>
                         <div>
-                            <span className="text-[9px] uppercase tracking-[0.3em] text-secondary font-black block mb-3 border-l tracking-widest pl-3 border-rose-500/50 uppercase">Fricción Transformadora (Zonas de Sombra)</span>
+                            <span className="text-[9px] uppercase tracking-[0.3em] text-secondary font-black block mb-3 border-l tracking-widest pl-3 border-rose-500/50 uppercase">{t('synastry_transformative_friction')}</span>
                             <div className="flex flex-wrap gap-2 pl-3">
                                 {report.B_PotentialTensions.map((t: any, i: number) => (
                                     <button
@@ -427,7 +429,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                 {/* ACTION/GROWTH */}
                 <div className="glass-panel relative overflow-hidden">
                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 blur-3xl rounded-full" />
-                    <span className="text-[9px] uppercase tracking-[0.2em] text-secondary font-bold block mb-6 border-b border-primary/5 pb-4">Líneas de Integración Cármica</span>
+                    <span className="text-[9px] uppercase tracking-[0.2em] text-secondary font-bold block mb-6 border-b border-primary/5 pb-4">{t('synastry_karmic_integration')}</span>
                     <ul className="space-y-5 relative z-10">
                         {report.C_GrowthAreas.map((g: any, i: number) => (
                             <li key={i} className="flex gap-4 text-xs text-secondary items-start leading-relaxed font-serif group cursor-help" onClick={() => openGlossary(g)}>
@@ -449,13 +451,13 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                             <Activity size={24} className="animate-pulse" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-serif italic text-primary">Línea de Vida</h3>
-                            <p className="text-[10px] uppercase tracking-[0.4em] text-secondary mt-1">Sincronía Astral a 30 días</p>
+                            <h3 className="text-xl font-serif italic text-primary">{t('synastry_life_line')}</h3>
+                            <p className="text-[10px] uppercase tracking-[0.4em] text-secondary mt-1">{t('synastry_astral_synchrony')}</p>
                         </div>
                     </div>
                     <div className="px-4 py-2 rounded-full border border-primary/5 bg-primary/5 flex gap-6">
-                        <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /><span className="text-[8px] text-secondary uppercase tracking-widest">Flujo</span></div>
-                        <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" /><span className="text-[8px] text-secondary uppercase tracking-widest">Tensión</span></div>
+                        <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /><span className="text-[8px] text-secondary uppercase tracking-widest">{t('synastry_flow')}</span></div>
+                        <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" /><span className="text-[8px] text-secondary uppercase tracking-widest">{t('synastry_tension')}</span></div>
                     </div>
                 </div>
 
@@ -483,10 +485,10 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                             {/* Hover info pill */}
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 hidden group-hover:block z-50 w-40">
                                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="bg-zinc-900 border border-white/10 p-3 rounded-2xl shadow-2xl backdrop-blur-xl">
-                                    <p className="font-serif italic text-primary text-xs mb-1">{new Date(w.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</p>
+                                    <p className="font-serif italic text-primary text-xs mb-1">{new Date(w.date).toLocaleDateString(navigator.language, { day: 'numeric', month: 'short' })}</p>
                                     <p className="text-[9px] text-secondary leading-tight">{w.description}</p>
                                     <div className="mt-2 flex items-center justify-between">
-                                        <span className="text-[8px] uppercase tracking-widest text-secondary">{w.type}</span>
+                                        <span className="text-[8px] uppercase tracking-widest text-secondary">{w.type === 'FLOW' ? t('synastry_flow') : t('synastry_tension')}</span>
                                         <span className="text-[10px] font-mono text-secondary">{w.score}%</span>
                                     </div>
                                 </motion.div>
@@ -496,8 +498,8 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                 </div>
 
                 <div className="flex justify-between mt-8 text-[8px] text-white/20 uppercase tracking-[0.5em] font-black border-t border-white/5 pt-6">
-                    <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-white/20" />Presente</span>
-                    <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-white/20" />Umbral +30d</span>
+                    <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-white/20" />{t('synastry_present')}</span>
+                    <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-white/20" />{t('synastry_threshold_30d')}</span>
                 </div>
             </div>
 
@@ -508,7 +510,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                     animate={{ opacity: 1 }}
                     className="max-w-2xl mx-auto text-center border-t border-white/5 pt-8 mt-12 mb-4"
                 >
-                    <span className="text-[8px] uppercase tracking-[0.3em] text-secondary/60">Canalización Simple</span>
+                    <span className="text-[8px] uppercase tracking-[0.3em] text-secondary/60">{t('synastry_simple_channeling')}</span>
                     <p className="font-serif italic text-primary/80 mt-2 text-base max-w-lg mx-auto leading-relaxed">
                         "{synthesis.traduccion_simple}"
                     </p>
@@ -521,7 +523,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                     className="group relative px-12 py-5 rounded-full overflow-hidden transition-all active:scale-95"
                 >
                     <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 border border-white/10 group-hover:border-white/20 transition-all" />
-                    <span className="relative z-10 text-white/40 group-hover:text-white text-[11px] uppercase tracking-[0.4em] font-black transition-colors">Nueva Invocación</span>
+                    <span className="relative z-10 text-white/40 group-hover:text-white text-[11px] uppercase tracking-[0.4em] font-black transition-colors">{t('synastry_new_invocation')}</span>
                 </button>
             </div>
         </div>

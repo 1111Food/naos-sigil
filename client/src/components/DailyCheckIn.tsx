@@ -7,8 +7,8 @@ import { useSound } from '../hooks/useSound';
 import { Leaf, Flame, Moon, Brain, Heart, Info, X } from 'lucide-react';
 import { HexagonToggle } from './HexagonToggle';
 import { useGuardianState } from '../contexts/GuardianContext';
-import { SigilSyncToggle } from './SigilSyncToggle';
 import { EvolutionBridge } from './EvolutionBridge';
+import { ProtocolReminderModal } from './Protocol21/ProtocolReminderModal';
 import { useTranslation } from '../i18n';
 
 interface DailyCheckInProps {
@@ -47,6 +47,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
     const [note, setNote] = useState('');
     const [completing, setCompleting] = useState(false);
     const [activeInfo, setActiveInfo] = useState<string | null>(null);
+    const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
     const [checks, setChecks] = useState<Record<string, boolean>>({
         nutrition: false,
         movement: false,
@@ -134,16 +135,26 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-br from-cyan-900/10 to-black/40 border border-cyan-500/10 p-6 rounded-2xl text-center relative overflow-hidden"
+                whileHover={{ scale: 1.01, backgroundColor: "rgba(6, 182, 212, 0.05)" }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => setIsReminderModalOpen(true)}
+                className="bg-gradient-to-br from-cyan-900/10 to-black/40 border border-cyan-500/10 p-6 rounded-2xl text-center relative overflow-hidden cursor-pointer group transition-all duration-500 hover:border-cyan-500/30"
+                title={t('protocol_alchemical_objective_alt' as any)}
             >
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
-                <p className="text-[8px] uppercase tracking-[0.3em] text-cyan-500 mb-2 font-black flex items-center justify-center gap-2">
+                <p className="text-[8px] uppercase tracking-[0.3em] text-cyan-500 mb-2 font-black flex items-center justify-center gap-2 group-hover:text-cyan-400 transition-colors">
                     <span className="w-4 h-[1px] bg-cyan-500/40"></span>
                     {t('protocol_alchemical_objective')}
                     <span className="w-4 h-[1px] bg-cyan-500/40"></span>
                 </p>
-                <h2 className="text-2xl text-white font-light tracking-wide">{displayTitle}</h2>
-                <p className="text-xs text-white/40 italic mt-3 max-w-xl mx-auto leading-relaxed">"{displayPurpose}"</p>
+                <h2 className="text-2xl text-white font-light tracking-wide group-hover:text-cyan-100 transition-colors">{t(displayTitle as any) || displayTitle}</h2>
+                <p className="text-xs text-white/40 italic mt-3 max-w-xl mx-auto leading-relaxed">"{t(displayPurpose as any) || displayPurpose}"</p>
+                
+                {/* Visual indicator of settings */}
+                <div className="absolute bottom-2 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[7px] uppercase tracking-widest text-cyan-500/60">{t('protocol_reminder_setup' as any)}</span>
+                    <Info size={10} className="text-cyan-500/40" />
+                </div>
             </motion.div>
 
             {/* Daily Input */}
@@ -158,9 +169,9 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                     <div className="space-y-8">
                         {/* Biophysical Pillars */}
                         <div className="relative">
-                            <div className="flex justify-center gap-6 sm:gap-10 py-6 px-4 overflow-x-auto pb-8 border-b border-white/5 relative z-10">
-                                {PILLARS_DATA.map((pillar) => (
-                                    <div key={pillar.id} className="relative flex flex-col items-center gap-4 min-w-[100px]">
+                             <div className="flex justify-center gap-1 sm:gap-4 py-6 px-2 pb-8 border-b border-white/5 relative z-10">
+                                 {PILLARS_DATA.map((pillar) => (
+                                     <div key={pillar.id} className="relative flex flex-col items-center gap-3 w-[65px] sm:w-[90px]">
 
                                         {/* Main Hexagon Marker */}
                                         <HexagonToggle
@@ -195,14 +206,6 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                                                 >
                                                     {activeInfo === pillar.id ? <X size={14} strokeWidth={3} /> : <Info size={14} strokeWidth={2.5} />}
                                                 </button>
-
-                                                {/* Sigil Sync Button */}
-                                                {activeProtocol && (
-                                                    <SigilSyncToggle
-                                                        userId={activeProtocol.user_id}
-                                                        aspect={pillar.id}
-                                                    />
-                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -305,6 +308,15 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                 onEvolve={evolveProtocol}
                 onArchive={archiveProtocol}
             />
+
+            {/* Protocol Reminder Modal */}
+            {activeProtocol && (
+                <ProtocolReminderModal
+                    isOpen={isReminderModalOpen}
+                    onClose={() => setIsReminderModalOpen(false)}
+                    userId={activeProtocol.user_id}
+                />
+            )}
         </div>
     );
 };

@@ -9,18 +9,34 @@ import type { ArchetypeInfo } from '../constants/archetypeData';
 import { useTranslation } from '../i18n';
 
 // Local Error Boundary for Spline to avoid "Fractured Reality" on 3D load failure
-class SplineErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-    constructor(props: { children: React.ReactNode }) {
+class SplineErrorBoundary extends React.Component<{ children: React.ReactNode, fallback?: React.ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode, fallback?: React.ReactNode }) {
         super(props);
         this.state = { hasError: false };
     }
     static getDerivedStateFromError() { return { hasError: true }; }
     componentDidCatch(error: any) { console.error("Spline Error caught:", error); }
     render() {
-        if (this.state.hasError) return <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/[0.02] animate-pulse flex items-center justify-center"><Sparkles className="w-8 h-8 text-white/10" /></div>;
+        if (this.state.hasError) {
+            return this.props.fallback || (
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/[0.02] flex flex-col items-center justify-center p-4">
+                    <motion.div animate={{ opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 3, repeat: Infinity }} className="relative">
+                        <Hexagon className="w-12 h-12 text-white/10" />
+                        <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-cyan-500/30" />
+                    </motion.div>
+                    <button 
+                        onClick={() => this.setState({ hasError: false })}
+                        className="mt-4 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                        Retry Resonance
+                    </button>
+                </div>
+            );
+        }
         return this.props.children;
     }
 }
+
 
 const getFrequencyConfig = (t: any) => ({
     [t('freq_igneous')]: { color: 'text-rose-500', border: 'border-rose-500/20', bg: 'bg-rose-500/5', icon: Zap },
@@ -176,11 +192,16 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                              </div>
                                          }>
                                              <div className="absolute inset-0 w-full h-full scale-125 md:scale-150 opacity-60">
-                                                 <SplineErrorBoundary>
+                                                 <SplineErrorBoundary fallback={
+                                                     <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                                                         <Hexagon className="w-32 h-32 text-cyan-500 animate-pulse" />
+                                                     </div>
+                                                 }>
                                                      {/* @ts-ignore */}
                                                      <Spline scene={selectedArchetype?.scene || "https://prod.spline.design/kZSsq6RJS9Yk4zJS/scene.splinecode"} />
                                                  </SplineErrorBoundary>
                                              </div>
+
                                          </Suspense>
 
                                          {/* Official Arcano Foreground layer */}

@@ -1,11 +1,29 @@
 export const getChineseZodiacImage = (animal: string): string => {
-    // Normalizamos a minúsculas y eliminamos tildes para coincidir con los archivos subidos
-    const normalizedAnimal = animal.toLowerCase().trim()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, ""); // Elimina tildes (ej: Dragón -> dragon)
+    // Definimos el mapeo invertido para asegurar que siempre usamos el nombre del archivo en español (técnico)
+    const animalMap: Record<string, string> = {
+        "rata": "rata", "rat": "rata",
+        "buey": "buey", "ox": "buey", "bull": "buey",
+        "tigre": "tigre", "tiger": "tigre",
+        "conejo": "conejo", "rabbit": "conejo", "hare": "conejo",
+        "dragon": "dragon", "dragón": "dragon",
+        "serpiente": "serpiente", "snake": "serpiente",
+        "caballo": "caballo", "horse": "caballo",
+        "cabra": "cabra", "goat": "cabra", "sheep": "cabra", "ram": "cabra",
+        "mono": "mono", "monkey": "mono",
+        "gallo": "gallo", "rooster": "gallo", "chicken": "gallo",
+        "perro": "perro", "dog": "perro",
+        "cerdo": "cerdo", "pig": "cerdo", "boar": "cerdo"
+    };
 
-    return new URL(`../assets/chinese/${normalizedAnimal}.webp`, import.meta.url).href;
+    const searchKey = animal.toLowerCase().trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const fileName = animalMap[searchKey] || searchKey;
+
+    return new URL(`../assets/chinese/${fileName}.webp`, import.meta.url).href;
 };
+
 
 export const calculateChineseZodiac = (birthDateISO: string, language: string = 'es') => {
     const isEn = language === 'en';

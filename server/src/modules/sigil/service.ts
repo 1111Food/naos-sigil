@@ -548,6 +548,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                 return "El oráculo guarda silencio...";
             }
 
+
         } catch (e: any) {
             throw e;
         }

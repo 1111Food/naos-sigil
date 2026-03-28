@@ -14,18 +14,33 @@ import { useSound } from '../hooks/useSound';
 import { useTranslation } from '../i18n';
 
 // Local Error Boundary for Spline to avoid "Fractured Reality" on 3D load failure
-class SplineErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-    constructor(props: { children: React.ReactNode }) {
+class SplineErrorBoundary extends React.Component<{ children: React.ReactNode, fallback?: React.ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode, fallback?: React.ReactNode }) {
         super(props);
         this.state = { hasError: false };
     }
     static getDerivedStateFromError() { return { hasError: true }; }
     componentDidCatch(error: any) { console.error("Spline Error caught:", error); }
     render() {
-        if (this.state.hasError) return <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-purple-900/10 to-black/40 animate-pulse" />;
+        if (this.state.hasError) {
+            return this.props.fallback || (
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-purple-900/10 to-black/40 flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 rounded-full border border-purple-500/20 flex items-center justify-center animate-pulse">
+                        <Users size={20} className="text-purple-500/20" />
+                    </div>
+                    <button 
+                        onClick={() => this.setState({ hasError: false })}
+                        className="mt-6 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[8px] uppercase tracking-[0.2em] text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                        Re-invoke 3D Geometry
+                    </button>
+                </div>
+            );
+        }
         return this.props.children;
     }
 }
+
 
 interface OracleSoulsViewProps {
     onBack: () => void;
@@ -95,11 +110,47 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
         try {
             const { endpoints, getAsyncAuthHeaders } = await import('../lib/api');
             const headers = await getAsyncAuthHeaders();
-            const response = await fetch(`${endpoints.tarot}/history`, { headers: headers as HeadersInit });
-            if (response.ok) {
-                const data = await response.json();
-                setHistoryRecords(data);
+            
+            // Parallel fetch for dual history
+            const [tarotRes, synastryRes] = await Promise.all([
+                fetch(`${endpoints.tarot}/history`, { headers: headers as HeadersInit }),
+                fetch(`${endpoints.synastryHistory}`, { headers: headers as HeadersInit })
+            ]);
+
+            let mergedRecords: any[] = [];
+
+            if (tarotRes.ok) {
+                const tarotData = await tarotRes.json();
+                mergedRecords = [...tarotData];
             }
+
+            if (synastryRes.ok) {
+                const synastryData = await synastryRes.json();
+                // Map synastry results to fit the view schema
+                const transformedSynastry = synastryData.map((item: any) => {
+                    const synthesis = item.calculated_results?.synthesis;
+                    // If synthesis is an object (standard), extract the 'diagnostico' or similar
+                    // If it's a string (legacy/fallback), use it directly
+                    const summaryText = typeof synthesis === 'object' 
+                        ? (synthesis?.diagnostico || synthesis?.subtitulo_score || '') 
+                        : (synthesis || '');
+
+                    return {
+                        id: item.id,
+                        intention: `${t('oracle_synastry_with' as any)} ${item.partner_name}`,
+                        cards: [], // Synastry doesn't have cards in this view
+                        engine: item.relationship_type,
+                        summary: summaryText,
+                        created_at: item.created_at
+                    };
+                });
+                mergedRecords = [...mergedRecords, ...transformedSynastry];
+            }
+
+            // Sort by most recent
+            mergedRecords.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            setHistoryRecords(mergedRecords.slice(0, 5)); // Final FIFO limit
+
         } catch (error) {
             console.error("Error fetching history:", error);
         } finally {

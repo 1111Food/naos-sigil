@@ -13,9 +13,11 @@ export class DailyOracleOracle {
     }): Promise<string> {
         
         const apiKey = config.GOOGLE_API_KEY;
-        if (!apiKey) return this.getFallback(context.language || 'es');
+        if (!apiKey) {
+            console.error("❌ DailyOracle: GOOGLE_API_KEY is missing.");
+            return this.getFallback(context.language || 'es');
+        }
 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
         const lang = context.language || 'es';
 
         const systemInstruction = `
@@ -42,29 +44,22 @@ FORMATO OBLIGATORIO (Utiliza estos encabezados exactos):
 
 ${lang === 'en' ? '🔮 NAOS Reading — Today' : '🔮 Lectura NAOS — Hoy'}
 
-${lang === 'en' ? 'DIAGNOSTIC:' : 'DIAGNÓSTICO:'}
-[Análisis técnico de la interacción entre la energía natal del usuario y el pulso de hoy. Ej: "Tu elemento Fuego choca con el Nahual de Agua de hoy"]. Máx 2 líneas.
-
-${lang === 'en' ? 'ACTIVE FORCES:' : 'FUERZAS ACTIVAS:'}
-[Dónde hay tracción hoy basándote en la comparativa]. Máx 2 líneas.
-
-${lang === 'en' ? 'REACTIVE RISKS:' : 'RIESGOS REACTIVOS:'}
-[Qué debe evitar el usuario según su configuración específica hoy]. Máx 1 línea.
-
-${lang === 'en' ? 'PROFESSIONAL GUIDANCE:' : 'CONDUCTA PROFESIONAL:'}
-[La única tarea de Bio-Hacking o conducta sugerida]. Máx 1 línea.
+${lang === 'en' ? 'DIAGNOSTIC:' : 'DIAGNÓSTICO:'} [Análisis técnico de la interacción]. Máx 2 líneas.
+${lang === 'en' ? 'ACTIVE FORCES:' : 'FUERZAS ACTIVAS:'} [Dónde hay tracción hoy]. Máx 2 líneas.
+${lang === 'en' ? 'REACTIVE RISKS:' : 'RIESGOS REACTIVOS:'} [Qué evitar]. Máx 1 línea.
+${lang === 'en' ? 'PROFESSIONAL GUIDANCE:' : 'CONDUCTA PROFESIONAL:'} [Tarea de Bio-Hacking]. Máx 1 línea.
         `;
 
         const userPrompt = `
 [CONTEXTO TEMPORAL: ${new Date().toISOString().split('T')[0]}]
 
-[DATOS NATALES (USER BORN DATA)]
+[DATOS NATALES]
 - Astrología: Signo ${context.userPillars.astrology.sign} (${context.userPillars.astrology.element})
 - Numerología: Camino de Vida ${context.userPillars.numerology?.lifePathNumber}
 - Nahual Maya: ${context.userPillars.mayan?.nawal_maya}
 - Animal Chino: ${context.userPillars.chinese?.animal}
 
-[PULSO DE HOY (TRANSIT DATA)]
+[PULSO DE HOY (TRANSIT)]
 - Día: Nahual ${context.dayPillars.mayan.nahual} (Tono ${context.dayPillars.mayan.tone})
 - Tránsito Astro: Signo ${context.dayPillars.astrology.sign}
 - Tránsito Chino: Año del ${context.dayPillars.chinese.animal}
@@ -76,27 +71,41 @@ ${lang === 'en' ? 'PROFESSIONAL GUIDANCE:' : 'CONDUCTA PROFESIONAL:'}
         `;
 
         try {
-            const response = await fetch(API_URL, {
+            // Use the same proven pattern as SigilService
+            const TARGET_MODEL = "gemini-flash-latest";
+            const API_VERSION = "v1beta";
+            const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;
+
+            const payload = {
+                system_instruction: { parts: [{ text: systemInstruction }] },
+                contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+                generationConfig: { temperature: 0.7, topP: 0.8, topK: 40 }
+            };
+
+            console.log(`🚀 DailyOracle: Launching with model: ${TARGET_MODEL}...`);
+            const response = await fetch(GENERATE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    system_instruction: { parts: [{ text: systemInstruction }] },
-                    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-                    generationConfig: { 
-                        temperature: 0.7, // increased variance
-                        maxOutputTokens: 300 
-                    }
-                })
+                body: JSON.stringify(payload)
             });
 
-            if (!response.ok) throw new Error("Gemini Offline");
-            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
+                throw new Error(`Google API Error ${response.status}: ${errorData.error?.message || response.statusText}`);
+            }
+
             const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || this.getFallback();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!text || text.length < 10) {
+                throw new Error("Empty or insufficient AI response");
+            }
+
             return text.trim();
-        } catch (error) {
-            console.warn("⚠️ Daily Oracle AI failed, using fallback", error);
-            return this.getFallback();
+
+        } catch (error: any) {
+            console.error("⚠️ Daily Oracle AI failed to manifest:", error.message);
+            return this.getFallback(lang);
         }
     }
 
@@ -107,3 +116,5 @@ ${lang === 'en' ? 'PROFESSIONAL GUIDANCE:' : 'CONDUCTA PROFESIONAL:'}
         return `🔮 Lectura NAOS — Hoy\n\nEnergía del día:\nEquilibrio latente en el ciclo solar.\n\nInteracción contigo:\nResonancia neutra. Momento de consolidación estructural.\n\nRiesgo:\nDispersión por sobre-análisis.\n\nOportunidad:\nSostener ritmo sin presión.\n\nAcción NAOS:\nFrecuencias de Tierra 5 min.`;
     }
 }
+
+

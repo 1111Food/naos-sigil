@@ -127,7 +127,7 @@ export const TuningCycleModal: React.FC<TuningCycleModalProps> = ({
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-serif italic text-white">{t('tuning_modal_title')}</h3>
-                                    <p className="text-[10px] uppercase tracking-widest text-white/40">{t('tuning_modal_subtitle')}: {practiceName}</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-white/40">{t('tuning_modal_subtitle')}: {t(practiceName as any)}</p>
                                 </div>
                             </div>
                             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-white/20 hover:text-white">

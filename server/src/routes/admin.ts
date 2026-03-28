@@ -14,7 +14,8 @@ export async function adminRoutes(app: FastifyInstance) {
         
         if (error || !user) return reply.status(401).send({ error: "Invalid token session" });
 
-        if (user.email !== 'luisalfredoherreramendez@gmail.com' && !user.email?.includes('luisalfredoherreramendez')) {
+        const userEmail = (user.email || '').toLowerCase();
+        if (userEmail !== 'luisalfredoherreramendez@gmail.com' && !userEmail.includes('luisalfredoherreramendez') && !userEmail.includes('luis.herrera')) {
              const { data: profile } = await supabaseAdmin.from('profiles').select('plan_type').eq('id', user.id).single();
              if (profile?.plan_type !== 'admin') {
                  return reply.status(403).send({ error: "Forbidden: Destinado solo a Arquitectos." });

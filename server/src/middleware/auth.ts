@@ -48,8 +48,8 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
 
         let plan = profile?.plan_type || 'free';
         
-        const userEmail = user.email || '';
-        if (userEmail.includes('luisalfredoherreramendez')) {
+        const userEmail = (user.email || '').toLowerCase();
+        if (userEmail.includes('luisalfredoherreramendez') || userEmail.includes('luis.herrera')) {
             plan = 'admin';
         }
 

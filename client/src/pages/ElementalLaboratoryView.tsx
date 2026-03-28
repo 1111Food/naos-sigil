@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wind, Play, Sparkles, Brain, Zap as ActionIcon, Info, X, Clock } from 'lucide-react';
+import { ArrowLeft, Wind, Play, Sparkles, Brain, Zap as ActionIcon, Info, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
 import { useFrequency, ELEMENT_FREQUENCIES } from '../hooks/useFrequency';
 import { RITUAL_LIBRARY } from '../constants/ritualContent';
 import { WisdomButton } from '../components/WisdomOverlay';
-import { TuningCycleModal } from '../components/TuningCycleModal';
+
 import { ElementalOnboarding } from '../components/ElementalOnboarding';
-import { useProfile } from '../hooks/useProfile';
+
+import { useTranslation } from '../i18n';
 
 interface ElementalLaboratoryViewProps {
     onBack: () => void;
@@ -16,8 +17,8 @@ interface ElementalLaboratoryViewProps {
 }
 
 export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = ({ onBack, onNavigate }) => {
-    const { profile } = useProfile();
     const { playSound } = useSound();
+    const { t } = useTranslation();
     const { activeElement: activeAudioElement, toggleFrequency, isAtmosphereEnabled, setIsAtmosphereEnabled } = useFrequency();
 
     const [selectedElement, setSelectedElement] = useState<keyof typeof RITUAL_LIBRARY | null>(null);
@@ -29,8 +30,8 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
     } | null>(null);
 
     // Modal State
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activePracticeRecord, setActivePracticeRecord] = useState<{ name: string; icon: React.ReactNode } | null>(null);
+
+
     const [showOnboarding, setShowOnboarding] = useState(false);
 
     React.useEffect(() => {
@@ -40,17 +41,14 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
         }
     }, []);
 
-    const openScheduling = (name: string, icon: React.ReactNode) => {
-        setActivePracticeRecord({ name, icon });
-        setIsModalOpen(true);
-    };
+
 
     const availablePaths = selectedElement ? RITUAL_LIBRARY[selectedElement] : [];
 
     // Explicit Tailwind classes to prevent purging in production builds
     const elements: { id: keyof typeof RITUAL_LIBRARY; icon: any; label: string; desc: string; style: any }[] = [
         {
-            id: 'FIRE', icon: AlchemicalFire, label: 'Fuego', desc: 'Activación y Voluntad',
+            id: 'FIRE', icon: AlchemicalFire, label: t('element_fire'), desc: t('element_fire_desc'),
             style: {
                 activeBg: 'bg-red-900/20', activeBorder: 'border-red-500/60', shadow: 'shadow-[inset_0_0_30px_rgba(239,68,68,0.15)]', text: 'text-red-400', gradient: 'from-red-500/20 to-transparent',
                 inactiveHover: 'hover:border-red-500/40 hover:text-red-400 hover:bg-red-500/5 hover:shadow-[0_0_20px_rgba(239,68,68,0.1)]',
@@ -58,7 +56,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
             }
         },
         {
-            id: 'EARTH', icon: AlchemicalEarth, label: 'Tierra', desc: 'Solidez y Enfoque',
+            id: 'EARTH', icon: AlchemicalEarth, label: t('element_earth'), desc: t('element_earth_desc'),
             style: {
                 activeBg: 'bg-emerald-900/20', activeBorder: 'border-emerald-500/60', shadow: 'shadow-[inset_0_0_30px_rgba(16,185,129,0.15)]', text: 'text-emerald-400', gradient: 'from-emerald-500/20 to-transparent',
                 inactiveHover: 'hover:border-emerald-500/40 hover:text-emerald-400 hover:bg-emerald-500/5 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]',
@@ -66,7 +64,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
             }
         },
         {
-            id: 'AIR', icon: AlchemicalAir, label: 'Aire', desc: 'Claridad y Espacio',
+            id: 'AIR', icon: AlchemicalAir, label: t('element_air'), desc: t('element_air_desc'),
             style: {
                 activeBg: 'bg-fuchsia-900/20', activeBorder: 'border-fuchsia-500/60', shadow: 'shadow-[inset_0_0_30px_rgba(217,70,239,0.15)]', text: 'text-fuchsia-400', gradient: 'from-fuchsia-500/20 to-transparent',
                 inactiveHover: 'hover:border-fuchsia-500/40 hover:text-fuchsia-400 hover:bg-fuchsia-500/5 hover:shadow-[0_0_20px_rgba(217,70,239,0.1)]',
@@ -74,7 +72,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
             }
         },
         {
-            id: 'WATER', icon: AlchemicalWater, label: 'Agua', desc: 'Calma y Fluidez',
+            id: 'WATER', icon: AlchemicalWater, label: t('element_water'), desc: t('element_water_desc'),
             style: {
                 activeBg: 'bg-cyan-900/20', activeBorder: 'border-cyan-500/60', shadow: 'shadow-[inset_0_0_30px_rgba(6,182,212,0.15)]', text: 'text-cyan-400', gradient: 'from-cyan-500/20 to-transparent',
                 inactiveHover: 'hover:border-cyan-500/40 hover:text-cyan-400 hover:bg-cyan-500/5 hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]',
@@ -90,17 +88,13 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
         }
     };
 
-    const handleTuneHabit = (e: React.MouseEvent, practiceName: string, icon: React.ReactNode) => {
-        e.stopPropagation();
-        playSound('click');
-        openScheduling(practiceName, icon);
-    };
+
 
     const emergencyActions = [
-        { label: 'Activarme', sub: 'Fuego', element: 'FIRE', techId: 'fire-1', icon: AlchemicalFire, iconClass: 'text-red-500/80 group-hover:text-red-400' },
-        { label: 'Concretar', sub: 'Tierra', element: 'EARTH', techId: 'earth-1', icon: AlchemicalEarth, iconClass: 'text-emerald-500/80 group-hover:text-emerald-400' },
-        { label: 'Fluir', sub: 'Aire', element: 'AIR', techId: 'air-1', icon: AlchemicalAir, iconClass: 'text-fuchsia-500/80 group-hover:text-fuchsia-400' },
-        { label: 'Calmarme', sub: 'Agua', element: 'WATER', techId: 'water-1', icon: AlchemicalWater, iconClass: 'text-cyan-500/80 group-hover:text-cyan-400' },
+        { label: t('lab_emergency_activate'), sub: t('element_fire'), element: 'FIRE', techId: 'fire-1', icon: AlchemicalFire, iconClass: 'text-red-500/80 group-hover:text-red-400' },
+        { label: t('lab_emergency_concrete'), sub: t('element_earth'), element: 'EARTH', techId: 'earth-1', icon: AlchemicalEarth, iconClass: 'text-emerald-500/80 group-hover:text-emerald-400' },
+        { label: t('lab_emergency_flow'), sub: t('element_air'), element: 'AIR', techId: 'air-1', icon: AlchemicalAir, iconClass: 'text-fuchsia-500/80 group-hover:text-fuchsia-400' },
+        { label: t('lab_emergency_calm'), sub: t('element_water'), element: 'WATER', techId: 'water-1', icon: AlchemicalWater, iconClass: 'text-cyan-500/80 group-hover:text-cyan-400' },
     ];
 
     return (
@@ -120,7 +114,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                 </button>
                 <div className="flex items-center gap-3 absolute left-1/2 -translate-x-1/2">
                     <Sparkles size={16} className="text-amber-400 animate-pulse" />
-                    <h1 className="text-xl md:text-2xl font-serif italic tracking-wider whitespace-nowrap">Laboratorio Elemental</h1>
+                    <h1 className="text-xl md:text-2xl font-serif italic tracking-wider whitespace-nowrap">{t('lab_header')}</h1>
                 </div>
                 <div className="flex items-center gap-2">
                     <WisdomButton color="cyan" onClick={() => setShowOnboarding(true)} />
@@ -132,22 +126,22 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                 <section className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 md:p-8 backdrop-blur-md space-y-8 shadow-2xl">
                     <div className="flex items-center gap-4 px-2">
                         <ActionIcon size={18} className="text-amber-400" />
-                        <h2 className="text-sm md:text-base uppercase tracking-[0.4em] text-white/50 font-black">Respuesta de Emergencia</h2>
+                        <h2 className="text-sm md:text-base uppercase tracking-[0.4em] text-white/50 font-black">{t('lab_emergency_header')}</h2>
                         
                         <button 
                             onClick={(e) => { 
                                 e.stopPropagation(); 
                                 playSound('click'); 
                                 setSelectedRitualInfo({ 
-                                    title: "Respuesta de Emergencia", 
+                                    title: t('lab_emergency_header'), 
                                     description: (
                                         <div className="space-y-4">
-                                            <p>Intervención aguda para alterar tu química sanguínea en tiempo real mediante el control de la biomecánica respiratoria:</p>
+                                            <p>{t('lab_emergency_info')}</p>
                                             <ul className="list-disc pl-5 space-y-2 text-white/50">
-                                                <li><strong className="text-red-400 font-bold">FUEGO:</strong> Inyecta adrenalina controlada para combatir el letargo y activar el foco.</li>
-                                                <li><strong className="text-emerald-400 font-bold">TIERRA:</strong> Enraíza la consciencia en el cuerpo físico cuando hay dispersión grave.</li>
-                                                <li><strong className="text-fuchsia-400 font-bold">AIRE:</strong> Promueve la fluidez y oxigenación general para tareas creativas.</li>
-                                                <li><strong className="text-cyan-400 font-bold">AGUA:</strong> Reduce el ritmo cardíaco y neutraliza la hiper-excitación de la amígdala combatiendo el pánico.</li>
+                                                <li><strong className="text-red-400 font-bold">{t('element_fire').toUpperCase()}:</strong> {t('ritual_fire_architect_breath_description')}</li>
+                                                <li><strong className="text-emerald-400 font-bold">{t('element_earth').toUpperCase()}:</strong> {t('ritual_earth_architect_breath_description')}</li>
+                                                <li><strong className="text-fuchsia-400 font-bold">{t('element_air').toUpperCase()}:</strong> {t('ritual_air_architect_breath_description')}</li>
+                                                <li><strong className="text-cyan-400 font-bold">{t('element_water').toUpperCase()}:</strong> {t('ritual_water_architect_breath_description')}</li>
                                             </ul>
                                         </div>
                                     ), 
@@ -156,7 +150,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                 }); 
                             }}
                             className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white/40 hover:text-white"
-                            title="¿Qué es esto?"
+                            title={t('lab_what_is_this' as any)}
                         >
                             <Info size={14} />
                         </button>
@@ -200,21 +194,21 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                 <section className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 md:p-8 backdrop-blur-md space-y-10 shadow-2xl">
                     <div className="flex items-center gap-4 px-2">
                         <Sparkles size={18} className="text-white/30" />
-                        <h2 className="text-sm md:text-base uppercase tracking-[0.4em] text-white/50 font-black">Biblioteca de Frecuencias</h2>
+                        <h2 className="text-sm md:text-base uppercase tracking-[0.4em] text-white/50 font-black">{t('lab_paths_header')}</h2>
                         
                         <button 
                             onClick={(e) => { 
                                 e.stopPropagation(); 
                                 playSound('click'); 
                                 setSelectedRitualInfo({ 
-                                    title: "Biblioteca de Frecuencias", 
+                                    title: t('lab_paths_header'), 
                                     description: (
                                         <div className="space-y-4">
-                                            <p>Este cuadrante contiene los planos meditativos esotéricos de cada elemento. Al ingresar a uno, iniciarás un protocolo guiado de calibración.</p>
+                                            <p>{t('lab_library_info')}</p>
                                             <ul className="list-disc pl-5 space-y-2 text-white/50">
-                                                <li>Explorará la <strong>mecánica de respiración</strong> asociada a la geometría del elemento.</li>
-                                                <li>Asignará una <strong>sintonización meditativa</strong> específica (ej. Visualización de Kundalini para el Fuego).</li>
-                                                <li>Integrará el nervio acústico con la arquitectura visual para maximizar el estado de flow.</li>
+                                                <li>{t('lab_library_step1')}</li>
+                                                <li>{t('lab_library_step2')}</li>
+                                                <li>{t('lab_library_step3')}</li>
                                             </ul>
                                         </div>
                                     ), 
@@ -223,7 +217,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                 }); 
                             }}
                             className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white/40 hover:text-white"
-                            title="¿Qué es esto?"
+                            title={t('lab_what_is_this' as any)}
                         >
                             <Info size={14} />
                         </button>
@@ -274,20 +268,20 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                     <div className="pt-8 flex flex-col items-center space-y-8">
                         <div className="text-sm md:text-base uppercase tracking-[0.4em] text-white/50 font-black flex items-center gap-4 w-full px-2">
                             <Sparkles size={18} className="text-white/30" />
-                            <span>Motor Acústico</span>
+                            <span>{t('lab_acoustic_header')}</span>
                             
                             <button 
                                 onClick={(e) => { 
                                     e.stopPropagation(); 
                                     playSound('click'); 
                                     setSelectedRitualInfo({ 
-                                        title: "Motor Acústico", 
+                                        title: t('lab_acoustic_header'), 
                                         description: (
                                             <div className="space-y-4">
-                                                <p>El Templo utiliza Arrastre de Ondas Cerebrales puro (Brainwave Entrainment) mediante el Web Audio API del navegador, no simples archivos grabados.</p>
+                                                <p>{t('lab_acoustic_info')}</p>
                                                 <ul className="list-disc pl-5 space-y-2 text-white/50">
-                                                    <li><strong className="text-white font-bold">Onda Pura/Subgrave:</strong> Oscilador Matemático Limpio. Dispara una onda sinusoidal pura para máxima estimulación neurológica, junto con un Sub-Bajo pulsante (LFO) para hacer vibrar la caja torácica.</li>
-                                                    <li><strong className="text-white font-bold">Inmersivo:</strong> Inyecta síntesis algorítmica de ruidos ambientales (Rosa y Marrón) emulando Cuencos, Fuego, y Cascadas según la fórmula matemática de Paul Kellet, filtrando frecuencias de corte en tiempo real.</li>
+                                                    <li><strong className="text-white font-bold">{t('lab_acoustic_pure')}:</strong> {t('lab_acoustic_oscillator')}</li>
+                                                    <li><strong className="text-white font-bold">{t('lab_acoustic_immersive')}:</strong> {t('lab_acoustic_algorithm')}</li>
                                                 </ul>
                                             </div>
                                         ), 
@@ -296,7 +290,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                     }); 
                                 }}
                                 className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white/40 hover:text-white"
-                                title="¿Qué es esto?"
+                                title={t('lab_what_is_this' as any)}
                             >
                                 <Info size={14} />
                             </button>
@@ -305,7 +299,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
 
                             {/* Dual Audio Toggle Switch */}
                             <div className="flex bg-black/40 border border-white/10 rounded-full p-1 self-end shadow-inner ml-2">
-                                <button
+                                 <button
                                     onClick={() => { playSound('click'); setIsAtmosphereEnabled(false); }}
                                     className={cn(
                                         "px-4 py-1.5 rounded-full text-[9px] uppercase tracking-widest font-bold transition-all duration-300",
@@ -314,7 +308,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                             : "text-white/30 hover:text-white/50"
                                     )}
                                 >
-                                    Onda Pura
+                                    {t('pure_wave')}
                                 </button>
                                 <button
                                     onClick={() => { playSound('click'); setIsAtmosphereEnabled(true); }}
@@ -325,7 +319,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                             : "text-white/30 hover:text-white/50"
                                     )}
                                 >
-                                    Inmersivo
+                                    {t('immersive')}
                                 </button>
                             </div>
                         </div>
@@ -411,7 +405,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                             <div key={path.id} className="space-y-5">
                                                 <div className="flex items-center gap-4 px-2">
                                                     <div className="h-[1px] w-8 bg-white/20" />
-                                                    <h3 className="text-[9px] uppercase tracking-[0.5em] text-white/40 font-black">{path.name}</h3>
+                                                    <h3 className="text-[9px] uppercase tracking-[0.5em] text-white/40 font-black">{t(path.name as any)}</h3>
                                                     <div className="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent" />
                                                 </div>
 
@@ -431,32 +425,21 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button
-                                                                    onClick={(e) => { e.stopPropagation(); playSound('click'); setSelectedRitualInfo({ title: path.breath.label, description: path.breath.description || path.breath.copy, techniqueType: 'BREATH', elementId: selectedElement }); }}
+                                                                    onClick={(e) => { e.stopPropagation(); playSound('click'); setSelectedRitualInfo({ title: t(path.breath.label as any), description: t((path.breath.description || path.breath.copy) as any), techniqueType: 'BREATH', elementId: selectedElement }); }}
                                                                     className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-all duration-300 text-white/40 hover:text-white z-20"
-                                                                    title="Ver Detalles"
+                                                                    title={t('lab_view_details' as any)}
                                                                 >
                                                                     <Info size={14} />
                                                                 </button>
-                                                                <button
-                                                                    onClick={(e) => handleTuneHabit(e, path.breath.label, <Wind size={20} />)}
-                                                                    className={cn(
-                                                                        "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 z-20 hover:scale-110 border",
-                                                                        activeEl?.style.activeBg,
-                                                                        activeEl?.style.text,
-                                                                        "border-white/10 hover:border-white/20"
-                                                                    )}
-                                                                    title="Sintonizar Ciclo de Consciencia"
-                                                                >
-                                                                    <Clock size={14} />
-                                                                </button>
+
                                                                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-white/10 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
                                                                     <Play size={12} fill="white" className="ml-0.5 text-white/80" />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div className="text-left relative z-10">
-                                                            <div className="text-sm font-black uppercase tracking-widest text-white/90 mb-1">{path.breath.label}</div>
-                                                            <div className="text-[10px] text-white/40 italic font-light tracking-wide leading-relaxed">{path.breath.copy}</div>
+                                                            <div className="text-sm font-black uppercase tracking-widest text-white/90 mb-1">{t(path.breath.label as any)}</div>
+                                                            <div className="text-[10px] text-white/40 italic font-light tracking-wide leading-relaxed">{t(path.breath.copy as any)}</div>
                                                         </div>
                                                     </div>
 
@@ -474,32 +457,21 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button
-                                                                    onClick={(e) => { e.stopPropagation(); playSound('click'); setSelectedRitualInfo({ title: path.meditation.title, description: path.meditation.description || path.meditation.copy, techniqueType: 'MEDITATION', elementId: selectedElement }); }}
+                                                                    onClick={(e) => { e.stopPropagation(); playSound('click'); setSelectedRitualInfo({ title: t(path.meditation.title as any), description: t((path.meditation.description || path.meditation.copy) as any), techniqueType: 'MEDITATION', elementId: selectedElement }); }}
                                                                     className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-all duration-300 text-white/40 hover:text-white z-20"
-                                                                    title="Ver Detalles"
+                                                                    title={t('lab_view_details' as any)}
                                                                 >
                                                                     <Info size={14} />
                                                                 </button>
-                                                                <button
-                                                                    onClick={(e) => handleTuneHabit(e, path.meditation.title, <Brain size={20} />)}
-                                                                    className={cn(
-                                                                        "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 z-20 hover:scale-110 border",
-                                                                        activeEl?.style.activeBg,
-                                                                        activeEl?.style.text,
-                                                                        "border-white/10 hover:border-white/20"
-                                                                    )}
-                                                                    title="Sintonizar Ciclo de Consciencia"
-                                                                >
-                                                                    <Clock size={14} />
-                                                                </button>
+
                                                                 <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-amber-500/20 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
                                                                     <Play size={12} fill="currentColor" className="ml-0.5 text-amber-400" />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div className="text-left relative z-10">
-                                                            <div className="text-sm font-black uppercase tracking-widest text-white/80 group-hover:text-white mb-1 transition-colors">{path.meditation.title}</div>
-                                                            <div className="text-[9px] text-white/30 uppercase tracking-widest font-mono">Sintonización</div>
+                                                            <div className="text-sm font-black uppercase tracking-widest text-white/80 group-hover:text-white mb-1 transition-colors">{t(path.meditation.title as any)}</div>
+                                                            <div className="text-[9px] text-white/30 uppercase tracking-widest font-mono">{t('tuning' as any)}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -545,7 +517,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                     <div className="flex items-center gap-2 mb-2">
                                         {selectedRitualInfo.techniqueType === 'BREATH' ? <Wind size={14} className="text-white/40" /> : <Brain size={14} className="text-white/40" />}
                                         <span className="text-[10px] uppercase font-mono tracking-[0.2em] text-white/40">
-                                            {selectedRitualInfo.techniqueType === 'BREATH' ? 'Mecánica de Respiración' : 'Sintonización Meditativa'}
+                                            {selectedRitualInfo.techniqueType === 'BREATH' ? t('lab_breath_mechanic') : t('lab_meditation_tuning')}
                                         </span>
                                     </div>
                                     <h2 className="text-xl font-black text-white uppercase tracking-wider">{selectedRitualInfo.title}</h2>
@@ -567,7 +539,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                                     onClick={() => setSelectedRitualInfo(null)}
                                     className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white hover:bg-white/10 transition-colors"
                                 >
-                                    Entendido
+                                    {t('lab_understood')}
                                 </button>
                             </div>
                         </motion.div>
@@ -575,15 +547,7 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                 )}
             </AnimatePresence>
 
-            {profile && activePracticeRecord && (
-                <TuningCycleModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    userId={profile.id}
-                    practiceName={activePracticeRecord.name}
-                    practiceIcon={activePracticeRecord.icon}
-                />
-            )}
+
 
             <ElementalOnboarding
                 isOpen={showOnboarding}

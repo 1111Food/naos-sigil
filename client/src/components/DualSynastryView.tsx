@@ -12,7 +12,7 @@ interface DualSynastryViewProps {
 }
 
 export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) => {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const [step, setStep] = useState<'FORM' | 'TUNING' | 'RESULT'>('FORM');
     const [activeTab, setActiveTab] = useState<'FORM' | 'HISTORY'>('FORM');
 
@@ -36,7 +36,12 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
         setIsLoading(true);
 
         try {
-            const payload = { userProfile: profile, partnerData: { ...partnerData }, relationshipType };
+            const payload = { 
+                userProfile: profile, 
+                partnerData: { ...partnerData }, 
+                relationshipType,
+                language: language || 'es'
+            };
             setStep('TUNING');
 
             const response = await fetch(`${API_BASE_URL}/api/synastry/analyze`, {

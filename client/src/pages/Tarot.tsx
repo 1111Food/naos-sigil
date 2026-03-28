@@ -53,7 +53,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
 
     // Audio Logic Placeholder
     React.useEffect(() => {
-        const audioUrl = 'https://avaikhukgugvcocwedsz.supabase.co/storage/v1/object/public/tarot-assets/frecuencia-tierra.mp3';
+        const audioUrl = '/audio/atmospheres/clientpublicaudioatmospheresearth.mp3';
         const audio = new Audio(encodeURI(audioUrl));
         audio.loop = true;
         audio.volume = 0.3;
@@ -148,7 +148,8 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                     spreadType: spread || 'ONE_CARD',
                     cards: finalCards,
                     mode: 'INTERPRETATIVE',
-                    bypassCoherence: bypassedCoherence
+                    bypassCoherence: bypassedCoherence,
+                    language: t('language_code' as any) || 'es'
                 })
             });
 
@@ -157,8 +158,15 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
             const data = await response.json();
             setReading({
                 cards: finalCards,
-                interpretation: data.interpretation
+                interpretation: data.interpretation,
+                audioUrl: data.audioUrl,
+                audioBase64: data.audioBase64
             });
+
+            if (data.audioUrl || data.audioBase64) {
+                const voice = new Audio(data.audioUrl || `data:audio/mpeg;base64,${data.audioBase64}`);
+                voice.play().catch(e => console.error("Voice playback failed:", e));
+            }
             setOracleState('VOCAL');
         } catch (error) {
             console.error("Oracle Silence:", error);
@@ -554,6 +562,18 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                                                 className="px-8 py-3 rounded-full border border-red-500/20 text-red-500/60 uppercase tracking-[0.3em] text-[11px] hover:bg-red-500/5 transition-all duration-700"
                                             >
                                                 {t('tarot_re_tune')}
+                                            </button>
+                                        )}
+                                        {(reading?.audioUrl || reading?.audioBase64) && (
+                                            <button
+                                                onClick={() => {
+                                                    const voice = new Audio(reading.audioUrl || `data:audio/mpeg;base64,${reading.audioBase64}`);
+                                                    voice.play();
+                                                }}
+                                                className="px-8 py-3 rounded-full border border-amber-500/20 text-amber-500/60 uppercase tracking-[0.3em] text-[11px] hover:bg-amber-500/5 transition-all duration-700 flex items-center gap-2"
+                                            >
+                                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                                                {t('tarot_replay_voice' as any) || 'Replay Voice'}
                                             </button>
                                         )}
                                         <button

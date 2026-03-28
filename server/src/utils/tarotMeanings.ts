@@ -23,6 +23,31 @@ export const MAJOR_ARCANA_MEANINGS: Record<number, string> = {
     21: "El Mundo: Completitud, integración, logro. Un ciclo se cierra con éxito; celebra tu viaje y tu totalidad."
 };
 
+export const MAJOR_ARCANA_MEANINGS_EN: Record<number, string> = {
+    0: "The Fool: A new beginning, spontaneity, blind faith. The universe asks you to take a leap of faith with confidence.",
+    1: "The Magician: Manifestation, personal power, resources. You have all the tools needed to create your reality.",
+    2: "The High Priestess: Intuition, mystery, subconscious. Listen to your inner voice; the answers are not outside.",
+    3: "The Empress: Abundance, nature, creativity. It is time to gestate, nurture, and allow things to bloom.",
+    4: "The Emperor: Structure, authority, stability. Put order in your chaos and take leadership of your life.",
+    5: "The Hierophant: Tradition, spiritual guidance, conformity. Seek wisdom in what is established or from a mentor.",
+    6: "The Lovers: Union, decisions, alignment of values. An important choice is before you.",
+    7: "The Chariot: Will, victory, direction. Advance with determination and hold the reins firm.",
+    8: "Strength: Courage, compassion, gentle mastery. Your true strength lies in your ability to love and endure without violence.",
+    9: "The Hermit: Introspection, solitude, inner guidance. Withdraw for a moment to find your own light.",
+    10: "Wheel of Fortune: Cycles, change, fate. Everything turns; accept the movement and adapt to the new cycle.",
+    11: "Justice: Truth, cause and effect, balance. Be honest with yourself; you will receive what you have sown.",
+    12: "The Hanged Man: Pause, surrender, new perspective. Sometimes you must stop and let go of control to see the truth.",
+    13: "Death: Transformation, endings, rebirth. Let go of what no longer serves so that the new can be born.",
+    14: "Temperance: Balance, moderation, alchemy. Mix opposites with patience to find harmony.",
+    15: "The Devil: Bonds, materialism, shadow. Recognize your chains and addictions to free yourself from them.",
+    16: "The Tower: Revelation, collapse, sudden awakening. False structures must fall to build upon truth.",
+    17: "The Star: Hope, inspiration, serenity. After the storm, celestial guidance shows you the way.",
+    18: "The Moon: Illusion, fear, subconscious. Not everything is what it seems; navigate your shadows with intuition.",
+    19: "The Sun: Joy, success, vitality. The light shines upon you; enjoy this moment of clarity and warmth.",
+    20: "Judgement: Calling, absolution, rebirth. Awaken to your higher purpose; a second chance awaits you.",
+    21: "The World: Completeness, integration, achievement. A cycle closes successfully; celebrate your journey and your totality."
+};
+
 export const NAOS_ARCHETYPE_MEANINGS: Record<number, string> = {
     0: "El Arquitecto: Visión sistémica y diseño de estructuras de largo plazo. Es momento de construir cimientos sólidos.",
     1: "El Estratega: Optimización de recursos y planificación de rutas críticas. Analiza el tablero antes de mover tu pieza.",
@@ -41,3 +66,23 @@ export const NAOS_ARCHETYPE_MEANINGS: Record<number, string> = {
     14: "El Maestro: Dominio técnico y excelencia en la ejecución operativa. Perfecciona tu arte; el detalle es donde reside la maestría.",
     15: "El Mentor: Desarrollo de potencial humano y guía estratégica personalizada. Invierte tiempo en cultivar el talento propio o ajeno."
 };
+
+export const NAOS_ARCHETYPE_MEANINGS_EN: Record<number, string> = {
+    0: "The Architect: Systemic vision and long-term structure design. It is time to build solid foundations.",
+    1: "The Strategist: Resource optimization and critical path planning. Analyze the board before moving your piece.",
+    2: "The Custodian: Protection of essential values and maintenance of integrity. Protect what is truly important.",
+    3: "The Alchemist: Transforming crises into opportunities and transmuting energy. Turn the lead of your problems into gold.",
+    4: "The Commander: Pragmatic leadership and decisive action execution. Take charge with authority and clear direction.",
+    5: "The Orator: Influence through language and expanding impact networks. Your voice is your most powerful tool for change.",
+    6: "The Visionary: Detection of future trends and boundary exploration. Look beyond the conventional horizon.",
+    7: "The Ambassador: Strategic diplomacy and resolution of external tensions. Seek beneficial alliances and harmony in conflict.",
+    8: "The Analyst: Processing complex data and seeking efficiency. Break down the problem into its fundamental parts.",
+    9: "The Mediator: Balancing opposing forces and seeking tactical consensus. Find the middle point where everyone moves forward.",
+    10: "The Explorer: Searching for new territories and accelerated learning. Step out of your comfort zone and discover the unknown.",
+    11: "The Guide: Accompaniment in evolution processes and wisdom transfer. Be the light others need for their path.",
+    12: "The Innovator: Paradigm breaking and hacking established systems. Introduce a disruptive and original solution.",
+    13: "The Guardian: Border surveillance and security preservation. Secure your environment before proceeding with expansion.",
+    14: "The Master: Technical mastery and excellence in operational execution. Perfect your art; mastery lies in the detail.",
+    15: "The Mentor: Developing human potential and personalized strategic guidance. Invest time in cultivating your own or others' talent."
+};
+

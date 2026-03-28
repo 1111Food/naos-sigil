@@ -13,12 +13,14 @@ export interface GroupElementalMesh {
 export class GroupSynastryEngine {
 
     // Evaluate elemental mesh of a team (array of profiles with their astral pillars)
-    public static calculateElementalMesh(teamMembers: any[]): GroupElementalMesh {
+    public static calculateElementalMesh(teamMembers: any[], lang: string = 'es'): GroupElementalMesh {
         let fireCount = 0;
         let earthCount = 0;
         let airCount = 0;
         let waterCount = 0;
         let totalPoints = 0;
+
+        const isEn = lang === 'en';
 
         teamMembers.forEach(member => {
             const elements = member.pillars?.astrology?.elements;
@@ -39,20 +41,25 @@ export class GroupSynastryEngine {
         const air = Math.round((airCount / totalPoints) * 100) || 0;
         const water = Math.round((waterCount / totalPoints) * 100) || 0;
 
-        // Detect voids and predominant elements
+        // Detect voids and predominant elements (localized)
         const voids: string[] = [];
-        if (fire <= 10) voids.push('Fuego');
-        if (earth <= 10) voids.push('Tierra');
-        if (air <= 10) voids.push('Aire');
-        if (water <= 10) voids.push('Agua');
+        const labelFire = isEn ? 'Fire' : 'Fuego';
+        const labelEarth = isEn ? 'Earth' : 'Tierra';
+        const labelAir = isEn ? 'Air' : 'Aire';
+        const labelWater = isEn ? 'Water' : 'Agua';
 
-        let predominant = 'Equilibrado';
+        if (fire <= 10) voids.push(labelFire);
+        if (earth <= 10) voids.push(labelEarth);
+        if (air <= 10) voids.push(labelAir);
+        if (water <= 10) voids.push(labelWater);
+
+        let predominant = isEn ? 'Balanced' : 'Equilibrado';
         const maxElement = Math.max(fire, earth, air, water);
         if (maxElement > 40) {
-            if (maxElement === fire) predominant = 'Fuego';
-            if (maxElement === earth) predominant = 'Tierra';
-            if (maxElement === air) predominant = 'Aire';
-            if (maxElement === water) predominant = 'Agua';
+            if (maxElement === fire) predominant = labelFire;
+            if (maxElement === earth) predominant = labelEarth;
+            if (maxElement === air) predominant = labelAir;
+            if (maxElement === water) predominant = labelWater;
         }
 
         // Calculate a basic harmony score (100 = perfectly balanced 25/25/25/25, lowers with voids or huge extremes)
@@ -71,11 +78,11 @@ export class GroupSynastryEngine {
         };
     }
 
-    public static generateTechnicalReport(teamMembers: any[]) {
-        const mesh = this.calculateElementalMesh(teamMembers);
+    public static generateTechnicalReport(teamMembers: any[], lang: string = 'es') {
+        const mesh = this.calculateElementalMesh(teamMembers, lang);
 
         // Assemble team names for context
-        const teamNames = teamMembers.map(m => m.name || m.role_label || 'Vínculo');
+        const teamNames = teamMembers.map(m => m.name || m.role_label || (lang === 'en' ? 'Bond' : 'Vínculo'));
 
         return {
             score: mesh.score,

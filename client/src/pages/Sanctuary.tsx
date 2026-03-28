@@ -174,27 +174,27 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
 
     // --- PHASE 1: CHECK-IN (NEEDS) ---
     const handleSelectNeed = (element: 'WATER' | 'FIRE' | 'EARTH' | 'AIR') => {
-        let need = '';
+        let needKey = '';
 
         switch (element) {
             case 'WATER': // Calm
-                need = t('sanctuary_need_calm_title');
+                needKey = 'sanctuary_need_calm_title';
                 break;
             case 'FIRE': // Energy
-                need = t('sanctuary_need_activate_title');
+                needKey = 'sanctuary_need_activate_title';
                 break;
             case 'EARTH': // Grounding
-                need = t('sanctuary_need_ground_title');
+                needKey = 'sanctuary_need_ground_title';
                 break;
             case 'AIR': // Flow
-                need = t('sanctuary_need_flow_title');
+                needKey = 'sanctuary_need_flow_title';
                 break;
         }
 
         setRitualState(prev => ({
             ...prev,
             element,
-            need
+            need: needKey
         }));
         setViewMode('CONFIG');
     };
@@ -505,10 +505,10 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                         <div className={cn("max-w-md w-full space-y-12 transition-all duration-1000", isStarting ? "opacity-0" : "opacity-100")}>
                             <div>
                                 <h2 className={cn("text-3xl font-serif italic mb-2", ELEMENT_THEMES[ritualState.element].color)}>
-                                    {ELEMENT_THEMES[ritualState.element].title}
+                                    {t(ELEMENT_THEMES[ritualState.element].title as any)}
                                 </h2>
                                 <p className="text-white/40 text-sm uppercase tracking-widest">
-                                    {ELEMENT_THEMES[ritualState.element].subtitle} • {ritualState.need}
+                                    {t(ELEMENT_THEMES[ritualState.element].subtitle as any)} • {t(ritualState.need as any) || ritualState.need}
                                 </p>
                             </div>
 
@@ -590,10 +590,10 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                         {getActivePath() && (
                             <>
                                 <h2 className="text-2xl font-serif text-white/90 italic mb-4">
-                                    {getActivePath()!.meditation.title}
+                                    {t(getActivePath()!.meditation.title as any)}
                                 </h2>
                                 <p className="text-white/60 text-lg max-w-xl mx-auto leading-relaxed font-light italic">
-                                    {getActivePath()!.meditation.copy}
+                                    {t(getActivePath()!.meditation.copy as any)}
                                 </p>
                             </>
                         )}
@@ -629,10 +629,10 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                         {getActivePath() && (
                             <>
                                 <h2 className="text-2xl font-serif text-white/90 italic mb-4">
-                                    {getActivePath()!.anchor.title}
+                                    {t(getActivePath()!.anchor.title as any)}
                                 </h2>
                                 <p className="text-white/80 text-2xl max-w-xl mx-auto leading-relaxed font-serif italic">
-                                    "{getActivePath()!.anchor.copy}"
+                                    "{t(getActivePath()!.anchor.copy as any)}"
                                 </p>
                             </>
                         )}
