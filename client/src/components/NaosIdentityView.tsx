@@ -53,6 +53,10 @@ const frequencyConfig: Record<string, { main: string, glow: string, bg: string }
     'Telúrica': colorConfig.emerald,
     'Etérea': colorConfig.cyan,
     'Abisal': colorConfig.fuchsia,
+    'Igneous': colorConfig.rose,
+    'Telluric': colorConfig.emerald,
+    'Ethereal': colorConfig.cyan,
+    'Abyssal': colorConfig.fuchsia,
 };
 
 export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile }) => {
@@ -335,8 +339,8 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                 {/* ARCHETYPE CARD (PRIMARY) */}
                 <div className="md:col-span-2 lg:col-span-3">
                     <InnerStatCard 
-                        label="Arquetipo NAOS" 
-                        value={synthesis?.arquetipo?.nombre || 'El Custodio'} 
+                        label={t('identity_archetype_label')} 
+                        value={synthesis?.arquetipo?.nombre || (language === 'en' ? 'The Custodian' : 'El Custodio')} 
                         isArchetype={true}
                         archColor={synthesis?.arquetipo?.elemento ? frequencyConfig[synthesis.arquetipo.frecuencia] : undefined}
                         delay={0.1}
@@ -516,7 +520,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                                 ))}
                                                             </div>
                                                             <span className="text-[9px] uppercase tracking-[0.3em] font-black text-white/20">
-                                                                {!isPlaceHolder ? 'CANALIZADO' : 'PENDIENTE'}
+                                                                {!isPlaceHolder ? t('identity_channeled') : t('identity_pending')}
                                                             </span>
                                                         </div>
 
@@ -638,7 +642,7 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                     <button 
                         onClick={(e) => { e.stopPropagation(); onInfoClick(); }}
                         className="p-1 rounded-full text-white/20 hover:text-white hover:scale-110 hover:bg-white/5 transition-all"
-                        title="Información"
+                        title={t('info')}
                     >
                         <Info size={10} />
                     </button>

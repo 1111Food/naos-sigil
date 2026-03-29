@@ -4,9 +4,9 @@ import { useCallback } from 'react';
 export const useSound = () => {
     const playSound = useCallback((type: 'click' | 'success' | 'transition' = 'click') => {
         const soundUrls = {
-            click: '/audio/atmospheres/clientpublicaudioatmospheresearth.mp3', // Using atmosphere as placeholder
-            success: '/audio/atmospheres/clientpublicaudioatmosphereswater.mp3',
-            transition: '/audio/atmospheres/clientpublicaudioatmospheresair.mp3'
+            click: '', 
+            success: '', 
+            transition: ''
         };
 
         const audio = new Audio(soundUrls[type]);

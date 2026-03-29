@@ -15,7 +15,7 @@ export function useSigil(userName?: string, energyContext?: any) {
             t('sigil_welcome_3', { name: cleanName })
         ];
         return intros[Math.floor(Math.random() * intros.length)];
-    }, [userName, t]);
+    }, [userName, t, language]); // Added language to deps
 
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -26,18 +26,20 @@ export function useSigil(userName?: string, energyContext?: any) {
         if (isHistoryLoading) return;
 
         if (oracleState.messages.length > 0) {
-            setMessages(oracleState.messages.map(m => ({
-                id: m.id,
-                role: m.sender === 'user' ? 'user' : 'model',
-                text: m.text?.replace(/\bhla\b/gi, 'Saludos').replace(/conooimiento/gi, 'conocimiento') || m.text,
-                isHistory: m.isHistory,
-                audioUrl: m.audioUrl,
-                audioBase64: m.audioBase64
-            })));
+            setMessages(oracleState.messages
+                .filter(m => !m.text?.startsWith('[PROACTIVE_TRIGGER:'))
+                .map(m => ({
+                    id: m.id,
+                    role: m.sender === 'user' ? 'user' : 'model',
+                    text: m.text?.replace(/\bhla\b/gi, 'Saludos').replace(/conooimiento/gi, 'conocimiento') || m.text,
+                    isHistory: m.isHistory,
+                    audioUrl: m.audioUrl,
+                    audioBase64: m.audioBase64
+                })));
         } else if (messages.length === 0) {
             setMessages([{ id: 'welcome', role: 'model', text: getWelcomeMessage(), isHistory: false }]);
         }
-    }, [oracleState.messages, getWelcomeMessage, isHistoryLoading]);
+    }, [oracleState.messages, getWelcomeMessage, isHistoryLoading, language]); // Added language to deps
 
     const sendMessage = async (text: string, role: 'maestro' | 'guardian' = 'maestro', retryCount = 0) => {
         const now = Date.now();

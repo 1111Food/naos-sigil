@@ -2,6 +2,7 @@
 // server/src/modules/user/archetypeEngine.ts
 
 export interface ArchetypeResult {
+    id: string;
     nombre: string;
     frecuencia: string;
     rol: string;
@@ -245,6 +246,7 @@ export class ArchetypeEngine {
             };
 
             const result: ArchetypeResult = {
+                id: `${finalElement}-${roleId}`,
                 nombre: isEn ? archetypeEntry.nombre.en : archetypeEntry.nombre.es,
                 frecuencia: frecuenciaMap[finalElement],
                 rol: roleNameMap[roleId as 1|2|3|4] || (isEn ? 'Initiator' : 'Iniciador'),
@@ -265,6 +267,7 @@ export class ArchetypeEngine {
         } catch (err) {
             console.error("🔥 ArchetypeEngine Error:", err);
             return {
+                id: "aire-4", // The Observer as default fallback
                 nombre: isEn ? "The Silent Architect" : "El Arquitecto Silencioso",
                 frecuencia: isEn ? "Ethereal" : "Etérea",
                 rol: isEn ? "Analyst" : "Analista",

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Archive, Zap, Shield } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 interface EvolutionBridgeProps {
     isOpen: boolean;
@@ -9,6 +10,7 @@ interface EvolutionBridgeProps {
 }
 
 export const EvolutionBridge: React.FC<EvolutionBridgeProps> = ({ isOpen, onEvolve, onArchive }) => {
+    const { t } = useTranslation();
     if (!isOpen) return null;
 
     return (
@@ -51,7 +53,7 @@ export const EvolutionBridge: React.FC<EvolutionBridgeProps> = ({ isOpen, onEvol
                                 transition={{ delay: 0.4 }}
                                 className="text-3xl md:text-5xl font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-cyan-200 tracking-tight"
                             >
-                                UMBRAL COMPLETADO
+                                {t('protocol_threshold_achieved')}
                             </motion.h1>
 
                             <motion.p
@@ -60,10 +62,11 @@ export const EvolutionBridge: React.FC<EvolutionBridgeProps> = ({ isOpen, onEvol
                                 transition={{ delay: 0.5 }}
                                 className="text-lg md:text-xl text-white/90 font-sans font-light leading-relaxed max-w-lg mx-auto"
                             >
-                                Has sostenido coherencia durante 21 ciclos.
-                                Ahora puedes convertir esto en tu nueva identidad.
+                                {t('protocol_coherence_sustained')}
                                 <br />
-                                <span className="text-amber-400 font-serif italic text-base mt-4 block">"21 días no es motivación. Es evidencia."</span>
+                                {t('protocol_new_identity')}
+                                <br />
+                                <span className="text-amber-400 font-serif italic text-base mt-4 block">{t('protocol_evidence_quote')}</span>
                             </motion.p>
 
                             <motion.div
@@ -73,7 +76,7 @@ export const EvolutionBridge: React.FC<EvolutionBridgeProps> = ({ isOpen, onEvol
                                 className="pt-4"
                             >
                                 <span className="text-[10px] uppercase tracking-[0.8em] text-amber-500/80 font-black">
-                                    ¿Qué dictamina el Arquitecto?
+                                    {t('protocol_architect_dictate')}
                                 </span>
                             </motion.div>
                         </div>
@@ -91,9 +94,9 @@ export const EvolutionBridge: React.FC<EvolutionBridgeProps> = ({ isOpen, onEvol
                                 <div className="relative z-10 flex flex-col items-center">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Sparkles size={16} className="text-black" />
-                                        <span className="text-black font-black text-xs uppercase tracking-[0.2em]">Ascensión</span>
+                                        <span className="text-black font-black text-xs uppercase tracking-[0.2em]">{t('protocol_ascension')}</span>
                                     </div>
-                                    <span className="text-black font-serif italic text-xl">Evolucionar al Protocolo 90</span>
+                                    <span className="text-black font-serif italic text-xl">{t('protocol_evolve_90')}</span>
                                 </div>
                             </motion.button>
 
@@ -106,9 +109,9 @@ export const EvolutionBridge: React.FC<EvolutionBridgeProps> = ({ isOpen, onEvol
                                 <div className="relative z-10 flex flex-col items-center">
                                     <div className="flex items-center gap-2 mb-1 opacity-40 group-hover:opacity-100 transition-opacity">
                                         <Archive size={14} className="text-white/60" />
-                                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Archivos</span>
+                                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em]">{t('protocol_archives')}</span>
                                     </div>
-                                    <span className="text-white/60 group-hover:text-white transition-colors font-sans font-light text-lg">Sellar en la Bóveda</span>
+                                    <span className="text-white/60 group-hover:text-white transition-colors font-sans font-light text-lg">{t('protocol_seal_vault')}</span>
                                 </div>
                             </motion.button>
                         </div>

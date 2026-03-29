@@ -188,11 +188,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     if (name === 'deliver_astral_nudge') {
-        const { userId, message, aspect, moduleType, buttonLabel, buttonUrl } = args as {
+        const { userId, message, aspect, moduleType = 'system', buttonLabel, buttonUrl } = args as {
             userId: string;
             message: string;
             aspect: string;
-            moduleType: string;
+            moduleType?: string;
             buttonLabel?: string;
             buttonUrl?: string;
         };

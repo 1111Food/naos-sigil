@@ -55,13 +55,26 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
         if (!messages.length) return;
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && lastMessage.role === 'model' && (lastMessage.audioUrl || lastMessage.audioBase64) && !lastMessage.isHistory) {
-            const isVoiceEnabled = localStorage.getItem('naos_sigil_voice_enabled') !== 'false';
-            if (isVoiceEnabled) {
-                const audio = lastMessage.audioBase64 
-                    ? new Audio(`data:audio/mpeg;base64,${lastMessage.audioBase64}`)
-                    : new Audio(`${API_BASE_URL}${lastMessage.audioUrl}`);
-                audio.play().catch(err => console.warn("Audio autoplay blocked or failed:", err));
-            }
+            
+            const playAudio = () => {
+                const preference = localStorage.getItem('naos_sigil_voice_enabled');
+                const isVoiceEnabled = preference === null || preference === 'true'; // Default true
+                
+                if (isVoiceEnabled) {
+                    const audio = lastMessage.audioBase64 
+                        ? new Audio(`data:audio/mpeg;base64,${lastMessage.audioBase64}`)
+                        : new Audio(`${API_BASE_URL}${lastMessage.audioUrl}`);
+                    
+                    audio.play().catch(err => {
+                        console.warn("Audio autoplay blocked or failed:", err);
+                        // Fallback: If blocked, we might need a "Play Voice" button on the message
+                    });
+                }
+            };
+
+            // Small delay to ensure UI transition finishes
+            const t = setTimeout(playAudio, 300);
+            return () => clearTimeout(t);
         }
     }, [messages]);
 

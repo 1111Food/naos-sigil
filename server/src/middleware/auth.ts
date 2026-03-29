@@ -48,9 +48,18 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
 
         let plan = profile?.plan_type || 'free';
         
-        const userEmail = (user.email || '').toLowerCase();
-        if (userEmail.includes('luisalfredoherreramendez') || userEmail.includes('luis.herrera')) {
+        const userEmail = (user.email || user.user_metadata?.email || '').toLowerCase();
+        
+        // --- HARDENED ADMIN CHECK (Fix for 403 on Render) ---
+        const isAdminEmail = 
+            userEmail === 'luisalfredoherreramendez@gmail.com' ||
+            userEmail.includes('luisalfredoherreramendez') || 
+            userEmail.includes('luis.herrera') ||
+            userEmail.includes('luisalfredo.herrera');
+
+        if (isAdminEmail) {
             plan = 'admin';
+            console.log(`⭐ [AUTH_ADMIN] Request ${requestId} | Identified Admin Exception: ${userEmail}`);
         }
 
         const userRole = plan === 'admin' ? 'admin' : (plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free');
@@ -72,6 +81,7 @@ export const validatePremium = async (request: FastifyRequest, reply: FastifyRep
     
     // STRICT RBAC CHECK
     if (!user || (user.role !== "premium" && user.role !== "admin")) {
+        console.warn(`🚨 [RBAC_DENIED] Restricted feature accessed by role: ${user?.role || 'null'}`);
         return reply.status(403).send({ error: "Access denied or AI restricted feature" });
     }
 };

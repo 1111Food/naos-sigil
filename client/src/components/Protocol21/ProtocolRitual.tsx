@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Activity, Shield, ChevronRight, X } from 'lucide-react';
+import { Sparkles, Activity, Shield, ChevronRight, X, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AnimatedSilhouette } from '../AnimatedSilhouette';
 import { useTranslation } from '../../i18n';
@@ -45,6 +45,7 @@ const RITUAL_STEPS = [
 export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) => {
     const { t } = useTranslation();
     const [currentStep, setCurrentStep] = useState(0);
+    const [isAudible, setIsAudible] = useState(false);
 
     const handleNext = () => {
         if (currentStep < RITUAL_STEPS.length - 1) {
@@ -94,8 +95,23 @@ export const ProtocolRitual: React.FC<ProtocolRitualProps> = ({ onComplete }) =>
 
                         {/* Silhouette Watermark Background */}
                         <div className="absolute inset-0 z-0 flex items-center justify-center opacity-30 pointer-events-none scale-150 md:scale-125 translate-y-10">
-                            <AnimatedSilhouette showBreathing={true} showEnergyCenters={true} isAudible={true} />
+                            <AnimatedSilhouette showBreathing={true} showEnergyCenters={true} isAudible={isAudible} />
                         </div>
+
+                        {/* Audio Toggle */}
+                        <button
+                            onClick={() => setIsAudible(!isAudible)}
+                            className="absolute top-6 left-6 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors z-30 flex items-center gap-2 group/audio"
+                        >
+                            {isAudible ? (
+                                <Volume2 size={16} className="text-cyan-400 animate-pulse" />
+                            ) : (
+                                <VolumeX size={16} className="text-white/20" />
+                            )}
+                            <span className="text-[8px] uppercase tracking-[0.2em] text-white/20 group-hover/audio:text-white/60 transition-colors hidden md:block">
+                                {isAudible ? t('audio_on') : t('audio_off')}
+                            </span>
+                        </button>
 
                         <div className="relative z-10 flex flex-col items-center text-center space-y-10">
                             {/* Ritual Icon */}

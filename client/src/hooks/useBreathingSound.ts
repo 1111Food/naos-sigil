@@ -133,16 +133,21 @@ export const useBreathingSound = () => {
     }, []);
 
     const stop = useCallback(() => {
-        if (audioCtxRef.current && audioCtxRef.current.state === 'running') {
+        if (audioCtxRef.current) {
             const now = audioCtxRef.current.currentTime;
-            swellGainRef.current?.gain.cancelScheduledValues(now);
-            swellGainRef.current?.gain.linearRampToValueAtTime(0, now + 0.5);
-            subGainRef.current?.gain.cancelScheduledValues(now);
-            subGainRef.current?.gain.linearRampToValueAtTime(0, now + 0.5);
             
-            setTimeout(() => {
-                audioCtxRef.current?.suspend().catch(() => {});
-            }, 600);
+            // Kill gain immediately
+            if (swellGainRef.current) {
+                swellGainRef.current.gain.cancelScheduledValues(now);
+                swellGainRef.current.gain.setValueAtTime(0, now);
+            }
+            if (subGainRef.current) {
+                subGainRef.current.gain.cancelScheduledValues(now);
+                subGainRef.current.gain.setValueAtTime(0, now);
+            }
+            
+            // Suspend to stop processing but keep context alive for potential resume
+            audioCtxRef.current.suspend().catch(() => {});
         }
     }, []);
 

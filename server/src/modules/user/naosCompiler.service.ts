@@ -88,6 +88,7 @@ export class NaosCompilerService {
                     const enrichedResult = {
                         ...(cachedCode as any),
                         arquetipo: {
+                            id: archetype.id,
                             nombre: archetype.nombre,
                             frecuencia: archetype.frecuencia,
                             rol: archetype.rol,
@@ -124,6 +125,7 @@ export class NaosCompilerService {
                 ...synthesis,
                 language, // Store language to validate cache
                 arquetipo: {
+                    id: archetype.id,
                     nombre: archetype.nombre,
                     frecuencia: archetype.frecuencia,
                     rol: archetype.rol,
@@ -318,6 +320,7 @@ export class NaosCompilerService {
             archetype = ArchetypeEngine.calculate(enrichedProfile, language);
         } catch (engineError) {
             archetype = {
+                id: "unknown",
                 nombre: language === 'en' ? "The NAOS Traveler" : "El Viajero de NAOS",
                 frecuencia: language === 'en' ? "Ethereal" : "Etérea",
                 rol: "Constructor",
@@ -390,6 +393,7 @@ CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
             return {
                 ...normalized,
                 arquetipo: {
+                    id: archetype.id,
                     nombre: archetype.nombre,
                     frecuencia: archetype.frecuencia,
                     rol: archetype.rol,

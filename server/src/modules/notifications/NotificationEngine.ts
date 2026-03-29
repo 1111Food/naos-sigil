@@ -8,208 +8,200 @@ import { TTSService } from '../sigil/ttsService';
 export class NotificationEngine {
 
     /**
-     * Checks for users that are active in a 21 or 90 day protocol cycle
-     * but haven't 'sealed' or checked-in their daily metrics today.
-     * Intended to run between 6 PM and 9 PM local hours conceptually.
-     */
-    public static async checkProtocolReminders() {
-        console.log("⏰ [NOTIF_ENGINE] Evaluating Protocol Reminders...");
-
-        // Fetch users with Telegram linked and who are active
-        const { data: users, error } = await supabase
-            .from('profiles')
-            .select('id, nickname, full_name, telegram_chat_id, profile_data, language')
-            .not('telegram_chat_id', 'is', null);
-
-        if (error || !users) {
-            console.error("🔥 [NOTIF_ENGINE] Error fetching for protocol reminders", error);
-            return;
-        }
-
-        for (const user of users) {
-             try {
-                 // Check condition: if not closed today (Placeholder logic)
-                 const hasClosedToday = false; 
-
-                 if (!hasClosedToday && user.telegram_chat_id) {
-                     const userName = user.nickname || user.full_name || 'Arquitecto';
-                     const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
-                     
-                     // Trigger Sigil message addressing the Protocol stall using bilingual templates
-                     const structure = SYSTEM_PROMPTS[lang].templates.structure;
-                     const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '7').replace('{target}', '21');
-                     const promptContext = `${structure}\n${discipline}`;
-                     
-                     const sigil = new SigilService();
-                     const sigilResponse = await sigil.processMessage(user.id, promptContext, undefined, undefined, 'maestro', false, undefined, lang);
-
-                     console.log(`[NOTIF_ENGINE] Sending reminder to ${userName} in ${lang}`);
-                     
-                     const tts = new TTSService();
-                     const { buffer } = await tts.generateVoice(sigilResponse);
-
-                     const useVoice = user.profile_data?.telegram_voice_enabled !== false; 
-                     if (useVoice && buffer) {
-                         await sendProactiveVoice(user.telegram_chat_id, buffer, sigilResponse);
-                     } else {
-                         await sendProactiveMessage(user.telegram_chat_id, sigilResponse);
-                     }
-                 }
-             } catch (e) {
-                 console.error(`[NOTIF_ENGINE] Failed processing user ${user.id}`, e);
-             }
-        }
-    }
-
-    /**
-     * Detects 24 hours of total user inactivity (no log loads)
-     * and encourages returning back into rhythm to disrupt inertia.
-     */
-    public static async checkInactivity() {
-        console.log("⏰ [NOTIF_ENGINE] Checking Inactivity across nodes...");
-
-        // Placeholder query node: Fetch users where last_active_at > 24h ago.
-        const { data: users } = await supabase
-            .from('profiles')
-            .select('id, telegram_chat_id, nickname, full_name, profile_data, language')
-            .not('telegram_chat_id', 'is', null);
-
-        if (!users) return;
-
-        for (const user of users) {
-            if (!user.telegram_chat_id) continue;
-
-            const userName = user.nickname || user.full_name || 'Arquitecto';
-            const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
-            const structure = SYSTEM_PROMPTS[lang].templates.structure;
-            const inactivity = SYSTEM_PROMPTS[lang].templates.inactivity;
-            const contextMsg = `${structure}\n${inactivity}`;
-            
-            const sigil = new SigilService();
-            const message = await sigil.processMessage(user.id, contextMsg, undefined, undefined, 'maestro', false, undefined, lang);
-
-            const tts = new TTSService();
-            const { buffer } = await tts.generateVoice(message);
-
-            const useVoice = user.profile_data?.telegram_voice_enabled !== false;
-            if (useVoice && buffer) {
-                await sendProactiveVoice(user.telegram_chat_id, buffer, message);
-            } else {
-                await sendProactiveMessage(user.telegram_chat_id, message);
-            }
-        }
-    }
-
-    /**
-     * Checks user_tunings (coherence_tunings) to trigger personalized 
-     * reminders set by time schedules (e.g., '08:00,12:00').
+     * Checks all personalized tuning cycles (Lab, Protocol 21, and Daily Reading)
+     * using the user's local timezone.
      */
     public static async checkTuningCycles() {
         const now = new Date();
-        // Server time info for fallback or comparison
-        const serverHour = String(now.getHours()).padStart(2, '0');
-        const serverMin = String(now.getMinutes()).padStart(2, '0');
-        const serverTimeStr = `${serverHour}:${serverMin}`;
 
-        console.log(`⏰ [NOTIF_ENGINE] Checking Tuning Cycles at server time: ${serverTimeStr}`);
-
+        // 1. Data Fetch
         const { data: tunings } = await supabase
             .from('coherence_tunings')
             .select('*')
             .eq('is_active', true);
 
-        if (!tunings || tunings.length === 0) return;
-
-        const userIds = [...new Set(tunings.map(t => t.user_id))];
-        const { data: users } = await supabase
+        // Fetch all profiles with Telegram linked to check for oracle_time
+        const { data: users, error } = await supabase
             .from('profiles')
-            .select('id, telegram_chat_id, nickname, full_name, profile_data, language')
-            .in('id', userIds);
+            .select('id, email, telegram_chat_id, nickname, full_name, profile_data, language, oracle_time')
+            .not('telegram_chat_id', 'is', null);
 
-        if (!users) return;
+        if (error || !users || users.length === 0) {
+            console.log(`[CRON] Revisando notificaciones... Hora Servidor: ${now.toLocaleString()} | Pendientes encontradas: 0`);
+            return;
+        }
 
-        for (const user of users) {
-            if (!user.telegram_chat_id) continue;
+        // Deduplicate by telegram_chat_id
+        const uniqueUsers = this.getUniqueTelegramUsers(users);
+        let matchCount = 0;
 
-            // Group tunings for this specific user
-            const userTunings = tunings.filter(t => t.user_id === user.id);
-            const activeAspects: string[] = [];
-
-            // Timezone logic
-            const profileData = user.profile_data || {};
-            const offset = (profileData.utcOffset !== undefined) 
-                ? profileData.utcOffset 
-                : (profileData.timezone_offset !== undefined ? profileData.timezone_offset : -6);
-            
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const userLocal = new Date(utc + (3600000 * offset));
-            const userTimeStr = `${String(userLocal.getHours()).padStart(2, '0')}:${String(userLocal.getMinutes()).padStart(2, '0')}`;
-
-            for (const tuning of userTunings) {
-                const schedules = tuning.cron_schedule.split(',');
-                if (schedules.includes(userTimeStr)) {
-                    activeAspects.push(tuning.aspect);
-                }
-            }
-
-            if (activeAspects.length > 0) {
-                console.log(`🚨 [NOTIF_ENGINE] Consolidating ${activeAspects.length} aspects for ${user.nickname || user.full_name} at ${userTimeStr}`);
+        for (const user of uniqueUsers) {
+            try {
+                // Timezone logic
+                const profileData = user.profile_data || {};
+                const offset = (profileData.utcOffset !== undefined) 
+                    ? profileData.utcOffset 
+                    : (profileData.timezone_offset !== undefined ? profileData.timezone_offset : -6);
                 
-                try {
-                    const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
-                    
-                    // NEW: Consolidate prompt
-                    const aspectsStr = activeAspects.join(', ');
-                    const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(aspectsStr);
-                    
-                    const sigil = new SigilService();
-                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                const userLocal = new Date(now.getTime() + (3600000 * offset));
+                const userHours = String(userLocal.getUTCHours()).padStart(2, '0');
+                const userMins = String(userLocal.getUTCMinutes()).padStart(2, '0');
+                const userTimeStr = `${userHours}:${userMins}`;
+                const userDateStr = userLocal.toISOString().split('T')[0];
 
-                    const tts = new TTSService();
-                    const { buffer } = await tts.generateVoice(message);
+                // Collect Active Triggers
+                const userTunings = (tunings || []).filter(t => t.user_id === user.id);
+                const labAspects: string[] = [];
+                let isProtocolDue = false;
+                let isOracleDue = false;
 
-                    const useVoice = user.profile_data?.telegram_voice_enabled !== false;
-                    if (useVoice && buffer) {
-                        await sendProactiveVoice(user.telegram_chat_id, buffer, message);
-                    } else {
-                        await sendProactiveMessage(user.telegram_chat_id, message);
+                // A. Check coherence_tunings (Lab & Protocol)
+                for (const tuning of userTunings) {
+                    if (tuning.cron_schedule.split(',').includes(userTimeStr)) {
+                        if (tuning.aspect === 'protocol21') isProtocolDue = true;
+                        else labAspects.push(tuning.aspect);
+                        matchCount++;
                     }
-                } catch (e) {
-                    console.error(`[NOTIF_ENGINE] Failed sending consolidated tuning for ${user.id}`, e);
                 }
+
+                // B. Check Protocol 21 Fallback (19:30) if no custom tuning exists
+                if (userTimeStr === '19:30' && !userTunings.some(t => t.aspect === 'protocol21')) {
+                    isProtocolDue = true;
+                    matchCount++;
+                }
+
+                // C. Check Daily Reading (oracle_time)
+                if (user.oracle_time && user.oracle_time.startsWith(userTimeStr)) {
+                    isOracleDue = true;
+                    matchCount++;
+                }
+
+                if (!isProtocolDue && !isOracleDue && labAspects.length === 0) continue;
+
+                console.info(`🎯 [CRON] Match FOUND for ${user.email} at ${userTimeStr} (Offset: ${offset})`);
+
+                const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
+                const sigil = new SigilService();
+                const tts = new TTSService();
+                const useVoice = user.profile_data?.telegram_voice_enabled !== false;
+
+                // --- EXECUTION 1: Lab Consolidations ---
+                if (labAspects.length > 0) {
+                    console.info(`🚀 [NOTIF] Triggering Lab: ${user.email}`);
+                    const cleanAspects = labAspects.map(a => a.replace(/^lab_/, '').replace(/_\d+$/, ''));
+                    const aspectsStr = [...new Set(cleanAspects)].join(', ');
+                    const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(aspectsStr);
+                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                    const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                    console.info(`📡 [NOTIF] Lab Result for ${user.email}: ${success}`);
+                    
+                    const labIds = userTunings.filter(t => labAspects.includes(t.aspect)).map(t => t.id);
+                    await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).in('id', labIds);
+                }
+
+                // --- EXECUTION 2: Protocol 21 (with Seal Check) ---
+                if (isProtocolDue) {
+                    const { data: metrics } = await supabase
+                        .from('daily_metrics')
+                        .select('id')
+                        .eq('user_id', user.id)
+                        .gte('created_at', `${userDateStr}T00:00:00.000Z`)
+                        .lte('created_at', `${userDateStr}T23:59:59.999Z`);
+
+                    if (!metrics || metrics.length === 0) {
+                        console.info(`🚀 [NOTIF] Triggering Protocol: ${user.email}`);
+                        const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '?').replace('{target}', '21');
+                        const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${discipline}`;
+                        const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                        const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                        console.info(`📡 [NOTIF] Protocol Result for ${user.email}: ${success}`);
+                        
+                        const p21Tuning = userTunings.find(t => t.aspect === 'protocol21');
+                        if (p21Tuning) {
+                            await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).eq('id', p21Tuning.id);
+                        }
+                    } else {
+                        console.info(`⏹️ [NOTIF] Skipping Protocol for ${user.email} - Already sealed.`);
+                    }
+                }
+
+                // --- EXECUTION 3: Daily Reading (Oracle) ---
+                if (isOracleDue) {
+                    console.info(`🚀 [NOTIF] Triggering Oracle: ${user.email}`);
+                    const prompt = lang === 'es' 
+                        ? "Realiza mi lectura diaria de sabiduría fundamentada en mi diseño original y el tránsito de hoy."
+                        : "Perform my daily wisdom reading based on my original design and today's transits.";
+                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                    const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                    console.info(`📡 [NOTIF] Oracle Result for ${user.email}: ${success}`);
+                }
+
+            } catch (e) {
+                console.error(`[NOTIF_ENGINE] Failed processing triggers for ${user.id}`, e);
             }
         }
+
+        console.log(`[CRON] Revisando notificaciones... Hora Servidor: ${now.toLocaleString()} | Pendientes encontradas: ${matchCount}`);
+    }
+    private static async sendFullMessage(chatId: string, text: string, tts: TTSService, useVoice: boolean, region: string = 'global') {
+        if (useVoice) {
+            const { buffer } = await tts.generateVoice(text, region);
+            if (buffer) {
+                return await sendProactiveVoice(chatId, buffer, text);
+            }
+        }
+        return await sendProactiveMessage(chatId, text);
     }
 
-
-    /**
-     * Central schedule daemon executing contextual check loops.
-     */
     public static scheduleDaemon() {
-        console.log("🌌 [NOTIF_ENGINE] Notification Daemon initialized.");
+        console.log("🌌 [NOTIF_ENGINE] Unified Notification Daemon initialized.");
         
-        // Loop every minute to inspect timers/events
+        // Run once immediately on start
+        this.checkTuningCycles().catch(e => console.error("🔥 [NOTIF_ENGINE] Initial check failed:", e));
+
         setInterval(async () => {
-            const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
-
-            // 1. Run Personalized Tuning Cycles (Personal Cron Lists)
-            await this.checkTuningCycles();
-
-            // 2. Run Protocol Reminders & Inactivity sweeps inside their own time-aware checks
-            // For now, we call them every minute and they should ideally filter by user local time.
-            // But to avoid overloading the DB every minute, we'll keep the server-time triggers 
-            // OR implement a smarter check.
-            
-            // Simple approach: Run sweeps at specific server hours, but the content is already localized.
-            if (currentHour === 19 && currentMinute === 0) {
-                await this.checkProtocolReminders();
+            try {
+                await this.checkTuningCycles();
+                
+                const now = new Date();
+                if (now.getHours() === 11 && now.getMinutes() === 30) {
+                    await this.checkInactivity();
+                }
+            } catch (error) {
+                console.error("🔥 [NOTIF_ENGINE] Daemon Loop Error:", error);
             }
-            if (currentHour === 11 && currentMinute === 0) {
-                await this.checkInactivity();
-            }
+        }, 1000 * 60);
+    }
 
-        }, 1000 * 60); // Minute-by-minute checks
+    private static getUniqueTelegramUsers(users: any[]): any[] {
+        const uniqueMap = new Map<string, any>();
+        for (const user of users) {
+            if (!user.telegram_chat_id) continue;
+            const existing = uniqueMap.get(user.telegram_chat_id);
+            if (!existing || (user.language && !existing.language)) {
+                uniqueMap.set(user.telegram_chat_id, user);
+            }
+        }
+        return Array.from(uniqueMap.values());
+    }
+
+    public static async checkInactivity() {
+        console.info("⏰ [NOTIF_ENGINE] Checking Inactivity sweep...");
+        const { data: users } = await supabase.from('profiles').select('id, email, telegram_chat_id, nickname, full_name, profile_data, language').not('telegram_chat_id', 'is', null);
+        if (!users) return;
+        const uniqueUsers = this.getUniqueTelegramUsers(users);
+        for (const user of uniqueUsers) {
+            try {
+                const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
+                const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
+                const sigil = new SigilService();
+                const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                const tts = new TTSService();
+                const useVoice = user.profile_data?.telegram_voice_enabled !== false;
+                await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice);
+            } catch (e) {
+                console.error(`[NOTIF_ENGINE] Inactivity sweep failed for ${user.id}`, e);
+            }
+        }
     }
 }

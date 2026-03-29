@@ -358,7 +358,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                             </div>
                             <div className="flex flex-col">
                                 <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_state_province')}</label>
-                                <input type="text" placeholder="Ej: CDMX" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.birthState} onChange={e => setNewMember({ ...newMember, birthState: e.target.value })} />
+                                <input type="text" placeholder={t('synastry_city_example')} className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.birthState} onChange={e => setNewMember({ ...newMember, birthState: e.target.value })} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -368,7 +368,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                             </div>
                             <div className="flex flex-col">
                                 <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{t('synastry_op_role')}</label>
-                                <input required type="text" placeholder="Ej: CEO" className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.roleLabel} onChange={e => setNewMember({ ...newMember, roleLabel: e.target.value })} />
+                                <input required type="text" placeholder={t('synastry_role_example')} className="w-full bg-black/40 border border-white/10 p-2 rounded text-white text-sm focus:border-purple-500 outline-none" value={newMember.roleLabel} onChange={e => setNewMember({ ...newMember, roleLabel: e.target.value })} />
                             </div>
                         </div>
                         <button type="submit" className="w-full bg-purple-500/20 text-purple-300 border border-purple-500/30 p-2 rounded uppercase text-[10px] tracking-widest font-bold hover:bg-purple-500/30">{t('synastry_save_profile')}</button>
@@ -407,14 +407,14 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setEditingMember(member); }}
                                         className="w-8 h-8 rounded bg-blue-500/5 text-blue-400/50 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-blue-500/20 hover:text-blue-400 transition-all"
-                                        title="Editar"
+                                        title={t('synastry_edit')}
                                     >
                                         <Edit size={14} />
                                     </button>
                                     <button
                                         onClick={(e) => handleDeleteMember(member.id!, e)}
                                         className="w-8 h-8 rounded bg-red-500/5 text-red-400/50 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 transition-all"
-                                        title="Eliminar"
+                                        title={t('synastry_delete')}
                                     >
                                         <Trash2 size={14} />
                                     </button>
@@ -448,7 +448,7 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); toggleSelection(m); }} 
                                         className="hover:text-white text-blue-300/40 p-0.5 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center"
-                                        title="Deseleccionar"
+                                        title={t('synastry_deselect')}
                                     >
                                         <X size={12} />
                                     </button>

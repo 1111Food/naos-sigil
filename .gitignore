@@ -32,6 +32,12 @@ server/schema_results.txt
 server/diag_results.txt
 server/test-result.log
 server/migration_output*/
+server/tts-cache/
+server/src/sniff_*.ts
+server/src/test_*.ts
+server/src/time_diag.ts
+server/src/verify_trigger.ts
+server/src/isolation_test.ts
 
 # Vercel
 .vercel

@@ -176,8 +176,17 @@ export const BreathingEngine: React.FC<BreathingEngineProps> = ({ technique, ins
             setStepIndex(nextStep);
         }, currentStep.duration * 1000);
 
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+        };
     }, [stepIndex, isActive, technique, cycleCount, isFinished]);
+
+    // Cleanup on unmount - redundant but safe for audio
+    useEffect(() => {
+        return () => {
+            stop();
+        };
+    }, [stop]);
 
     const currentStep = config.cycle[stepIndex];
 

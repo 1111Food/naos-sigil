@@ -169,6 +169,14 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                     <div className="space-y-8">
                         {/* Biophysical Pillars */}
                         <div className="relative">
+                             {/* Active Pillar Background Text */}
+                             {activeInfo && (
+                                 <div className="absolute inset-0 flex items-center justify-center select-none pointer-events-none z-0 overflow-hidden">
+                                     <span className="text-[20vw] font-black text-white/[0.02] leading-none tracking-tighter uppercase whitespace-nowrap">
+                                         {t(PILLARS_DATA.find(p => p.id === activeInfo)?.titleKey as any).toUpperCase().split('/')[0]}
+                                     </span>
+                                 </div>
+                             )}
                              <div className="flex justify-center gap-1 sm:gap-4 py-6 px-2 pb-8 border-b border-white/5 relative z-10">
                                  {PILLARS_DATA.map((pillar) => (
                                      <div key={pillar.id} className="relative flex flex-col items-center gap-3 w-[65px] sm:w-[90px]">

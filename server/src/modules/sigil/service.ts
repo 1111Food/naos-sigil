@@ -482,7 +482,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                 .replace(/conooimiento/gi, 'conocimiento');
 
             // 6. AGGRESSIVE OUTPUT GUARD (HARD LIMIT: 200 words)
-            const finalResponse = this.applyOutputGuard(sanitizedResponse);
+            const finalResponse = this.applyOutputGuard(sanitizedResponse, language);
 
             // Update State (Mock)
             state.relationshipLevel += 1;
@@ -566,12 +566,13 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
         }
     }
 
-    private applyOutputGuard(text: string): string {
+    private applyOutputGuard(text: string, language: string = 'es'): string {
         const words = text.split(/\s+/);
         // Límite de seguridad de 200 palabras para evitar desbordes detectados
         if (words.length > 200) {
             console.warn(`⚠️ OUTPUT GUARD: Trimming response for user. Current length: ${words.length}`);
-            return words.slice(0, 200).join(" ") + "... [Contenido gobernado por brevedad]";
+            const suffix = language === 'en' ? '... [Content governed by brevity]' : '... [Contenido gobernado por brevedad]';
+            return words.slice(0, 200).join(" ") + suffix;
         }
         return text;
     }

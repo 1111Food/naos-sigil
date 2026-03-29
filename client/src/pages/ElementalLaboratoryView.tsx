@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wind, Play, Sparkles, Brain, Zap as ActionIcon, Info, X } from 'lucide-react';
+import { ArrowLeft, Wind, Play, Sparkles, Brain, Zap as ActionIcon, Info, X, Bell } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
 import { useFrequency, ELEMENT_FREQUENCIES } from '../hooks/useFrequency';
 import { RITUAL_LIBRARY } from '../constants/ritualContent';
 import { WisdomButton } from '../components/WisdomOverlay';
-
+import { LaboratoryReminderModal } from '../components/Sanctuary/LaboratoryReminderModal';
+import { useAuth } from '../contexts/AuthContext';
 import { ElementalOnboarding } from '../components/ElementalOnboarding';
 
 import { useTranslation } from '../i18n';
@@ -17,9 +18,11 @@ interface ElementalLaboratoryViewProps {
 }
 
 export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = ({ onBack, onNavigate }) => {
+    const { user } = useAuth();
     const { playSound } = useSound();
     const { t } = useTranslation();
     const { activeElement: activeAudioElement, toggleFrequency, isAtmosphereEnabled, setIsAtmosphereEnabled } = useFrequency();
+    const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
 
     const [selectedElement, setSelectedElement] = useState<keyof typeof RITUAL_LIBRARY | null>(null);
     const [selectedRitualInfo, setSelectedRitualInfo] = useState<{
@@ -116,7 +119,14 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
                     <Sparkles size={16} className="text-amber-400 animate-pulse" />
                     <h1 className="text-xl md:text-2xl font-serif italic tracking-wider whitespace-nowrap">{t('lab_header')}</h1>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => { playSound('click'); setIsReminderModalOpen(true); }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] transition-all group/bell"
+                    >
+                        <Bell className="w-4 h-4 animate-bounce" />
+                        <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">{t('lab_reminder_btn')}</span>
+                    </button>
                     <WisdomButton color="cyan" onClick={() => setShowOnboarding(true)} />
                 </div>
             </header>
@@ -548,6 +558,12 @@ export const ElementalLaboratoryView: React.FC<ElementalLaboratoryViewProps> = (
             </AnimatePresence>
 
 
+
+            <LaboratoryReminderModal 
+                isOpen={isReminderModalOpen}
+                onClose={() => setIsReminderModalOpen(false)}
+                userId={user?.id || ''}
+            />
 
             <ElementalOnboarding
                 isOpen={showOnboarding}

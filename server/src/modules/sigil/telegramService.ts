@@ -66,10 +66,9 @@ export const initTelegramBot = () => {
             console.log(`[TELEGRAM] Raw message from ${chatId}: "${text}"`);
 
             // 1. Verificar si ya está vinculado
-            // Usamos neq('id', ...) para evitar problemas con registros nulos si los hay
             const { data: profile, error: checkError } = await supabase
                 .from('profiles')
-                .select('id, full_name, email, language')
+                .select('id, full_name, email, language, profile_data')
                 .eq('telegram_chat_id', chatId)
                 .maybeSingle();
 
@@ -81,7 +80,24 @@ export const initTelegramBot = () => {
                 
                 try {
                     const aiResponse = await sigilService.processMessage(profile.id, text, undefined, undefined, 'maestro', false, undefined, profile.language || 'es');
-                    ctx.reply(aiResponse);
+                    
+                    // Check for Voice Preference
+                    const isVoiceEnabled = (profile.profile_data as any)?.telegram_voice_enabled === true;
+                    
+                    if (isVoiceEnabled) {
+                        console.log(`[TELEGRAM] Generando nota de voz para ${chatId}...`);
+                        const tts = new (require('./ttsService').TTSService)();
+                        const { buffer } = await tts.generateVoice(aiResponse, profile.language === 'en' ? 'global' : 'latam');
+                        
+                        if (buffer) {
+                             await ctx.replyWithVoice({ source: buffer }, { caption: aiResponse.substring(0, 100) + '...' });
+                             return;
+                        }
+                    }
+
+                    // Fallback to text
+                    await ctx.reply(aiResponse);
+
                 } catch (err) {
                     console.error("[TELEGRAM] Sigil AI error:", err);
                     ctx.reply("El Sigil guarda silencio estelar en este momento. Intenta conectando más tarde.");
@@ -90,7 +106,7 @@ export const initTelegramBot = () => {
             }
 
             // 2. Si no está vinculado, intentar validar email
-            const emailRegex = /^[^s\@]+@[^s\@]+\.[^s\@]+$/;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
             if (emailRegex.test(text)) {
                 console.log(`[TELEGRAM] Intentando vincular email: ${text} con Telegram ID: ${chatId}`);

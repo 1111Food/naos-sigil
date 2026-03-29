@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Wind, Mountain, Droplets, ChevronLeft, Play, Quote } from 'lucide-react';
+import { Flame, Wind, Mountain, Droplets, ChevronLeft, Play, Quote, Bell } from 'lucide-react';
 import { useSound } from '../hooks/useSound';
 import { useTranslation } from '../i18n';
+import { useAuth } from '../contexts/AuthContext';
+import { LaboratoryReminderModal } from '../components/Sanctuary/LaboratoryReminderModal';
 
 interface EvolutionViewProps {
     onBack: () => void;
@@ -97,7 +99,9 @@ const ELEMENT_DATA: Record<ElementType, {
 
 export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
     const { t } = useTranslation();
+    const { user } = useAuth();
     const [selectedElement, setSelectedElement] = useState<ElementType | null>(null);
+    const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
     const { playSound } = useSound();
 
     return (
@@ -112,17 +116,30 @@ export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-purple-500/5 blur-[150px] rounded-full pointer-events-none" />
 
             {/* HEADER */}
-            <header className="relative z-10 w-full max-w-6xl mx-auto px-6 flex items-center justify-between mb-16">
+            <header className="relative z-10 w-full max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 mb-16">
                 <button
                     onClick={() => { playSound('click'); onBack(); }}
-                    className="flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-white/30 hover:text-white transition-colors group"
+                    className="flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-white/30 hover:text-white transition-colors group self-start md:self-auto"
                 >
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     {t('synastry_regresar')}
                 </button>
-                <div className="text-right">
-                    <h2 className="text-3xl font-thin tracking-[0.4em] text-white uppercase select-none">{t('synastry_laboratorio')}</h2>
-                    <p className="text-[9px] text-purple-400 font-black uppercase tracking-[0.5em] mt-2">{t('synastry_evolution_stream')}</p>
+                
+                <div className="flex flex-col items-center md:items-end text-center md:text-right">
+                    <h2 className="text-3xl md:text-5xl font-thin tracking-[0.4em] text-white uppercase select-none mb-2">{t('synastry_laboratorio')}</h2>
+                    <div className="flex flex-wrap items-center justify-center md:justify-end gap-6 mt-4">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse shadow-[0_0_10px_#a855f7]" />
+                            <p className="text-[10px] text-purple-400 font-black uppercase tracking-[0.5em]">{t('synastry_evolution_stream')}</p>
+                        </div>
+                        <button
+                            onClick={() => { playSound('click'); setIsReminderModalOpen(true); }}
+                            className="flex items-center gap-3 px-6 py-3 rounded-full bg-purple-500 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:shadow-[0_0_45px_rgba(168,85,247,0.5)] transition-all duration-300 group/btn border border-purple-400/30"
+                        >
+                            <Bell className="w-4 h-4 text-white animate-bounce" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('lab_reminder_btn')}</span>
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -187,6 +204,12 @@ export const EvolutionView: React.FC<EvolutionViewProps> = ({ onBack }) => {
                 </div>
 
             </main>
+
+            <LaboratoryReminderModal 
+                isOpen={isReminderModalOpen}
+                onClose={() => setIsReminderModalOpen(false)}
+                userId={user?.id || ''}
+            />
         </motion.div>
     );
 };

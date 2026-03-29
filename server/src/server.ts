@@ -2,7 +2,6 @@ import { buildApp } from './app';
 import { config } from './config/env';
 import { startDaemon } from './agent/consciousness-loop';
 import { initTelegramBot } from './modules/sigil/telegramService';
-import { DailyOracleCron } from './modules/oracle/DailyOracleCron';
 import { NotificationEngine } from './modules/notifications/NotificationEngine';
 
 // Global error handlers to prevent hanging processes
@@ -57,10 +56,7 @@ const start = async () => {
             console.error("🔥 Agent Loop failed to start:", err);
         });
 
-        // AWAKEN THE DAILY ORACLE DAEMON (5:00 AM)
-        DailyOracleCron.scheduleDaemon();
-
-        // AWAKEN THE NOTIFICATION ENGINE (PROACTIVE REMINDERS)
+        // AWAKEN THE NOTIFICATION ENGINE (PROACTIVE REMINDERS - UNIFIED HUB)
         NotificationEngine.scheduleDaemon();
 
     } catch (err: any) {

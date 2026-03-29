@@ -49,7 +49,7 @@ export const AnimatedSilhouette: React.FC<AnimatedSilhouetteProps> = ({
             isCancelled = true;
             stop();
         };
-    }, [showBreathing, isAudible, setPhase, resume, stop]);
+    }, [showBreathing, isAudible, stop, resume, setPhase]);
     // 7 Energy centers (from root to crown) mapped along a vertical axis
     // Assuming a 100x100 viewBox for the placeholder
     const energyCenters = [

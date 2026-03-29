@@ -20,10 +20,6 @@ export const config = {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
 };
 
-// Debug log (masked)
-const usedKey = config.GOOGLE_API_KEY || "(EMPTY)";
-console.log(`📡 Cosmic Config: GOOGLE_API_KEY detected? ${config.GOOGLE_API_KEY ? 'YES' : 'NO'} (${usedKey.substring(0, 4)}...)`);
-
 if (!config.GOOGLE_API_KEY) {
     console.error("❌ CRITICAL: GOOGLE_API_KEY is missing. Production AI will fail.");
 }
