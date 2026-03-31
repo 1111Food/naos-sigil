@@ -41,9 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(false);
 
             if (session?.user) {
-                console.log("🔐 NAOS AUTH: Sesión activa detectada para:", session.user.id);
+                // console.log("🔐 NAOS AUTH: Sesión activa detectada para:", session.user.id);
             } else {
-                console.log("🔓 NAOS AUTH: Sesión cerrada o inexistente.");
+                // console.log("🔓 NAOS AUTH: Sesión cerrada o inexistente.");
             }
 
             if (_event === 'PASSWORD_RECOVERY') {

@@ -254,6 +254,19 @@ export async function apiRoutes(app: FastifyInstance) {
         return SubscriptionService.upgradePlan(userId);
     });
 
+    // Custom Tuning Deletion (RLS Bypass)
+    app.delete<{ Params: { id: string } }>('/api/tunings/:id', { preHandler: [validateUser] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        try {
+            const { error } = await supabase.from('coherence_tunings').delete().eq('id', req.params.id).eq('user_id', userId);
+            if (error) throw error;
+            return { status: 'ok' };
+        } catch (e: any) {
+            console.error("🔥 Error deleting tuning:", e);
+            return reply.status(500).send({ error: e.message });
+        }
+    });
+
     // Tarot
     app.get('/api/tarot/yes-no', async (req, reply) => {
         return TarotService.drawYesNo();

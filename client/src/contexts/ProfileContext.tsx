@@ -118,7 +118,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         if (!profile) setProfileLoading(true); // Solo bloquear la UI si de verdad no hay perfil aún.
         try {
-            console.log("🛡️ SSoT: Fetching profile for authenticated user:", user.id);
+            // console.log("🛡️ SSoT: Fetching profile for authenticated user:", user.id);
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')

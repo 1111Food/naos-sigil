@@ -8,8 +8,10 @@ export const useSound = () => {
             success: '', 
             transition: ''
         };
+        const url = soundUrls[type];
+        if (!url) return; // Skip if no asset defined yet
 
-        const audio = new Audio(soundUrls[type]);
+        const audio = new Audio(url);
         audio.volume = 0.15;
         audio.play().catch(e => {
             // Silently handle autoplay blocks or 403s

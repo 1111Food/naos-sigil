@@ -198,6 +198,7 @@ export class UserService {
                 birth_location: updated.birthCity,
                 plan_type: updated.plan_type,
                 onboarding_completed: updated.onboarding_completed,
+                oracle_time: updated.oracle_time,
                 profile_data: updated,
                 updated_at: new Date().toISOString()
             };

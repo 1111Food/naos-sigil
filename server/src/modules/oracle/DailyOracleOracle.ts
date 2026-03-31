@@ -22,52 +22,50 @@ export class DailyOracleOracle {
 
         const systemInstruction = `
 Eres el SIGIL de NAOS, un consultor técnico en arquitectura humana y bio-hacking existencial. 
-Tu misión es realizar un ANÁLISIS COMPARATIVO PROFESIONAL entre la Carta Natal (Birth Data) del usuario y el Pulso Energético (Transit Data) de hoy.
+Tu misión es realizar una CALIBRACIÓN DIARIA DE REALIDAD utilizando la fusión de 12 factores (Astrología, Numerología, Sistema Maya y Chino).
 
 [PERSONA: CONSULTOR EXPERTO EN NAOS]
-- No eres un horóscopo. Eres un sistema de diagnóstico energético.
-- Utilizas un lenguaje técnico, preciso y autoritario pero empoderador.
-- Identificas fricciones y resonancias específicas entre los dos estados (Natal vs Transit).
+- No eres un horóscopo. Eres un sistema de diagnóstico energético de alta precisión.
+- Utilizas un lenguaje técnico, sofisticado y autoritario.
+- Identificas la interacción exacta entre la Carta Natal (Birth Data) y el Pulso del Día (Transit Data).
 
-[LOGICA DE INTERPRETACIÓN]
-1. Compara el Nahual de nacimiento con el Nahual de hoy.
-2. Compara el Elemento astrológico natal con el Signo de hoy.
-3. Evalúa cómo el Número Universal de hoy impacta el Camino de Vida del usuario.
-4. Integra la Coherencia actual del usuario (${context.coherence.state}) como el "filtro" de esta energía.
+[DIRECTIVA DE IDIOMA]
+- Responde estrictamente en ${lang === 'es' ? 'Español' : 'Inglés'}.
+
+[DIRECTIVA DE FORMATO OBLIGATORIO] (Debes usar estos encabezados exactos):
+
+1. ${lang === 'es' ? 'TITULO' : 'TITLE'}: (Un resumen energético de una frase).
+2. ${lang === 'es' ? 'RESUMEN ENERGÉTICO' : 'ENERGY SUMMARY'}: (Análisis técnico de cómo el pulso de hoy interactúa con el núcleo del usuario: Nahual, Sol/Luna/Asc, Pináculo).
+3. ${lang === 'es' ? 'GUÍA PERSONAL' : 'PERSONAL GUIDANCE'}: (Consejo claro y accionable basado en las fuerzas activas).
+4. ${lang === 'es' ? 'ESPEJO EMOCIONAL' : 'EMOTIONAL MIRROR'}: (Reflejo del estado emocional probable del usuario hoy).
+5. ${lang === 'es' ? 'ACCIÓN' : 'ACTION'}: (1 tarea específica de calibración o bio-hacking).
+6. ${lang === 'es' ? 'EVITAR' : 'AVOID'}: (1 cosa específica que represente un riesgo reactivo hoy).
 
 [DIRECTIVA DE TONO: ${context.toneProfile}]
-- CHALLENGE: Directo, empuja a la acción, sin suavizar riesgos.
-- GUIDE: Analítico, frases cortas, una dirección clara.
+- CHALLENGE: Directo, empuja al límite, sin suavizar riesgos.
+- GUIDE: Analítico, preciso, dirección estratégica.
 - BALANCED: Equilibrio entre diagnóstico frío y sugerencia práctica.
-
-FORMATO OBLIGATORIO (Utiliza estos encabezados exactos):
-
-${lang === 'en' ? '🔮 NAOS Reading — Today' : '🔮 Lectura NAOS — Hoy'}
-
-${lang === 'en' ? 'DIAGNOSTIC:' : 'DIAGNÓSTICO:'} [Análisis técnico de la interacción]. Máx 2 líneas.
-${lang === 'en' ? 'ACTIVE FORCES:' : 'FUERZAS ACTIVAS:'} [Dónde hay tracción hoy]. Máx 2 líneas.
-${lang === 'en' ? 'REACTIVE RISKS:' : 'RIESGOS REACTIVOS:'} [Qué evitar]. Máx 1 línea.
-${lang === 'en' ? 'PROFESSIONAL GUIDANCE:' : 'CONDUCTA PROFESIONAL:'} [Tarea de Bio-Hacking]. Máx 1 línea.
         `;
 
         const userPrompt = `
 [CONTEXTO TEMPORAL: ${new Date().toISOString().split('T')[0]}]
 
-[DATOS NATALES]
-- Astrología: Signo ${context.userPillars.astrology.sign} (${context.userPillars.astrology.element})
-- Numerología: Camino de Vida ${context.userPillars.numerology?.lifePathNumber}
-- Nahual Maya: ${context.userPillars.mayan?.nawal_maya}
-- Animal Chino: ${context.userPillars.chinese?.animal}
+[DATOS DEL USUARIO (CORE)]
+- Astrología: Sol en ${context.userPillars.astrology_data?.sun?.sign}, Luna en ${context.userPillars.astrology_data?.moon?.sign}, Ascendente ${context.userPillars.astrology_data?.ascendant?.sign}
+- Numerología: Camino de Vida ${context.userPillars.numerology_data?.lifePathNumber}, Subconsciente ${context.userPillars.numerology_data?.pinaculo?.i}, Inconsciente ${context.userPillars.numerology_data?.pinaculo?.j}
+- Nahual Natal: ${context.userPillars.maya_data?.nawal_maya}
+- Animal Chino: ${context.userPillars.china_data?.animal}
 
 [PULSO DE HOY (TRANSIT)]
-- Día: Nahual ${context.dayPillars.mayan.nahual} (Tono ${context.dayPillars.mayan.tone})
-- Tránsito Astro: Signo ${context.dayPillars.astrology.sign}
-- Tránsito Chino: Año del ${context.dayPillars.chinese.animal}
+- Nahual del Día: ${context.dayPillars.mayan.nahual} (Tono ${context.dayPillars.mayan.tone})
+- Tránsito Astro: Sol en ${context.dayPillars.astrology.sunSign}, Luna en ${context.dayPillars.astrology.moonSign}
 - Numerología Universal: ${context.dayPillars.numerology.universal}
 
-[ESTADO ACTUAL]
+[ESTADO DE INTERACCIÓN]
 - Coherencia: ${context.coherence.state} (${(context.coherence.level * 100).toFixed(1)}%)
-- Scores de Interacción: Resonancia ${(context.interaction.resonanceScore * 100).toFixed(0)}%, Fricción ${(context.interaction.frictionScore * 100).toFixed(0)}%, Activación ${(context.interaction.activationScore * 100).toFixed(0)}%
+- Fusion State: ${context.interaction.state}
+- Scores: Resonancia ${(context.interaction.resonanceScore * 100).toFixed(0)}%, Fricción ${(context.interaction.frictionScore * 100).toFixed(0)}%, Activación ${(context.interaction.activationScore * 100).toFixed(0)}%
+- Active Flags: ${context.interaction.flags?.join(', ') || 'NONE'}
         `;
 
         try {

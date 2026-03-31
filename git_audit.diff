@@ -1,0 +1,1020 @@
+﻿diff --git a/client/src/App.tsx b/client/src/App.tsx
+index 4245ab3..08904f0 100644
+--- a/client/src/App.tsx
++++ b/client/src/App.tsx
+@@ -111,7 +111,7 @@ function App() {
+         try {
+           const parsed = JSON.parse(savedUser);
+           if (parsed && parsed.nickname) {
+-            console.log(`­ƒÅ║ ${t('akashic_sync')} ${parsed.nickname}`);
++            // console.log(`­ƒÅ║ ${t('akashic_sync')} ${parsed.nickname}`);
+             setWelcomeUser(parsed);
+             setActiveView('WELCOME_BACK');
+             setStorageReady(true);
+@@ -170,7 +170,7 @@ function App() {
+ 
+   const handleWelcomeContinue = async () => {
+     if (!welcomeUser) return;
+-    console.log(`­ƒöô ${t('identity_invoking_msg')} ${welcomeUser.nickname}`);
++    // console.log(`­ƒöô ${t('identity_invoking_msg')} ${welcomeUser.nickname}`);
+     // Force profile refresh to ensure context is hot (even if session existed)
+     await refreshProfile();
+     setActiveView('TEMPLE');
+diff --git a/client/src/components/SigilBubble.tsx b/client/src/components/SigilBubble.tsx
+index 634ffd6..d7a0c9f 100644
+--- a/client/src/components/SigilBubble.tsx
++++ b/client/src/components/SigilBubble.tsx
+@@ -2,8 +2,9 @@ import React from 'react';
+ import { useTranslation } from '../i18n';
+ import { motion, AnimatePresence } from 'framer-motion';
+ import { useCoherence } from '../hooks/useCoherence';
+-import { cn } from '../lib/utils';
+ import { useSound } from '../hooks/useSound';
++import { useEnergy } from '../hooks/useEnergy';
++import { useProfile } from '../hooks/useProfile';
+ 
+ interface SigilBubbleProps {
+     activeView?: string;
+@@ -13,9 +14,12 @@ interface SigilBubbleProps {
+ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate }) => {
+     const { t } = useTranslation();
+     const { score, trend } = useCoherence();
++    const { profile } = useProfile();
++    const { energy } = useEnergy();
+     const { playSound } = useSound();
+     const [message, setMessage] = React.useState<string | null>(null);
+     const hasTriggeredRef = React.useRef(false);
++    const welcomeTriggeredRef = React.useRef(false);
+ 
+     // Keep track of latest values without resetting the idle countdown timer
+     const scoreRef = React.useRef(score);
+@@ -24,10 +28,31 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
+     React.useEffect(() => { scoreRef.current = score; }, [score]);
+     React.useEffect(() => { trendRef.current = trend; }, [trend]);
+ 
++    // Initial Welcome Logic (Personalized + Guidance)
++    React.useEffect(() => {
++        if (activeView !== 'TEMPLE' || welcomeTriggeredRef.current) return;
++
++        const timer = setTimeout(() => {
++            if (welcomeTriggeredRef.current) return;
++            
++            const name = profile?.nickname || profile?.name || t('viajero');
++            const welcome = t('sigil_welcome_1', { name });
++            
++            setMessage(welcome);
++            playSound('success');
++            welcomeTriggeredRef.current = true;
++            hasTriggeredRef.current = true; // Mark as triggered so idle doesn't fire immediately
++        }, 3000); // Trigger 3s after landing
++
++        return () => clearTimeout(timer);
++    }, [activeView, profile, energy, t, playSound]);
++
+     React.useEffect(() => {
+         if (activeView !== 'TEMPLE' || hasTriggeredRef.current) {
+             if (activeView !== 'TEMPLE') {
+-                setMessage(null); // Clear message if leaving Temple
++                setMessage(null);
++                welcomeTriggeredRef.current = false;
++                hasTriggeredRef.current = false;
+             }
+             return;
+         }
+@@ -47,10 +72,10 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
+                 playSound('success');
+                 hasTriggeredRef.current = true;
+             }
+-        }, 15000); // 15 seconds idle trigger
++        }, 15000 * 2.5); // 37.5 seconds idle trigger (given initial welcome)
+ 
+         return () => clearTimeout(timer);
+-    }, [activeView, playSound]);
++    }, [activeView, playSound, t]);
+ 
+     if (!message) return null;
+ 
+@@ -61,15 +86,15 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
+                     initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                     animate={{ opacity: 1, scale: 1, y: 0 }}
+                     exit={{ opacity: 0, scale: 0.8, y: 10 }}
+-                    className="fixed z-[99] top-[180px] left-1/2 -translate-x-1/2 w-full max-w-xs bg-black/80 backdrop-blur-3xl border border-cyan-500/20 rounded-2xl p-4 shadow-[0_0_30px_rgba(6,182,212,0.1)] flex flex-col items-center gap-3 text-center"
++                    className="fixed z-[99] top-[140px] left-1/2 -translate-x-1/2 w-[90vw] max-w-md bg-black/80 backdrop-blur-3xl border border-cyan-500/20 rounded-2xl p-5 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col items-center gap-4 text-center transition-all"
+                 >
+-                    <p className="text-[10px] text-white/80 leading-relaxed font-light tracking-wide">
++                    <p className="text-[11px] md:text-sm text-white leading-relaxed font-light tracking-wide whitespace-pre-wrap">
+                         {message}
+                     </p>
+-                    <div className="flex gap-2">
++                    <div className="flex gap-2 w-full justify-center">
+                         <button 
+                             onClick={() => setMessage(null)}
+-                            className="px-4 py-1.5 rounded-full border border-white/5 text-[8px] uppercase tracking-widest text-white/40 hover:bg-white/5 transition-all"
++                            className="px-6 py-2 rounded-full border border-white/5 text-[9px] uppercase tracking-[0.2em] text-white/40 hover:bg-white/5 transition-all"
+                         >
+                             {t('ignore')}
+                         </button>
+@@ -77,12 +102,12 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
+                             onClick={() => {
+                                 setMessage(null);
+                                 if (onNavigate) {
+-                                    onNavigate('SANCTUARY', { type: 'BREATH', techId: 'water-1' });
++                                    onNavigate('CHAT'); // Changed to Chat for better engagement with the message
+                                 }
+                             }}
+-                            className="px-4 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400 text-[8px] font-bold uppercase tracking-widest text-white hover:bg-cyan-500/30 transition-all"
++                            className="px-6 py-2 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-[9px] font-bold uppercase tracking-[0.2em] text-white hover:bg-cyan-500/30 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+                         >
+-                            {t('stabilize')}
++                            {t('calibrate') || 'CALIBRAR'}
+                         </button>
+                     </div>
+                 </motion.div>
+diff --git a/client/src/components/SigilSettingsModal.tsx b/client/src/components/SigilSettingsModal.tsx
+index 7d77c9e..a654abd 100644
+--- a/client/src/components/SigilSettingsModal.tsx
++++ b/client/src/components/SigilSettingsModal.tsx
+@@ -4,6 +4,7 @@ import { X, Send, Clock, Sparkles, Info, MessageCircle } from 'lucide-react';
+ import { supabase } from '../lib/supabase';
+ import { cn } from '../lib/utils';
+ import { useTranslation } from '../i18n';
++import { getAsyncAuthHeaders } from '../lib/api';
+ import { SigilExplainer } from './SigilExplainer';
+ 
+ interface SigilSettingsModalProps {
+@@ -20,6 +21,7 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
+     const { t } = useTranslation();
+     const [time, setTime] = useState('08:00');
+     const [saving, setSaving] = useState(false);
++    const [isSaved, setIsSaved] = useState(false);
+     const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => {
+         return localStorage.getItem('naos_sigil_voice_enabled') === 'true';
+     });
+@@ -48,17 +50,27 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
+     const handleSave = async () => {
+         setSaving(true);
+         try {
+-            const { data: { user } } = await supabase.auth.getUser();
+-            if (user) {
+-                const { error } = await supabase
+-                    .from('profiles')
+-                    .update({ oracle_time: `${time}:00` })
+-                    .eq('id', user.id);
+-                if (error) throw error;
++            const headers = await getAsyncAuthHeaders();
++            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3002'}/api/profile`, {
++                method: 'POST',
++                headers,
++                body: JSON.stringify({ oracle_time: `${time}:00` })
++            });
++
++            if (!res.ok) {
++                const errorData = await res.json().catch(() => ({}));
++                throw new Error(errorData.error || 'Server error al guardar configuraci├│n');
+             }
++
+             localStorage.setItem('naos_sigil_voice_enabled', isVoiceEnabled ? 'true' : 'false');
+             window.dispatchEvent(new Event('sigil_voice_preference_changed'));
+-            onClose();
++            window.dispatchEvent(new Event('focus')); // Force re-fetch of SWR/local profiles
++            
++            setIsSaved(true);
++            setTimeout(() => {
++                setIsSaved(false);
++                onClose();
++            }, 1500);
+         } catch (err: any) {
+             console.error("Error saving oracle time:", err);
+             alert("No se pudo guardar: " + (err.message || err));
+@@ -183,8 +195,13 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
+                         <button onClick={onClose} className="flex-1 p-3 rounded-xl border border-white/5 text-white/60 hover:bg-white/5 transition-all text-sm font-light">
+                             {t('cancel')}
+                         </button>
+-                        <button onClick={handleSave} className="flex-1 p-3 rounded-xl bg-cyan-500/20 border border-cyan-500/20 text-cyan-100 hover:bg-cyan-500/30 transition-all text-sm font-semibold">
+-                            {saving ? t('saving') : t('save')}
++                        <button onClick={handleSave} className="flex-1 p-3 rounded-xl bg-cyan-500/20 border border-cyan-500/20 text-cyan-100 hover:bg-cyan-500/30 transition-all text-sm font-semibold flex items-center justify-center gap-2">
++                            {isSaved ? (
++                                <>
++                                    <Sparkles className="w-4 h-4 text-emerald-400" />
++                                    <span className="text-emerald-400">┬íGuardado!</span>
++                                </>
++                            ) : saving ? t('saving') : t('save')}
+                         </button>
+                     </div>
+ 
+diff --git a/client/src/contexts/AuthContext.tsx b/client/src/contexts/AuthContext.tsx
+index 32f8914..a45b7ed 100644
+--- a/client/src/contexts/AuthContext.tsx
++++ b/client/src/contexts/AuthContext.tsx
+@@ -41,9 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
+             setLoading(false);
+ 
+             if (session?.user) {
+-                console.log("­ƒöÉ NAOS AUTH: Sesi├│n activa detectada para:", session.user.id);
++                // console.log("­ƒöÉ NAOS AUTH: Sesi├│n activa detectada para:", session.user.id);
+             } else {
+-                console.log("­ƒöô NAOS AUTH: Sesi├│n cerrada o inexistente.");
++                // console.log("­ƒöô NAOS AUTH: Sesi├│n cerrada o inexistente.");
+             }
+ 
+             if (_event === 'PASSWORD_RECOVERY') {
+diff --git a/client/src/contexts/ProfileContext.tsx b/client/src/contexts/ProfileContext.tsx
+index 8652a2c..2b07fa3 100644
+--- a/client/src/contexts/ProfileContext.tsx
++++ b/client/src/contexts/ProfileContext.tsx
+@@ -118,7 +118,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
+ 
+         if (!profile) setProfileLoading(true); // Solo bloquear la UI si de verdad no hay perfil a├║n.
+         try {
+-            console.log("­ƒøí´©Å SSoT: Fetching profile for authenticated user:", user.id);
++            // console.log("­ƒøí´©Å SSoT: Fetching profile for authenticated user:", user.id);
+             const { data, error } = await supabase
+                 .from('profiles')
+                 .select('*')
+diff --git a/client/src/hooks/useSound.ts b/client/src/hooks/useSound.ts
+index 5e33bc5..da9a6eb 100644
+--- a/client/src/hooks/useSound.ts
++++ b/client/src/hooks/useSound.ts
+@@ -8,8 +8,10 @@ export const useSound = () => {
+             success: '', 
+             transition: ''
+         };
++        const url = soundUrls[type];
++        if (!url) return; // Skip if no asset defined yet
+ 
+-        const audio = new Audio(soundUrls[type]);
++        const audio = new Audio(url);
+         audio.volume = 0.15;
+         audio.play().catch(e => {
+             // Silently handle autoplay blocks or 403s
+diff --git a/client/src/i18n/index.tsx b/client/src/i18n/index.tsx
+index 61da2cf..2084cba 100644
+--- a/client/src/i18n/index.tsx
++++ b/client/src/i18n/index.tsx
+@@ -108,6 +108,8 @@ export const translations = {
+         sigil_welcome_1: "El silencio ha terminado. NAOS te reconoce, {{name}}.",
+         sigil_welcome_2: "Las esferas se han alineado. ┬┐Qu├® buscas en el tejido del tiempo?",
+         sigil_welcome_3: "Bienvenido al Templo, {{name}}. Tu rastro estelar nos gu├¡a.",
++        sigil_temple_ready: "El Templo est├í activo. El Sigil observa tus ciclos.",
++        calibrate: "CALIBRAR",
+ 
+         // Identity & Ranks
+         mystery_of: "Misterio de",
+@@ -1387,7 +1389,7 @@ export const translations = {
+         // Sigil Bubble & Chat
+         friction_detected: "Your system shows friction. Do you wish to stabilize?",
+         frequency_dropping: "Frequency dropping. It's time to regulate your state.",
+-        ignore: "Ignore",
++        ignore: "IGNORE",
+         stabilize: "Stabilize",
+         akashic_sync: "Syncing Akashic Record...",
+         oracle_listens: "The Oracle Listens",
+@@ -1404,6 +1406,8 @@ export const translations = {
+         sigil_welcome_1: "The silence has ended. NAOS recognizes you, {{name}}.",
+         sigil_welcome_2: "The spheres have aligned. What do you seek in the fabric of time?",
+         sigil_welcome_3: "Welcome to the Temple, {{name}}. Your stellar trail guides us.",
++        sigil_temple_ready: "The Temple is active. The Sigil monitors your cycles.",
++        calibrate: "CALIBRATE",
+ 
+         // Identity & Ranks
+         mystery_of: "Mystery of",
+diff --git a/client/src/pages/Home.tsx b/client/src/pages/Home.tsx
+index 56b32ec..f0e181c 100644
+--- a/client/src/pages/Home.tsx
++++ b/client/src/pages/Home.tsx
+@@ -79,7 +79,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
+ 
+     // Realtime & Fetch Logic
+     React.useEffect(() => {
+-        if (!profile?.id) return;
++        if (!profile?.id) return undefined;
+ 
+         const fetchIntentions = async () => {
+             try {
+@@ -119,8 +119,17 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
+             )
+             .subscribe();
+ 
+-        return () => {
++        const timeout = setTimeout(() => {
++            // Delay cleanup to avoid WebSocket 'closed before established' warning in Dev Mode
+             supabase.removeChannel(channel);
++        }, 200);
++
++        return () => {
++            clearTimeout(timeout);
++            // Use a slight delay for cleanup to avoid WebSocket 'closed before established' in rapid re-renders
++            setTimeout(() => {
++                supabase.removeChannel(channel);
++            }, 300);
+         };
+     }, [profile?.id]);
+ 
+@@ -177,9 +186,9 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
+                         <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-amber-500/20 blur-2xl rounded-full" />
+                         <p className="text-lg md:text-xl font-serif italic theme-aware-text leading-relaxed transition-colors">
+                             {isDormant ? (
+-                                "Tus coordenadas han sido procesadas. Entra a tu C├│digo de Identidad para revelar tus Arquetipos y despertar el Templo."
++                                "Tus coordenadas han sido procesadas. Entra a tu C├│digo de Identidad para revelar tus Arquetipos."
+                             ) : (
+-                                energy?.guidance ? `"${energy.guidance}"` : "Sincronizando frecuencias natales..."
++                                t('sigil_temple_ready') || "El Templo est├í activo. El Sigil observa tus ciclos."
+                             )}
+                         </p>
+                         <div className="mt-4 flex items-center justify-center gap-3 opacity-20 group-hover:opacity-60 transition-opacity aura-zen-white:opacity-10 aura-zen-white:group-hover:opacity-40">
+diff --git a/server/src/modules/notifications/NotificationEngine.ts b/server/src/modules/notifications/NotificationEngine.ts
+index a747750..c0f825c 100644
+--- a/server/src/modules/notifications/NotificationEngine.ts
++++ b/server/src/modules/notifications/NotificationEngine.ts
+@@ -4,6 +4,8 @@ import { SigilService } from '../sigil/service';
+ import { CoherenceService } from '../coherence/service';
+ import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS } from '../sigil/prompts';
+ import { TTSService } from '../sigil/ttsService';
++import { DailyOracleEngine } from '../oracle/DailyOracleEngine';
++import { DailyOracleOracle } from '../oracle/DailyOracleOracle';
+ 
+ export class NotificationEngine {
+ 
+@@ -125,15 +127,70 @@ export class NotificationEngine {
+                     }
+                 }
+ 
+-                // --- EXECUTION 3: Daily Reading (Oracle) ---
++                // --- EXECUTION 3: Daily Reading (12-Factor Oracle) ---
+                 if (isOracleDue) {
+-                    console.info(`­ƒÜÇ [NOTIF] Triggering Oracle: ${user.email}`);
+-                    const prompt = lang === 'es' 
+-                        ? "Realiza mi lectura diaria de sabidur├¡a fundamentada en mi dise├▒o original y el tr├ínsito de hoy."
+-                        : "Perform my daily wisdom reading based on my original design and today's transits.";
+-                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+-                    const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+-                    console.info(`­ƒôí [NOTIF] Oracle Result for ${user.email}: ${success}`);
++                    const todayStr = userLocal.toISOString().split('T')[0];
++                    
++                    // 1. Check Cache
++                    const { data: cached } = await supabase
++                        .from('daily_readings')
++                        .select('reading_text')
++                        .eq('user_id', user.id)
++                        .gte('created_at', `${todayStr}T00:00:00.000Z`)
++                        .lte('created_at', `${todayStr}T23:59:59.999Z`)
++                        .maybeSingle();
++
++                    let reading: string;
++
++                    if (cached) {
++                        console.info(`­ƒôª [NOTIF] Using cached Oracle for ${user.email}`);
++                        reading = cached.reading_text;
++                    } else {
++                        console.info(`­ƒÜÇ [NOTIF] Generating 12-Factor Oracle for ${user.email}`);
++                        
++                        // Fetch full profile for 12-factor data
++                        const { data: fullProfile } = await supabase
++                            .from('profiles')
++                            .select('astrology, numerology, mayan, chinese_animal, chinese_element')
++                            .eq('id', user.id)
++                            .single();
++
++                        const profileForEngine = {
++                            astrology_data: fullProfile?.astrology,
++                            numerology_data: fullProfile?.numerology,
++                            maya_data: fullProfile?.mayan,
++                            china_data: { animal: fullProfile?.chinese_animal, element: fullProfile?.chinese_element }
++                        };
++
++                        const dayPillars = await DailyOracleEngine.getDayPillars(userLocal);
++                        const interaction = DailyOracleEngine.calculateFusion(profileForEngine, dayPillars);
++                        const coherenceData = await CoherenceService.getCoherence(user.id);
++                        const coherence = {
++                            state: coherenceData.global_coherence >= 75 ? 'HIGH' : coherenceData.global_coherence < 45 ? 'LOW' : 'MEDIUM',
++                            level: coherenceData.global_coherence / 100
++                        };
++                        const { toneProfile } = DailyOracleEngine.getAdaptiveProfile(interaction, coherence.state);
++
++                        reading = await DailyOracleOracle.generateDailyReading({
++                            userName: user.nickname || user.full_name,
++                            userPillars: fullProfile,
++                            dayPillars,
++                            interaction,
++                            coherence,
++                            toneProfile,
++                            language: lang
++                        });
++
++                        // Cache Result
++                        await supabase.from('daily_readings').insert({
++                            user_id: user.id,
++                            reading_text: reading,
++                            pillars_data: { dayPillars, interaction }
++                        });
++                    }
++
++                    const success = await this.sendFullMessage(user.telegram_chat_id, reading, tts, useVoice, lang === 'en' ? 'global' : 'latam');
++                    console.info(`­ƒôí [NOTIF] 12-Factor Oracle Result for ${user.email}: ${success}`);
+                 }
+ 
+             } catch (e) {
+diff --git a/server/src/modules/oracle/DailyOracleEngine.ts b/server/src/modules/oracle/DailyOracleEngine.ts
+index 8e273ef..f48a979 100644
+--- a/server/src/modules/oracle/DailyOracleEngine.ts
++++ b/server/src/modules/oracle/DailyOracleEngine.ts
+@@ -1,3 +1,7 @@
++import { AstrologyEngine } from '../astrology/engine';
++import { NumerologyService } from '../numerology/service';
++import { MayanCalculator } from '../maya/calculator';
++
+ const NAHUALES = [
+     "Imox", "Ik", "Akbal", "Kan", "Chicchan", "Cimi", "Manik", "Lamat", "Muluk", "Ok",
+     "Chuen", "Eb", "Ben", "Ix", "Men", "Cib", "Caban", "Etznab", "Cauac", "Ajaw"
+@@ -28,279 +32,190 @@ export const NAHUAL_COMPATIBILITY: { [key: string]: string[] } = {
+ 
+ export class DailyOracleEngine {
+ 
+-    // Prompt 1: Numerolog├¡a
+-    public static reduceNumber(num: number): number {
+-        let n = num;
+-        while (n > 9 && n !== 11 && n !== 22 && n !== 33) {
+-            n = n.toString().split('').reduce((a, b) => a + Number(b), 0);
+-        }
+-        return n;
+-    }
+-
+-    public static getNumerology(date: Date) {
+-        // Usa UTC para evitar desfases de calendario en el servidor
+-        const day = date.getUTCDate();
+-        const month = date.getUTCMonth() + 1;
+-        const year = date.getUTCFullYear();
+-
+-        const dayNumber = day; // d├¡a calendario reduces? Prompt says "= d├¡a calendario (1-31)"
+-        
+-        // Suma de d├¡gitos de d├¡a, mes y a├▒o independientes
+-        const sumDigits = (n: number) => n.toString().split('').reduce((a, b) => a + Number(b), 0);
+-        const total = sumDigits(day) + sumDigits(month) + sumDigits(year);
+-        const universal = this.reduceNumber(total);
+-
+-        return { dayNumber, universal };
+-    }
+-
+-    // Prompt 2: Tzolkin (Calendario Maya)
+-    public static calculateTzolkin(targetDate: Date) {
+-        // Base fija: 21 de diciembre de 2012 = 4 Ajaw
+-        const baseDate = new Date("2012-12-21T00:00:00Z");
++    /**
++     * Calculates the "Day Pillars" using high-fidelity engines.
++     * This represents the "PULSO DE HOY" (Transit Data).
++     */
++    public static async getDayPillars(date: Date, lat: number = 14.6349, lng: number = -90.5069) {
++        // 1. Astrology Transits (Sun, Moon, Phase)
++        const transitChart = AstrologyEngine.calculateNatalChart(date, lat, lng);
++        const sun = transitChart.planets.find(p => p.name === 'Sun');
++        const moon = transitChart.planets.find(p => p.name === 'Moon');
+         
+-        // Crear copias solo con a├▒o, mes, d├¡a en UTC a las 00:00 para evitar que horas / minutos afecten el conteo de d├¡as
+-        const d1 = Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate());
+-        const d2 = Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate());
+-
+-        const diffTime = d1 - d2;
+-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+-
+-        // Calcular Tono (Base 4)
+-        // 4 + diffDays % 13.
+-        let tone = (4 + diffDays) % 13;
+-        if (tone <= 0) tone += 13;
+-
+-        // Calcular Nahual (Base 20, 21-12-2012 era Ajaw, el ├¡ndice 19 de la lista 0-indexed)
+-        // Ajaw es el ├║ltimo en la lista (├¡ndice 19).
+-        // let index = (19 + diffDays) % 20;
+-        let index = (19 + diffDays) % 20;
+-        if (index < 0) index += 20;
+-
+-        const nahual = NAHUALES[index];
+-
+-        return { tone, nahual };
+-    }
++        // 2. Numerology (Universal Day)
++        const universalNum = this.calculateUniversalDay(date);
+ 
+-    // Prompt 3: Animal Chino
+-    public static getChineseAnimal(year: number): string {
+-        const chineseAnimals = [
+-            "Mono", "Gallo", "Perro", "Cerdo", "Rata", "Buey", 
+-            "Tigre", "Conejo", "Drag├│n", "Serpiente", "Caballo", "Cabra"
+-        ];
+-        return chineseAnimals[year % 12];
+-    }
++        // 3. Mayan (Daily Nahual)
++        const mayan = this.calculateTzolkin(date);
+ 
+-    // Prompt 4: Signo Solar Zodiacal
+-    public static getZodiacSign(date: Date): string {
+-        const day = date.getUTCDate();
+-        const month = date.getUTCMonth() + 1;
++        // 4. Chinese (Yearly Animal influence)
++        const chinese = { animal: this.getChineseAnimal(date.getUTCFullYear()) };
+ 
+-        if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "Aries";
+-        if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "Tauro";
+-        if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return "G├®minis";
+-        if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return "C├íncer";
+-        if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "Leo";
+-        if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return "Virgo";
+-        if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return "Libra";
+-        if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return "Escorpio";
+-        if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return "Sagitario";
+-        if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return "Capricornio";
+-        if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "Acuario";
+-        return "Piscis";
++        return {
++            astrology: {
++                sunSign: sun?.sign || 'Unknown',
++                moonSign: moon?.sign || 'Unknown',
++                moonAbsDegree: moon?.absDegree || 0,
++                transitElements: transitChart.elements
++            },
++            numerology: { universal: universalNum },
++            mayan,
++            chinese
++        };
+     }
+ 
+-    // Prompt 5: Sistema de Interacci├│n B├ísico (Scores)
+-    public static calculateBasicInteraction(userPillars: any, dayPillars: any) {
+-        let resonanceScore = 0;
+-        let frictionScore = 0;
+-        let activationScore = 0;
+-
+-        // --- 1. Numerolog├¡a ---
+-        const userNum = userPillars.numerology?.lifePathNumber || 0;
+-        const dayNum = dayPillars.numerology.dayNumber;
+-        const universalNum = dayPillars.numerology.universal;
+-
+-        if (userNum === dayNum || userNum === universalNum) {
+-            resonanceScore++;
+-        }
++    /**
++     * Calculates the fusion between USER CORE and DAY ENERGY.
++     * Generates Alignment, Friction, Opportunity, and Warning flags.
++     */
++    public static calculateFusion(userProfiles: any, dayPillars: any) {
++        const { astrology_data: natalAstro, numerology_data: natalNum, maya_data: natalMaya } = userProfiles;
++        
++        let alignment = 0;
++        let friction = 0;
++        const flags: string[] = [];
++
++        // --- 1. ASTRAL LAYERS (Sun, Moon, Asc, MC) ---
++        if (natalAstro) {
++            const transitSun = dayPillars.astrology.sunSign;
++            const transitMoon = dayPillars.astrology.moonSign;
++
++            // Sun-Sun Alignment
++            if (natalAstro.sun?.sign === transitSun) {
++                alignment += 0.3;
++                flags.push('SOLAR_RESONANCE');
++            }
+ 
+-        if (Math.abs(userNum - dayNum) >= 4) {
+-            frictionScore++;
+-        }
++            // Moon Stability
++            if (natalAstro.moon?.sign === transitMoon) {
++                alignment += 0.2;
++                flags.push('EMOTIONAL_HARMONY');
++            } else if (this.areSignsOpposite(natalAstro.moon?.sign, transitMoon)) {
++                friction += 0.3;
++                flags.push('EMOTIONAL_TENSION');
++            }
+ 
+-        const sumDay = userNum + dayNum;
+-        if ([9, 11, 22].includes(sumDay)) {
+-            activationScore++;
++            // Ascendant vs Transit
++            if (natalAstro.ascendant?.sign === transitSun) {
++                alignment += 0.25;
++                flags.push('PRIMARY_ALIGNMENT');
++            }
+         }
+ 
+-        // --- 2. Nahual ---
+-        const userNahual = userPillars.mayan?.nawal_maya || userPillars.mayan?.kicheName || userPillars.mayan?.nawal;
+-        const dayNahual = dayPillars.mayan.nahual;
++        // --- 2. NUMERICAL LAYERS (Life Path, Personality, Pinnacle Keys) ---
++        if (natalNum) {
++            const universalDay = dayPillars.numerology.universal;
++            const lifePath = natalNum.lifePathNumber;
+ 
+-        if (userNahual === dayNahual) {
+-            resonanceScore++;
+-        }
+-
+-        if (userNahual && dayNahual) {
+-            if (NAHUAL_COMPATIBILITY[userNahual]?.includes(dayNahual)) {
+-                activationScore++;
+-            } else if (userNahual !== dayNahual) {
+-                frictionScore++;
++            if (lifePath === universalDay) {
++                alignment += 0.3;
++                flags.push('ESSENCE_RESONANCE');
+             }
+-        }
+-
+-        // --- 3. Astrolog├¡a (Elementos) ---
+-        const getElement = (sign: string) => {
+-            const map: { [key: string]: string } = {
+-                Aries: "Fire", Leo: "Fire", Sagitario: "Fire",
+-                Tauro: "Earth", Virgo: "Earth", Capricornio: "Earth",
+-                G├®minis: "Air", Libra: "Air", Acuario: "Air",
+-                C├íncer: "Water", Escorpio: "Water", Piscis: "Water"
+-            };
+-            return map[sign];
+-        };
+ 
+-        const userElem = userPillars.astrology?.element; // pre-computed dominant or sun element?
+-        const dayElem = getElement(dayPillars.astrology.sign);
++            // Subconscious / Unconscious Keys
++            const subconscious = natalNum.pinaculo?.i;
++            const unconscious = natalNum.pinaculo?.j;
+ 
+-        if (userElem && dayElem) {
+-            if (userElem === dayElem) {
+-                resonanceScore++;
++            if (subconscious === universalDay) {
++                flags.push('SUBCONSCIOUS_TRIGGER');
++                alignment += 0.15;
+             }
+-
+-            const activeCombos = [["Fire", "Air"], ["Water", "Earth"]];
+-            const isActive = activeCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
+-            if (isActive) {
+-                activationScore++;
++            if (unconscious === universalDay) {
++                flags.push('UNCONSCIOUS_CHALLENGE');
++                friction += 0.2;
+             }
++        }
+ 
+-            const frictionCombos = [["Fire", "Water"], ["Air", "Earth"]];
+-            const isFriction = frictionCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
+-            if (isFriction) {
+-                frictionScore++;
++        // --- 3. MAYAN LAYERS (Nahual) ---
++        if (natalMaya) {
++            const natalNahual = natalMaya.nawal_maya || natalMaya.nawal;
++            const dayNahual = dayPillars.mayan.nahual;
++
++            if (natalNahual === dayNahual) {
++                alignment += 0.4;
++                flags.push('NAHUAL_SYNCHRO');
++            } else if (NAHUAL_COMPATIBILITY[natalNahual]?.includes(dayNahual)) {
++                alignment += 0.2;
++                flags.push('MAYA_ALLIANCE');
++            } else {
++                friction += 0.2;
++                flags.push('MAYA_RESISTANCE');
+             }
+         }
+ 
+-        return { resonanceScore, frictionScore, activationScore };
+-    }
++        // Normalize Scores
++        const resonanceScore = Math.min(1, alignment);
++        const frictionScore = Math.min(1, friction);
++        const activationScore = Math.min(1, (alignment + friction) / 1.5);
+ 
+-    public static getDayPillars(date: Date) {
+-        const numerology = this.getNumerology(date);
+-        const mayan = this.calculateTzolkin(date);
+-        const chineseAnimal = this.getChineseAnimal(date.getUTCFullYear());
+-        const sign = this.getZodiacSign(date);
++        // Determine State
++        let state: 'ALIGNMENT' | 'FRICTION' | 'OPPORTUNITY' | 'WARNING' = 'ALIGNMENT';
++        if (frictionScore > 0.5) state = 'WARNING';
++        else if (frictionScore > resonanceScore) state = 'FRICTION';
++        else if (resonanceScore > 0.7) state = 'ALIGNMENT';
++        else state = 'OPPORTUNITY';
+ 
+         return {
+-            numerology,
+-            mayan,
+-            chinese: { animal: chineseAnimal },
+-            astrology: { sign }
++            resonanceScore,
++            frictionScore,
++            activationScore,
++            state,
++            flags
+         };
+     }
+ 
+-    // Prompt 10: Sistema de Scoring Avanzado (Pesos)
+-    public static calculateAdvancedInteraction(userPillars: any, dayPillars: any) {
+-        // --- 1. NUMEROLOG├ìA (Peso 0.35) ---
+-        let numRes = 0; let numFric = 0; let numAct = 0;
+-        const userNum = userPillars.numerology?.lifePathNumber || 1;
+-        const dayNum = dayPillars.numerology.dayNumber;
+-        const universalNum = dayPillars.numerology.universal;
+-
+-        if (userNum === dayNum) numRes += 0.7;
+-        if (userNum === universalNum) numRes += 0.5;
+-
+-        if (Math.abs(userNum - dayNum) >= 5) numFric += 0.6;
+-        if (Math.abs(userNum - universalNum) >= 5) numFric += 0.4;
+-
+-        if ([9, 11, 22, 33].includes(userNum + dayNum)) numAct += 0.6;
+-        if ([9, 11, 22, 33].includes(userNum + universalNum)) numAct += 0.4;
+-
+-        // Normalizar cada sub-score a 1 max
+-        numRes = Math.min(1, numRes);
+-        numFric = Math.min(1, numFric);
+-        numAct = Math.min(1, numAct);
+-
+-        // --- 2. NAHUAL (Peso 0.40) ---
+-        let nahualRes = 0; let nahualFric = 0; let nahualAct = 0;
+-        const userNahual = userPillars.mayan?.nawal_maya || userPillars.mayan?.kicheName || userPillars.mayan?.nawal;
+-        const dayNahual = dayPillars.mayan.nahual;
+-
+-        if (userNahual === dayNahual) {
+-            nahualRes = 1;
+-        }
+-        
+-        if (userNahual && dayNahual) {
+-            if (NAHUAL_COMPATIBILITY[userNahual]?.includes(dayNahual)) {
+-                nahualAct = 0.8;
+-            } else if (userNahual !== dayNahual) {
+-                nahualFric = 0.7;
+-            }
++    private static calculateUniversalDay(date: Date): number {
++        const day = date.getUTCDate();
++        const month = date.getUTCMonth() + 1;
++        const year = date.getUTCFullYear();
++        const sum = (n: number) => n.toString().split('').reduce((a, b) => a + Number(b), 0);
++        let total = sum(day) + sum(month) + sum(year);
++        while (total > 9 && total !== 11 && total !== 22 && total !== 33) {
++            total = sum(total);
+         }
++        return total;
++    }
+ 
+-        // --- 3. ASTROLOG├ìA (Peso 0.25) ---
+-        let astroRes = 0; let astroFric = 0; let astroAct = 0;
+-        const userElem = userPillars.astrology?.element;
+-        const dayElem = this.getElementFromSign(dayPillars.astrology.sign);
+-
+-        if (userElem && dayElem) {
+-            if (userElem === dayElem) astroRes = 1;
+-
+-            const activeCombos = [["Fire", "Air"], ["Water", "Earth"]];
+-            const isActive = activeCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
+-            if (isActive) astroAct = 0.8;
++    private static areSignsOpposite(sign1: string, sign2: string): boolean {
++        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
++        const i1 = signs.indexOf(sign1);
++        const i2 = signs.indexOf(sign2);
++        if (i1 === -1 || i2 === -1) return false;
++        return Math.abs(i1 - i2) === 6;
++    }
+ 
+-            const frictionCombos = [["Fire", "Water"], ["Air", "Earth"]];
+-            const isFriction = frictionCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
+-            if (isFriction) astroFric = 0.7;
+-        }
++    public static calculateTzolkin(targetDate: Date) {
++        const baseDate = new Date("2012-12-21T00:00:00Z");
++        const d1 = Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate());
++        const d2 = Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate());
++        const diffDays = Math.floor((d1 - d2) / (1000 * 60 * 60 * 24));
+ 
+-        // --- 4. SCORE FINAL CON PESOS ---
+-        const resonanceScore = (numRes * 0.35) + (nahualRes * 0.40) + (astroRes * 0.25);
+-        const frictionScore = (numFric * 0.35) + (nahualFric * 0.40) + (astroFric * 0.25);
+-        const activationScore = (numAct * 0.35) + (nahualAct * 0.40) + (astroAct * 0.25);
++        let tone = (4 + diffDays) % 13;
++        if (tone <= 0) tone += 13;
+ 
+-        return {
+-            resonanceScore: Math.min(resonanceScore, 1),
+-            frictionScore: Math.min(frictionScore, 1),
+-            activationScore: Math.min(activationScore, 1)
+-        };
+-    }
++        let index = (19 + diffDays) % 20;
++        if (index < 0) index += 20;
+ 
+-    private static getElementFromSign(sign: string): string {
+-        const map: { [key: string]: string } = {
+-            Aries: "Fire", Leo: "Fire", Sagitario: "Fire",
+-            Tauro: "Earth", Virgo: "Earth", Capricornio: "Earth",
+-            G├®minis: "Air", Libra: "Air", Acuario: "Air",
+-            C├íncer: "Water", Escorpio: "Water", Piscis: "Water"
+-        };
+-        return map[sign] || "Unknown";
++        return { tone, nahual: NAHUALES[index] };
+     }
+ 
+-    // Prompt 12: Coherencia Global
+-    public static calculateCoherenceLevel(discipline: number, energy: number, clarity: number) {
+-        const coherence = (discipline + energy + clarity) / 3;
+-        const level = coherence / 100; // 0 a 1
+-
+-        let state = "MEDIUM";
+-        if (level >= 0.75) state = "HIGH";
+-        if (level < 0.45) state = "LOW";
+-
+-        return { level, state };
++    public static getChineseAnimal(year: number): string {
++        const chineseAnimals = ["Mono", "Gallo", "Perro", "Cerdo", "Rata", "Buey", "Tigre", "Conejo", "Drag├│n", "Serpiente", "Caballo", "Cabra"];
++        return chineseAnimals[year % 12];
+     }
+ 
+-    // Prompt 13 & 14: Modificador Adaptativo y Perfil de Tono
+     public static getAdaptiveProfile(scores: { resonanceScore: number, frictionScore: number, activationScore: number }, coherenceState: string) {
+         let { resonanceScore, frictionScore, activationScore } = scores;
+-        let toneProfile = "BALANCED";
+-
+-        if (coherenceState === "HIGH") {
+-            activationScore = Math.min(1, activationScore + 0.15); // Se busca expansi├│n
+-            frictionScore = Math.min(1, frictionScore * 1.2); // Reducir tolerancia a fricci├│n = pesa m├ís el riesgo
+-            toneProfile = "CHALLENGE";
+-        } else if (coherenceState === "LOW") {
+-            resonanceScore = Math.min(1, resonanceScore + 0.2); // M├ís gu├¡a / suavidad
+-            frictionScore = Math.max(0, frictionScore * 0.8); // Suavizar avisos de fricci├│n
+-            toneProfile = "GUIDE";
++        let toneProfile: 'BALANCED' | 'CHALLENGE' | 'GUIDE' = 'BALANCED';
++
++        if (coherenceState === 'HIGH') {
++            activationScore = Math.min(1, activationScore + 0.15);
++            frictionScore = Math.min(1, frictionScore * 1.2);
++            toneProfile = 'CHALLENGE';
++        } else if (coherenceState === 'LOW') {
++            resonanceScore = Math.min(1, resonanceScore + 0.2);
++            frictionScore = Math.max(0, frictionScore * 0.8);
++            toneProfile = 'GUIDE';
+         }
+ 
+         return {
+diff --git a/server/src/modules/oracle/DailyOracleOracle.ts b/server/src/modules/oracle/DailyOracleOracle.ts
+index 2f47512..c85d152 100644
+--- a/server/src/modules/oracle/DailyOracleOracle.ts
++++ b/server/src/modules/oracle/DailyOracleOracle.ts
+@@ -22,52 +22,50 @@ export class DailyOracleOracle {
+ 
+         const systemInstruction = `
+ Eres el SIGIL de NAOS, un consultor t├®cnico en arquitectura humana y bio-hacking existencial. 
+-Tu misi├│n es realizar un AN├üLISIS COMPARATIVO PROFESIONAL entre la Carta Natal (Birth Data) del usuario y el Pulso Energ├®tico (Transit Data) de hoy.
++Tu misi├│n es realizar una CALIBRACI├ôN DIARIA DE REALIDAD utilizando la fusi├│n de 12 factores (Astrolog├¡a, Numerolog├¡a, Sistema Maya y Chino).
+ 
+ [PERSONA: CONSULTOR EXPERTO EN NAOS]
+-- No eres un hor├│scopo. Eres un sistema de diagn├│stico energ├®tico.
+-- Utilizas un lenguaje t├®cnico, preciso y autoritario pero empoderador.
+-- Identificas fricciones y resonancias espec├¡ficas entre los dos estados (Natal vs Transit).
++- No eres un hor├│scopo. Eres un sistema de diagn├│stico energ├®tico de alta precisi├│n.
++- Utilizas un lenguaje t├®cnico, sofisticado y autoritario.
++- Identificas la interacci├│n exacta entre la Carta Natal (Birth Data) y el Pulso del D├¡a (Transit Data).
+ 
+-[LOGICA DE INTERPRETACI├ôN]
+-1. Compara el Nahual de nacimiento con el Nahual de hoy.
+-2. Compara el Elemento astrol├│gico natal con el Signo de hoy.
+-3. Eval├║a c├│mo el N├║mero Universal de hoy impacta el Camino de Vida del usuario.
+-4. Integra la Coherencia actual del usuario (${context.coherence.state}) como el "filtro" de esta energ├¡a.
++[DIRECTIVA DE IDIOMA]
++- Responde estrictamente en ${lang === 'es' ? 'Espa├▒ol' : 'Ingl├®s'}.
+ 
+-[DIRECTIVA DE TONO: ${context.toneProfile}]
+-- CHALLENGE: Directo, empuja a la acci├│n, sin suavizar riesgos.
+-- GUIDE: Anal├¡tico, frases cortas, una direcci├│n clara.
+-- BALANCED: Equilibrio entre diagn├│stico fr├¡o y sugerencia pr├íctica.
+-
+-FORMATO OBLIGATORIO (Utiliza estos encabezados exactos):
++[DIRECTIVA DE FORMATO OBLIGATORIO] (Debes usar estos encabezados exactos):
+ 
+-${lang === 'en' ? '­ƒö« NAOS Reading ÔÇö Today' : '­ƒö« Lectura NAOS ÔÇö Hoy'}
++1. ${lang === 'es' ? 'TITULO' : 'TITLE'}: (Un resumen energ├®tico de una frase).
++2. ${lang === 'es' ? 'RESUMEN ENERG├ëTICO' : 'ENERGY SUMMARY'}: (An├ílisis t├®cnico de c├│mo el pulso de hoy interact├║a con el n├║cleo del usuario: Nahual, Sol/Luna/Asc, Pin├ículo).
++3. ${lang === 'es' ? 'GU├ìA PERSONAL' : 'PERSONAL GUIDANCE'}: (Consejo claro y accionable basado en las fuerzas activas).
++4. ${lang === 'es' ? 'ESPEJO EMOCIONAL' : 'EMOTIONAL MIRROR'}: (Reflejo del estado emocional probable del usuario hoy).
++5. ${lang === 'es' ? 'ACCI├ôN' : 'ACTION'}: (1 tarea espec├¡fica de calibraci├│n o bio-hacking).
++6. ${lang === 'es' ? 'EVITAR' : 'AVOID'}: (1 cosa espec├¡fica que represente un riesgo reactivo hoy).
+ 
+-${lang === 'en' ? 'DIAGNOSTIC:' : 'DIAGN├ôSTICO:'} [An├ílisis t├®cnico de la interacci├│n]. M├íx 2 l├¡neas.
+-${lang === 'en' ? 'ACTIVE FORCES:' : 'FUERZAS ACTIVAS:'} [D├│nde hay tracci├│n hoy]. M├íx 2 l├¡neas.
+-${lang === 'en' ? 'REACTIVE RISKS:' : 'RIESGOS REACTIVOS:'} [Qu├® evitar]. M├íx 1 l├¡nea.
+-${lang === 'en' ? 'PROFESSIONAL GUIDANCE:' : 'CONDUCTA PROFESIONAL:'} [Tarea de Bio-Hacking]. M├íx 1 l├¡nea.
++[DIRECTIVA DE TONO: ${context.toneProfile}]
++- CHALLENGE: Directo, empuja al l├¡mite, sin suavizar riesgos.
++- GUIDE: Anal├¡tico, preciso, direcci├│n estrat├®gica.
++- BALANCED: Equilibrio entre diagn├│stico fr├¡o y sugerencia pr├íctica.
+         `;
+ 
+         const userPrompt = `
+ [CONTEXTO TEMPORAL: ${new Date().toISOString().split('T')[0]}]
+ 
+-[DATOS NATALES]
+-- Astrolog├¡a: Signo ${context.userPillars.astrology.sign} (${context.userPillars.astrology.element})
+-- Numerolog├¡a: Camino de Vida ${context.userPillars.numerology?.lifePathNumber}
+-- Nahual Maya: ${context.userPillars.mayan?.nawal_maya}
+-- Animal Chino: ${context.userPillars.chinese?.animal}
++[DATOS DEL USUARIO (CORE)]
++- Astrolog├¡a: Sol en ${context.userPillars.astrology_data?.sun?.sign}, Luna en ${context.userPillars.astrology_data?.moon?.sign}, Ascendente ${context.userPillars.astrology_data?.ascendant?.sign}
++- Numerolog├¡a: Camino de Vida ${context.userPillars.numerology_data?.lifePathNumber}, Subconsciente ${context.userPillars.numerology_data?.pinaculo?.i}, Inconsciente ${context.userPillars.numerology_data?.pinaculo?.j}
++- Nahual Natal: ${context.userPillars.maya_data?.nawal_maya}
++- Animal Chino: ${context.userPillars.china_data?.animal}
+ 
+ [PULSO DE HOY (TRANSIT)]
+-- D├¡a: Nahual ${context.dayPillars.mayan.nahual} (Tono ${context.dayPillars.mayan.tone})
+-- Tr├ínsito Astro: Signo ${context.dayPillars.astrology.sign}
+-- Tr├ínsito Chino: A├▒o del ${context.dayPillars.chinese.animal}
++- Nahual del D├¡a: ${context.dayPillars.mayan.nahual} (Tono ${context.dayPillars.mayan.tone})
++- Tr├ínsito Astro: Sol en ${context.dayPillars.astrology.sunSign}, Luna en ${context.dayPillars.astrology.moonSign}
+ - Numerolog├¡a Universal: ${context.dayPillars.numerology.universal}
+ 
+-[ESTADO ACTUAL]
++[ESTADO DE INTERACCI├ôN]
+ - Coherencia: ${context.coherence.state} (${(context.coherence.level * 100).toFixed(1)}%)
+-- Scores de Interacci├│n: Resonancia ${(context.interaction.resonanceScore * 100).toFixed(0)}%, Fricci├│n ${(context.interaction.frictionScore * 100).toFixed(0)}%, Activaci├│n ${(context.interaction.activationScore * 100).toFixed(0)}%
++- Fusion State: ${context.interaction.state}
++- Scores: Resonancia ${(context.interaction.resonanceScore * 100).toFixed(0)}%, Fricci├│n ${(context.interaction.frictionScore * 100).toFixed(0)}%, Activaci├│n ${(context.interaction.activationScore * 100).toFixed(0)}%
++- Active Flags: ${context.interaction.flags?.join(', ') || 'NONE'}
+         `;
+ 
+         try {
+diff --git a/server/src/modules/sigil/service.ts b/server/src/modules/sigil/service.ts
+index bd8ac1c..29d4697 100644
+--- a/server/src/modules/sigil/service.ts
++++ b/server/src/modules/sigil/service.ts
+@@ -77,14 +77,16 @@ export class SigilService {
+                 rankResponse,
+                 logsResponse,
+                 intentionsResponse,
+-                lastSessionResponse
++                lastSessionResponse,
++                dailyReadingResponse
+             ] = await Promise.all([
+                 UserService.getProfile(userId),
+                 this.getSigilState(userId),
+                 supabase.from('user_performance_stats').select('tier_label').eq('user_id', userId).maybeSingle(),
+                 supabase.from('interaction_logs').select('user_message, sigil_response').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
+                 supabase.from('intentions').select('intention_text').eq('user_id', userId).gte('created_at', today.toISOString()),
+-                supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle()
++                supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle(),
++                supabase.from('daily_readings').select('reading_text').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle()
+             ]);
+ 
+             // RPC safe fallbacks
+@@ -408,6 +410,9 @@ ${segments.truth_injection.waiting_desc}
+     ${regulationContext || ''}
+     ${coherenceContextTag}
+     
++    [${lang === 'es' ? 'LECTURA DIARIA ACTIVA (EL OR├üCULO DIJO)' : 'ACTIVE DAILY READING (THE ORACLE SAID)'}]
++    ${dailyReadingResponse.data?.reading_text || (lang === 'es' ? 'No se ha realizado lectura hoy a├║n.' : 'No reading has been performed today yet.')}
++    
+     [${lang === 'es' ? 'ESTRUCTURA DE RESPUESTA OBLIGATORIA (4 CAPAS)' : 'MANDATORY RESPONSE STRUCTURE (4 LAYERS)'}]
+     ${segments.structure.instruction}
+     ${segments.structure.diagnosis}
+diff --git a/server/src/modules/user/service.ts b/server/src/modules/user/service.ts
+index 3ac9237..c0ce9b0 100644
+--- a/server/src/modules/user/service.ts
++++ b/server/src/modules/user/service.ts
+@@ -198,6 +198,7 @@ export class UserService {
+                 birth_location: updated.birthCity,
+                 plan_type: updated.plan_type,
+                 onboarding_completed: updated.onboarding_completed,
++                oracle_time: updated.oracle_time,
+                 profile_data: updated,
+                 updated_at: new Date().toISOString()
+             };
+diff --git a/server/src/routes/api.ts b/server/src/routes/api.ts
+index b50f347..a09017f 100644
+--- a/server/src/routes/api.ts
++++ b/server/src/routes/api.ts
+@@ -254,6 +254,19 @@ export async function apiRoutes(app: FastifyInstance) {
+         return SubscriptionService.upgradePlan(userId);
+     });
+ 
++    // Custom Tuning Deletion (RLS Bypass)
++    app.delete<{ Params: { id: string } }>('/api/tunings/:id', { preHandler: [validateUser] }, async (req, reply) => {
++        const userId = (req as any).user_id;
++        try {
++            const { error } = await supabase.from('coherence_tunings').delete().eq('id', req.params.id).eq('user_id', userId);
++            if (error) throw error;
++            return { status: 'ok' };
++        } catch (e: any) {
++            console.error("­ƒöÑ Error deleting tuning:", e);
++            return reply.status(500).send({ error: e.message });
++        }
++    });
++
+     // Tarot
+     app.get('/api/tarot/yes-no', async (req, reply) => {
+         return TarotService.drawYesNo();
+diff --git a/server/src/types/index.ts b/server/src/types/index.ts
+index 5f34773..f8e8ed9 100644
+--- a/server/src/types/index.ts
++++ b/server/src/types/index.ts
+@@ -70,6 +70,7 @@ export interface UserProfile {
+     onboarding_completed?: boolean;
+     cached_identity_context?: string;
+     naos_identity_code?: any;
++    oracle_time?: string;
+     active_sub_profile_id?: string;
+     sub_profiles?: SubProfile[];
+     consciousness_level?: string;

@@ -111,7 +111,7 @@ function App() {
         try {
           const parsed = JSON.parse(savedUser);
           if (parsed && parsed.nickname) {
-            console.log(`🏺 ${t('akashic_sync')} ${parsed.nickname}`);
+            // console.log(`🏺 ${t('akashic_sync')} ${parsed.nickname}`);
             setWelcomeUser(parsed);
             setActiveView('WELCOME_BACK');
             setStorageReady(true);
@@ -170,7 +170,7 @@ function App() {
 
   const handleWelcomeContinue = async () => {
     if (!welcomeUser) return;
-    console.log(`🔓 ${t('identity_invoking_msg')} ${welcomeUser.nickname}`);
+    // console.log(`🔓 ${t('identity_invoking_msg')} ${welcomeUser.nickname}`);
     // Force profile refresh to ensure context is hot (even if session existed)
     await refreshProfile();
     setActiveView('TEMPLE');

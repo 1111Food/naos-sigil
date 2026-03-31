@@ -77,14 +77,16 @@ export class SigilService {
                 rankResponse,
                 logsResponse,
                 intentionsResponse,
-                lastSessionResponse
+                lastSessionResponse,
+                dailyReadingResponse
             ] = await Promise.all([
                 UserService.getProfile(userId),
                 this.getSigilState(userId),
                 supabase.from('user_performance_stats').select('tier_label').eq('user_id', userId).maybeSingle(),
                 supabase.from('interaction_logs').select('user_message, sigil_response').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
                 supabase.from('intentions').select('intention_text').eq('user_id', userId).gte('created_at', today.toISOString()),
-                supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle()
+                supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle(),
+                supabase.from('daily_readings').select('reading_text').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle()
             ]);
 
             // RPC safe fallbacks
@@ -407,6 +409,9 @@ ${segments.truth_injection.waiting_desc}
     ${consciousnessContext}
     ${regulationContext || ''}
     ${coherenceContextTag}
+    
+    [${lang === 'es' ? 'LECTURA DIARIA ACTIVA (EL ORÁCULO DIJO)' : 'ACTIVE DAILY READING (THE ORACLE SAID)'}]
+    ${dailyReadingResponse.data?.reading_text || (lang === 'es' ? 'No se ha realizado lectura hoy aún.' : 'No reading has been performed today yet.')}
     
     [${lang === 'es' ? 'ESTRUCTURA DE RESPUESTA OBLIGATORIA (4 CAPAS)' : 'MANDATORY RESPONSE STRUCTURE (4 LAYERS)'}]
     ${segments.structure.instruction}

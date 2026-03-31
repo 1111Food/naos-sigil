@@ -70,6 +70,7 @@ export interface UserProfile {
     onboarding_completed?: boolean;
     cached_identity_context?: string;
     naos_identity_code?: any;
+    oracle_time?: string;
     active_sub_profile_id?: string;
     sub_profiles?: SubProfile[];
     consciousness_level?: string;

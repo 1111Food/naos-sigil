@@ -1,3 +1,7 @@
+import { AstrologyEngine } from '../astrology/engine';
+import { NumerologyService } from '../numerology/service';
+import { MayanCalculator } from '../maya/calculator';
+
 const NAHUALES = [
     "Imox", "Ik", "Akbal", "Kan", "Chicchan", "Cimi", "Manik", "Lamat", "Muluk", "Ok",
     "Chuen", "Eb", "Ben", "Ix", "Men", "Cib", "Caban", "Etznab", "Cauac", "Ajaw"
@@ -28,279 +32,190 @@ export const NAHUAL_COMPATIBILITY: { [key: string]: string[] } = {
 
 export class DailyOracleEngine {
 
-    // Prompt 1: Numerología
-    public static reduceNumber(num: number): number {
-        let n = num;
-        while (n > 9 && n !== 11 && n !== 22 && n !== 33) {
-            n = n.toString().split('').reduce((a, b) => a + Number(b), 0);
-        }
-        return n;
+    /**
+     * Calculates the "Day Pillars" using high-fidelity engines.
+     * This represents the "PULSO DE HOY" (Transit Data).
+     */
+    public static async getDayPillars(date: Date, lat: number = 14.6349, lng: number = -90.5069) {
+        // 1. Astrology Transits (Sun, Moon, Phase)
+        const transitChart = AstrologyEngine.calculateNatalChart(date, lat, lng);
+        const sun = transitChart.planets.find(p => p.name === 'Sun');
+        const moon = transitChart.planets.find(p => p.name === 'Moon');
+        
+        // 2. Numerology (Universal Day)
+        const universalNum = this.calculateUniversalDay(date);
+
+        // 3. Mayan (Daily Nahual)
+        const mayan = this.calculateTzolkin(date);
+
+        // 4. Chinese (Yearly Animal influence)
+        const chinese = { animal: this.getChineseAnimal(date.getUTCFullYear()) };
+
+        return {
+            astrology: {
+                sunSign: sun?.sign || 'Unknown',
+                moonSign: moon?.sign || 'Unknown',
+                moonAbsDegree: moon?.absDegree || 0,
+                transitElements: transitChart.elements
+            },
+            numerology: { universal: universalNum },
+            mayan,
+            chinese
+        };
     }
 
-    public static getNumerology(date: Date) {
-        // Usa UTC para evitar desfases de calendario en el servidor
+    /**
+     * Calculates the fusion between USER CORE and DAY ENERGY.
+     * Generates Alignment, Friction, Opportunity, and Warning flags.
+     */
+    public static calculateFusion(userProfiles: any, dayPillars: any) {
+        const { astrology_data: natalAstro, numerology_data: natalNum, maya_data: natalMaya } = userProfiles;
+        
+        let alignment = 0;
+        let friction = 0;
+        const flags: string[] = [];
+
+        // --- 1. ASTRAL LAYERS (Sun, Moon, Asc, MC) ---
+        if (natalAstro) {
+            const transitSun = dayPillars.astrology.sunSign;
+            const transitMoon = dayPillars.astrology.moonSign;
+
+            // Sun-Sun Alignment
+            if (natalAstro.sun?.sign === transitSun) {
+                alignment += 0.3;
+                flags.push('SOLAR_RESONANCE');
+            }
+
+            // Moon Stability
+            if (natalAstro.moon?.sign === transitMoon) {
+                alignment += 0.2;
+                flags.push('EMOTIONAL_HARMONY');
+            } else if (this.areSignsOpposite(natalAstro.moon?.sign, transitMoon)) {
+                friction += 0.3;
+                flags.push('EMOTIONAL_TENSION');
+            }
+
+            // Ascendant vs Transit
+            if (natalAstro.ascendant?.sign === transitSun) {
+                alignment += 0.25;
+                flags.push('PRIMARY_ALIGNMENT');
+            }
+        }
+
+        // --- 2. NUMERICAL LAYERS (Life Path, Personality, Pinnacle Keys) ---
+        if (natalNum) {
+            const universalDay = dayPillars.numerology.universal;
+            const lifePath = natalNum.lifePathNumber;
+
+            if (lifePath === universalDay) {
+                alignment += 0.3;
+                flags.push('ESSENCE_RESONANCE');
+            }
+
+            // Subconscious / Unconscious Keys
+            const subconscious = natalNum.pinaculo?.i;
+            const unconscious = natalNum.pinaculo?.j;
+
+            if (subconscious === universalDay) {
+                flags.push('SUBCONSCIOUS_TRIGGER');
+                alignment += 0.15;
+            }
+            if (unconscious === universalDay) {
+                flags.push('UNCONSCIOUS_CHALLENGE');
+                friction += 0.2;
+            }
+        }
+
+        // --- 3. MAYAN LAYERS (Nahual) ---
+        if (natalMaya) {
+            const natalNahual = natalMaya.nawal_maya || natalMaya.nawal;
+            const dayNahual = dayPillars.mayan.nahual;
+
+            if (natalNahual === dayNahual) {
+                alignment += 0.4;
+                flags.push('NAHUAL_SYNCHRO');
+            } else if (NAHUAL_COMPATIBILITY[natalNahual]?.includes(dayNahual)) {
+                alignment += 0.2;
+                flags.push('MAYA_ALLIANCE');
+            } else {
+                friction += 0.2;
+                flags.push('MAYA_RESISTANCE');
+            }
+        }
+
+        // Normalize Scores
+        const resonanceScore = Math.min(1, alignment);
+        const frictionScore = Math.min(1, friction);
+        const activationScore = Math.min(1, (alignment + friction) / 1.5);
+
+        // Determine State
+        let state: 'ALIGNMENT' | 'FRICTION' | 'OPPORTUNITY' | 'WARNING' = 'ALIGNMENT';
+        if (frictionScore > 0.5) state = 'WARNING';
+        else if (frictionScore > resonanceScore) state = 'FRICTION';
+        else if (resonanceScore > 0.7) state = 'ALIGNMENT';
+        else state = 'OPPORTUNITY';
+
+        return {
+            resonanceScore,
+            frictionScore,
+            activationScore,
+            state,
+            flags
+        };
+    }
+
+    private static calculateUniversalDay(date: Date): number {
         const day = date.getUTCDate();
         const month = date.getUTCMonth() + 1;
         const year = date.getUTCFullYear();
-
-        const dayNumber = day; // día calendario reduces? Prompt says "= día calendario (1-31)"
-        
-        // Suma de dígitos de día, mes y año independientes
-        const sumDigits = (n: number) => n.toString().split('').reduce((a, b) => a + Number(b), 0);
-        const total = sumDigits(day) + sumDigits(month) + sumDigits(year);
-        const universal = this.reduceNumber(total);
-
-        return { dayNumber, universal };
+        const sum = (n: number) => n.toString().split('').reduce((a, b) => a + Number(b), 0);
+        let total = sum(day) + sum(month) + sum(year);
+        while (total > 9 && total !== 11 && total !== 22 && total !== 33) {
+            total = sum(total);
+        }
+        return total;
     }
 
-    // Prompt 2: Tzolkin (Calendario Maya)
+    private static areSignsOpposite(sign1: string, sign2: string): boolean {
+        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+        const i1 = signs.indexOf(sign1);
+        const i2 = signs.indexOf(sign2);
+        if (i1 === -1 || i2 === -1) return false;
+        return Math.abs(i1 - i2) === 6;
+    }
+
     public static calculateTzolkin(targetDate: Date) {
-        // Base fija: 21 de diciembre de 2012 = 4 Ajaw
         const baseDate = new Date("2012-12-21T00:00:00Z");
-        
-        // Crear copias solo con año, mes, día en UTC a las 00:00 para evitar que horas / minutos afecten el conteo de días
         const d1 = Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate());
         const d2 = Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate());
+        const diffDays = Math.floor((d1 - d2) / (1000 * 60 * 60 * 24));
 
-        const diffTime = d1 - d2;
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        // Calcular Tono (Base 4)
-        // 4 + diffDays % 13.
         let tone = (4 + diffDays) % 13;
         if (tone <= 0) tone += 13;
 
-        // Calcular Nahual (Base 20, 21-12-2012 era Ajaw, el índice 19 de la lista 0-indexed)
-        // Ajaw es el último en la lista (índice 19).
-        // let index = (19 + diffDays) % 20;
         let index = (19 + diffDays) % 20;
         if (index < 0) index += 20;
 
-        const nahual = NAHUALES[index];
-
-        return { tone, nahual };
+        return { tone, nahual: NAHUALES[index] };
     }
 
-    // Prompt 3: Animal Chino
     public static getChineseAnimal(year: number): string {
-        const chineseAnimals = [
-            "Mono", "Gallo", "Perro", "Cerdo", "Rata", "Buey", 
-            "Tigre", "Conejo", "Dragón", "Serpiente", "Caballo", "Cabra"
-        ];
+        const chineseAnimals = ["Mono", "Gallo", "Perro", "Cerdo", "Rata", "Buey", "Tigre", "Conejo", "Dragón", "Serpiente", "Caballo", "Cabra"];
         return chineseAnimals[year % 12];
     }
 
-    // Prompt 4: Signo Solar Zodiacal
-    public static getZodiacSign(date: Date): string {
-        const day = date.getUTCDate();
-        const month = date.getUTCMonth() + 1;
-
-        if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "Aries";
-        if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "Tauro";
-        if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return "Géminis";
-        if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return "Cáncer";
-        if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "Leo";
-        if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return "Virgo";
-        if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return "Libra";
-        if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return "Escorpio";
-        if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return "Sagitario";
-        if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return "Capricornio";
-        if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "Acuario";
-        return "Piscis";
-    }
-
-    // Prompt 5: Sistema de Interacción Básico (Scores)
-    public static calculateBasicInteraction(userPillars: any, dayPillars: any) {
-        let resonanceScore = 0;
-        let frictionScore = 0;
-        let activationScore = 0;
-
-        // --- 1. Numerología ---
-        const userNum = userPillars.numerology?.lifePathNumber || 0;
-        const dayNum = dayPillars.numerology.dayNumber;
-        const universalNum = dayPillars.numerology.universal;
-
-        if (userNum === dayNum || userNum === universalNum) {
-            resonanceScore++;
-        }
-
-        if (Math.abs(userNum - dayNum) >= 4) {
-            frictionScore++;
-        }
-
-        const sumDay = userNum + dayNum;
-        if ([9, 11, 22].includes(sumDay)) {
-            activationScore++;
-        }
-
-        // --- 2. Nahual ---
-        const userNahual = userPillars.mayan?.nawal_maya || userPillars.mayan?.kicheName || userPillars.mayan?.nawal;
-        const dayNahual = dayPillars.mayan.nahual;
-
-        if (userNahual === dayNahual) {
-            resonanceScore++;
-        }
-
-        if (userNahual && dayNahual) {
-            if (NAHUAL_COMPATIBILITY[userNahual]?.includes(dayNahual)) {
-                activationScore++;
-            } else if (userNahual !== dayNahual) {
-                frictionScore++;
-            }
-        }
-
-        // --- 3. Astrología (Elementos) ---
-        const getElement = (sign: string) => {
-            const map: { [key: string]: string } = {
-                Aries: "Fire", Leo: "Fire", Sagitario: "Fire",
-                Tauro: "Earth", Virgo: "Earth", Capricornio: "Earth",
-                Géminis: "Air", Libra: "Air", Acuario: "Air",
-                Cáncer: "Water", Escorpio: "Water", Piscis: "Water"
-            };
-            return map[sign];
-        };
-
-        const userElem = userPillars.astrology?.element; // pre-computed dominant or sun element?
-        const dayElem = getElement(dayPillars.astrology.sign);
-
-        if (userElem && dayElem) {
-            if (userElem === dayElem) {
-                resonanceScore++;
-            }
-
-            const activeCombos = [["Fire", "Air"], ["Water", "Earth"]];
-            const isActive = activeCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
-            if (isActive) {
-                activationScore++;
-            }
-
-            const frictionCombos = [["Fire", "Water"], ["Air", "Earth"]];
-            const isFriction = frictionCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
-            if (isFriction) {
-                frictionScore++;
-            }
-        }
-
-        return { resonanceScore, frictionScore, activationScore };
-    }
-
-    public static getDayPillars(date: Date) {
-        const numerology = this.getNumerology(date);
-        const mayan = this.calculateTzolkin(date);
-        const chineseAnimal = this.getChineseAnimal(date.getUTCFullYear());
-        const sign = this.getZodiacSign(date);
-
-        return {
-            numerology,
-            mayan,
-            chinese: { animal: chineseAnimal },
-            astrology: { sign }
-        };
-    }
-
-    // Prompt 10: Sistema de Scoring Avanzado (Pesos)
-    public static calculateAdvancedInteraction(userPillars: any, dayPillars: any) {
-        // --- 1. NUMEROLOGÍA (Peso 0.35) ---
-        let numRes = 0; let numFric = 0; let numAct = 0;
-        const userNum = userPillars.numerology?.lifePathNumber || 1;
-        const dayNum = dayPillars.numerology.dayNumber;
-        const universalNum = dayPillars.numerology.universal;
-
-        if (userNum === dayNum) numRes += 0.7;
-        if (userNum === universalNum) numRes += 0.5;
-
-        if (Math.abs(userNum - dayNum) >= 5) numFric += 0.6;
-        if (Math.abs(userNum - universalNum) >= 5) numFric += 0.4;
-
-        if ([9, 11, 22, 33].includes(userNum + dayNum)) numAct += 0.6;
-        if ([9, 11, 22, 33].includes(userNum + universalNum)) numAct += 0.4;
-
-        // Normalizar cada sub-score a 1 max
-        numRes = Math.min(1, numRes);
-        numFric = Math.min(1, numFric);
-        numAct = Math.min(1, numAct);
-
-        // --- 2. NAHUAL (Peso 0.40) ---
-        let nahualRes = 0; let nahualFric = 0; let nahualAct = 0;
-        const userNahual = userPillars.mayan?.nawal_maya || userPillars.mayan?.kicheName || userPillars.mayan?.nawal;
-        const dayNahual = dayPillars.mayan.nahual;
-
-        if (userNahual === dayNahual) {
-            nahualRes = 1;
-        }
-        
-        if (userNahual && dayNahual) {
-            if (NAHUAL_COMPATIBILITY[userNahual]?.includes(dayNahual)) {
-                nahualAct = 0.8;
-            } else if (userNahual !== dayNahual) {
-                nahualFric = 0.7;
-            }
-        }
-
-        // --- 3. ASTROLOGÍA (Peso 0.25) ---
-        let astroRes = 0; let astroFric = 0; let astroAct = 0;
-        const userElem = userPillars.astrology?.element;
-        const dayElem = this.getElementFromSign(dayPillars.astrology.sign);
-
-        if (userElem && dayElem) {
-            if (userElem === dayElem) astroRes = 1;
-
-            const activeCombos = [["Fire", "Air"], ["Water", "Earth"]];
-            const isActive = activeCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
-            if (isActive) astroAct = 0.8;
-
-            const frictionCombos = [["Fire", "Water"], ["Air", "Earth"]];
-            const isFriction = frictionCombos.some(combo => combo.includes(userElem) && combo.includes(dayElem));
-            if (isFriction) astroFric = 0.7;
-        }
-
-        // --- 4. SCORE FINAL CON PESOS ---
-        const resonanceScore = (numRes * 0.35) + (nahualRes * 0.40) + (astroRes * 0.25);
-        const frictionScore = (numFric * 0.35) + (nahualFric * 0.40) + (astroFric * 0.25);
-        const activationScore = (numAct * 0.35) + (nahualAct * 0.40) + (astroAct * 0.25);
-
-        return {
-            resonanceScore: Math.min(resonanceScore, 1),
-            frictionScore: Math.min(frictionScore, 1),
-            activationScore: Math.min(activationScore, 1)
-        };
-    }
-
-    private static getElementFromSign(sign: string): string {
-        const map: { [key: string]: string } = {
-            Aries: "Fire", Leo: "Fire", Sagitario: "Fire",
-            Tauro: "Earth", Virgo: "Earth", Capricornio: "Earth",
-            Géminis: "Air", Libra: "Air", Acuario: "Air",
-            Cáncer: "Water", Escorpio: "Water", Piscis: "Water"
-        };
-        return map[sign] || "Unknown";
-    }
-
-    // Prompt 12: Coherencia Global
-    public static calculateCoherenceLevel(discipline: number, energy: number, clarity: number) {
-        const coherence = (discipline + energy + clarity) / 3;
-        const level = coherence / 100; // 0 a 1
-
-        let state = "MEDIUM";
-        if (level >= 0.75) state = "HIGH";
-        if (level < 0.45) state = "LOW";
-
-        return { level, state };
-    }
-
-    // Prompt 13 & 14: Modificador Adaptativo y Perfil de Tono
     public static getAdaptiveProfile(scores: { resonanceScore: number, frictionScore: number, activationScore: number }, coherenceState: string) {
         let { resonanceScore, frictionScore, activationScore } = scores;
-        let toneProfile = "BALANCED";
+        let toneProfile: 'BALANCED' | 'CHALLENGE' | 'GUIDE' = 'BALANCED';
 
-        if (coherenceState === "HIGH") {
-            activationScore = Math.min(1, activationScore + 0.15); // Se busca expansión
-            frictionScore = Math.min(1, frictionScore * 1.2); // Reducir tolerancia a fricción = pesa más el riesgo
-            toneProfile = "CHALLENGE";
-        } else if (coherenceState === "LOW") {
-            resonanceScore = Math.min(1, resonanceScore + 0.2); // Más guía / suavidad
-            frictionScore = Math.max(0, frictionScore * 0.8); // Suavizar avisos de fricción
-            toneProfile = "GUIDE";
+        if (coherenceState === 'HIGH') {
+            activationScore = Math.min(1, activationScore + 0.15);
+            frictionScore = Math.min(1, frictionScore * 1.2);
+            toneProfile = 'CHALLENGE';
+        } else if (coherenceState === 'LOW') {
+            resonanceScore = Math.min(1, resonanceScore + 0.2);
+            frictionScore = Math.max(0, frictionScore * 0.8);
+            toneProfile = 'GUIDE';
         }
 
         return {

@@ -108,6 +108,8 @@ export const translations = {
         sigil_welcome_1: "El silencio ha terminado. NAOS te reconoce, {{name}}.",
         sigil_welcome_2: "Las esferas se han alineado. ¿Qué buscas en el tejido del tiempo?",
         sigil_welcome_3: "Bienvenido al Templo, {{name}}. Tu rastro estelar nos guía.",
+        sigil_temple_ready: "El Templo está activo. El Sigil observa tus ciclos.",
+        calibrate: "CALIBRAR",
 
         // Identity & Ranks
         mystery_of: "Misterio de",
@@ -1387,7 +1389,7 @@ export const translations = {
         // Sigil Bubble & Chat
         friction_detected: "Your system shows friction. Do you wish to stabilize?",
         frequency_dropping: "Frequency dropping. It's time to regulate your state.",
-        ignore: "Ignore",
+        ignore: "IGNORE",
         stabilize: "Stabilize",
         akashic_sync: "Syncing Akashic Record...",
         oracle_listens: "The Oracle Listens",
@@ -1404,6 +1406,8 @@ export const translations = {
         sigil_welcome_1: "The silence has ended. NAOS recognizes you, {{name}}.",
         sigil_welcome_2: "The spheres have aligned. What do you seek in the fabric of time?",
         sigil_welcome_3: "Welcome to the Temple, {{name}}. Your stellar trail guides us.",
+        sigil_temple_ready: "The Temple is active. The Sigil monitors your cycles.",
+        calibrate: "CALIBRATE",
 
         // Identity & Ranks
         mystery_of: "Mystery of",

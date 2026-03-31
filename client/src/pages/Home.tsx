@@ -79,7 +79,7 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
 
     // Realtime & Fetch Logic
     React.useEffect(() => {
-        if (!profile?.id) return;
+        if (!profile?.id) return undefined;
 
         const fetchIntentions = async () => {
             try {
@@ -119,8 +119,17 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
             )
             .subscribe();
 
-        return () => {
+        const timeout = setTimeout(() => {
+            // Delay cleanup to avoid WebSocket 'closed before established' warning in Dev Mode
             supabase.removeChannel(channel);
+        }, 200);
+
+        return () => {
+            clearTimeout(timeout);
+            // Use a slight delay for cleanup to avoid WebSocket 'closed before established' in rapid re-renders
+            setTimeout(() => {
+                supabase.removeChannel(channel);
+            }, 300);
         };
     }, [profile?.id]);
 
@@ -177,9 +186,9 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                         <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-amber-500/20 blur-2xl rounded-full" />
                         <p className="text-lg md:text-xl font-serif italic theme-aware-text leading-relaxed transition-colors">
                             {isDormant ? (
-                                "Tus coordenadas han sido procesadas. Entra a tu Código de Identidad para revelar tus Arquetipos y despertar el Templo."
+                                "Tus coordenadas han sido procesadas. Entra a tu Código de Identidad para revelar tus Arquetipos."
                             ) : (
-                                energy?.guidance ? `"${energy.guidance}"` : "Sincronizando frecuencias natales..."
+                                t('sigil_temple_ready') || "El Templo está activo. El Sigil observa tus ciclos."
                             )}
                         </p>
                         <div className="mt-4 flex items-center justify-center gap-3 opacity-20 group-hover:opacity-60 transition-opacity aura-zen-white:opacity-10 aura-zen-white:group-hover:opacity-40">

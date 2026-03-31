@@ -4,6 +4,7 @@ import { X, Send, Clock, Sparkles, Info, MessageCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
+import { getAsyncAuthHeaders } from '../lib/api';
 import { SigilExplainer } from './SigilExplainer';
 
 interface SigilSettingsModalProps {
@@ -19,7 +20,9 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
 }) => {
     const { t } = useTranslation();
     const [time, setTime] = useState('08:00');
+    const [isOracleEnabled, setIsOracleEnabled] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
     const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => {
         return localStorage.getItem('naos_sigil_voice_enabled') === 'true';
     });
@@ -36,7 +39,12 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
                         .select('oracle_time')
                         .eq('id', user.id)
                         .single();
-                    if (data?.oracle_time) setTime(data.oracle_time.substring(0, 5));
+                    if (data?.oracle_time) {
+                        setTime(data.oracle_time.substring(0, 5));
+                        setIsOracleEnabled(true);
+                    } else {
+                        setIsOracleEnabled(false);
+                    }
                 }
             } catch (err) {
                 console.error("Error loading oracle time:", err);
@@ -48,17 +56,27 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
     const handleSave = async () => {
         setSaving(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { error } = await supabase
-                    .from('profiles')
-                    .update({ oracle_time: `${time}:00` })
-                    .eq('id', user.id);
-                if (error) throw error;
+            const headers = await getAsyncAuthHeaders();
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3002'}/api/profile`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ oracle_time: isOracleEnabled ? `${time}:00` : null })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Server error al guardar configuración');
             }
+
             localStorage.setItem('naos_sigil_voice_enabled', isVoiceEnabled ? 'true' : 'false');
             window.dispatchEvent(new Event('sigil_voice_preference_changed'));
-            onClose();
+            window.dispatchEvent(new Event('focus')); // Force re-fetch of SWR/local profiles
+            
+            setIsSaved(true);
+            setTimeout(() => {
+                setIsSaved(false);
+                onClose();
+            }, 1500);
         } catch (err: any) {
             console.error("Error saving oracle time:", err);
             alert("No se pudo guardar: " + (err.message || err));
@@ -108,17 +126,45 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
 
                     <div className="space-y-6">
                         {/* Section 1: Horario */}
-                        <div className="space-y-2">
-                            <label className="text-xs uppercase tracking-wider font-semibold text-white/50 flex items-center gap-1">
-                                <Clock size={14}/> {t('daily_reading_time')}
-                            </label>
-                            <input 
-                                type="time" 
-                                value={time} 
-                                onChange={(e) => setTime(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500/50"
-                            />
-                            <p className="text-[10px] text-white/30">{t('daily_reading_desc')}</p>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs uppercase tracking-wider font-semibold text-white/50 flex items-center gap-1">
+                                    <Clock size={14}/> {t('daily_reading_time')}
+                                </label>
+                                <button 
+                                    onClick={() => setIsOracleEnabled(!isOracleEnabled)}
+                                    className="flex items-center justify-between p-2 rounded-xl transition-all"
+                                >
+                                    <div className={cn(
+                                        "w-8 h-4 rounded-full p-0.5 transition-colors duration-300",
+                                        isOracleEnabled ? "bg-cyan-500/80" : "bg-white/10"
+                                    )}>
+                                        <div className={cn(
+                                            "w-3 h-3 rounded-full bg-white transition-transform duration-300",
+                                            isOracleEnabled && "translate-x-4"
+                                        )} />
+                                    </div>
+                                </button>
+                            </div>
+                            
+                            <AnimatePresence>
+                                {isOracleEnabled && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }} 
+                                        animate={{ opacity: 1, height: 'auto' }} 
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <input 
+                                            type="time" 
+                                            value={time} 
+                                            onChange={(e) => setTime(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500/50 mt-1"
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                            <p className="text-[10px] text-white/30">{isOracleEnabled ? t('daily_reading_desc') : "El oráculo diario está desactivado."}</p>
                         </div>
 
                         {/* Section 2: Channels */}
@@ -183,8 +229,13 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
                         <button onClick={onClose} className="flex-1 p-3 rounded-xl border border-white/5 text-white/60 hover:bg-white/5 transition-all text-sm font-light">
                             {t('cancel')}
                         </button>
-                        <button onClick={handleSave} className="flex-1 p-3 rounded-xl bg-cyan-500/20 border border-cyan-500/20 text-cyan-100 hover:bg-cyan-500/30 transition-all text-sm font-semibold">
-                            {saving ? t('saving') : t('save')}
+                        <button onClick={handleSave} className="flex-1 p-3 rounded-xl bg-cyan-500/20 border border-cyan-500/20 text-cyan-100 hover:bg-cyan-500/30 transition-all text-sm font-semibold flex items-center justify-center gap-2">
+                            {isSaved ? (
+                                <>
+                                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                                    <span className="text-emerald-400">¡Guardado!</span>
+                                </>
+                            ) : saving ? t('saving') : t('save')}
                         </button>
                     </div>
 

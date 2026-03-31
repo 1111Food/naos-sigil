@@ -4,6 +4,8 @@ import { SigilService } from '../sigil/service';
 import { CoherenceService } from '../coherence/service';
 import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS } from '../sigil/prompts';
 import { TTSService } from '../sigil/ttsService';
+import { DailyOracleEngine } from '../oracle/DailyOracleEngine';
+import { DailyOracleOracle } from '../oracle/DailyOracleOracle';
 
 export class NotificationEngine {
 
@@ -23,7 +25,7 @@ export class NotificationEngine {
         // Fetch all profiles with Telegram linked to check for oracle_time
         const { data: users, error } = await supabase
             .from('profiles')
-            .select('id, email, telegram_chat_id, nickname, full_name, profile_data, language, oracle_time')
+            .select('id, email, telegram_chat_id, nickname, full_name, profile_data, astrology, language, oracle_time')
             .not('telegram_chat_id', 'is', null);
 
         if (error || !users || users.length === 0) {
@@ -39,9 +41,10 @@ export class NotificationEngine {
             try {
                 // Timezone logic
                 const profileData = user.profile_data || {};
+                const astroData = user.astrology || {};
                 const offset = (profileData.utcOffset !== undefined) 
                     ? profileData.utcOffset 
-                    : (profileData.timezone_offset !== undefined ? profileData.timezone_offset : -6);
+                    : (astroData.timezone_offset !== undefined ? astroData.timezone_offset : -6);
                 
                 const userLocal = new Date(now.getTime() + (3600000 * offset));
                 const userHours = String(userLocal.getUTCHours()).padStart(2, '0');
@@ -125,15 +128,70 @@ export class NotificationEngine {
                     }
                 }
 
-                // --- EXECUTION 3: Daily Reading (Oracle) ---
+                // --- EXECUTION 3: Daily Reading (12-Factor Oracle) ---
                 if (isOracleDue) {
-                    console.info(`🚀 [NOTIF] Triggering Oracle: ${user.email}`);
-                    const prompt = lang === 'es' 
-                        ? "Realiza mi lectura diaria de sabiduría fundamentada en mi diseño original y el tránsito de hoy."
-                        : "Perform my daily wisdom reading based on my original design and today's transits.";
-                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
-                    const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                    console.info(`📡 [NOTIF] Oracle Result for ${user.email}: ${success}`);
+                    const todayStr = userLocal.toISOString().split('T')[0];
+                    
+                    // 1. Check Cache
+                    const { data: cached } = await supabase
+                        .from('daily_readings')
+                        .select('reading_text')
+                        .eq('user_id', user.id)
+                        .gte('created_at', `${todayStr}T00:00:00.000Z`)
+                        .lte('created_at', `${todayStr}T23:59:59.999Z`)
+                        .maybeSingle();
+
+                    let reading: string;
+
+                    if (cached) {
+                        console.info(`📦 [NOTIF] Using cached Oracle for ${user.email}`);
+                        reading = cached.reading_text;
+                    } else {
+                        console.info(`🚀 [NOTIF] Generating 12-Factor Oracle for ${user.email}`);
+                        
+                        // Fetch full profile for 12-factor data
+                        const { data: fullProfile } = await supabase
+                            .from('profiles')
+                            .select('astrology, numerology, mayan, chinese_animal, chinese_element')
+                            .eq('id', user.id)
+                            .single();
+
+                        const profileForEngine = {
+                            astrology_data: fullProfile?.astrology,
+                            numerology_data: fullProfile?.numerology,
+                            maya_data: fullProfile?.mayan,
+                            china_data: { animal: fullProfile?.chinese_animal, element: fullProfile?.chinese_element }
+                        };
+
+                        const dayPillars = await DailyOracleEngine.getDayPillars(userLocal);
+                        const interaction = DailyOracleEngine.calculateFusion(profileForEngine, dayPillars);
+                        const coherenceData = await CoherenceService.getCoherence(user.id);
+                        const coherence = {
+                            state: coherenceData.global_coherence >= 75 ? 'HIGH' : coherenceData.global_coherence < 45 ? 'LOW' : 'MEDIUM',
+                            level: coherenceData.global_coherence / 100
+                        };
+                        const { toneProfile } = DailyOracleEngine.getAdaptiveProfile(interaction, coherence.state);
+
+                        reading = await DailyOracleOracle.generateDailyReading({
+                            userName: user.nickname || user.full_name,
+                            userPillars: fullProfile,
+                            dayPillars,
+                            interaction,
+                            coherence,
+                            toneProfile,
+                            language: lang
+                        });
+
+                        // Cache Result
+                        await supabase.from('daily_readings').insert({
+                            user_id: user.id,
+                            reading_text: reading,
+                            pillars_data: { dayPillars, interaction }
+                        });
+                    }
+
+                    const success = await this.sendFullMessage(user.telegram_chat_id, reading, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                    console.info(`📡 [NOTIF] 12-Factor Oracle Result for ${user.email}: ${success}`);
                 }
 
             } catch (e) {
