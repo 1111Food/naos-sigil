@@ -8,6 +8,7 @@ import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 import { ArchetypeLibrary } from './ArchetypeLibrary';
 import { NAOS_ARCHETYPES } from '../constants/archetypeData';
+import { NAOS_ARCHETYPES_EN } from '../constants/archetypeData_en';
 import { useTranslation } from '../i18n';
 import { ArchetypeDecodifier } from './ArchetypeDecodifier';
 
@@ -616,7 +617,7 @@ interface InnerStatCardProps {
 const InnerStatCard: React.FC<InnerStatCardProps> = ({ 
     label, value, image, assetType, isNeonNumber, isArchetype, archColor, color, delay, onClick, onInfoClick 
 }) => {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const [imgError, setImgError] = React.useState(false);
     const config = archColor || (color ? colorConfig[color] : colorConfig.cyan);
 
@@ -654,16 +655,27 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                     <div className="relative w-full aspect-square rounded-2xl border border-white/5 overflow-hidden flex items-center justify-center bg-black/40 group-hover:scale-105 transition-transform duration-700">
                         {/* Render Official Arcano if available */}
                         {(() => {
-                            const archInfo = NAOS_ARCHETYPES.find((a: any) => 
-                                a.nombre.toLowerCase().trim() === value?.toLowerCase().trim() ||
-                                (a as any).nombre_en?.toLowerCase().trim() === value?.toLowerCase().trim()
-                            );
+                            // Find the archetype in either language
+                            const foundSp = NAOS_ARCHETYPES.find((a: any) => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
+                            const foundEn = NAOS_ARCHETYPES_EN.find((a: any) => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
+                            
+                            const masterId = foundSp?.id || foundEn?.id;
+                            
+                            // Retrieve from the CURRENT active language library
+                            const uiLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
+                            const archInfo = masterId 
+                                ? uiLib.find(a => a.id === masterId)
+                                : uiLib.find(a => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
+
+                            // We pass the translated name to display rather than raw 'value'
+                            const finalDisplayValue = archInfo?.nombre || value;
+
                             if (archInfo?.imagePath) {
                                 return (
                                     <div className="absolute inset-0 z-0">
                                         <motion.img 
                                             src={archInfo.imagePath} 
-                                            alt={archInfo.nombre}
+                                            alt={finalDisplayValue}
                                             initial={{ opacity: 0, scale: 1.1 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             className="w-full h-full object-cover object-center brightness-[1.1] contrast-[1.1]"
@@ -691,7 +703,14 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                         
                         <div className="relative z-10 flex flex-col items-center justify-center p-6 text-center">
                             <h3 className="text-2xl font-serif italic text-white tracking-tighter leading-tight mb-1 drop-shadow-lg">
-                                {value}
+                                {(() => {
+                                    const foundSp = NAOS_ARCHETYPES.find((a: any) => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
+                                    const foundEn = NAOS_ARCHETYPES_EN.find((a: any) => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
+                                    const masterId = foundSp?.id || foundEn?.id;
+                                    const uiLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
+                                    const archInfo = masterId ? uiLib.find(a => a.id === masterId) : null;
+                                    return archInfo?.nombre || value;
+                                })()}
                             </h3>
                             
                             <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/40 to-transparent my-2" />

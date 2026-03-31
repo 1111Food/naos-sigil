@@ -158,7 +158,21 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
     const archName = synthesis?.arquetipo?.nombre || t('the_custodian');
     const archLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
     const archetypeId = synthesis?.arquetipo?.id;
-    const archInfo = archLib.find(a => a.id === archetypeId) || archLib.find(a => a.nombre.toLowerCase().trim() === (archName || '').toLowerCase().trim());
+    
+    // Cross-reference lookup: If we don't have an ID, we might be comparing a cached Spanish name 
+    // against the English library. We must find the ID first using both libraries.
+    let resolvedId = archetypeId;
+    if (!resolvedId && archName) {
+        const searchName = archName.toLowerCase().trim();
+        const foundInSp = NAOS_ARCHETYPES.find(a => a.nombre.toLowerCase().trim() === searchName);
+        const foundInEn = NAOS_ARCHETYPES_EN.find(a => a.nombre.toLowerCase().trim() === searchName);
+        resolvedId = foundInSp?.id || foundInEn?.id;
+    }
+
+    const archInfo = resolvedId 
+        ? archLib.find(a => a.id === resolvedId) 
+        : archLib.find(a => a.nombre.toLowerCase().trim() === (archName || '').toLowerCase().trim());
+        
     const arcanoImage = archInfo?.imagePath;
     const displayArchName = archInfo?.nombre || archName;
 
