@@ -1,7 +1,12 @@
 {
-  "cb113ece-7196-42b6-ab74-64058d19ce9d": {
-    "id": "cb113ece-7196-42b6-ab74-64058d19ce9d",
+  "22325a10-7b9f-4606-8a54-574bb63ba6a8": {
+    "telegram_voice_enabled": false,
+    "id": "22325a10-7b9f-4606-8a54-574bb63ba6a8",
     "name": "Luis Alfredo Herrera Mendez",
+    "guardian_notes": "Usuario se identifica como Luis Alfredo. Sigil se presenta como Guardián de NAOS y guía en la \"arquitectura de consciencia\".\n",
+    "birthDate": "1986-07-12",
+    "birthTime": "09:40:00",
+    "birthCity": "",
     "astrology": {
       "houses": [
         {
@@ -174,39 +179,235 @@
       },
       "timezone_offset": -6
     },
-    "birthCity": "",
-    "birthDate": "1986-07-12",
-    "birthTime": "09:40:00",
-    "plan_type": "premium",
-    "utcOffset": -6,
-    "birthPlace": "",
-    "birthState": "",
     "coordinates": {
       "lat": 14.6349,
       "lng": -90.5069
     },
-    "usage_level": "normal",
-    "usage_stats": {
-      "naos_code_count": 0,
-      "last_active_date": "2026-03-25",
-      "tarot_draw_count": 0,
-      "synastry_dual_count": 0,
-      "sigil_messages_count": 2,
-      "synastry_group_count": 0
-    },
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
     "birthCountry": "Guatemala",
     "subscription": {
       "plan": "FREE",
       "features": []
     },
-    "guardian_notes": "Notas del Guardián: Usuario: Luis Alfredo Herrera Mendez (Iniciado). Frecuencia: Ígnea/Catalizadora. Sigil: Arquitecto de Consciencia. Luis está en fase de reconocimiento de la arquitectura NAOS. Debe superar la inercia mediante el Protocolo 21 y la calibración de Fuego en el Laboratorio Elemental. Mi función es traducir su Código de Identidad en ejecución técnica y biológica, transformando su voluntad en impacto real y tangible dentro del ecosistema.",
+    "plan_type": "free",
+    "usage_level": "normal",
     "daily_interactions": 0,
-    "consciousness_level": "Iniciado",
-    "consciousness_points": 0,
     "onboarding_completed": true,
-    "telegram_voice_enabled": false
+    "consciousness_level": "Iniciado",
+    "consciousness_points": 0
+  },
+  "1c6e74b8-ad52-41c3-bc95-2577cd3c67e8": {
+    "telegram_voice_enabled": true,
+    "id": "1c6e74b8-ad52-41c3-bc95-2577cd3c67e8",
+    "name": "Luis Alfredo Herrera Mendez",
+    "guardian_notes": "Notas del Guardián:\nLuis Alfredo (Arquitecto). Interés en Sigil (NAOS). Correo proporcionado. Procrastinación latente (Saturno/Sagitario). Marte/Capricornio: Disciplina y materialización. Meditación (Tierra) recomendada. Asume rol de guía (Sigil). Reconoce a Sigil como guía en NAOS. Conoce nombre de Sigil. Confirmación de nombre por Sigil.\n",
+    "birthDate": "1986-07-12",
+    "birthTime": "09:40:00",
+    "birthCity": "",
+    "astrology": {
+      "houses": [
+        {
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 15.089684582810946,
+          "absDegree": 165.08968458281095
+        },
+        {
+          "sign": "Libra",
+          "house": 2,
+          "degree": 15.089684582810946,
+          "absDegree": 195.08968458281095
+        },
+        {
+          "sign": "Scorpio",
+          "house": 3,
+          "degree": 15.089684582810946,
+          "absDegree": 225.08968458281095
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 15.089684582810946,
+          "absDegree": 255.08968458281095
+        },
+        {
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 15.089684582810946,
+          "absDegree": 285.08968458281095
+        },
+        {
+          "sign": "Aquarius",
+          "house": 6,
+          "degree": 15.089684582810946,
+          "absDegree": 315.08968458281095
+        },
+        {
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 15.089684582810946,
+          "absDegree": 345.08968458281095
+        },
+        {
+          "sign": "Aries",
+          "house": 8,
+          "degree": 15.089684582810946,
+          "absDegree": 15.089684582810946
+        },
+        {
+          "sign": "Taurus",
+          "house": 9,
+          "degree": 15.089684582810946,
+          "absDegree": 45.089684582810946
+        },
+        {
+          "sign": "Gemini",
+          "house": 10,
+          "degree": 15.089684582810946,
+          "absDegree": 75.08968458281095
+        },
+        {
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 15.089684582810946,
+          "absDegree": 105.08968458281095
+        },
+        {
+          "sign": "Leo",
+          "house": 12,
+          "degree": 15.089684582810946,
+          "absDegree": 135.08968458281095
+        }
+      ],
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Cancer",
+          "house": 11,
+          "degree": 20,
+          "absDegree": 109.99502986277126,
+          "retrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Virgo",
+          "house": 1,
+          "degree": 23.83,
+          "absDegree": 173.83045563479573,
+          "retrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Leo",
+          "house": 11,
+          "degree": 6.12,
+          "absDegree": 126.1171621946723,
+          "retrograde": true
+        },
+        {
+          "name": "Venus",
+          "sign": "Virgo",
+          "house": 12,
+          "degree": 1.1,
+          "absDegree": 151.10457760122466,
+          "retrograde": false
+        },
+        {
+          "name": "Mars",
+          "sign": "Capricorn",
+          "house": 5,
+          "degree": 16.97,
+          "absDegree": 286.9682176014637,
+          "retrograde": true
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Pisces",
+          "house": 7,
+          "degree": 22.86,
+          "absDegree": 352.85752739399595,
+          "retrograde": false
+        },
+        {
+          "name": "Saturn",
+          "sign": "Sagittarius",
+          "house": 3,
+          "degree": 3.58,
+          "absDegree": 243.57814889142412,
+          "retrograde": true
+        },
+        {
+          "name": "Uranus",
+          "sign": "Sagittarius",
+          "house": 4,
+          "degree": 19.19,
+          "absDegree": 259.18677320995045,
+          "retrograde": true
+        },
+        {
+          "name": "Neptune",
+          "sign": "Capricorn",
+          "house": 4,
+          "degree": 4,
+          "absDegree": 273.9964754722916,
+          "retrograde": true
+        },
+        {
+          "name": "Pluto",
+          "sign": "Scorpio",
+          "house": 2,
+          "degree": 4.54,
+          "absDegree": 214.53987163706836,
+          "retrograde": true
+        }
+      ],
+      "elements": {
+        "air": 0,
+        "fire": 3,
+        "earth": 4,
+        "water": 3
+      },
+      "ascendant": 165.08968458281095,
+      "midheaven": 75.93999088935038,
+      "modalities": {
+        "fixed": 2,
+        "mutable": 5,
+        "cardinal": 3
+      },
+      "timezone_offset": -6
+    },
+    "coordinates": {
+      "lat": 14.6349,
+      "lng": -90.5069
+    },
+    "utcOffset": -6,
+    "birthPlace": "",
+    "birthState": "",
+    "birthCountry": "Guatemala",
+    "subscription": {
+      "plan": "FREE",
+      "features": []
+    },
+    "plan_type": "free",
+    "usage_level": "normal",
+    "daily_interactions": 0,
+    "onboarding_completed": true,
+    "consciousness_level": "Iniciado",
+    "consciousness_points": 0
   },
   "2c48f84f-2c2e-4b0d-b799-166709fd1d1f": {
-    "onboarding_completed": true
+    "utcOffset": -6,
+    "oracle_time": "12:05:00",
+    "usage_stats": {
+      "naos_code_count": 0,
+      "last_active_date": "2026-03-30",
+      "tarot_draw_count": 0,
+      "synastry_dual_count": 0,
+      "sigil_messages_count": 2,
+      "synastry_group_count": 0
+    },
+    "telegram_voice_enabled": false
   }
 }
