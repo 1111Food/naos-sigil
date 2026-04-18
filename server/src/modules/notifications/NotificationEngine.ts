@@ -132,13 +132,17 @@ export class NotificationEngine {
                 if (isOracleDue) {
                     const todayStr = userLocal.toISOString().split('T')[0];
                     
-                    // 1. Check Cache
+                    // 1. Calculate precise UTC bounds for the user's local day to avoid double generation
+                    const utcStartOfDay = new Date(new Date(`${todayStr}T00:00:00.000Z`).getTime() - (offset * 3600000)).toISOString();
+                    const utcEndOfDay = new Date(new Date(`${todayStr}T23:59:59.999Z`).getTime() - (offset * 3600000)).toISOString();
+                    
+                    // 2. Check Cache
                     const { data: cached } = await supabase
                         .from('daily_readings')
                         .select('reading_text')
                         .eq('user_id', user.id)
-                        .gte('created_at', `${todayStr}T00:00:00.000Z`)
-                        .lte('created_at', `${todayStr}T23:59:59.999Z`)
+                        .gte('created_at', utcStartOfDay)
+                        .lte('created_at', utcEndOfDay)
                         .maybeSingle();
 
                     let reading: string;
