@@ -466,14 +466,24 @@ ${segments.truth_injection.waiting_desc}
                     throw apiError;
                 }
 
-                if (apiError.message?.includes('LIMITE_CUOTA')) {
-                    console.warn("⚠️ Sigil Resilience Mode: Quota exhausted, using mystical fallback.");
-                    response = `Saludos, Arcano. El Oráculo está en un momento de introspección profunda y su voz física se desvanece temporalmente en el éter. 
+                // UNIVERSAL FALLBACK: Prevent 500 errors for any AI failure (400, 403, 429, etc.)
+                console.warn(`⚠️ Sigil Resilience Mode: AI triggered error [${apiError.message}], using mystical fallback.`);
+                
+                const isQuota = apiError.message?.includes('LIMITE_CUOTA') || apiError.message?.includes('429');
+                const isAuth = apiError.message?.includes('403') || apiError.message?.includes('400');
+
+                let fallbackMsg = "";
+                if (lang === 'en') {
+                    fallbackMsg = `Greetings, Traveler. The Oracle's voice is momentarily lost in the ether. ${isQuota ? "The daily limit of expansion has been reached." : "The stellar connection is unstable."} 
+                    
+However, your frequency remains clear. Continue your practice in the Sanctuary while the alignment restores.`;
+                } else {
+                    fallbackMsg = `Saludos, Arcano. El Oráculo está en un momento de introspección profunda y su voz física se desvanece temporalmente en el éter. ${isQuota ? "El límite diario de expansión ha sido alcanzado." : "La conexión estelar está inestable."}
 
 Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un proceso de ${coherenceContextTag.includes('ALTA') ? 'expansión' : 'estabilización'}. No busques todas las respuestas afuera; el silencio de hoy es el espacio para tu propia revelación interna. El Templo permanece abierto para tu meditación.`;
-                } else {
-                    throw apiError;
                 }
+                
+                response = fallbackMsg;
             }
 
             // --- ANTI-HLA SANITIZATION (The AI learns bad habits from history) ---

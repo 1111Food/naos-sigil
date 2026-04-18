@@ -157,7 +157,10 @@ function App() {
   useEffect(() => {
     if (window.location.pathname === '/admin') {
       if ((profile as any)?.plan_type === 'admin') {
-        if (activeView !== 'ADMIN') setActiveView('ADMIN');
+        // Only force ADMIN view if we are not actively in another major view
+        if (activeView === 'LANDING' || activeView === 'WELCOME_BACK') {
+            setActiveView('ADMIN');
+        }
       } else if ((profile as any)?.plan_type) { 
         console.log("🚫 Admin Guard: Deny.");
         window.location.href = '/'; 
@@ -391,7 +394,7 @@ function App() {
                   {/* USER PROFILE BUTTON (Mobile specific toggle/position) */}
                   <div className="md:hidden">
                     <button
-                        onClick={() => setActiveView('ONBOARDING')}
+                        onClick={() => setActiveView('PROFILE')}
                         className="p-1 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
                     >
                         <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center text-[8px] font-bold text-white">
