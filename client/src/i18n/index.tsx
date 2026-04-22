@@ -109,6 +109,17 @@ export const translations = {
         sigil_welcome_2: "Las esferas se han alineado. ¿Qué buscas en el tejido del tiempo?",
         sigil_welcome_3: "Bienvenido al Templo, {{name}}. Tu rastro estelar nos guía.",
         sigil_temple_ready: "El Templo está activo. El Sigil observa tus ciclos.",
+        // --- TEXTOS EXTRAIDOS ---
+        sacred_void: "Vacío Sagrado",
+        temple_awaits_coordinates: '"El Templo aguarda tus coordenadas. Inicia tu Ritual de Nacimiento para que las estrellas puedan reconocerte."',
+        manifest_origin: "Manifestar Origen",
+        natal_vibration: "Vibración Natal",
+        daily_pulse: "Pulso Diario",
+        ride_your_astral: "Cabalgar tu Astral",
+        energy_in_harmony: "Energía en Armonía",
+        portal_disconnected: "Portal estelar desconectado",
+        performance_30_days: "Rendimiento (30 Días)",
+        streak_label: "Racha",
         calibrate: "CALIBRAR",
 
         // Identity & Ranks
@@ -1407,6 +1418,17 @@ export const translations = {
         sigil_welcome_2: "The spheres have aligned. What do you seek in the fabric of time?",
         sigil_welcome_3: "Welcome to the Temple, {{name}}. Your stellar trail guides us.",
         sigil_temple_ready: "The Temple is active. The Sigil monitors your cycles.",
+        // --- TEXTOS EXTRAIDOS ---
+        sacred_void: "Sacred Void",
+        temple_awaits_coordinates: '"The Temple awaits your coordinates. Initiate your Birth Ritual so the stars may recognize you."',
+        manifest_origin: "Manifest Origin",
+        natal_vibration: "Natal Vibration",
+        daily_pulse: "Daily Pulse",
+        ride_your_astral: "Ride your Astral Flow",
+        energy_in_harmony: "Energy in Harmony",
+        portal_disconnected: "Stellar portal disconnected",
+        performance_30_days: "Performance (30 Days)",
+        streak_label: "Streak",
         calibrate: "CALIBRATE",
 
         // Identity & Ranks

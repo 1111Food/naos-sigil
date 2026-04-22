@@ -4,6 +4,7 @@ import { Moon, Sun, Wind, Mountain, Sparkles, AlertTriangle } from 'lucide-react
 import { cn } from '../lib/utils';
 import { AstralLoading } from './AstralLoading';
 import { getAuthHeaders, API_BASE_URL } from '../lib/api';
+import { useTranslation } from '../i18n';
 
 interface DailyGuidance {
     personalNumber: number;
@@ -25,13 +26,14 @@ interface CabalgarTuAstralProps {
 }
 
 export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual }) => {
+    const { t } = useTranslation();
     const [data, setData] = useState<DailyGuidance | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetch(`${API_BASE_URL}/api/astrology/daily`, { headers: getAuthHeaders() })
             .then(res => {
-                if (!res.ok) throw new Error('Portal desconectado');
+                if (!res.ok) throw new Error(t('portal_disconnected'));
                 return res.json();
             })
             .then(d => {
@@ -71,16 +73,16 @@ export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual
                     <Sparkles className="w-8 h-8 text-red-500/40" />
                 </div>
                 <div className="space-y-4">
-                    <h2 className="text-[26px] font-light tracking-widest text-amber-50/80 uppercase">Vacío Sagrado</h2>
+                    <h2 className="text-[26px] font-light tracking-widest text-amber-50/80 uppercase">{t('sacred_void')}</h2>
                     <p className="text-[17px] text-amber-100/40 font-serif italic leading-relaxed">
-                        "El Templo aguarda tus coordenadas. Inicia tu Ritual de Nacimiento para que las estrellas puedan reconocerte."
+                        {t('temple_awaits_coordinates')}
                     </p>
                 </div>
                 <button
                     onClick={onOpenRitual}
                     className="px-12 py-4 rounded-full bg-red-500/10 border border-red-500/20 text-red-100 hover:bg-red-500/20 transition-all uppercase tracking-[0.3em] text-[11px]"
                 >
-                    Manifestar Origen
+                    {t('manifest_origin')}
                 </button>
             </motion.div>
         );
@@ -103,7 +105,7 @@ export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual
                         <div className="w-16 h-16 rounded-full border border-amber-500/20 flex items-center justify-center text-3xl font-serif text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.1)]">
                             {personalNumber}
                         </div>
-                        <span className="text-[9px] uppercase tracking-[0.3em] text-amber-500/40">Vibración Natal</span>
+                        <span className="text-[9px] uppercase tracking-[0.3em] text-amber-500/40">{t('natal_vibration')}</span>
                     </div>
 
                     <div className="w-px h-16 bg-gradient-to-b from-transparent via-red-500/20 to-transparent" />
@@ -112,12 +114,12 @@ export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual
                         <div className="w-16 h-16 rounded-full border border-red-500/20 flex items-center justify-center text-3xl font-serif text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
                             {dayNumber}
                         </div>
-                        <span className="text-[9px] uppercase tracking-[0.3em] text-red-500/40">Pulso Diario</span>
+                        <span className="text-[9px] uppercase tracking-[0.3em] text-red-500/40">{t('daily_pulse')}</span>
                     </div>
                 </div>
 
                 <h1 className="text-[38px] font-light tracking-[0.2em] text-amber-50/90 font-serif lowercase italic">
-                    Cabalgar tu Astral
+                    {t('ride_your_astral')}
                 </h1>
             </header>
 
@@ -125,7 +127,7 @@ export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Armonía Card */}
                 <RitualCard
-                    title="Energía en Armonía"
+                    title={t('energy_in_harmony')}
                     content={guidance.favored}
                     icon={<ElementIcon element={elementOfDay} className="w-6 h-6" />}
                     color="amber"
@@ -133,7 +135,7 @@ export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual
 
                 {/* Sensible Card */}
                 <RitualCard
-                    title="Presencia Consciente"
+                    title={t('conscious_presence')}
                     content={guidance.sensitive}
                     icon={<ElementIcon element={userElement} className="w-6 h-6" />}
                     color="red"
@@ -142,7 +144,7 @@ export const CabalgarTuAstral: React.FC<CabalgarTuAstralProps> = ({ onOpenRitual
                 {/* Advice Card - Full Width */}
                 <div className="md:col-span-2">
                     <RitualCard
-                        title="Consejo del Oráculo"
+                        title={t('oracle_advice')}
                         content={guidance.advice}
                         icon={<Sparkles className="w-6 h-6" />}
                         color="gold"

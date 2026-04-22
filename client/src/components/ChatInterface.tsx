@@ -9,12 +9,14 @@ import { cn } from '../lib/utils';
 
 import { useProtocol21 } from '../hooks/useProtocol21';
 import { API_BASE_URL } from '../lib/api';
+import { useTranslation } from '../i18n';
 
 interface ChatInterfaceProps {
     onNavigate?: (view: 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR') => void;
 }
 
 export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
+    const { t } = useTranslation();
     const { profile } = useProfile();
     const { dynamicScore, regulationBoost } = useEnergy();
     const { activeProtocol, dailyLogs } = useProtocol21();
@@ -132,7 +134,7 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                         <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center mb-4 animate-spin-slow">
                             <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="w-8 h-8 rounded-full bg-cyan-500/20 blur-xl" />
                         </div>
-                        <p className="text-white/40 font-serif tracking-[0.2em] uppercase text-[10px]">Sincronizando Archivo Akáshico...</p>
+                        <p className="text-white/40 font-serif tracking-[0.2em] uppercase text-[10px]">{t('akashic_sync')}</p>
                     </div>
                 )}
 
@@ -141,7 +143,7 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                         <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center mb-4 animate-pulse">
                             <Send size={20} className="text-white/50" />
                         </div>
-                        <p className="text-amber-100/50 font-serif tracking-[0.2em] uppercase text-[10px]">El Oráculo Escucha</p>
+                        <p className="text-amber-100/50 font-serif tracking-[0.2em] uppercase text-[10px]">{t('oracle_listens')}</p>
                     </div>
                 )}
 
@@ -212,7 +214,7 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                                 <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} className="w-1.5 h-1.5 bg-amber-500/50 rounded-full" />
                                 <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} className="w-1.5 h-1.5 bg-amber-500/50 rounded-full" />
                             </div>
-                            <span className="text-xs uppercase tracking-widest text-white/30">Interpretando...</span>
+                            <span className="text-xs uppercase tracking-widest text-white/30">{t('interpreting')}</span>
                         </div>
                     </div>
                 )}
@@ -232,7 +234,7 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                         >
                             <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                <p className="text-amber-200 text-xs font-serif italic">Tu sistema está perdiendo disciplina. ¿Vas a cerrar el día o lo dejamos caer?</p>
+                                <p className="text-amber-200 text-xs font-serif italic">{t('discipline_warning')}</p>
                             </div>
                             <div className="flex gap-2 w-full">
                                 <button 
@@ -283,7 +285,7 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                         </button>
                     </div>
                 </form>
-                <p className="text-center text-[9px] text-white/10 mt-3 uppercase tracking-[0.3em]">Conexión Sigil v3.0 // Canal Seguro</p>
+                <p className="text-center text-[9px] text-white/10 mt-3 uppercase tracking-[0.3em]">{t('sigil_connection')}</p>
             </div>
         </div>
     );

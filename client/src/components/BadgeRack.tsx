@@ -7,6 +7,7 @@ import { useProfile } from '../hooks/useProfile';
 import { PerformanceSparkline } from './PerformanceSparkline';
 import { supabase } from '../lib/supabase';
 import { getAuthHeaders, API_BASE_URL } from '../lib/api';
+import { useTranslation } from '../i18n';
 
 // --- GEOMETRIC ARTIFACTS (SVG COMPONENTS) ---
 
@@ -156,6 +157,7 @@ const RANK_DEFINITIONS = [
 ];
 
 export const BadgeRack: React.FC<{ onRankingClick?: () => void }> = ({ onRankingClick }) => {
+    const { t } = useTranslation();
     const { profile } = useProfile();
     const completed = profile?.protocols_completed || 0;
 
@@ -256,7 +258,7 @@ export const BadgeRack: React.FC<{ onRankingClick?: () => void }> = ({ onRanking
                 <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center gap-4">
                     <div className="flex-1">
                         <div className="flex justify-between text-[10px] text-white/30 uppercase tracking-wider mb-2">
-                            <span>Rendimiento (30 Días)</span>
+                            <span>{t('performance_30_days')}</span>
                             <span className="text-white/60 font-bold">{(stats.sma_30 && typeof stats.sma_30 === 'number' && stats.sma_30 > 0) ? stats.sma_30.toFixed(1) : '--'} Ø</span>
                         </div>
                         <PerformanceSparkline data={stats.history} color={stats.sma_30 > 70 ? '#fcd34d' : '#22d3ee'} />
@@ -265,7 +267,7 @@ export const BadgeRack: React.FC<{ onRankingClick?: () => void }> = ({ onRanking
                     {/* Streak Box */}
                     <div className="flex flex-col items-center justify-center pl-4 border-l border-white/10 min-w-[80px]">
                         <span className="text-[20px] font-black text-white">{stats.current_streak}</span>
-                        <span className="text-[8px] uppercase tracking-widest text-white/40">Racha</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/40">{t('streak_label')}</span>
                     </div>
                 </div>
 
