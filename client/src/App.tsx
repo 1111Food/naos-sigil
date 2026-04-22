@@ -84,8 +84,9 @@ function App() {
   // 0. GHOST SESSION PURGE (SECURITY UPGRADE)
   useEffect(() => {
     const checkPhantom = async () => {
-      // PROT: Don't purge if we are in a recovery flow (hash contains recovery type)
-      const isRecoveryFlow = window.location.hash.includes('type=recovery') || window.location.hash.includes('type=email_change');
+      // PROT: Don't purge if we are in a auth callback flow (hash or search contains code/recovery)
+      const href = window.location.href;
+      const isRecoveryFlow = href.includes('type=recovery') || href.includes('type=email_change') || href.includes('code=') || href.includes('access_token=');
       if (isRecoveryFlow) {
         console.log("🔑 [AUTH_GUARD] Recovery flow detected. Skipping ghost purge.");
         return;

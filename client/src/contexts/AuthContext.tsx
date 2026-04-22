@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -57,35 +57,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
     }, []);
 
-    const signInAnonymously = async () => {
+    const signInAnonymously = useCallback(async () => {
         return await supabase.auth.signInAnonymously();
-    };
+    }, []);
 
-    const signInWithPassword = async (email: string, password: string) => {
+    const signInWithPassword = useCallback(async (email: string, password: string) => {
         return await supabase.auth.signInWithPassword({ email, password });
-    };
+    }, []);
 
-    const signUp = async (email: string, password: string) => {
+    const signUp = useCallback(async (email: string, password: string) => {
         return await supabase.auth.signUp({ email, password });
-    };
+    }, []);
 
-    const signOut = async () => {
+    const signOut = useCallback(async () => {
         return await supabase.auth.signOut();
-    };
+    }, []);
 
-    const resetPasswordForEmail = async (email: string) => {
+    const resetPasswordForEmail = useCallback(async (email: string) => {
         return await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin
         });
-    };
+    }, []);
 
-    const updatePassword = async (password: string) => {
+    const updatePassword = useCallback(async (password: string) => {
         const res = await supabase.auth.updateUser({ password });
         if (!res.error) {
             setIsRecoveringPassword(false);
         }
         return res;
-    };
+    }, []);
 
     return (
         <AuthContext.Provider value={{ user, session, loading, signInAnonymously, signInWithPassword, signUp, signOut, resetPasswordForEmail, updatePassword, isRecoveringPassword }}>

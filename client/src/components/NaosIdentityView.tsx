@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Shield, Target, User, AlertTriangle, RefreshCw, Hexagon, Sparkles, Heart, Home, Wind, ChevronDown, BookOpen, Info } from 'lucide-react';
+import { Zap, Shield, Target, User, AlertTriangle, RefreshCw, Hexagon, Sparkles, Heart, Home, Wind, ChevronDown, BookOpen, Info, Lock } from 'lucide-react';
 import { OracleExplainer } from './OracleExplainer';
 import { cn } from '../lib/utils';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
@@ -11,6 +11,8 @@ import { NAOS_ARCHETYPES } from '../constants/archetypeData';
 import { NAOS_ARCHETYPES_EN } from '../constants/archetypeData_en';
 import { useTranslation } from '../i18n';
 import { ArchetypeDecodifier } from './ArchetypeDecodifier';
+import { useSubscription } from '../hooks/useSubscription';
+import { useUpgrade } from '../contexts/UpgradeContext';
 
 interface NaosIdentitySynthesis {
     arquetipo?: {
@@ -63,6 +65,12 @@ const frequencyConfig: Record<string, { main: string, glow: string, bg: string }
 export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile }) => {
     const { t, language } = useTranslation();
     const cacheKey = `naos_identity_${_profile?.id || 'guest'}_${language}`;
+    const { status: subscription } = useSubscription();
+    const { triggerUpgrade } = useUpgrade();
+
+    const isPremium = _profile?.plan_type === 'premium' || _profile?.plan_type === 'admin' || _profile?.plan_type === 'premium_plus' ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
     
     // Initial state hydration: Prop > LocalStorage > null
     const [synthesis, setSynthesis] = useState<NaosIdentitySynthesis | null>(() => {
@@ -416,9 +424,27 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                         
                         <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent" />
                         
-                        <p className="text-xl md:text-2xl text-white/70 font-light italic leading-relaxed max-w-4xl">
-                            "{archetype.descripcion}"
-                        </p>
+                        {isPremium ? (
+                            <p className="text-xl md:text-2xl text-white/70 font-light italic leading-relaxed max-w-4xl">
+                                "{archetype.descripcion}"
+                            </p>
+                        ) : (
+                            <div className="mt-6 p-6 bg-black/40 rounded-2xl border border-dashed border-purple-500/30 text-center space-y-4 max-w-2xl cursor-pointer hover:bg-black/60 transition-all" onClick={(e) => { e.stopPropagation(); triggerUpgrade('synthesis'); }}>
+                                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">
+                                    <Lock className="w-5 h-5 text-purple-400" />
+                                </div>
+                                <div>
+                                    <h5 className="text-sm font-bold text-white uppercase tracking-widest">{t('reserved_content') || 'Contenido Reservado'}</h5>
+                                    <p className="text-xs text-white/50 leading-relaxed mt-2 inline-flex items-center gap-2">
+                                        <Zap className="w-3 h-3" />
+                                        La interpretación profunda del Arquetipo es exclusiva del Santuario Nivel 2.
+                                    </p>
+                                </div>
+                                <button className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all w-full md:w-auto inline-flex items-center justify-center gap-2">
+                                    {t('view_plans') || 'Desbloquear Código'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </motion.div>
             )}

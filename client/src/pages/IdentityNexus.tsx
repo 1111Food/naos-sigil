@@ -39,7 +39,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
             color: "from-blue-500/20 to-cyan-500/10",
             border: "border-blue-500/30",
             glow: "shadow-[0_0_40px_-10px_rgba(30,64,175,0.4)]",
-            locked: !isPremium
+            locked: false
         },
         {
             id: 'MANUALS',

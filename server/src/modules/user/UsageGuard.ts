@@ -10,9 +10,9 @@ export interface UsageStats {
 }
 
 export const LIMITS = {
-    tarot: 3,
-    synastry_dual: 2,
-    synastry_group: 1,
+    tarot: 1,
+    synastry_dual: 1,
+    synastry_group: 0,
     sigil: 50,
     naos_code: 1
 };
@@ -72,13 +72,27 @@ export class UsageGuardService {
             count = stats.sigil_messages_count;
             actionLabel = "mensajes de Sigil";
         }
-        else if (action === 'tarot') { count = stats.tarot_draw_count; actionLabel = "Tarot"; }
-        else if (action === 'synastry_dual') { count = stats.synastry_dual_count; actionLabel = "Sinastría Dual"; }
-        else if (action === 'synastry_group') { count = stats.synastry_group_count; actionLabel = "Sinastría Grupal"; }
+        else if (action === 'tarot') { 
+            count = stats.tarot_draw_count + stats.synastry_dual_count; 
+            actionLabel = "Tarot / Oráculo"; 
+        }
+        else if (action === 'synastry_dual') { 
+            count = stats.tarot_draw_count + stats.synastry_dual_count; 
+            actionLabel = "Sinastría Dual / Oráculo"; 
+        }
+        else if (action === 'synastry_group') { 
+            count = stats.synastry_group_count; 
+            actionLabel = "Matriz de Grupos"; 
+        }
         else if (action === 'naos_code') { count = stats.naos_code_count; actionLabel = "Código de Identidad"; }
 
-        // Admins have no limits
-        if (planType === 'admin') return { ok: true };
+        // Premium and Admin users bypass limits for oracle and synastry
+        if (planType === 'admin' || planType === 'premium' || planType === 'premium_plus') {
+            if (action !== 'sigil' && action !== 'naos_code') {
+                return { ok: true };
+            }
+            if (planType === 'admin') return { ok: true };
+        }
 
         if (count >= limit) {
             let limitMessage = `Has agotado tu energía para ${actionLabel} por hoy (${limit}/${limit}). Medita en el Santuario y regresa al amanecer.`;

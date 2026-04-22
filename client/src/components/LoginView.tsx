@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Sparkles, Loader2, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useProfile } from '../contexts/ProfileContext';
+
 import { useTranslation } from '../i18n';
 import { StatusBadge } from './StatusBadge';
 
@@ -18,7 +18,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
     const [loading, setLoading] = useState(false);
     const [mode, setMode] = useState<'LOGIN' | 'RESET'>('LOGIN');
     const { signInWithPassword, resetPasswordForEmail } = useAuth();
-    const { refreshProfile } = useProfile();
+
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -37,18 +37,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
 
             const user = data?.user;
             if (user) {
-                console.log("🚀 LoginView: Portal abierto. Verificando identidad...");
-
-                // Force a fresh fetch to be sure
-                const freshProfile = await refreshProfile();
-
-                if (freshProfile && freshProfile.birthDate) {
-                    console.log("🔮 LoginView: Identidad confirmada. Entrando al Templo.");
-                    if (onSuccess) onSuccess('TEMPLE');
-                } else {
-                    console.log("🌑 LoginView: Sin identidad. Redirigiendo a Onboarding.");
-                    if (onSuccess) onSuccess('ONBOARDING');
-                }
+                console.log("🚀 LoginView: Portal abierto. Delegando validación de identidad al Guardián de Sesión global...");
+                if (onSuccess) onSuccess('TEMPLE');
             }
         } catch (err: any) {
             console.error('Error fatal en el portal de acceso:', err);

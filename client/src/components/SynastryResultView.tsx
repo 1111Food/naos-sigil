@@ -157,7 +157,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
             {/* Header: Soul Mirror */}
             <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 py-10">
                 {/* User A */}
-                <div className="flex flex-col items-center md:items-end space-y-4 w-full md:w-1/3">
+                <div className="flex flex-col items-center md:items-end space-y-4 w-full md:flex-1">
                     <div className="w-24 h-24 rounded-full border-2 border-cyan-500/30 bg-cyan-900/10 flex items-center justify-center relative shadow-[0_0_20px_rgba(6,182,212,0.1)] overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-transparent" />
                         <span className="text-3xl font-serif text-primary relative z-10">{userA?.name?.[0]}</span>
@@ -169,29 +169,29 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                 </div>
 
                 {/* Connection Score Overlay (Center) */}
-                <div className="md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-20 shrink-0 my-4 md:my-0">
+                <div className="z-20 shrink-0 my-4 md:my-0 flex justify-center w-full md:w-auto px-4">
                     <motion.div
                         initial={{ scale: 0, rotate: -20 }}
                         animate={{ scale: 1, rotate: 0 }}
                         onClick={() => setShowGuide(true)}
-                        className="p-8 md:p-12 rounded-[2.5rem] relative overflow-hidden glass-panel cursor-help group"
+                        className="p-8 rounded-full relative overflow-hidden glass-panel cursor-help group flex flex-col items-center justify-center min-w-[200px] min-h-[200px] shadow-[0_0_40px_rgba(168,85,247,0.15)] border border-purple-500/20"
                     >
                         <div className="absolute inset-0 rounded-full border-[0.5px] border-white/10 animate-[spin_10s_linear_infinite] opacity-50" style={{ borderTopColor: 'transparent', borderBottomColor: 'transparent' }} />
                         <div className="absolute inset-2 rounded-full border-[0.5px] border-white/5 animate-[spin_15s_linear_infinite_reverse] opacity-50" style={{ borderLeftColor: 'transparent', borderRightColor: 'transparent' }} />
                         <div className="absolute inset-0 rounded-full bg-white/5 scale-0 group-hover:scale-100 transition-transform duration-500" />
 
-                        <span className="text-4xl font-light text-primary font-serif tracking-widest relative z-10">{report.score}</span>
+                        <span className="text-5xl font-light text-primary font-serif tracking-widest relative z-10 mb-2">{report.score}</span>
                         {synthesis?.subtitulo_score && (
-                            <span className="text-[8px] italic text-amber-400 font-serif mt-1 relative z-10 text-center max-w-[120px] leading-tight">
+                            <span className="text-[9px] italic text-amber-400 font-serif relative z-10 text-center max-w-[140px] leading-relaxed mb-3">
                                 {synthesis.subtitulo_score}
                             </span>
                         )}
-                        <span className="text-[7px] uppercase tracking-[0.4em] text-secondary mt-2 relative z-10 group-hover:text-white transition-colors">{t('onboarding_nexus_label')}</span>
+                        <span className="text-[8px] uppercase tracking-[0.4em] text-secondary relative z-10 group-hover:text-white transition-colors">{t('onboarding_nexus_label')}</span>
                     </motion.div>
                 </div>
 
                 {/* User B */}
-                <div className="flex flex-col items-center md:items-start space-y-4 w-full md:w-1/3">
+                <div className="flex flex-col items-center md:items-start space-y-4 w-full md:flex-1">
                     <div className="w-24 h-24 rounded-full border-2 border-amber-500/30 bg-amber-900/10 flex items-center justify-center relative shadow-[0_0_20px_rgba(245,158,11,0.1)] overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-transparent" />
                         <span className="text-3xl font-serif text-primary relative z-10">{userB?.name?.[0]}</span>

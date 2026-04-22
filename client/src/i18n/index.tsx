@@ -1999,7 +1999,7 @@ export const translations = {
         protocol_day_validated: "Day Validated",
         protocol_streak_sustained: "Streak Sustained",
         protocol_active_pillars: "Active Pillars",
-        protocol_log_placeholder: "How did you keep the pact today? Write your reflections...",
+
         discipline: "Discipline",
 
         // Akashic Vault
