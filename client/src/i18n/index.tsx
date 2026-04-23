@@ -125,6 +125,10 @@ export const translations = {
         performance_30_days: "Rendimiento (30 Días)",
         streak_label: "Racha",
         calibrate: "CALIBRAR",
+        sanctuary_ritual_integrated: "Ritual Integrado",
+        sanctuary_processed_energy: "El Santuario ha procesado tu energía",
+        sanctuary_coherence_label: "Coherencia",
+        sanctuary_continue: "Continuar",
 
         // Identity & Ranks
         mystery_of: "Misterio de",
@@ -1438,6 +1442,10 @@ export const translations = {
         performance_30_days: "Performance (30 Days)",
         streak_label: "Streak",
         calibrate: "CALIBRATE",
+        sanctuary_ritual_integrated: "Integrated Ritual",
+        sanctuary_processed_energy: "The Sanctuary has processed your energy",
+        sanctuary_coherence_label: "Coherence",
+        sanctuary_continue: "Continue",
 
         // Identity & Ranks
         mystery_of: "Mystery of",

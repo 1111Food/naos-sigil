@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowLeft, Layers, HelpCircle, Moon } from 'lucide-react';
+import { Sparkles, ArrowLeft, Layers, HelpCircle, Moon, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { StrategicCard } from '../components/StrategicCard';
 import { BreathingEngine } from '../components/BreathingEngine';
@@ -40,6 +40,7 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
     const [ritualState, setRitualState] = useState<RitualState>(initialIntent ? 'CALIBRATION' : 'INVOCATION');
     const [oracleState, setOracleState] = useState<OracleState>('VOCAL');
     const [soulIntent, setSoulIntent] = useState(initialIntent || '');
+    const [ambientPlaying, setAmbientPlaying] = useState(false);
     const [selectedEngine, setSelectedEngine] = useState<'ARCANOS' | 'ARQUETIPOS'>('ARCANOS');
     const [isSaving, setIsSaving] = useState(false);
     const [spread, setSpread] = useState<SpreadType | null>(null);
@@ -70,17 +71,21 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
     }, []);
 
     React.useEffect(() => {
-        // Play audio when module is active
-        // Note: Browsers require user interaction before playing audio
-        if (ritualState !== 'INVOCATION' && audioRef.current) {
-            const playPromise = audioRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Audio autoplay prevented - waiting for interaction:", error);
-                });
-            }
-        }
+        // Initialize but DO NOT autoplay (per user request).
+        // Only load the audio into ref.
     }, [ritualState]);
+
+    const toggleAmbient = () => {
+        playSound('click');
+        if (audioRef.current) {
+            if (ambientPlaying) {
+                audioRef.current.pause();
+            } else {
+                audioRef.current.play().catch(e => console.log("Audio play error:", e));
+            }
+            setAmbientPlaying(!ambientPlaying);
+        }
+    };
 
     const pageVariants = {
         initial: { opacity: 0, y: 10 },
@@ -254,7 +259,9 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                     <Moon className="w-3.5 h-3.5 opacity-40 animate-pulse" />
                     <span>{t('tarot_strategic_radiography')}</span>
                 </div>
-                <div className="w-9" />
+                <button onClick={toggleAmbient} className="p-2 text-secondary hover:text-primary transition-colors">
+                    {ambientPlaying ? <Volume2 className="w-5 h-5 font-light" /> : <VolumeX className="w-5 h-5 font-light opacity-50" />}
+                </button>
             </header>
 
             {/* Main Altar Area */}

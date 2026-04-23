@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, Flame, Droplets, Mountain, Wind } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 interface RitualImpactViewProps {
     delta: number;
@@ -11,6 +12,7 @@ interface RitualImpactViewProps {
 }
 
 export const RitualImpactView: React.FC<RitualImpactViewProps> = ({ delta, newScore, element, onClose }) => {
+    const { t } = useTranslation();
 
     // Auto-close after 5 seconds if not interactive
     useEffect(() => {
@@ -62,16 +64,16 @@ export const RitualImpactView: React.FC<RitualImpactViewProps> = ({ delta, newSc
                     </motion.div>
                 </div>
 
-                <h2 className="text-2xl font-serif italic text-white mb-1">Ritual Integrado</h2>
+                <h2 className="text-2xl font-serif italic text-white mb-1">{t('sanctuary_ritual_integrated')}</h2>
                 <p className="text-xs uppercase tracking-widest text-white/40 mb-8">
-                    El Santuario ha procesado tu energía
+                    {t('sanctuary_processed_energy')}
                 </p>
 
                 <div className="gap-2 flex items-baseline justify-center mb-8">
                     <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-white">
                         {isPositive ? '+' : ''}{delta}
                     </span>
-                    <span className="text-[10px] uppercase tracking-widest text-white/30">Coherencia</span>
+                    <span className="text-[10px] uppercase tracking-widest text-white/30">{t('sanctuary_coherence_label')}</span>
                 </div>
 
                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-8 relative">
@@ -87,7 +89,7 @@ export const RitualImpactView: React.FC<RitualImpactViewProps> = ({ delta, newSc
                     onClick={onClose}
                     className="w-full py-4 rounded-xl bg-white text-black font-medium hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                 >
-                    Continuar <ArrowRight size={16} />
+                    {t('sanctuary_continue')} <ArrowRight size={16} />
                 </button>
 
             </motion.div>
