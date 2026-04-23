@@ -131,7 +131,8 @@ export const AtmosphereEngine: React.FC = () => {
                         const centerX = canvas.width / 2;
                         const centerY = canvas.height / 2;
                         const angle = Math.atan2(p.y - centerY, p.x - centerX);
-                        const pulseScale = Math.sin(time / 1000) * 0.5 + 1;
+                        // Subtler oscillation to avoid periodic visual flashes
+                        const pulseScale = Math.sin(time / 4000) * 0.2 + 1;
                         p.vx = Math.cos(angle) * config.speed * pulseScale;
                         p.vy = Math.sin(angle) * config.speed * pulseScale;
                         p.x += p.vx;

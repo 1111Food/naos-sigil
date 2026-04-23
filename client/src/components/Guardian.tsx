@@ -35,8 +35,8 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
     const scrollScale = Math.max(0.92, 1 - scrollY / 1000);
     const scrollOpacity = Math.max(0.85, 1 - scrollY / 2000);
 
-    // Cache busting reference
-    const assetVersion = React.useMemo(() => new Date().getTime(), []);
+    // Cache busting reference - BUMPED TO 7.6 FOR AUDIT REFRESH
+    const assetVersion = "7.6";
 
     return (
         <AnimatePresence>
@@ -76,8 +76,8 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                         className="relative w-full h-full"
                         style={isResting ? { transform: 'translateY(5vh)' } : {}}
                     >
-                        {/* Main Guardian Identity - ULTRA-TIGHT MASKED VIDEO */}
-                        <div className="relative w-full h-full pointer-events-none flex items-center justify-center">
+                        {/* 1. SYMBOLIC CENTER (The Aura) - ALL GLOWS EXTERMINATED */}
+                        <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
                             <video
                                 src={timeMode === 'DAY' ? `/Guardian-Day.mp4?v=${assetVersion}` : `/Guardian-Night.mp4?v=${assetVersion}`}
                                 autoPlay
@@ -90,8 +90,7 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                                 )}
                                 style={{
                                     objectPosition: 'center', 
-                                    mixBlendMode: 'screen',
-                                    backgroundColor: 'transparent',
+                                    mixBlendMode: 'plus-lighter',
                                     maskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
                                     WebkitMaskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
                                     clipPath: 'circle(32% at 50% 50%)',
@@ -99,7 +98,7 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                                     backfaceVisibility: 'hidden',
                                     WebkitBackfaceVisibility: 'hidden',
                                     transform: 'translateZ(0)',
-                                    willChange: 'opacity'
+                                    willChange: 'opacity, transform'
                                 }}
                             />
                         </div>
