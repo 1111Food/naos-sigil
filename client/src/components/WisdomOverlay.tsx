@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../i18n';
 
 interface WisdomOverlayProps {
     isOpen: boolean;
@@ -18,6 +19,9 @@ export const WisdomOverlay: React.FC<WisdomOverlayProps> = ({
     description,
     accentColor = 'cyan'
 }) => {
+    const { language } = useTranslation();
+    const isEn = language === 'en';
+
     const accents = {
         cyan: 'border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.1)]',
         magenta: 'border-magenta-500/30 shadow-[0_0_40px_rgba(217,70,239,0.1)]',
@@ -73,7 +77,7 @@ export const WisdomOverlay: React.FC<WisdomOverlayProps> = ({
                         {/* Top Navigation / Controls */}
                         <div className="flex justify-between items-center mb-8 relative z-10">
                             <div className={cn("px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-label", textAccents[accentColor])}>
-                                Sabiduría Naos
+                                {isEn ? "Naos Wisdom" : "Sabiduría Naos"}
                             </div>
                             <button
                                 onClick={onClose}
