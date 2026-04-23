@@ -56,8 +56,8 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                         y: 0,
                         rotate: isManifesting ? 12 : 0,
                         // STITCH UPDATE: Reduced size by ~30% for subtle guidance
-                        width: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 100 : 180) : (window.innerWidth < 768 ? 80 : 160)),
-                        height: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 100 : 180) : (window.innerWidth < 768 ? 80 : 160))
+                        width: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 130 : 220) : (window.innerWidth < 768 ? 100 : 180)),
+                        height: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 130 : 220) : (window.innerWidth < 768 ? 100 : 180))
                     }}
                     style={{}}
                     onClick={(e) => {
@@ -98,10 +98,10 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                                     objectPosition: 'center', 
                                     mixBlendMode: 'screen',
                                     backgroundColor: 'transparent',
-                                    maskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
-                                    WebkitMaskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
-                                    clipPath: 'circle(28% at 50% 50%)',
-                                    WebkitClipPath: 'circle(28% at 50% 50%)',
+                                    maskImage: 'radial-gradient(circle at center, white 2%, transparent 35%)',
+                                    WebkitMaskImage: 'radial-gradient(circle at center, white 2%, transparent 35%)',
+                                    clipPath: 'circle(25% at 50% 50%)',
+                                    WebkitClipPath: 'circle(25% at 50% 50%)',
                                     willChange: 'transform, opacity'
                                 }}
                             />

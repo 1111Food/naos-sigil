@@ -44,11 +44,7 @@ export const TempleAura = ({ score = 50 }: { score?: number }) => {
     return (
         <AbsoluteFill style={{ backgroundColor: 'transparent' }}>
             {/* Background removed to allow Global Aura to shine through */}
-            {/* Dynamic Aura Background */}
-            <AbsoluteFill style={{
-                background: `radial-gradient(circle at center, ${config.glow} 0%, transparent 60%)`,
-                opacity: 0.2 + (breathingCycle * 0.05)
-            }} />
+            {/* Dynamic Aura Background - REMOVED CENTER GLOW PER USER REQUEST */}
 
             <AbsoluteFill style={{ opacity: 0.05, filter: 'contrast(150%) brightness(1000%)' }}>
                 <svg width="100%" height="100%">
@@ -101,24 +97,7 @@ export const TempleAura = ({ score = 50 }: { score?: number }) => {
                 );
             })}
 
-            <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ position: 'absolute', left: '50%', transform: `scale(${scaleLogo}) translate(-50%, -95%)`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <img
-                        src="/logo-naos.png?v=2"
-                        alt="NAOS"
-                        className="naos-logo"
-                        style={{
-                            width: '280px',
-                            maxWidth: '80vw',
-                            height: 'auto',
-                            margin: '0 auto',
-                            filter: `drop-shadow(0 0 15px ${config.glow})`,
-                            opacity: 0.9,
-                            display: 'block'
-                        }}
-                    />
-                </div>
-            </AbsoluteFill>
+            {/* Logo and Center Glow removed to stabilize Sigil visual environment */}
         </AbsoluteFill>
     );
 };
