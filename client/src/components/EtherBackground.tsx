@@ -51,8 +51,8 @@ export const EtherBackground: React.FC = () => {
             {/* Base Ether Gradient removed to show Global Auras */}
             <div className="absolute inset-0 bg-transparent" />
 
-            {/* Subtle Vignette - Theme Aware */}
-            <div className="absolute inset-0 shadow-[inset_0_0_150px_var(--vignette-color)]" />
+            {/* Subtle Vignette - Theme Aware (Reduced for parity) */}
+            <div className="absolute inset-0 shadow-[inset_0_0_80px_var(--vignette-color)]" />
 
             {/* Floating Elements Area */}
             <div className="absolute inset-0">

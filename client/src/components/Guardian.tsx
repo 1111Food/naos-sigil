@@ -69,13 +69,9 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                     <motion.div
                         animate={{
                             y: [0, -4, 0],
-                            scale: isListening ? 1.03 : isResponding ? 1.05 : [1, 1.02, 1],
                         }}
                         transition={{
-                            y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-                            scale: isListening || isResponding
-                                ? { duration: 0.5 }
-                                : { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                            y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
                         }}
                         className="relative w-full h-full"
                         style={isResting ? { transform: 'translateY(5vh)' } : {}}
@@ -83,14 +79,12 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                         {/* Main Guardian Identity - ULTRA-TIGHT MASKED VIDEO */}
                         <div className="relative w-full h-full pointer-events-none flex items-center justify-center">
                             <video
-                                key={`${timeMode}-${assetVersion}`}
                                 src={timeMode === 'DAY' ? `/Guardian-Day.mp4?v=${assetVersion}` : `/Guardian-Night.mp4?v=${assetVersion}`}
                                 autoPlay
                                 loop
                                 muted
                                 playsInline
                                 preload="auto"
-                                poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                                 className={cn(
                                     "w-full h-full object-contain transition-opacity duration-1000 relative z-10"
                                 )}
@@ -102,7 +96,10 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                                     WebkitMaskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
                                     clipPath: 'circle(32% at 50% 50%)',
                                     WebkitClipPath: 'circle(32% at 50% 50%)',
-                                    willChange: 'transform, opacity'
+                                    backfaceVisibility: 'hidden',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    transform: 'translateZ(0)',
+                                    willChange: 'opacity'
                                 }}
                             />
                         </div>

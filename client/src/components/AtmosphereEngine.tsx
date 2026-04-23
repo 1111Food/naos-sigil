@@ -87,11 +87,11 @@ export const AtmosphereEngine: React.FC = () => {
             initParticles();
         };
 
-        const createParticle = (randomPos: boolean = false): Particle => {
+        const createParticle = (): Particle => {
             const size = Math.random() * (config.sizeRange[1] - config.sizeRange[0]) + config.sizeRange[0];
             return {
-                x: randomPos ? Math.random() * canvas.width : (Math.random() * 0.2 + 0.4) * canvas.width,
-                y: randomPos ? Math.random() * canvas.height : (Math.random() * 0.2 + 0.4) * canvas.height,
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
                 size,
                 vx: (Math.random() - 0.5) * config.speed,
                 vy: (Math.random() - 0.5) * config.speed,
@@ -102,7 +102,7 @@ export const AtmosphereEngine: React.FC = () => {
         const initParticles = () => {
             particlesRef.current = [];
             for (let i = 0; i < targetCount; i++) {
-                particlesRef.current.push(createParticle(true));
+                particlesRef.current.push(createParticle());
             }
         };
 
