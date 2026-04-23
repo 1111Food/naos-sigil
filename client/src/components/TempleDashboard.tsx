@@ -44,10 +44,10 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                                     className={`w-full h-full relative z-10 brightness-110 contrast-105 mix-blend-screen animate-float object-contain ${isSettled ? 'pause-animations' : ''}`}
                                     style={{ 
                                         objectPosition: '50% 50%',
-                                        maskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
-                                        WebkitMaskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
-                                        clipPath: 'circle(28% at 50% 50%)',
-                                        WebkitClipPath: 'circle(28% at 50% 50%)'
+                                        maskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
+                                        WebkitMaskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
+                                        clipPath: 'circle(32% at 50% 50%)',
+                                        WebkitClipPath: 'circle(32% at 50% 50%)'
                                     }}
                                 />
                             </div>
@@ -59,10 +59,10 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
                                     className={`w-full h-full relative z-10 brightness-110 contrast-105 mix-blend-screen animate-float object-contain ${isSettled ? 'pause-animations' : ''}`}
                                     style={{ 
                                         objectPosition: '50% 50%',
-                                        maskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
-                                        WebkitMaskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
-                                        clipPath: 'circle(28% at 50% 50%)',
-                                        WebkitClipPath: 'circle(28% at 50% 50%)'
+                                        maskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
+                                        WebkitMaskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
+                                        clipPath: 'circle(32% at 50% 50%)',
+                                        WebkitClipPath: 'circle(32% at 50% 50%)'
                                     }}
                                 />
                             </div>

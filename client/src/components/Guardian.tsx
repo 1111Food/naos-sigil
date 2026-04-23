@@ -98,10 +98,10 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                                     objectPosition: 'center', 
                                     mixBlendMode: 'screen',
                                     backgroundColor: 'transparent',
-                                    maskImage: 'radial-gradient(circle at center, white 2%, transparent 35%)',
-                                    WebkitMaskImage: 'radial-gradient(circle at center, white 2%, transparent 35%)',
-                                    clipPath: 'circle(25% at 50% 50%)',
-                                    WebkitClipPath: 'circle(25% at 50% 50%)',
+                                    maskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
+                                    WebkitMaskImage: 'radial-gradient(circle at center, white 8%, transparent 48%)',
+                                    clipPath: 'circle(32% at 50% 50%)',
+                                    WebkitClipPath: 'circle(32% at 50% 50%)',
                                     willChange: 'transform, opacity'
                                 }}
                             />
