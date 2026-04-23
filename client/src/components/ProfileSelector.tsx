@@ -66,7 +66,7 @@ export const ProfileSelector: React.FC = () => {
         e.stopPropagation();
         if (!confirm("¿Eliminar este perfil?")) return;
         try {
-            const headers = await getAsyncAuthHeaders();
+            const headers = await getAsyncAuthHeaders('DELETE');
             await fetch(`${API_BASE_URL}/api/user/profiles/${id}`, {
                 method: 'DELETE',
                 headers

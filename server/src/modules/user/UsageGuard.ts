@@ -68,7 +68,11 @@ export class UsageGuardService {
         let actionLabel = "esta acción";
 
         if (action === 'sigil') {
-            limit = planType === 'premium' || planType === 'premium_plus' || planType === 'admin' ? 20 : 3;
+            // Mapping limits based on value perception and Protocol 21 symbolism
+            if (planType === 'admin') limit = 100;
+            else if (planType === 'premium' || planType === 'extended' || planType === 'premium_plus') limit = 42; // 21 pares
+            else limit = 4; // 2 pares (Free / Viajero)
+
             count = stats.sigil_messages_count;
             actionLabel = "mensajes de Sigil";
         }

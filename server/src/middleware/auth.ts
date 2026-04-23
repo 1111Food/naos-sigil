@@ -46,7 +46,7 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
             .eq('id', user.id)
             .single();
 
-        let plan = profile?.plan_type || 'free';
+        let plan = (profile?.plan_type || 'free').toLowerCase();
         
         const userEmail = (user.email || user.user_metadata?.email || '').toLowerCase();
         

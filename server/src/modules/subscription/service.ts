@@ -13,7 +13,7 @@ export class SubscriptionService {
 
         // Mock Payment/Upgrade Logic
         const newStatus: SubscriptionStatus = {
-            plan: 'PREMIUM',
+            plan: 'premium',
             validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // +30 days
             features: ['basic_chat', 'daily_energy', 'tarot_spreads', 'full_chart']
         };
@@ -26,7 +26,7 @@ export class SubscriptionService {
         const user = await UserService.getProfile(userId);
 
         const newStatus: SubscriptionStatus = {
-            plan: 'EXTENDED',
+            plan: 'extended',
             validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             features: ['unlimited_chat', 'priority_processing', 'professional_tools', 'extended_history']
         };

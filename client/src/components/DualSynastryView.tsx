@@ -124,7 +124,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
         try {
             const response = await fetch(`${API_BASE_URL}/api/synastry/record/${sanitizedId}`, {
                 method: 'DELETE',
-                headers: (() => { const h = getAuthHeaders(); delete h['Content-Type']; return h; })()
+                headers: getAuthHeaders('DELETE')
             });
             if (!response.ok) throw new Error(t('synastry_delete_error'));
             setHistory(prev => prev.filter(item => item.id !== id && item.id !== sanitizedId));

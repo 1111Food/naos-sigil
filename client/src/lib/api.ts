@@ -8,12 +8,15 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || (isLocalhost
 
 import { supabase } from './supabase';
 
-export const getAuthHeaders = (): Record<string, string> => {
+export const getAuthHeaders = (method: string = 'POST'): Record<string, string> => {
     // Get Supabase token from localStorage (standard location for supabase-js)
     const supabaseKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-    };
+    const headers: Record<string, string> = {};
+    
+    // Only add content-type for methods that typically have a body
+    if (method !== 'DELETE' && method !== 'GET') {
+        headers['Content-Type'] = 'application/json';
+    }
 
     if (supabaseKey) {
         try {
@@ -32,7 +35,7 @@ export const getAuthHeaders = (): Record<string, string> => {
  * Tactical Async Token Extraction
  * Ensures we have the latest session before critical calls
  */
-export const getAsyncAuthHeaders = async (): Promise<Record<string, string>> => {
+export const getAsyncAuthHeaders = async (method: string = 'POST'): Promise<Record<string, string>> => {
     let { data: { session } } = await supabase.auth.getSession();
     
     if (session?.access_token) {
@@ -51,9 +54,13 @@ export const getAsyncAuthHeaders = async (): Promise<Record<string, string>> => 
         }
     }
 
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-    };
+    const headers: Record<string, string> = {};
+
+    // Standardize: Only request JSON if we aren't using DELETE (which often has no body)
+    // and only if it's not a GET (which shouldn't have a content-type header usually)
+    if (method !== 'DELETE' && method !== 'GET') {
+        headers['Content-Type'] = 'application/json';
+    }
 
     if (session?.access_token) {
         headers['Authorization'] = `Bearer ${session.access_token}`;

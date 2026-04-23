@@ -109,8 +109,8 @@ export const GuardianProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const syncState = {
             ...oracleState,
             ownerId: user?.id || null, // Attach user ID to the cache
-            messages: oracleState.messages.slice(-5), // Last 5 messages
-            synastryHistory: oracleState.synastryHistory.slice(-3) // Last 3 queries
+            messages: oracleState.messages.slice(-50), // Last 50 messages for quick load
+            synastryHistory: oracleState.synastryHistory.slice(-5) // Last 5 queries
         };
         localStorage.setItem('guardian_oracle_state', JSON.stringify(syncState));
     }, [oracleState, user?.id]);
@@ -157,7 +157,7 @@ export const GuardianProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     .select('user_message, sigil_response, created_at, id')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false })
-                    .limit(25);
+                    .limit(50);
 
                 if (error) throw error;
 

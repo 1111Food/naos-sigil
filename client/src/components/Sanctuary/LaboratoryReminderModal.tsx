@@ -118,7 +118,8 @@ export const LaboratoryReminderModal: React.FC<LaboratoryReminderModalProps> = (
     const handleDelete = async (id: string) => {
         try {
             console.log("🗑️ Attempting to delete tuning:", id);
-            const headers = await getAsyncAuthHeaders();
+            const headers = await getAsyncAuthHeaders('DELETE');
+
             const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3002'}/api/tunings/${id}`, {
                 method: 'DELETE',
                 headers

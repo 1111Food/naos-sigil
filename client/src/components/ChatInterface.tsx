@@ -148,9 +148,7 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                 )}
 
                 {messages.length > 0 && (() => {
-                    // Tomamos el último mensaje de User, si existe y viene DESPUES del de IA lo mostramos juntos o separados según su flujo de "cartas"
-                    // Para el efecto de "una sola visión a la vez", buscaremos el par final
-                    const displayMessages = messages.slice(Math.max(0, messages.length - 2));
+                    const displayMessages = messages;
 
                     return displayMessages.map((msg, i) => {
                         const parsedText = msg.text;
@@ -174,7 +172,7 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                                     {msg.role === 'user' ? (
                                         <p className="text-white/70 italic font-serif text-lg">{parsedText}</p>
                                     ) : (
-                                            <div className="text-amber-50/90 text-[15px] md:text-[17px] leading-loose font-light tracking-wide">
+                                            <div className="text-amber-50/90 text-[15px] md:text-[17px] leading-loose font-light tracking-wide whitespace-pre-wrap">
                                                 <TypewriterText text={parsedText} skipAnimation={msg.isHistory} />
                                                 
                                                 {msg.role === 'assistant' && (parsedText.includes('ACCIÓN CONCRETA') || parsedText.includes('Acción Concreta')) && (

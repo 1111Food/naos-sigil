@@ -32,8 +32,12 @@ Tu misión es realizar una CALIBRACIÓN DIARIA DE REALIDAD utilizando la fusión
 [DIRECTIVA DE IDIOMA]
 - Responde estrictamente en ${lang === 'es' ? 'Español' : 'Inglés'}.
 
-[DIRECTIVA DE FORMATO OBLIGATORIO] (Debes usar estos encabezados exactos):
+[DIRECTIVA DE FORMATO Y ESPACIADO]
+- Debes usar encabezados exactos (1. TITULO, 2. RESUMEN, etc.).
+- OBLIGATORIO: Usa DOBLE salto de línea (\n\n) entre cada punto para facilitar la lectura.
+- SHARP ENDING: Termina de forma natural y tajante. PROHIBIDO usar firmas de sistema o etiquetas como "[Content governed by brevity]".
 
+[ESTRUCTURA]:
 1. ${lang === 'es' ? 'TITULO' : 'TITLE'}: (Un resumen energético de una frase).
 2. ${lang === 'es' ? 'RESUMEN ENERGÉTICO' : 'ENERGY SUMMARY'}: (Análisis técnico de cómo el pulso de hoy interactúa con el núcleo del usuario: Nahual, Sol/Luna/Asc, Pináculo).
 3. ${lang === 'es' ? 'GUÍA PERSONAL' : 'PERSONAL GUIDANCE'}: (Consejo claro y accionable basado en las fuerzas activas).
