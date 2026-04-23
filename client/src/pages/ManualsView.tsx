@@ -296,16 +296,16 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                 </div>
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                                                                     <div className="space-y-2">
-                                                                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">El Don (En Luz):</span>
+                                                                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">{isEn ? "The Gift (In Light):" : "El Don (En Luz):"}</span>
                                                                         <p className="text-zinc-500 text-sm leading-relaxed">{data.light}</p>
                                                                     </div>
                                                                     <div className="space-y-2">
-                                                                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">El Reto (En Sombra):</span>
+                                                                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{isEn ? "The Challenge (In Shadow):" : "El Reto (En Sombra):"}</span>
                                                                         <p className="text-zinc-500 text-sm leading-relaxed">{data.shadow}</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="p-5 bg-cyan-500/5 border-l-2 border-cyan-500/40 rounded-r-xl mt-4 mb-6">
-                                                                    <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest block mb-2">Consejo del Guía:</span>
+                                                                    <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest block mb-2">{isEn ? "Guide's Advice:" : "Consejo del Guía:"}</span>
                                                                     <p className="text-zinc-200 italic text-sm font-light">"{data.advice}"</p>
                                                                 </div>
 
@@ -315,7 +315,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                         onClick={() => { playSound('click'); setOpenLibPlanet(openLibPlanet === key ? null : key); }}
                                                                         className={`px-6 py-3 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2 ${openLibPlanet === key ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'bg-white/5 text-cyan-300/70 hover:text-cyan-300 hover:bg-white/10 border border-cyan-500/20'}`}
                                                                     >
-                                                                        {openLibPlanet === key ? 'Cerrar Perfil Profundo' : 'Ver Perfil Profundo'}
+                                                                        {openLibPlanet === key ? (isEn ? 'Close Deep Profile' : 'Cerrar Perfil Profundo') : (isEn ? 'View Deep Profile' : 'Ver Perfil Profundo')}
                                                                     </button>
                                                                 </div>
 
@@ -331,24 +331,24 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                                     </div>
 
                                                                                     <div className="space-y-1">
-                                                                                        <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest block">Análisis Psicológico</span>
+                                                                                        <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest block">{isEn ? "Psychological Analysis" : "Análisis Psicológico"}</span>
                                                                                         <p className="text-zinc-300 text-sm leading-relaxed font-light">{libData.profile}</p>
                                                                                     </div>
 
                                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                                                         <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 space-y-2">
-                                                                                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">❤ En el Amor</span>
+                                                                                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? "❤ In Love" : "❤ En el Amor"}</span>
                                                                                             <p className="text-zinc-400 text-xs leading-relaxed">{libData.love}</p>
                                                                                         </div>
                                                                                         <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/15 space-y-2">
-                                                                                            <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">✦ Carrera y Vocación</span>
+                                                                                            <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">{isEn ? "✦ Career and Vocation" : "✦ Carrera y Vocación"}</span>
                                                                                             <p className="text-zinc-400 text-xs leading-relaxed">{libData.career}</p>
                                                                                         </div>
                                                                                     </div>
 
                                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                                                         <div className="space-y-2">
-                                                                                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">+ Manifestaciones de Luz</span>
+                                                                                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">{isEn ? "+ Manifestations of Light" : "+ Manifestaciones de Luz"}</span>
                                                                                             <ul className="space-y-1">
                                                                                                 {libData.positives.map((p, i) => (
                                                                                                     <li key={i} className="text-xs text-zinc-400 flex gap-2"><span className="text-emerald-500 mt-0.5">›</span>{p}</li>
@@ -356,7 +356,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                                             </ul>
                                                                                         </div>
                                                                                         <div className="space-y-2">
-                                                                                            <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest block">– Manifestaciones de Sombra</span>
+                                                                                            <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest block">{isEn ? "- Manifestations of Shadow" : "– Manifestaciones de Sombra"}</span>
                                                                                             <ul className="space-y-1">
                                                                                                 {libData.negatives.map((n, i) => (
                                                                                                     <li key={i} className="text-xs text-zinc-500 flex gap-2"><span className="text-orange-500/60 mt-0.5">›</span>{n}</li>
@@ -382,9 +382,9 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                             {activeAct === 'signs' && (
                                 <section className="space-y-12">
                                     <div className="flex flex-col items-center text-center space-y-4">
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-amber-500/70">Acto II</span>
-                                        <h3 className="text-4xl font-serif text-white">El Vestuario</h3>
-                                        <p className="text-zinc-500 text-sm max-w-md">El estilo y temperamento con el que actúa cada planeta.</p>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-amber-500/70">{isEn ? "Act II" : "Acto II"}</span>
+                                        <h3 className="text-4xl font-serif text-white">{isEn ? "The Wardrobe" : "El Vestuario"}</h3>
+                                        <p className="text-zinc-500 text-sm max-w-md">{isEn ? "The style and temperament with which each planet acts." : "El estilo y temperamento con el que actúa cada planeta."}</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-4">
@@ -403,7 +403,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                             <h4 className="text-sm font-bold text-zinc-300 uppercase tracking-widest group-hover:text-amber-300 transition-colors">{key}</h4>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 <span className="text-[8px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/70 border border-amber-500/20 font-bold uppercase tracking-wider">{data.element}</span>
-                                                                <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Don: {data.gift}</p>
+                                                                <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{isEn ? "Gift:" : "Don:"} {data.gift}</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -426,27 +426,27 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                 </div>
 
                                                                 <div className="flex items-center gap-4 mb-2 mt-2">
-                                                                    <span className="px-3 py-1 rounded-full bg-white/5 text-[9px] uppercase tracking-widest text-zinc-400">Modalidad: <span className="text-amber-400">{data.modality}</span></span>
-                                                                    <span className="px-3 py-1 rounded-full bg-white/5 text-[9px] uppercase tracking-widest text-zinc-400">Regente: <span className="text-amber-400">{data.ruler}</span></span>
+                                                                    <span className="px-3 py-1 rounded-full bg-white/5 text-[9px] uppercase tracking-widest text-zinc-400">{isEn ? "Modality:" : "Modalidad:"} <span className="text-amber-400">{data.modality}</span></span>
+                                                                    <span className="px-3 py-1 rounded-full bg-white/5 text-[9px] uppercase tracking-widest text-zinc-400">{isEn ? "Ruler:" : "Regente:"} <span className="text-amber-400">{data.ruler}</span></span>
                                                                 </div>
 
                                                                 <div className="space-y-1">
-                                                                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block">Esencia Espiritual:</span>
+                                                                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block">{isEn ? "Spiritual Essence:" : "Esencia Espiritual:"}</span>
                                                                     <p className="text-zinc-300 text-lg leading-relaxed font-light">{data.essence}</p>
                                                                 </div>
 
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                                                                     <div className="space-y-2">
-                                                                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">En Luz Suprema:</span>
+                                                                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">{isEn ? "In Supreme Light:" : "En Luz Suprema:"}</span>
                                                                         <p className="text-zinc-500 text-sm leading-relaxed">{data.light}</p>
                                                                     </div>
                                                                     <div className="space-y-2">
-                                                                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Trampa del Ego:</span>
+                                                                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{isEn ? "Ego Trap:" : "Trampa del Ego:"}</span>
                                                                         <p className="text-zinc-500 text-sm leading-relaxed">{data.shadow}</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="p-5 bg-amber-500/5 border-l-2 border-amber-500/40 rounded-r-xl mt-4 mb-6">
-                                                                    <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-2">Consejo Alquímico:</span>
+                                                                    <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-2">{isEn ? "Alchemical Advice:" : "Consejo Alquímico:"}</span>
                                                                     <p className="text-zinc-200 italic text-sm font-light">"{data.advice}"</p>
                                                                 </div>
 
@@ -472,17 +472,17 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                                     </div>
 
                                                                                     <div className="space-y-1">
-                                                                                        <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">Análisis Psicológico</span>
+                                                                                        <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">{isEn ? "Psychological Analysis" : "Análisis Psicológico"}</span>
                                                                                         <p className="text-zinc-300 text-sm leading-relaxed font-light">{libData.profile}</p>
                                                                                     </div>
 
                                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                                                         <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 space-y-2">
-                                                                                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">❤ En el Amor</span>
+                                                                                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? "❤ In Love" : "❤ En el Amor"}</span>
                                                                                             <p className="text-zinc-400 text-xs leading-relaxed">{libData.love}</p>
                                                                                         </div>
                                                                                         <div className="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/15 space-y-2">
-                                                                                            <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest block">✦ Carrera y Vocación</span>
+                                                                                            <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest block">{isEn ? "✦ Career and Vocation" : "✦ Carrera y Vocación"}</span>
                                                                                             <p className="text-zinc-400 text-xs leading-relaxed">{libData.career}</p>
                                                                                         </div>
                                                                                     </div>
@@ -523,9 +523,9 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                             {activeAct === 'houses' && (
                                 <section className="space-y-12">
                                     <div className="flex flex-col items-center text-center space-y-4">
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-emerald-500/70">Acto III</span>
-                                        <h3 className="text-4xl font-serif text-white">Los Escenarios</h3>
-                                        <p className="text-zinc-500 text-sm max-w-md">Las áreas de la vida donde ocurre la acción.</p>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-emerald-500/70">{isEn ? "Act III" : "Acto III"}</span>
+                                        <h3 className="text-4xl font-serif text-white">{isEn ? "The Scenarios" : "Los Escenarios"}</h3>
+                                        <p className="text-zinc-500 text-sm max-w-md">{isEn ? "The areas of life where action occurs." : "Las áreas de la vida donde ocurre la acción."}</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-4">
@@ -550,28 +550,28 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                             <div className="p-8 pt-0 space-y-6 border-t border-white/5 mt-4">
 
                                                                 <div className="space-y-1">
-                                                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">Tema Central:</span>
+                                                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">{isEn ? "Central Theme:" : "Tema Central:"}</span>
                                                                     <p className="text-zinc-200 text-xl font-serif">{data.theme}</p>
                                                                 </div>
 
                                                                 <div className="space-y-3">
-                                                                    <span className="text-[10px] font-black text-emerald-500/80 uppercase tracking-widest block">Clave Evolutiva:</span>
+                                                                    <span className="text-[10px] font-black text-emerald-500/80 uppercase tracking-widest block">{isEn ? "Evolutionary Key:" : "Clave Evolutiva:"}</span>
                                                                     <p className="text-zinc-300 text-md leading-relaxed font-light">{data.essence}</p>
                                                                 </div>
 
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
                                                                     <div className="space-y-2">
-                                                                        <span className="text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Arquetipo Base:</span>
+                                                                        <span className="text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">{isEn ? "Base Archetype:" : "Arquetipo Base:"}</span>
                                                                         <p className="text-zinc-400 text-sm leading-relaxed">{data.signs}</p>
                                                                     </div>
                                                                     <div className="space-y-2">
-                                                                        <span className="text-[10px] font-black text-rose-400/70 uppercase tracking-widest">Sombra del Escenario:</span>
+                                                                        <span className="text-[10px] font-black text-rose-400/70 uppercase tracking-widest">{isEn ? "Scenario's Shadow:" : "Sombra del Escenario:"}</span>
                                                                         <p className="text-zinc-500 text-sm leading-relaxed font-light">{data.shadow}</p>
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 mb-6">
-                                                                    <span className="text-[10px] font-black text-white/50 uppercase tracking-widest block mb-2">Manifestaciones en la Vida Cotidiana:</span>
+                                                                    <span className="text-[10px] font-black text-white/50 uppercase tracking-widest block mb-2">{isEn ? "Manifestations in Daily Life:" : "Manifestaciones en la Vida Cotidiana:"}</span>
                                                                     <p className="text-emerald-100/90 text-sm leading-relaxed font-light">{data.manifestation}</p>
                                                                 </div>
 
@@ -581,7 +581,7 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                         onClick={() => { playSound('click'); setOpenLibHouse(openLibHouse === Number(num) ? null : Number(num)); }}
                                                                         className={`px-6 py-3 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2 ${openLibHouse === Number(num) ? 'bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-white/5 text-emerald-300/70 hover:text-emerald-300 hover:bg-white/10 border border-emerald-500/20'}`}
                                                                     >
-                                                                        {openLibHouse === Number(num) ? 'Cerrar Biblioteca Profunda' : 'Ver Biblioteca Profunda'}
+                                                                        {openLibHouse === Number(num) ? (isEn ? 'Close Deep Library' : 'Cerrar Biblioteca Profunda') : (isEn ? 'View Deep Library' : 'Ver Biblioteca Profunda')}
                                                                     </button>
                                                                 </div>
 
@@ -597,17 +597,17 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                                                                     </div>
 
                                                                                     <div className="space-y-1">
-                                                                                        <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">Análisis Psicológico</span>
+                                                                                        <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">{isEn ? "Psychological Analysis" : "Análisis Psicológico"}</span>
                                                                                         <p className="text-zinc-300 text-sm leading-relaxed font-light">{libData.profile}</p>
                                                                                     </div>
 
                                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                                                         <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 space-y-2">
-                                                                                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">❤ En el Amor</span>
+                                                                                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? "❤ In Love" : "❤ En el Amor"}</span>
                                                                                             <p className="text-zinc-400 text-xs leading-relaxed">{libData.love}</p>
                                                                                         </div>
                                                                                         <div className="p-4 rounded-2xl bg-teal-500/5 border border-teal-500/15 space-y-2">
-                                                                                            <span className="text-[9px] font-black text-teal-400 uppercase tracking-widest block">✦ Carrera y Vocación</span>
+                                                                                            <span className="text-[9px] font-black text-teal-400 uppercase tracking-widest block">{isEn ? "✦ Career and Vocation" : "✦ Carrera y Vocación"}</span>
                                                                                             <p className="text-zinc-400 text-xs leading-relaxed">{libData.career}</p>
                                                                                         </div>
                                                                                     </div>
@@ -918,24 +918,24 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
 
                                                             {/* Essence */}
                                                             <div className="space-y-2">
-                                                                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">En Esencia:</span>
+                                                                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">{isEn ? "In Essence:" : "En Esencia:"}</span>
                                                                 <p className="text-zinc-200 text-lg leading-relaxed font-light italic">{f.essence}</p>
                                                             </div>
 
                                                             {/* Profile */}
                                                             <div className="space-y-2">
-                                                                <span className="text-[10px] font-black text-amber-400/70 uppercase tracking-widest">Perfil Arquetípico:</span>
+                                                                <span className="text-[10px] font-black text-amber-400/70 uppercase tracking-widest">{isEn ? "Archetypal Profile:" : "Perfil Arquetípico:"}</span>
                                                                 <p className="text-zinc-400 text-sm leading-relaxed font-light">{f.profile}</p>
                                                             </div>
 
                                                             {/* Love & Career */}
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                                 <div className="p-5 bg-rose-500/5 border border-rose-500/15 rounded-2xl space-y-2">
-                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">En el Amor:</span>
+                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? "In Love:" : "En el Amor:"}</span>
                                                                     <p className="text-zinc-400 text-sm leading-relaxed font-light">{f.love}</p>
                                                                 </div>
                                                                 <div className="p-5 bg-cyan-500/5 border border-cyan-500/15 rounded-2xl space-y-2">
-                                                                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest block">En la Carrera:</span>
+                                                                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest block">{isEn ? "In Career:" : "En la Carrera:"}</span>
                                                                     <p className="text-zinc-400 text-sm leading-relaxed font-light">{f.career}</p>
                                                                 </div>
                                                             </div>
@@ -943,7 +943,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                                             {/* Positives & Negatives */}
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                                 <div className="space-y-3">
-                                                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">En Luz (Dones):</span>
+                                                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">{isEn ? "In Light (Gifts):" : "En Luz (Dones):"}</span>
                                                                     <ul className="space-y-1.5">
                                                                         {f.positives.map((p: string, i: number) => (
                                                                             <li key={i} className="flex items-start gap-2 text-zinc-400 text-xs font-light">
@@ -954,7 +954,7 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                                                     </ul>
                                                                 </div>
                                                                 <div className="space-y-3">
-                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">En Sombra (Retos):</span>
+                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? "In Shadow (Challenges):" : "En Sombra (Retos):"}</span>
                                                                     <ul className="space-y-1.5">
                                                                         {f.negatives.map((n: string, i: number) => (
                                                                             <li key={i} className="flex items-start gap-2 text-zinc-400 text-xs font-light">
@@ -969,17 +969,17 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                                             {/* Lesson, Mantra, Advice */}
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                 <div className="p-4 bg-emerald-500/5 border-l-2 border-emerald-500/40 rounded-r-xl">
-                                                                    <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest block mb-1">Misión Evolutiva:</span>
+                                                                    <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest block mb-1">{isEn ? "Evolutionary Mission:" : "Misión Evolutiva:"}</span>
                                                                     <p className="text-white italic text-sm">"{f.lesson}"</p>
                                                                 </div>
                                                                 <div className="p-4 bg-amber-500/5 border-l-2 border-amber-500/40 rounded-r-xl">
-                                                                    <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-1">Mantra de Poder:</span>
+                                                                    <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-1">{isEn ? "Mantra of Power:" : "Mantra de Poder:"}</span>
                                                                     <p className="text-white italic text-sm">"{f.mantra}"</p>
                                                                 </div>
                                                             </div>
 
                                                             <div className="p-5 bg-white/5 border border-white/10 rounded-2xl">
-                                                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Consejo del Guía:</span>
+                                                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">{isEn ? "Guide's Advice:" : "Consejo del Guía:"}</span>
                                                                 <p className="text-zinc-300 text-sm font-light leading-relaxed">{f.advice}</p>
                                                             </div>
                                                         </div>
@@ -1038,39 +1038,39 @@ const NumerologyManualDetail = ({ onClose, playSound }: { onClose: () => void, p
                                                             </div>
 
                                                             <div className="space-y-2">
-                                                                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block">Misión del Maestro:</span>
+                                                                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block">{isEn ? "Master's Mission:" : "Misión del Maestro:"}</span>
                                                                 <p className="text-zinc-200 text-lg leading-relaxed font-light italic">{m.description}</p>
                                                             </div>
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
                                                                 <div className="space-y-2">
-                                                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">El Gran Don:</span>
+                                                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{isEn ? "The Great Gift:" : "El Gran Don:"}</span>
                                                                     <p className="text-zinc-400 text-sm leading-relaxed font-light">{m.gift}</p>
                                                                 </div>
                                                                 <div className="space-y-2">
-                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">El Gran Reto:</span>
+                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{isEn ? "The Great Challenge:" : "El Gran Reto:"}</span>
                                                                     <p className="text-zinc-400 text-sm leading-relaxed font-light">{m.challenge}</p>
                                                                 </div>
                                                             </div>
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                                 <div className="p-5 bg-rose-500/5 border border-rose-500/15 rounded-2xl space-y-2">
-                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">En el Amor:</span>
+                                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? "In Love:" : "En el Amor:"}</span>
                                                                     <p className="text-zinc-400 text-sm leading-relaxed font-light">{m.love}</p>
                                                                 </div>
                                                                 <div className="p-5 bg-cyan-500/5 border border-cyan-500/15 rounded-2xl space-y-2">
-                                                                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest block">En la Carrera:</span>
+                                                                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest block">{isEn ? "In Career:" : "En la Carrera:"}</span>
                                                                     <p className="text-zinc-400 text-sm leading-relaxed font-light">{m.career}</p>
                                                                 </div>
                                                             </div>
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                 <div className="p-4 bg-amber-500/5 border-l-2 border-amber-500/40 rounded-r-xl">
-                                                                    <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-1">Mantra del Maestro:</span>
+                                                                    <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-1">{isEn ? "Master's Mantra:" : "Mantra del Maestro:"}</span>
                                                                     <p className="text-white italic text-sm">"{m.mantra}"</p>
                                                                 </div>
                                                                 <div className="p-4 bg-white/5 border border-white/10 rounded-xl flex flex-col justify-center">
-                                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-1">Consejo Alquímico:</span>
+                                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-1">{isEn ? "Alchemical Advice:" : "Consejo Alquímico:"}</span>
                                                                     <p className="text-zinc-300 text-xs font-light italic">"{m.advice}"</p>
                                                                 </div>
                                                             </div>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Wind, ArrowRight } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 interface LowEnergyWarningModalProps {
     isOpen: boolean;
@@ -18,6 +19,8 @@ export const LowEnergyWarningModal: React.FC<LowEnergyWarningModalProps> = ({
     onProceed,
     onCancel
 }) => {
+    const { t } = useTranslation();
+
     if (!isOpen) return null;
 
     return (
@@ -48,10 +51,9 @@ export const LowEnergyWarningModal: React.FC<LowEnergyWarningModalProps> = ({
 
                         {/* Title */}
                         <div className="space-y-2">
-                            <h2 className="text-xl font-serif text-white/90">Frecuencia Baja Detectada ({currentCoherence.toFixed(0)}%)</h2>
+                            <h2 className="text-xl font-serif text-white/90">{t('low_frequency_detected')} ({currentCoherence.toFixed(0)}%)</h2>
                             <p className="text-sm text-white/50 leading-relaxed">
-                                Arquitecto, tu energía actual podría nublar esta lectura.
-                                Para mayor claridad, se recomienda calibrar primero.
+                                {t('low_energy_warning_desc')}
                             </p>
                         </div>
 
@@ -63,7 +65,7 @@ export const LowEnergyWarningModal: React.FC<LowEnergyWarningModalProps> = ({
                                 className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-white font-medium hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.2)] flex items-center justify-center gap-2 group"
                             >
                                 <Wind size={18} className="text-white/80" />
-                                <span>Elevar Frecuencia (Santuario)</span>
+                                <span>{t('elevate_frequency_sanctuary')}</span>
                                 <ArrowRight size={16} className="text-white/60 group-hover:translate-x-1 transition-transform" />
                             </button>
 
@@ -72,7 +74,7 @@ export const LowEnergyWarningModal: React.FC<LowEnergyWarningModalProps> = ({
                                 onClick={onProceed}
                                 className="w-full py-3 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors text-sm"
                             >
-                                Proceder bajo mi responsabilidad
+                                {t('proceed_at_own_risk')}
                             </button>
                         </div>
                     </div>
