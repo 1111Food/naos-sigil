@@ -56,8 +56,8 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                         y: 0,
                         rotate: isManifesting ? 12 : 0,
                         // STITCH UPDATE: Reduced size by ~30% for subtle guidance
-                        width: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 90 : 170) : (window.innerWidth < 768 ? 70 : 120)),
-                        height: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 90 : 170) : (window.innerWidth < 768 ? 70 : 120))
+                        width: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 100 : 180) : (window.innerWidth < 768 ? 80 : 160)),
+                        height: isManifesting ? 64 : (isResting ? (window.innerWidth < 768 ? 100 : 180) : (window.innerWidth < 768 ? 80 : 160))
                     }}
                     style={{}}
                     onClick={(e) => {
@@ -80,24 +80,8 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                         className="relative w-full h-full"
                         style={isResting ? { transform: 'translateY(5vh)' } : {}}
                     >
-                        {/* Halo / Aura - Intensity depends on state */}
-                        <motion.div
-                            animate={{
-                                opacity: isResponding ? [0.4, 0.7, 0.4] : isResting ? 0.3 : 0.1,
-                                scale: isListening ? 1.15 : isResponding ? 1.25 : 1,
-                            }}
-                            transition={{
-                                opacity: isResponding ? { duration: 1, repeat: Infinity } : { duration: 1 },
-                                scale: { duration: 0.8 }
-                            }}
-                            className={cn(
-                                "absolute inset-0 bg-amber-400/20 blur-[60px] rounded-full transition-colors duration-1000",
-                                isResponding && "bg-white/40 blur-[80px]"
-                            )}
-                        />
-
-                        {/* Main Guardian Identity - FORCED MASKING SOLUTION */}
-                        <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: 'transparent !important', boxShadow: 'none !important', border: 'none !important' }}>
+                        {/* Main Guardian Identity - ULTRA-TIGHT MASKED VIDEO */}
+                        <div className="relative w-full h-full pointer-events-none flex items-center justify-center">
                             <video
                                 key={`${timeMode}-${assetVersion}`}
                                 src={timeMode === 'DAY' ? `/Guardian-Day.mp4?v=${assetVersion}` : `/Guardian-Night.mp4?v=${assetVersion}`}
@@ -106,37 +90,22 @@ export const Guardian: React.FC<GuardianProps> = ({ view, onOpenChat }) => {
                                 muted
                                 playsInline
                                 preload="auto"
+                                poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                                 className={cn(
-                                    "w-full h-full object-cover transition-opacity duration-1000 relative z-10",
-                                    isResponding && "brightness-150"
+                                    "w-full h-full object-contain transition-opacity duration-1000 relative z-10"
                                 )}
                                 style={{
-                                    objectPosition: '52% 48%',
+                                    objectPosition: 'center', 
                                     mixBlendMode: 'screen',
-                                    background: 'transparent',
-                                    maskImage: 'radial-gradient(closest-side, black 40%, transparent 90%)',
-                                    WebkitMaskImage: 'radial-gradient(closest-side, black 40%, transparent 90%)',
-                                    filter: 'contrast(1.1) brightness(0.9)'
+                                    backgroundColor: 'transparent',
+                                    maskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
+                                    WebkitMaskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
+                                    clipPath: 'circle(28% at 50% 50%)',
+                                    WebkitClipPath: 'circle(28% at 50% 50%)',
+                                    willChange: 'transform, opacity'
                                 }}
                             />
                         </div>
-
-                        {/* Internal Glow - Pulses when responding */}
-                        <motion.div
-                            animate={{
-                                opacity: isResponding ? [0.1, 0.3, 0.1] : 0.05,
-                                scale: isResponding ? [1, 1.2, 1] : 1
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                            className={cn(
-                                "absolute inset-4 rounded-full bg-amber-500/5 blur-2xl",
-                                isResponding && "bg-white/20 blur-3xl"
-                            )}
-                        />
                     </motion.div>
                 </motion.div>
             )}

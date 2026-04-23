@@ -150,12 +150,12 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
                 {messages.length > 0 && (() => {
                     const displayMessages = messages;
 
-                    return displayMessages.map((msg, i) => {
+                    return displayMessages.map((msg) => {
                         const parsedText = msg.text;
 
                         return (
                             <div
-                                key={`${messages.length}-${i}`}
+                                key={msg.id || `msg-${msg.role}-${msg.text.substring(0, 15)}`}
                                 className={cn(
                                     "flex w-full animate-in fade-in slide-in-from-bottom-6 duration-700",
                                     msg.role === 'user' ? "justify-end" : "justify-start"
@@ -289,13 +289,14 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
     );
 }
 
-const TypewriterText = ({ text, skipAnimation }: { text: string, skipAnimation?: boolean }) => {
-    const [displayedText, setDisplayedText] = useState('');
+const TypewriterText = React.memo(({ text, skipAnimation }: { text: string, skipAnimation?: boolean }) => {
+    const [displayedText, setDisplayedText] = useState(skipAnimation ? text : '');
+    const hasAnimated = useRef(skipAnimation);
 
-    // Stitch: Faster, smoother typing
     useEffect(() => {
         if (!text) return;
-        if (skipAnimation) {
+        
+        if (skipAnimation || hasAnimated.current) {
             setDisplayedText(text);
             return;
         }
@@ -311,17 +312,19 @@ const TypewriterText = ({ text, skipAnimation }: { text: string, skipAnimation?:
                 setDisplayedText(currentText);
                 index++;
                 timeoutId = setTimeout(type, 14);
+            } else {
+                hasAnimated.current = true;
             }
         };
 
         type();
         return () => clearTimeout(timeoutId);
-    }, [text]);
+    }, [text, skipAnimation]);
 
     return (
         <span className="inline">
             {displayedText}
-            {!skipAnimation && displayedText !== text && (
+            {!skipAnimation && !hasAnimated.current && displayedText !== text && (
                 <motion.span
                     animate={{ opacity: [0, 1, 0] }}
                     transition={{ duration: 0.8, repeat: Infinity }}
@@ -330,4 +333,4 @@ const TypewriterText = ({ text, skipAnimation }: { text: string, skipAnimation?:
             )}
         </span>
     );
-};
+});

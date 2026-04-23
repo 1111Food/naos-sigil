@@ -128,7 +128,8 @@ export async function apiRoutes(app: FastifyInstance) {
         const userId = (req as any).user_id;
 
         // 🛡️ UsageGuard Limit Check
-        const limitCheck = await UsageGuardService.checkLimit(userId, 'sigil');
+        console.log(`🛡️ Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
+        const limitCheck = await UsageGuardService.checkLimit(userId, 'sigil', (req as any).user?.role);
         if (!limitCheck.ok) {
             return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
         }
@@ -311,7 +312,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
         // 🛡️ UsageGuard Limit Check
         if (forceRefresh && !isAdmin) { 
-             const limitCheck = await UsageGuardService.checkLimit(userId, 'naos_code');
+             const limitCheck = await UsageGuardService.checkLimit(userId, 'naos_code', (req as any).user?.role);
              if (!limitCheck.ok) {
                  return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
              }

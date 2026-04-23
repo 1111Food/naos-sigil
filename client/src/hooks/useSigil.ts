@@ -75,7 +75,8 @@ export function useSigil(userName?: string, energyContext?: any) {
                     setTimeout(() => sendMessage(text, role, retryCount + 1), 2000);
                     return;
                 }
-                throw new Error(`Error ${response.status}`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
             }
 
             const data = await response.json();

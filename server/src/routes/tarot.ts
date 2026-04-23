@@ -44,7 +44,7 @@ export async function tarotRoutes(app: FastifyInstance) {
         const userId = (request as any).user_id;
 
         // 🛡️ UsageGuard Limit Check
-        const limitCheck = await UsageGuardService.checkLimit(userId, 'tarot');
+        const limitCheck = await UsageGuardService.checkLimit(userId, 'tarot', (request as any).user?.role);
         if (!limitCheck.ok) {
             return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
         }

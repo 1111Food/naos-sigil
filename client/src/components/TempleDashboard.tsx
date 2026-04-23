@@ -33,29 +33,37 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
 
             {/* Animated Sigil Area (The Guardian) */}
             <div className="flex flex-col items-center justify-center py-12 relative">
-                <div className="absolute inset-0 bg-white/[0.01] blur-3xl rounded-full" />
                 <div className="relative group cursor-pointer" onClick={() => onSelectFeature('CHAT')}>
-                    {/* Sigil Guardian Visualization */}
-                    <div className={cn(
-                        "w-64 h-64 rounded-full flex items-center justify-center relative overflow-hidden transition-all duration-1000",
-                        timeMode === 'DAY' ? "scale-110" : "border-2 border-primary/20 backdrop-blur-3xl shadow-2xl shadow-primary/10"
-                    )}>
+                    {/* Sigil Guardian Visualization (DAY/NIGHT) */}
+                    <div className="w-[180px] h-[180px] rounded-full flex items-center justify-center relative transition-all duration-1000">
                         {timeMode === 'DAY' ? (
                             <div className="relative w-full h-full flex items-center justify-center animate-in fade-in zoom-in duration-1000">
-                                <div className="absolute inset-0 bg-amber-500/5 blur-[40px] rounded-full" />
                                 <img
                                     src="/sigil-day.png"
                                     alt={t('sigil_solar')}
-                                    className={`w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(245,158,11,0.3)] animate-float ${isSettled ? 'pause-animations' : ''}`}
+                                    className={`w-full h-full relative z-10 brightness-110 contrast-105 mix-blend-screen animate-float object-contain ${isSettled ? 'pause-animations' : ''}`}
+                                    style={{ 
+                                        objectPosition: '50% 50%',
+                                        maskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
+                                        WebkitMaskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
+                                        clipPath: 'circle(28% at 50% 50%)',
+                                        WebkitClipPath: 'circle(28% at 50% 50%)'
+                                    }}
                                 />
                             </div>
                         ) : (
                             <div className="relative w-full h-full flex items-center justify-center animate-in fade-in zoom-in duration-1000">
-                                <div className="absolute inset-0 bg-cyan-500/5 blur-[40px] rounded-full" />
                                 <img
                                     src="/sigil-night.png"
                                     alt={t('sigil_night')}
-                                    className={`w-48 h-auto relative z-10 drop-shadow-[0_0_30px_rgba(6,182,212,0.3)] animate-float ${isSettled ? 'pause-animations' : ''}`}
+                                    className={`w-full h-full relative z-10 brightness-110 contrast-105 mix-blend-screen animate-float object-contain ${isSettled ? 'pause-animations' : ''}`}
+                                    style={{ 
+                                        objectPosition: '50% 50%',
+                                        maskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
+                                        WebkitMaskImage: 'radial-gradient(circle at center, white 5%, transparent 40%)',
+                                        clipPath: 'circle(28% at 50% 50%)',
+                                        WebkitClipPath: 'circle(28% at 50% 50%)'
+                                    }}
                                 />
                             </div>
                         )}

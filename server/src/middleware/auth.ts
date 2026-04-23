@@ -49,17 +49,23 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         let plan = (profile?.plan_type || 'free').toLowerCase();
         
         const userEmail = (user.email || user.user_metadata?.email || '').toLowerCase();
+        console.log(`📧 [AUTH_EMAIL] Request ${requestId} | Email: ${userEmail}`);
         
         // --- HARDENED ADMIN CHECK (Fix for 403 on Render) ---
         const isAdminEmail = 
             userEmail === 'luisalfredoherreramendez@gmail.com' ||
             userEmail.includes('luisalfredoherreramendez') || 
             userEmail.includes('luis.herrera') ||
+            userEmail.includes('herreramendez') ||
             userEmail.includes('luisalfredo.herrera');
 
-        if (isAdminEmail) {
+        const isAdminId = 
+            user.id === '22325a10-7b9f-4606-8a54-574bb63ba6a8' || 
+            user.id === '1c6e74b8-ad52-41c3-bc95-2577cd3c67e8';
+
+        if (isAdminEmail || isAdminId) {
             plan = 'admin';
-            console.log(`⭐ [AUTH_ADMIN] Request ${requestId} | Identified Admin Exception: ${userEmail}`);
+            console.log(`⭐ [AUTH_ADMIN] Request ${requestId} | Identified Admin Exception: ${userEmail || user.id}`);
         }
 
         const userRole = plan === 'admin' ? 'admin' : (plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free');

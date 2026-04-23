@@ -183,7 +183,6 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     }}
                 >
                     <div className="relative p-6 rounded-[2rem] glass-card hover:border-white/10 transition-all aura-zen-white:hover:border-black/20">
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-amber-500/20 blur-2xl rounded-full" />
                         <p className="text-lg md:text-xl font-serif italic theme-aware-text leading-relaxed transition-colors">
                             {isDormant ? (
                                 "Tus coordenadas han sido procesadas. Entra a tu Código de Identidad para revelar tus Arquetipos."

@@ -57,9 +57,11 @@ export class UsageGuardService {
         }
     }
 
-    static async checkLimit(userId: string, action: keyof typeof LIMITS): Promise<{ ok: boolean, message?: string }> {
+    static async checkLimit(userId: string, action: keyof typeof LIMITS, planOverride?: string): Promise<{ ok: boolean, message?: string }> {
         const { data } = await supabase.from('profiles').select('plan_type').eq('id', userId).maybeSingle();
-        const planType = data?.plan_type || 'free';
+        const planType = planOverride || data?.plan_type || 'free';
+
+        console.log(`🛡️ UsageGuard: checkLimit | User: ${userId} | Action: ${action} | Override: ${planOverride} | FinalPlan: ${planType}`);
 
         const stats = await this.getStats(userId);
         
