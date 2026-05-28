@@ -229,7 +229,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                                         <input required type="text" placeholder={t('anchorage_city_placeholder')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500/40 transition-colors" value={formData.birthCity} onChange={e => setFormData({ ...formData, birthCity: e.target.value })} />
                                     </div>
                                 </div>
-                                <div className="pt-6 border-t border-white/10 flex flex-col items-center gap-4">
+                                <div className="pt-6 pb-24 md:pb-6 border-t border-white/10 flex flex-col items-center gap-4">
                                     <button type="submit" disabled={completing} className="group relative w-full sm:w-auto min-w-[280px] py-4 px-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-400 overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] text-white font-bold uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3">
                                         {completing ? <Loader2 className="w-4 h-4 animate-spin" /> : t('start_ritual')}
                                     </button>

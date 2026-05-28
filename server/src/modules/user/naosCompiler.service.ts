@@ -1,4 +1,3 @@
-
 import { config } from '../../config/env';
 import { UserProfile } from '../../types';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
@@ -27,14 +26,17 @@ export interface NaosIdentitySynthesis {
             }
         }
     };
-    interfaz_social: string;
-    nucleo_interno: string;
-    patron_sombra: string;
-    direccion_vital: string;
-    tension_evolutiva: string;
-    alquimia_vinculos: string;
-    arquitectura_entorno: string;
-    umbral_manifestacion: string;
+    nucleo_estructural: string;
+    campo_perceptivo: string;
+    arquitectura_mental: string;
+    motor_accion: string;
+    expresion_proyeccion: string;
+    direccion_evolutiva: string;
+    conflicto_central: string;
+    diagnostico_global: string;
+    potencial_elevado: string;
+    sombra_riesgo: string;
+    conclusion_directa: string;
 }
 
 export class NaosCompilerService {
@@ -43,7 +45,7 @@ export class NaosCompilerService {
 
     static async compile(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es'): Promise<NaosIdentitySynthesis> {
         const isEn = language === 'en';
-        console.log(`[NAOS_COMPILER_v2.7+] Incoming request for ${userId} (Force: ${forceRefresh}, Lang: ${language})`);
+        console.log(`[NAOS_COMPILER_v3.0] Incoming request for ${userId} (Force: ${forceRefresh}, Lang: ${language})`);
         const userProfile = await this.getCompleteProfile(userId);
         const { bible, archetype } = await this.consolidateBible(userProfile, language);
 
@@ -70,11 +72,12 @@ export class NaosCompilerService {
                                       cachedArchetype.nombre !== "Calculando..." && 
                                       cachedArchetype.nombre !== "Buscando...");
                                       
-                const matchesMandatory = !!((cachedCode as any).alquimia_vinculos && 
-                                   (cachedCode as any).arquitectura_entorno && 
-                                   (cachedCode as any).umbral_manifestacion);
+                // Check if all 11 new sections are present in cache
+                const matchesMandatory = !!((cachedCode as any).diagnostico_global && 
+                                   (cachedCode as any).potencial_elevado && 
+                                   (cachedCode as any).conclusion_directa);
 
-                const hasNarrativeBlocks = matchesMandatory && keys.length >= 8;
+                const hasNarrativeBlocks = matchesMandatory && keys.length >= 11;
                 const narrativeIsClean = !values.some(v => {
                     if (typeof v === 'object' && v !== null && 'nombre' in v) {
                         return v.nombre === "Calculando..." || v.nombre === "Buscando...";
@@ -109,7 +112,7 @@ export class NaosCompilerService {
         }
 
         try {
-            console.log(`🚀 NaosCompiler: Starting full compilation for ${userId} (${language})...`);
+            console.log(`🚀 NaosCompiler: Starting full 11-section compilation for ${userId} (${language})...`);
             const synthesis = await this.callGeminiCompiler(bible, archetype, language, userId);
 
             const isValid = Object.entries(synthesis).every(([k, v]) => {
@@ -141,52 +144,30 @@ export class NaosCompilerService {
             console.error(`🔥 NaosCompiler Meta-Failure for ${userId}:`, error.message);
             
             // Fallback for ANY compilation failure to ensure UI integrity
-                const { data: profile } = await supabase.from('profiles').select('naos_identity_code, profile_data').eq('id', userId).maybeSingle();
-                let cached = profile?.naos_identity_code || profile?.profile_data?.naos_identity_code;
+            const { data: profile } = await supabase.from('profiles').select('naos_identity_code, profile_data').eq('id', userId).maybeSingle();
+            let cached = profile?.naos_identity_code || profile?.profile_data?.naos_identity_code;
+            
+            const keys = [
+                'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion',
+                'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global',
+                'potencial_elevado', 'sombra_riesgo', 'conclusion_directa'
+            ];
+
+            if (cached) {
+                if (typeof cached === 'string') try { cached = JSON.parse(cached); } catch(e) {}
+                const repaired: any = { ...(cached as any) };
                 
-                if (cached) {
-                    if (typeof cached === 'string') try { cached = JSON.parse(cached); } catch(e) {}
+                keys.forEach(key => {
+                    const val = repaired[key];
+                    const isInvalid = !val || val === "Calculando..." || val === "Buscando..." || 
+                                    (typeof val === 'string' && val.includes("...") && val.length < 50);
                     
-                    const keys = [
-                        'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
-                        'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'
-                    ];
+                    if (isInvalid) {
+                        repaired[key] = NaosCompilerService.generateLocalNarrative(key, bible, archetype, language);
+                    }
+                });
 
-                    const repaired: any = { ...(cached as any) };
-                    
-                    keys.forEach(key => {
-                        const val = repaired[key];
-                        const isInvalid = !val || val === "Calculando..." || val === "Buscando..." || 
-                                        (typeof val === 'string' && val.includes("...") && val.length < 50);
-                        
-                        if (isInvalid) {
-                            repaired[key] = NaosCompilerService.generateLocalNarrative(key, bible, archetype, language);
-                        }
-                    });
-
-                    repaired.arquetipo = {
-                        nombre: archetype.nombre,
-                        frecuencia: archetype.frecuencia,
-                        rol: archetype.rol,
-                        descripcion: archetype.descripcion,
-                        elemento: archetype.elemento_dominante,
-                        powerLines: archetype.powerLines,
-                        desglose: archetype.desglose
-                    };
-
-                    console.log(`🛠️ NaosCompiler: Returning fully repaired fallback for ${userId}`);
-                    return repaired;
-                }
-                
-                // If NO cache exists at all, generate a 100% local identity to avoid blocked UI
-                const fallback: any = {};
-                const keys = [
-                    'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
-                    'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'
-                ];
-                keys.forEach(k => { fallback[k] = NaosCompilerService.generateLocalNarrative(k, bible, archetype, language); });
-                fallback.language = language;
-                fallback.arquetipo = {
+                repaired.arquetipo = {
                     nombre: archetype.nombre,
                     frecuencia: archetype.frecuencia,
                     rol: archetype.rol,
@@ -195,83 +176,125 @@ export class NaosCompilerService {
                     powerLines: archetype.powerLines,
                     desglose: archetype.desglose
                 };
-                return fallback;
+
+                console.log(`🛠️ NaosCompiler: Returning fully repaired fallback for ${userId}`);
+                return repaired;
+            }
+            
+            // If NO cache exists at all, generate a 100% local identity to avoid blocked UI
+            const fallback: any = {};
+            keys.forEach(k => { fallback[k] = NaosCompilerService.generateLocalNarrative(k, bible, archetype, language); });
+            fallback.language = language;
+            fallback.arquetipo = {
+                nombre: archetype.nombre,
+                frecuencia: archetype.frecuencia,
+                rol: archetype.rol,
+                descripcion: archetype.descripcion,
+                elemento: archetype.elemento_dominante,
+                powerLines: archetype.powerLines,
+                desglose: archetype.desglose
+            };
+            return fallback;
         }
     }
 
     private static generateLocalNarrative(id: string, bible: any, archetype: any, language: 'es' | 'en' = 'es'): string {
         const isEn = language === 'en';
-        const sign = bible.astrology?.sun || (isEn ? 'Leo' : 'Leo'); // Signs are same for now
+        const sign = bible.astrology?.sun || (isEn ? 'Leo' : 'Leo');
         const animal = bible.chinese_animal || (isEn ? 'Dragon' : 'Dragón');
         const role = archetype.rol;
         
         const templates_es: Record<string, string[]> = {
-            interfaz_social: [
-                `Proyectas un aura de ${role} bajo la mirada de ${sign}. Tu danza social es un puente entre tu instinto de ${animal} y tu esencia sagrada.`,
-                `Te manifiestas como un ${role} despierto. Tu máscara social equilibra la marea del ${animal} con la luz de tus coordenadas celestiales.`
+            nucleo_estructural: [
+                `Como ${archetype.nombre}, tu esencia reside en unificar tu instinto de ${animal} con la luz solar de ${sign}. Tu ser profundo busca la manifestación consciente de tu maestría.`,
+                `Representas la frecuencia ${archetype.frecuencia} pura. Tu núcleo original te impulsa a liderar con amor y a consolidar tu propósito a través de la disciplina.`
             ],
-            nucleo_interno: [
-                `En tu centro habita el susurro del ${archetype.nombre}. Tu corazón late con la frecuencia ${archetype.frecuencia}, impulsando tu despertar constante.`,
-                `Tu núcleo es un santuario del arquetipo ${archetype.nombre}. Operas bajo la sabiduría de que el amor y la verdad consolidan tu poder.`
+            campo_perceptivo: [
+                `Tu campo de percepción combina una fina intuición con un análisis clínico de la realidad. Eres capaz de captar dinámicas invisibles y decodificar patrones emocionales complejos.`,
+                `Operas con una sensibilidad altamente refinada. Percibes los contrastes del entorno y traduces el caos sensorial en estructura y verdad.`
             ],
-            patron_sombra: [
-                `Tu sombra emerge cuando la marea del ${animal} inunda el faro. El desafío es abrazar el caos para que el ${role} encuentre su luz.`,
-                `El patrón de sombra se activa ante la desconexión. La tensión entre tu fuego instintivo de ${animal} y tu misión de ${role} es tu crisol de crecimiento.`
+            arquitectura_mental: [
+                `Tu mente es profunda y estratégica, pero está expuesta a la trampa del sobreanálisis y la duda intelectual. Requieres anclar tus pensamientos para evitar la fatiga mental.`,
+                `Posees una estructura mental enfocada en resolver complejidades. El reto es transmutar la rigidez en sabiduría mutable.`
+            ],
+            motor_accion: [
+                `Tu acción se activa con fuerza cuando tu voluntad está en alineación con tu verdad interna. El conflicto surge ante la falta de decisión, donde puedes procrastinar o autosabotearte.`,
+                `Eres un constructor de realidades. Sin embargo, tu motor requiere disciplina sostenida y dar el paso hacia la acción imperfecta para fluir.`
+            ],
+            expresion_proyeccion: [
+                `Hacia el mundo exterior te proyectas con carisma, elocuencia y autoridad. Tu comunicación está diseñada para inspirar y transmitir saberes con impacto real.`,
+                `Te muestras como un faro visible y elocuente. Tu autoexpresión florece al traducir verdades profundas de forma simple y digerible.`
             ],
             direccion_vital: [
-                `Tu camino está trazado hacia la cúspide del ${archetype.nombre}. Cada paso es un eco de tu rol de ${role} en la gran sinfonía del universo.`,
-                `Avanzas hacia una expresión sagrada de tu ser. Tu destino florece al compás de la frecuencia ${archetype.frecuencia} y tu arte constructivo.`
+                `Tu sendero de vida te empuja a materializar grandes proyectos prácticos. Vienes a dejar una huella duradera y a sostener estructuras con propósito elevado.`,
+                `Tu destino florece al compás de la realización de tu arquetipo de ${role}. Avanzas integrando sabiduría ancestral en tu día a día.`
             ],
-            tension_evolutiva: [
-                `La tensión es el violín de tu alma. Como ${role}, evolucionas al transmutar la fuerza del ${animal} en cantos de luz y armonía.`,
-                `Evolucionas al sanar la paradoja interna. Tu frecuencia ${archetype.frecuencia} te invita a una síntesis amorosa de tus dones innatos.`
+            conflicto_central: [
+                `Vives en una tensión constante entre el deseo instintivo de libertad y tu imperativa necesidad de estructura. Tu mente quiere analizarlo todo antes de que tu corazón se atreva a actuar.`,
+                `El conflicto reside en procesar demasiada información en silencio sin bajarla al plano terrenal. Aprender a elegirte a ti mismo es tu llave maestra.`
             ],
-            alquimia_vinculos: [
-                `En tus relaciones actúas como un espejo de la frecuencia ${archetype.frecuencia}. Buscas destilar amor y verdad con otros caminantes.`,
-                `Tus vínculos son lagos de espejo. Como ${archetype.nombre}, atraes almas que te recuerdan tu divinidad y expanden tu visión.`
+            diagnostico_global: [
+                `Un perfil de alto calibre que mezcla gran intuición, mente crítica y potencial ejecutivo. Tu fortaleza es el análisis profundo, y tu talón de Aquiles la inacción.`,
+                `Presentas un balance energético ideal para la mentoría y la arquitectura de sistemas complejos. Tu reto es domar la ansiedad.`
             ],
-            arquitectura_entorno: [
-                `Tu espacio es un templo para el elemento ${archetype.elemento}. Crea un santuario de paz y belleza que eleve y sostenga tu espíritu de ${role}.`,
-                `Tu entorno requiere paz y propósito sagrado. Diseñas nidos que actúan como amplificadores de tu frecuencia base ${archetype.frecuencia}.`
+            potencial_elevado: [
+                `En tu versión integrada, te conviertes en un maestro constructor con visión espiritual y autoridad pragmática, capaz de guiar a otros y transmutar el caos en belleza.`,
+                `Alcanzas tu máxima vibración cuando comunicas verdades vividas, actúas con total confianza e impactas de forma duradera tu entorno.`
             ],
-            umbral_manifestacion: [
-                `Tu abundancia florece cuando actúas en sincronicidad con el ${archetype.nombre}. La vida se despliega sin esfuerzo ante tu luz.`,
-                `Manifiestas con gracia cuando tu rol de ${role} y la marea del ${animal} son una sola canción bajo el cielo de NAOS.`
+            sombra_riesgo: [
+                `Tu sombra emerge en forma de cinismo, rigidez mental o miedo al fracaso en proyectos de gran escala. Cuidado con recluirte en exceso o dudar de tu valor.`,
+                `El riesgo es quedarte en el eterno análisis contemplativo sin construir nada real. Evita la autoexigencia asfixiante.`
+            ],
+            conclusion_directa: [
+                `Primero busca, luego comprende, y finalmente actúa. Eres el arquitecto de tu propio umbral evolutivo.`,
+                `Tu sabiduría no sirve en el éter; bájala a la tierra y constrúyete desde tu propia verdad.`
             ]
         };
 
         const templates_en: Record<string, string[]> = {
-            interfaz_social: [
-                `You project an aura of ${role} under the gaze of ${sign}. Your social dance is a bridge between your ${animal} instinct and your sacred essence.`,
-                `You manifest as an awakened ${role}. Your social mask balances the tide of the ${animal} with the light of your celestial coordinates.`
+            nucleo_estructural: [
+                `As the ${archetype.nombre}, your essence lies in unifying your ${animal} instinct with the solar light of ${sign}. Your deep self seeks the conscious manifestation of your mastery.`,
+                `You represent the pure ${archetype.frecuencia} frequency. Your original core drives you to lead with love and to consolidate your purpose through discipline.`
             ],
-            nucleo_interno: [
-                `In your center dwells the whisper of the ${archetype.nombre}. Your heart beats with the ${archetype.frecuencia} frequency, driving your constant awakening.`,
-                `Your core is a sanctuary for the ${archetype.nombre} archetype. You operate under the wisdom that love and truth consolidate your power.`
+            campo_perceptivo: [
+                `Your perceptive field combines a fine intuition with a clinical analysis of reality. You are capable of capturing invisible dynamics and decoding complex emotional patterns.`,
+                `You operate with a highly refined sensitivity. You perceive the contrasts of the environment and translate sensory chaos into structure and truth.`
             ],
-            patron_sombra: [
-                `Your shadow emerges when the tide of the ${animal} floods the lighthouse. The challenge is to embrace chaos so that the ${role} finds its light.`,
-                `The shadow pattern activates upon disconnection. The tension between your instinctive ${animal} fire and your ${role} mission is your crucible of growth.`
+            arquitectura_mental: [
+                `Your mind is deep and strategic, but exposed to the trap of overanalysis and intellectual doubt. You require anchoring your thoughts to avoid mental fatigue.`,
+                `You possess a mental structure focused on resolving complexities. The challenge is to transmute rigidity into mutable wisdom.`
+            ],
+            motor_accion: [
+                `Your action activates strongly when your will is aligned with your internal truth. Conflict arises from indecision, where you may procrastinate or self-sabotage.`,
+                `You are a builder of realities. However, your engine requires sustained discipline and taking the step toward imperfect action to flow.`
+            ],
+            expresion_proyeccion: [
+                `To the outside world, you project yourself with charisma, eloquence, and authority. Your communication is designed to inspire and transmit knowledge with real impact.`,
+                `You show yourself as a visible and eloquent lighthouse. Your self-expression flourishes by translating deep truths in a simple and digestible way.`
             ],
             direccion_vital: [
-                `Your path is traced toward the peak of the ${archetype.nombre}. Each step is an echo of your role as a ${role} in the great symphony of the universe.`,
-                `You advance toward a sacred expression of your being. Your destiny flourishes to the beat of the ${archetype.frecuencia} frequency and your constructive art.`
+                `Your life path pushes you to materialize large practical projects. You come to leave a lasting footprint and to sustain structures with an elevated purpose.`,
+                `Your destiny flourishes to the beat of the realization of your ${role} archetype. You advance by integrating ancestral wisdom into your daily life.`
             ],
-            tension_evolutiva: [
-                `Tension is the violin of your soul. As a ${role}, you evolve by transmuting the strength of the ${animal} into songs of light and harmony.`,
-                `You evolve by healing the internal paradox. Your ${archetype.frecuencia} frequency invites you to a loving synthesis of your innate gifts.`
+            conflicto_central: [
+                `You live in a constant tension between the instinctive desire for freedom and your imperative need for structure. Your mind wants to analyze everything before your heart dares to act.`,
+                `The conflict lies in processing too much information in silence without bringing it down to the earthly plane. Learning to choose yourself is your master key.`
             ],
-            alquimia_vinculos: [
-                `In your relationships you act as a mirror of the ${archetype.frecuencia} frequency. You seek to distill love and truth with other wayfarers.`,
-                `Your bonds are mirror lakes. As the ${archetype.nombre}, you attract souls who remind you of your divinity and expand your vision.`
+            diagnostico_global: [
+                `A high-caliber profile that blends great intuition, a critical mind, and executive potential. Your strength is deep analysis, and your Achilles' heel is inaction.`,
+                `You present an ideal energetic balance for mentoring and the architecture of complex systems. Your challenge is to tame anxiety.`
             ],
-            arquitectura_entorno: [
-                `Your space is a temple for the ${archetype.elemento} element. Create a sanctuary of peace and beauty that elevates and sustains your spirit as a ${role}.`,
-                `Your environment requires peace and sacred purpose. You design nests that act as amplifiers of your base frequency ${archetype.frecuencia}.`
+            potencial_elevado: [
+                `In your integrated version, you become a master builder with spiritual vision and pragmatic authority, capable of guiding others and transmuting chaos into beauty.`,
+                `You reach your highest vibration when you communicate lived truths, act with complete confidence, and make a lasting impact on your environment.`
             ],
-            umbral_manifestacion: [
-                `Your abundance flourishes when you act in synchronicity with the ${archetype.nombre}. Life unfolds effortlessly before your light.`,
-                `You manifest with grace when your role as a ${role} and the tide of the ${animal} are a single song under the NAOS sky.`
+            sombra_riesgo: [
+                `Your shadow emerges in the form of cynicism, mental rigidity, or fear of failure in large-scale projects. Beware of over-reclusion or doubting your value.`,
+                `The risk is staying in eternal contemplative analysis without building anything real. Avoid suffocating self-demand.`
+            ],
+            conclusion_directa: [
+                `First search, then understand, and finally act. You are the architect of your own evolutionary threshold.`,
+                `Your wisdom is useless in the ether; bring it down to earth and build yourself from your own truth.`
             ]
         };
 
@@ -294,7 +317,6 @@ export class NaosCompilerService {
         const astro = await AstrologyService.calculateProfile(birthDate, birthTime, lat, lng, offset);
         const num = NumerologyService.calculateProfile(birthDate, profile.name || 'Viajero');
         
-        // Enrich with Mayan and Chinese data on the fly
         const mayan = MayanCalculator.calculate(birthDate);
         const chinese = ChineseAstrology.calculate(birthDate);
 
@@ -311,9 +333,6 @@ export class NaosCompilerService {
                 element: chinese.element
             }
         };
-
-        // If index of nawales is not exported, we can map it via exact array lookup if needed
-        // But for safety, let's keep it accessible.
         
         let archetype;
         try {
@@ -353,21 +372,21 @@ export class NaosCompilerService {
         const url = `https://generativelanguage.googleapis.com/${this.API_VERSION}/models/${this.TARGET_MODEL}:generateContent?key=${apiKey}`;
 
         const systemPrompt = isEn 
-            ? `You are the NAOS Compiler v2.7. Your function is to consolidate an architectural identity in a poetic and mystical way.
-The user is: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
-Avoid excessive technicalities (no "algorithm", "friction", "optimize", or "paradigms"). Use an evocative, mystical, and fluid tone to describe the interfaces of the human soul.
-Respond ONLY in JSON with the 8 blocks of narrative interfaces in ENGLISH.
-FIELDS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital', 'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'.`
-            : `Eres el Compilador NAOS v2.7. Tu función es consolidar una identidad arquitectónica de forma poética y mística.
-El usuario es: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
-Evita tecnicismos excesivos (no uses "algoritmo", "fricción", "optimizar" o "paradigmas"). Usa un tono evocador, místico y fluido para describir las interfaces del alma humana.
-Responde ÚNICAMENTE en JSON con los 8 bloques de interfaces narrativas en ESPAÑOL.
-CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital', 'tension_evolutiva', 'alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'.`;
+            ? `You are the NAOS Compiler v3.0. Your function is to consolidate a deep architectural and psychological identity in a clinical, poetic, and mystical way.
+The user's master archetype is: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
+Avoid excessive superficial technicalities. Use an evocative, clinical, deeply psychological, and serious tone.
+Respond ONLY in JSON with the 11 blocks of narrative interfaces in ENGLISH.
+FIELDS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion', 'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global', 'potencial_elevado', 'sombra_riesgo', 'conclusion_directa'.`
+            : `Eres el Compilador NAOS v3.0. Tu función es consolidar una identidad arquitectónica y psicológica profunda de forma clínica, poética y mística.
+El arquetipo maestro del usuario es: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
+Evita tecnicismos superficiales. Usa un tono evocador, analítico, profundamente psicológico y serio.
+Responde ÚNICAMENTE en JSON con los 11 bloques de interfaces narrativas en ESPAÑOL.
+CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion', 'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global', 'potencial_elevado', 'sombra_riesgo', 'conclusion_directa'.`;
 
         const payload = {
             system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: "user", parts: [{ text: `ADN ENERGÉTICO: ${JSON.stringify(bible)}` }] }],
-            generationConfig: { temperature: 0.2, response_mime_type: "application/json" }
+            contents: [{ role: "user", parts: [{ text: `ADN ENERGÉTICO PARA COMPILACIÓN DE IDENTIDAD:\n${JSON.stringify(bible)}\n\nArquetipo base: ${JSON.stringify(archetype)}` }] }],
+            generationConfig: { temperature: 0.25, response_mime_type: "application/json" }
         };
 
         const controller = new AbortController();
@@ -445,14 +464,17 @@ CAMPOS: 'interfaz_social', 'nucleo_interno', 'patron_sombra', 'direccion_vital',
             return typeof val === 'string' ? val.trim() : JSON.stringify(val);
         };
         return {
-            interfaz_social: normalize(findValue(['interfaz_social']), NaosCompilerService.generateLocalNarrative('interfaz_social', bible, archetype, language)),
-            nucleo_interno: normalize(findValue(['nucleo_interno']), NaosCompilerService.generateLocalNarrative('nucleo_interno', bible, archetype, language)),
-            patron_sombra: normalize(findValue(['patron_sombra']), NaosCompilerService.generateLocalNarrative('patron_sombra', bible, archetype, language)),
-            direccion_vital: normalize(findValue(['direccion_vital']), NaosCompilerService.generateLocalNarrative('direccion_vital', bible, archetype, language)),
-            tension_evolutiva: normalize(findValue(['tension_evolutiva']), NaosCompilerService.generateLocalNarrative('tension_evolutiva', bible, archetype, language)),
-            alquimia_vinculos: normalize(findValue(['alquimia_vinculos']), NaosCompilerService.generateLocalNarrative('alquimia_vinculos', bible, archetype, language)),
-            arquitectura_entorno: normalize(findValue(['arquitectura_entorno']), NaosCompilerService.generateLocalNarrative('arquitectura_entorno', bible, archetype, language)),
-            umbral_manifestacion: normalize(findValue(['umbral_manifestacion']), NaosCompilerService.generateLocalNarrative('umbral_manifestacion', bible, archetype, language))
+            nucleo_estructural: normalize(findValue(['nucleo_estructural']), NaosCompilerService.generateLocalNarrative('nucleo_estructural', bible, archetype, language)),
+            campo_perceptivo: normalize(findValue(['campo_perceptivo']), NaosCompilerService.generateLocalNarrative('campo_perceptivo', bible, archetype, language)),
+            arquitectura_mental: normalize(findValue(['arquitectura_mental']), NaosCompilerService.generateLocalNarrative('arquitectura_mental', bible, archetype, language)),
+            motor_accion: normalize(findValue(['motor_accion']), NaosCompilerService.generateLocalNarrative('motor_accion', bible, archetype, language)),
+            expresion_proyeccion: normalize(findValue(['expresion_proyeccion', 'expresion_y_proyeccion']), NaosCompilerService.generateLocalNarrative('expresion_proyeccion', bible, archetype, language)),
+            direccion_evolutiva: normalize(findValue(['direccion_evolutiva']), NaosCompilerService.generateLocalNarrative('direccion_evolutiva', bible, archetype, language)),
+            conflicto_central: normalize(findValue(['conflicto_central']), NaosCompilerService.generateLocalNarrative('conflicto_central', bible, archetype, language)),
+            diagnostico_global: normalize(findValue(['diagnostico_global']), NaosCompilerService.generateLocalNarrative('diagnostico_global', bible, archetype, language)),
+            potencial_elevado: normalize(findValue(['potencial_elevado']), NaosCompilerService.generateLocalNarrative('potencial_elevado', bible, archetype, language)),
+            sombra_riesgo: normalize(findValue(['sombra_riesgo', 'sombra_y_riesgo']), NaosCompilerService.generateLocalNarrative('sombra_riesgo', bible, archetype, language)),
+            conclusion_directa: normalize(findValue(['conclusion_directa']), NaosCompilerService.generateLocalNarrative('conclusion_directa', bible, archetype, language))
         };
     }
 }

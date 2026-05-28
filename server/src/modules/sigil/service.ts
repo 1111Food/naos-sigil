@@ -68,6 +68,10 @@ export class SigilService {
             // v9.6 Bio-Regulation Context
             const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
 
+            // --- COHERENCE ENGINE CONNECTION ---
+            // Aplicar decaimiento primero
+            await CoherenceService.applyInactivityDecay(userId);
+
             // 0. FETCH CONTEXT DATA IN PARALLEL (SCALING OPTIMIZATION)
             console.log(`⏳ SigilService: Orchestrating parallel data fetch for ${userId}...`);
             
@@ -78,7 +82,11 @@ export class SigilService {
                 logsResponse,
                 intentionsResponse,
                 lastSessionResponse,
-                dailyReadingResponse
+                dailyReadingResponse,
+                evolutionData,
+                toneData,
+                coherence,
+                todaySessionsResponse
             ] = await Promise.all([
                 UserService.getProfile(userId),
                 this.getSigilState(userId),
@@ -86,26 +94,15 @@ export class SigilService {
                 supabase.from('interaction_logs').select('user_message, sigil_response').eq('user_id', userId).order('created_at', { ascending: false }).limit(15),
                 supabase.from('intentions').select('intention_text').eq('user_id', userId).gte('created_at', today.toISOString()),
                 supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle(),
-                supabase.from('daily_readings').select('reading_text').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle()
+                supabase.from('daily_readings').select('reading_text').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+                (async () => { try { return await supabase.rpc('calculate_evolution_stage', { target_user_id: userId }); } catch { return { data: 1 }; } })(),
+                (async () => { try { return await supabase.rpc('determine_preferred_tone', { target_user_id: userId }); } catch { return { data: 'MISTICO' }; } })(),
+                CoherenceService.getCoherence(userId),
+                supabase.from('meditation_sessions').select('regulation_delta').eq('user_id', userId).gte('completed_at', `${today.toISOString().split('T')[0]}T00:00:00.000Z`)
             ]);
 
-            // RPC safe fallbacks
-            let evolutionStage = 1;
-            let preferredTone = 'MISTICO';
-
-            try {
-                const { data: evo } = await supabase.rpc('calculate_evolution_stage', { target_user_id: userId });
-                if (evo !== null) evolutionStage = evo;
-            } catch (e) {
-                console.warn("⚠️ RPC calculate_evolution_stage missing, using fallback 1.");
-            }
-
-            try {
-                const { data: tone } = await supabase.rpc('determine_preferred_tone', { target_user_id: userId });
-                if (tone !== null) preferredTone = tone;
-            } catch (e) {
-                console.warn("⚠️ RPC determine_preferred_tone missing, using fallback MISTICO.");
-            }
+            let evolutionStage = evolutionData?.data ?? 1;
+            let preferredTone = toneData?.data ?? 'MISTICO';
 
             const energy = EnergyService.getDailySnapshot(userProfile);
             let userTier = rankResponse.data?.tier_label || 'Fragmentado';
@@ -217,11 +214,7 @@ export class SigilService {
             }
 
             // --- COHERENCE ENGINE CONNECTION (v10.0 - NERVOUS SYSTEM) ---
-            // 1. Aplicar decaimiento por inactividad antes de procesar
-            await CoherenceService.applyInactivityDecay(userId);
-
             // 2. Obtener estado actual del índice
-            const coherence = await CoherenceService.getCoherence(userId);
             const coherenceScore = coherence.global_coherence;
 
             // 3. Calcular horas desde la última conexión
@@ -260,12 +253,7 @@ export class SigilService {
 
             // v9.7 Dynamic Energy Calculation inside Sigil
             let regulationToday = 0;
-            const todayStr = new Date().toISOString().split('T')[0];
-            const { data: todaySessions } = await supabase
-                .from('meditation_sessions')
-                .select('regulation_delta')
-                .eq('user_id', userId)
-                .gte('completed_at', `${todayStr}T00:00:00.000Z`);
+            const todaySessions = todaySessionsResponse?.data;
 
             if (todaySessions) {
                 regulationToday = todaySessions.reduce((acc: number, curr: any) => acc + (curr.regulation_delta || 0), 0);

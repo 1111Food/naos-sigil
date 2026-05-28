@@ -10,6 +10,7 @@ import { rankingRoutes } from './routes/ranking';
 import rosterRoutes from './modules/roster/roster.routes';
 import { adminRoutes } from './modules/admin/admin.routes';
 import { webhookRoutes } from './routes/webhooks';
+import { interpretRoutes } from './routes/interpret';
 
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
@@ -42,6 +43,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     await app.register(rosterRoutes);
     await app.register(adminRoutes, { prefix: '/api/admin' });
     await app.register(webhookRoutes);
+    await app.register(interpretRoutes, { prefix: '/api/energy-code' });
 
     return app;
 };
