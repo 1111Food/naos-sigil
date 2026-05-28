@@ -93,6 +93,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             console.log("Saving profile for user:", currentUser.id);
             const profilePayload = {
                 id: currentUser.id,
+                name: formData.name,
                 full_name: formData.name,
                 nickname: formData.nickname || '',
                 email: formData.email,
