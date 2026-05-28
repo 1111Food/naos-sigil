@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Shield, Target, User, AlertTriangle, RefreshCw, Hexagon, Sparkles, Heart, Home, Wind, ChevronDown, BookOpen, Info, Lock } from 'lucide-react';
+import { Zap, Shield, Target, User, AlertTriangle, RefreshCw, Hexagon, Sparkles, Heart, Home, Wind, ChevronDown, BookOpen, Info, Lock, Brain, Compass, Eye, Scroll } from 'lucide-react';
 import { OracleExplainer } from './OracleExplainer';
 import { cn } from '../lib/utils';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
@@ -20,6 +20,7 @@ interface NaosIdentitySynthesis {
         frecuencia: string;
         rol: string;
         descripcion: string;
+        interpretacion_profunda?: string;
         elemento: string;
         powerLines?: any[];
         desglose?: {
@@ -32,14 +33,17 @@ interface NaosIdentitySynthesis {
             }
         };
     };
-    interfaz_social: string;
-    nucleo_interno: string;
-    patron_sombra: string;
-    direccion_vital: string;
-    tension_evolutiva: string;
-    alquimia_vinculos: string;
-    arquitectura_entorno: string;
-    umbral_manifestacion: string;
+    nucleo_estructural: string;
+    campo_perceptivo: string;
+    arquitectura_mental: string;
+    motor_accion: string;
+    expresion_proyeccion: string;
+    direccion_evolutiva: string;
+    conflicto_central: string;
+    diagnostico_global: string;
+    potencial_elevado: string;
+    sombra_riesgo: string;
+    conclusion_directa: string;
 }
 
 const colorConfig: Record<string, { main: string, glow: string, bg: string }> = {
@@ -85,7 +89,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     const [loading, setLoading] = useState(false); 
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [openModuleId, setOpenModuleId] = useState<string | null>('social');
+    const [openModuleId, setOpenModuleId] = useState<string | null>('nucleo_estructural');
     const [isArchetypeExpanded, setIsArchetypeExpanded] = useState(false);
     const [showArchetypeLibrary, setShowArchetypeLibrary] = useState(false);
     const [explainerType, setExplainerType] = useState<'IDENTITY_ARCHETYPE' | null>(null);
@@ -146,7 +150,11 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             if (!synthesis) return { isComplete: false, hasArchetype: false };
             
             const hasArchetype = !!(synthesis.arquetipo?.nombre && synthesis.arquetipo.nombre !== "Calculando...");
-            const mandatoryKeys = ['alquimia_vinculos', 'arquitectura_entorno', 'umbral_manifestacion'];
+            const mandatoryKeys = [
+                'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion',
+                'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global',
+                'potencial_elevado', 'sombra_riesgo', 'conclusion_directa'
+            ];
             const hasMandatoryBlocks = mandatoryKeys.every(key => {
                 const val = (synthesis as any)[key];
                 return typeof val === 'string' && val.length > 50 && !val.includes("...");
@@ -212,7 +220,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             const rising = astro.rising?.sign || astro.risingSign || 'Asc';
             const venus = astro.venus?.sign || astro.venusSign || (astro.planets?.find((p: any) => p.name === 'Venus')?.sign) || 'Venus';
             const node = astro.planets?.find((p: any) => p.name === 'North Node' || p.name === 'Nodo Norte')?.sign || (isEn ? 'Node' : 'Nodo');
-            const house4 = astro.house4 || (astro.planets?.find((p: any) => p.house === 4 || p.name === 'House 4')?.sign) || (isEn ? 'House 4' : 'Casa 4');
+            const house3 = astro.house3 || (astro.planets?.find((p: any) => p.house === 3 || p.name === 'House 3')?.sign) || (isEn ? 'House 3' : 'Casa 3');
 
             const personality = pin.b || num.tantric?.soul || '?';
             const essence = pin.d || '?';
@@ -229,35 +237,44 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
 
             if (isEn) {
                 switch (id) {
-                    case 'social': return `Integrating the Rising imprint in ${rising} with Personality ${personality} and the elemental essence of the ${animal}.`;
-                    case 'inner': return `Tuning the Solar core in ${sun} with the soul pulsation ${essence} and the Mayan Nawal ${nawal}.`;
-                    case 'shadow': return `Exploring the Moon resonance in ${moon} with the unconscious shadows ${unconscious} and the karmic pattern ${shadow}.`;
-                    case 'vital': return `Tracing the path from ${node} toward Mission ${mission} and the Realization Gradient ${realization}.`;
-                    case 'tension': return `Unifying the Rising ${rising} and the Life Path ${lifePath} under the evolutionary frequency of Kin ${nawal} ${tone}.`;
-                    case 'vinculos': return `Synchronizing the frequency of Venus in ${venus}, the cycles of the ${animal}, and your Soul Number ${personality} for dual alchemy.`;
-                    case 'entorno': return `Architecture of the sacred space through House 4 in ${house4}, the ${element} element, and your home vibration.`;
-                    case 'manifestacion': return `2026 Success Threshold: Jupiter transits, your Personal Year ${mission}, and the energetic flow of the ${animal}.`;
+                    case 'nucleo_estructural': return `Integrating your Solar core in ${sun}, Moon in ${moon}, and Rising ${rising} to consolidate your master identity.`;
+                    case 'campo_perceptivo': return `Fusing your perceptive field with Mayan Nawal ${nawal} and the intuitive waters of your profile.`;
+                    case 'arquitectura_mental': return `Structuring cognitive paths with Life Path ${lifePath} and your rational/mercurial logic.`;
+                    case 'motor_accion': return `Propelling action through the instinct of the ${animal} and your active willpower resources.`;
+                    case 'expresion_proyeccion': return `Auto-expression based on ${house3}, your Personality code ${personality}, and social projection.`;
+                    case 'direccion_evolutiva': return `Navigating towards evolutionary Node ${node}, Mission ${mission}, and Realization ${realization}.`;
+                    case 'conflicto_central': return `Sensing internal friction between high-mind analysis, emotional depths, and the ${animal} impulse.`;
+                    case 'diagnostico_global': return `A synthesized overview of your bio-architectural compound and psychological framework.`;
+                    case 'potencial_elevado': return `The supreme state of self-realization of the traveler's master archetype.`;
+                    case 'sombra_riesgo': return `Exposing unconscious blocks, karmic shadows ${shadow}, and unintegrated behavior risks.`;
+                    case 'conclusion_directa': return `The final evolution directive and actionable mantra for daily alignment.`;
                     default: return '';
                 }
             }
 
             switch (id) {
-                case 'social':
-                    return `Integrando la impronta del Ascendente ${rising} con la Personalidad ${personality} y la esencia elemental del ${animal}.`;
-                case 'inner':
-                    return `Sintonizando el núcleo solar en ${sun} con la pulsación del alma ${essence} y el nawal maya ${nawal}.`;
-                case 'shadow':
-                    return `Explorando la resonancia de la Luna en ${moon} con las sombras del inconsciente ${unconscious} y el patrón karmático ${shadow}.`;
-                case 'vital':
-                    return `Trazando el camino del ${node} hacia la Misión ${mission} y el Gradiente de Realización ${realization}.`;
-                case 'tension':
-                    return `Unificando el Ascendente ${rising} y el Sendero de Vida ${lifePath} bajo la frecuencia evolutiva del Kin ${nawal} ${tone}.`;
-                case 'vinculos':
-                    return `Sincronizando la frecuencia de Venus en ${venus}, los ciclos del ${animal} y tu Número del Alma ${personality} para la alquimia dual.`;
-                case 'entorno':
-                    return `Arquitectura del espacio sagrado mediante la Casa 4 en ${house4}, el elemento ${element} y tu vibración del hogar.`;
-                case 'manifestacion':
-                    return `Umbral de éxito 2026: Tránsitos de Júpiter, tu Año Personal ${mission} y el flujo energético del ${animal}.`;
+                case 'nucleo_estructural':
+                    return `Integrando tu núcleo Solar en ${sun}, Luna en ${moon} y Ascendente ${rising} para consolidar tu identidad maestra.`;
+                case 'campo_perceptivo':
+                    return `Fusionando tu campo perceptivo con el Nawal Maya ${nawal} y las mareas intuitivas de tu diseño.`;
+                case 'arquitectura_mental':
+                    return `Estructurando las rutas cognitivas con tu Sendero de Vida ${lifePath} y tu lógica racional/mercurial.`;
+                case 'motor_accion':
+                    return `Impulsando la acción a través del instinto del ${animal} y tus recursos de voluntad física activa.`;
+                case 'expresion_proyeccion':
+                    return `Autoexpresión basada en tu ${house3}, tu código de Personalidad ${personality} y proyección social.`;
+                case 'direccion_evolutiva':
+                    return `Navegando hacia el Nodo evolutivo ${node}, tu Misión de Vida ${mission} y tu Realización ${realization}.`;
+                case 'conflicto_central':
+                    return `Detectando la fricción interna entre el sobreanálisis mental, la emoción profunda y el impulso del ${animal}.`;
+                case 'diagnostico_global':
+                    return `Un diagnóstico integrado de tu compuesto bio-arquitectónico y tu marco conductual psicológico.`;
+                case 'potencial_elevado':
+                    return `El estado supremo de autorrealización y expresión sublime de tu arquetipo base.`;
+                case 'sombra_riesgo':
+                    return `Exponiendo bloqueos inconscientes, sombras kármicas ${shadow} y riesgos de autosabotaje.`;
+                case 'conclusion_directa':
+                    return `La directriz evolutiva final y mantra de acción para tu alineación y manifestación diaria.`;
                 default:
                     return '';
             }
@@ -301,14 +318,17 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     }
 
     const modules = [
-        { id: 'social', title: t('identity_social'), icon: User, content: synthesis?.interfaz_social || t('identity_aligning'), color: 'cyan', formula: getFormula('social') },
-        { id: 'inner', title: t('identity_inner'), icon: Shield, content: synthesis?.nucleo_interno || t('identity_aligning'), color: 'amber', formula: getFormula('inner') },
-        { id: 'shadow', title: t('identity_shadow'), icon: AlertTriangle, content: synthesis?.patron_sombra || t('identity_aligning'), color: 'rose', formula: getFormula('shadow') },
-        { id: 'vital', title: t('identity_vital'), icon: Target, content: synthesis?.direccion_vital || t('identity_aligning'), color: 'emerald', formula: getFormula('vital') },
-        { id: 'tension', title: t('identity_tension'), icon: Zap, content: synthesis?.tension_evolutiva || t('identity_aligning'), color: 'indigo', formula: getFormula('tension') },
-        { id: 'vinculos', title: t('identity_vinculos'), icon: Heart, content: synthesis?.alquimia_vinculos || t('identity_aligning'), color: 'fuchsia', formula: getFormula('vinculos') },
-        { id: 'entorno', title: t('identity_entorno'), icon: Home, content: synthesis?.arquitectura_entorno || t('identity_aligning'), color: 'cyan', formula: getFormula('entorno') },
-        { id: 'manifestacion', title: t('identity_manifestacion'), icon: Wind, content: synthesis?.umbral_manifestacion || t('identity_aligning'), color: 'amber', formula: getFormula('manifestacion') },
+        { id: 'nucleo_estructural', title: t('identity_nucleo_estructural'), icon: Hexagon, content: synthesis?.nucleo_estructural || t('identity_aligning'), color: 'cyan', formula: getFormula('nucleo_estructural') },
+        { id: 'campo_perceptivo', title: t('identity_campo_perceptivo'), icon: Eye, content: synthesis?.campo_perceptivo || t('identity_aligning'), color: 'indigo', formula: getFormula('campo_perceptivo') },
+        { id: 'arquitectura_mental', title: t('identity_arquitectura_mental'), icon: Brain, content: synthesis?.arquitectura_mental || t('identity_aligning'), color: 'amber', formula: getFormula('arquitectura_mental') },
+        { id: 'motor_accion', title: t('identity_motor_accion'), icon: Zap, content: synthesis?.motor_accion || t('identity_aligning'), color: 'rose', formula: getFormula('motor_accion') },
+        { id: 'expresion_proyeccion', title: t('identity_expresion_proyeccion'), icon: User, content: synthesis?.expresion_proyeccion || t('identity_aligning'), color: 'fuchsia', formula: getFormula('expresion_proyeccion') },
+        { id: 'direccion_evolutiva', title: t('identity_direccion_evolutiva'), icon: Compass, content: synthesis?.direccion_evolutiva || t('identity_aligning'), color: 'emerald', formula: getFormula('direccion_evolutiva') },
+        { id: 'conflicto_central', title: t('identity_conflicto_central'), icon: AlertTriangle, content: synthesis?.conflicto_central || t('identity_aligning'), color: 'indigo', formula: getFormula('conflicto_central') },
+        { id: 'diagnostico_global', title: t('identity_diagnostico_global'), icon: Shield, content: synthesis?.diagnostico_global || t('identity_aligning'), color: 'cyan', formula: getFormula('diagnostico_global') },
+        { id: 'potencial_elevado', title: t('identity_potencial_elevado'), icon: Sparkles, content: synthesis?.potencial_elevado || t('identity_aligning'), color: 'amber', formula: getFormula('potencial_elevado') },
+        { id: 'sombra_riesgo', title: t('identity_sombra_riesgo'), icon: Lock, content: synthesis?.sombra_riesgo || t('identity_aligning'), color: 'rose', formula: getFormula('sombra_riesgo') },
+        { id: 'conclusion_directa', title: t('identity_conclusion_directa'), icon: Scroll, content: synthesis?.conclusion_directa || t('identity_aligning'), color: 'emerald', formula: getFormula('conclusion_directa') },
     ];
 
     const archetype = synthesis?.arquetipo;
@@ -424,11 +444,16 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                         
                         <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent" />
                         
-                        {isPremium ? (
-                            <p className="text-xl md:text-2xl text-white/70 font-light italic leading-relaxed max-w-4xl">
-                                "{archetype.descripcion}"
-                            </p>
-                        ) : (
+                        {isPremium ? (() => {
+                            const localLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
+                            const localMatch = localLib.find(a => a.nombre === archetype.nombre || a.id === archetype.id);
+                            const deepText = archetype.interpretacion_profunda || localMatch?.interpretacion_profunda || archetype.descripcion;
+                            return (
+                                <p className="text-xl md:text-2xl text-white/70 font-light italic leading-relaxed max-w-4xl">
+                                    "{deepText}"
+                                </p>
+                            );
+                        })() : (
                             <div className="mt-6 p-6 bg-black/40 rounded-2xl border border-dashed border-purple-500/30 text-center space-y-4 max-w-2xl cursor-pointer hover:bg-black/60 transition-all" onClick={(e) => { e.stopPropagation(); triggerUpgrade('synthesis'); }}>
                                 <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">
                                     <Lock className="w-5 h-5 text-purple-400" />

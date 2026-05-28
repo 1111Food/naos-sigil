@@ -245,7 +245,7 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
                         )}
                     </AnimatePresence>
                 </motion.div>
-            @</div>
+            </div>
         </AnimatePresence>
     );
 };

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Sparkles, Compass, ChevronDown, Scroll } from 'lucide-react';
+import { Sparkles, Compass, ChevronDown, Scroll, Lock, Zap, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useActiveProfile } from '../hooks/useActiveProfile';
+import { useSubscription } from '../hooks/useSubscription';
 import { MAYAN_MANUAL } from '../data/manuals/mayan';
 import { MAYAN_MANUAL_EN } from '../data/manuals/mayan_en';
 import { getNahualImage, getMayanToneName } from '../utils/nahualMapper';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 
 // Placeholder for glyph path logic if needed, or use image
 const GlyphPlaceholder = ({ tone, id, size = 'md', showTone = true }: { tone: number, id?: string, size?: 'xs' | 'sm' | 'md' | 'lg', showTone?: boolean }) => {
@@ -70,6 +72,20 @@ interface NawalViewProps {
     overrideProfile?: any;
 }
 
+const SmallNawal = ({ id, name, label }: { id?: string, name?: string, label: string }) => {
+    if (!id || !name) return null;
+    return (
+        <div className="flex flex-col items-center group cursor-help w-24">
+            <span className="text-[7px] uppercase tracking-widest text-emerald-500/60 mb-2 font-bold text-center h-4">{label}</span>
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#030504]/80 border border-emerald-500/20 flex items-center justify-center p-2 transition-all duration-500 group-hover:border-emerald-400 group-hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] backdrop-blur-xl relative overflow-hidden">
+                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                 <img src={getNahualImage(id)} alt={name} className="w-full h-full object-contain opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all drop-shadow-[0_0_10px_rgba(16,185,129,0.4)] relative z-10" />
+            </div>
+            <span className="text-[8px] uppercase tracking-wider text-white/60 mt-2 group-hover:text-emerald-400 transition-colors font-bold text-center">{name}</span>
+        </div>
+    );
+};
+
 export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
@@ -83,6 +99,106 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
 
     // HOOKS
     const [openSectionId, setOpenSectionId] = useState<string | null>(null);
+
+    const { status: subscription } = useSubscription(!overrideProfile);
+    const isPremium = overrideProfile
+        ? true
+        : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
+
+    const [showDeepInsight, setShowDeepInsight] = useState<boolean>(false);
+    const [aiInterpretations, setAiInterpretations] = useState<Record<string, string>>({});
+    const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
+
+    const fetchAiInterpretation = async (nawalName: string) => {
+        if (aiInterpretations[nawalName]) return;
+
+        setAiLoading(prev => ({ ...prev, [nawalName]: true }));
+        try {
+            const authHeaders = await getAsyncAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/api/energy-code/interpret`, {
+                method: 'POST',
+                headers: {
+                    ...authHeaders,
+                    'Content-Type': 'application/json'
+                } as HeadersInit,
+                body: JSON.stringify({
+                    school: 'MAYA',
+                    nawal: nawalName,
+                    language: language
+                })
+            });
+
+            if (!res.ok) throw new Error("Fallo al obtener la sintonía.");
+            const data = await res.json();
+            setAiInterpretations(prev => ({ ...prev, [nawalName]: data.interpretation }));
+        } catch (err) {
+            console.error("🔥 Error fetching AI interpretation:", err);
+            setAiInterpretations(prev => ({ 
+                ...prev, 
+                [nawalName]: language === 'en' 
+                    ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
+                    : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+            }));
+        } finally {
+            setAiLoading(prev => ({ ...prev, [nawalName]: false }));
+        }
+    };
+
+    const renderFormattedContent = (text: string) => {
+        if (!text) return null;
+        const lines = text.split('\n');
+        return (
+            <div className="space-y-3 font-serif italic leading-relaxed text-sm text-white/80">
+                {lines.map((line, i) => {
+                    const trimmed = line.trim();
+                    if (trimmed === '⸻' || trimmed === '---' || trimmed.startsWith('⸻')) {
+                        return <div key={i} className="my-6 h-px w-full bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />;
+                    }
+                    if (trimmed.match(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/)) {
+                        return (
+                            <h4 key={i} className="text-amber-400 font-bold text-sm uppercase tracking-wider mt-6 mb-2 flex items-center gap-2 not-italic">
+                                {trimmed}
+                            </h4>
+                        );
+                    }
+                    if (trimmed.includes('**')) {
+                        const parts = trimmed.split('**');
+                        return (
+                            <p key={i} className="text-justify leading-relaxed">
+                                {parts.map((part, index) => 
+                                    index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
+                                )}
+                            </p>
+                        );
+                    }
+                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                        const content = trimmed.substring(2);
+                        if (content.includes('**')) {
+                            const parts = content.split('**');
+                            return (
+                                <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
+                                    {parts.map((part, index) => 
+                                        index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
+                                    )}
+                                </li>
+                            );
+                        }
+                        return (
+                            <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
+                                {content}
+                            </li>
+                        );
+                    }
+                    if (trimmed === '') {
+                        return <div key={i} className="h-2" />;
+                    }
+                    return <p key={i} className="text-justify leading-relaxed">{trimmed}</p>;
+                })}
+            </div>
+        );
+    };
 
     if (isLoading) return <div className="p-20 text-center text-white/20 uppercase tracking-[0.4em] text-[10px]">{t('consulting_time')}</div>;
 
@@ -175,64 +291,146 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                 </div>
                             </div>
 
-                            {/* 🤝 MAYAN ALLIANCES (Dinámica de Alianzas) */}
-                            <div className="w-full mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Allies */}
-                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 backdrop-blur-md">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                                            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                            {/* ✝️ MAYAN CROSS (Cruz Maya Visual) */}
+                            <div className="w-full mt-16 mb-8 flex flex-col items-center relative">
+                                <div className="flex items-center gap-3 mb-16">
+                                    <div className="h-px w-8 bg-gradient-to-r from-transparent to-emerald-500/50" />
+                                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                                    <h3 className="text-[10px] uppercase tracking-[0.4em] font-black text-emerald-400">Cruz Maya</h3>
+                                    <div className="h-px w-8 bg-gradient-to-l from-transparent to-emerald-500/50" />
+                                </div>
+
+                                <div className="relative w-full max-w-sm md:max-w-md aspect-square mb-12">
+                                    {/* Glowing Background Ring */}
+                                    <div className="absolute inset-0 rounded-full border border-emerald-500/10 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.05)_0%,_transparent_70%)] animate-[pulse_8s_ease-in-out_infinite]" />
+                                    
+                                    {/* Cross Lines */}
+                                    <div className="absolute top-1/2 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent -translate-y-1/2" />
+                                    <div className="absolute left-1/2 top-[10%] bottom-[10%] w-px bg-gradient-to-b from-transparent via-emerald-500/30 to-transparent -translate-x-1/2" />
+
+                                    {/* Center: detailedNawal */}
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                                        <div className="relative group">
+                                            <div className="absolute -inset-4 bg-emerald-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                            <SmallNawal id={detailedNawal?.id} name={nawal.kicheName} label={t('destiny_energy') || "Destino (Presente)"} />
                                         </div>
-                                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-emerald-400">{t('harmonic_allies')}</h4>
                                     </div>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {allies.map(allied => (
-                                            <div key={allied.id} className="flex flex-col items-center group cursor-help">
-                                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1.5 transition-all duration-300 group-hover:border-emerald-500/30 group-hover:bg-emerald-500/5">
-                                                    <img 
-                                                        src={getNahualImage(allied.id)} 
-                                                        alt={allied.kiche} 
-                                                        className="w-full h-full object-contain opacity-60 group-hover:opacity-100 transition-opacity"
-                                                    />
-                                                </div>
-                                                <span className="text-[8px] uppercase tracking-wider text-white/40 mt-1.5 group-hover:text-emerald-400/80 transition-colors">
-                                                    {allied.kiche}
-                                                </span>
-                                            </div>
-                                        ))}
+                                    
+                                    {/* Top (Guide): Allies[1] */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2">
+                                        <SmallNawal id={allies[1]?.id} name={allies[1]?.kiche} label={t('guide_energy') || "Juventud (Guía)"} />
+                                    </div>
+                                    
+                                    {/* Bottom (Support): Allies[3] */}
+                                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+                                        <SmallNawal id={allies[3]?.id} name={allies[3]?.kiche} label={t('support_energy') || "Madurez (Apoyo)"} />
+                                    </div>
+                                    
+                                    {/* Right (Conception): Allies[0] */}
+                                    <div className="absolute top-1/2 right-0 translate-x-4 md:translate-x-8 -translate-y-1/2">
+                                        <SmallNawal id={allies[0]?.id} name={allies[0]?.kiche} label={t('conception_energy') || "Concepción (Pasado)"} />
+                                    </div>
+                                    
+                                    {/* Left (Future): Allies[2] */}
+                                    <div className="absolute top-1/2 left-0 -translate-x-4 md:-translate-x-8 -translate-y-1/2">
+                                        <SmallNawal id={allies[2]?.id} name={allies[2]?.kiche} label={t('future_energy') || "Proyección (Futuro)"} />
                                     </div>
                                 </div>
 
-                                {/* Challenges */}
-                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 backdrop-blur-md">
-                                    <div className="flex items-center gap-2 mb-4">
+                                {/* Challenges / Polar Force */}
+                                <div className="mt-8 bg-gradient-to-br from-rose-950/20 to-black border border-rose-500/10 rounded-2xl p-6 backdrop-blur-md w-full max-w-lg mx-auto">
+                                    <div className="flex items-center gap-3 mb-6 justify-center">
                                         <div className="p-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
                                             <Compass className="w-3.5 h-3.5 text-rose-400" />
                                         </div>
-                                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-rose-400">{t('opponent_challenge')}</h4>
+                                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-rose-400">{t('opponent_challenge') || "Fuerza Polar / Reto"}</h4>
                                     </div>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex justify-center gap-8">
                                         {challenges.map(chall => (
-                                            <div key={chall.id} className="flex items-center gap-3 group cursor-help">
-                                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1.5 transition-all duration-300 group-hover:border-rose-500/30 group-hover:bg-rose-500/5">
+                                            <div key={chall.id} className="flex items-center gap-4 group cursor-help">
+                                                <div className="w-14 h-14 rounded-2xl bg-black/40 border border-rose-500/20 flex items-center justify-center p-2 transition-all duration-300 group-hover:border-rose-500/50 group-hover:bg-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.1)] group-hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] relative overflow-hidden">
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                     <img 
                                                         src={getNahualImage(chall.id)} 
                                                         alt={chall.kiche} 
-                                                        className="w-full h-full object-contain opacity-60 group-hover:opacity-100 transition-opacity"
+                                                        className="w-full h-full object-contain opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all drop-shadow-[0_0_8px_rgba(244,63,94,0.3)] relative z-10"
                                                     />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] uppercase tracking-wider text-white/80 group-hover:text-rose-400 transition-colors">
+                                                    <span className="text-xs uppercase tracking-widest text-white/90 group-hover:text-rose-400 transition-colors font-bold">
                                                         {chall.kiche}
                                                     </span>
-                                                    <span className="text-[7px] uppercase tracking-wider text-white/40">
-                                                        {t('polar_force')}
+                                                    <span className="text-[8px] uppercase tracking-widest text-rose-500/60 mt-1 font-bold">
+                                                        Energía Opuesta Complementaria
                                                     </span>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
+                            <div
+                                className="w-full mt-10 p-5 bg-gradient-to-br from-emerald-950/60 to-slate-950/80 rounded-[2rem] border border-emerald-500/20 shadow-lg cursor-pointer hover:border-emerald-400 transition-all active:scale-[0.98] text-left"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const isOpening = !showDeepInsight;
+                                    setShowDeepInsight(isOpening);
+                                    if (isOpening && isPremium && nawal) {
+                                        fetchAiInterpretation(nawal.kicheName);
+                                    }
+                                }}
+                            >
+                                <div className="flex items-center gap-2 text-amber-400 mb-1">
+                                    <Zap className={`w-4 h-4 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
+                                    {isPremium && (
+                                        <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight ? 'rotate-90' : ''}`} />
+                                    )}
+                                </div>
+                                <p className="text-[9px] text-white/40 font-medium">
+                                    {isPremium ? (nawal && aiLoading[nawal.kicheName] ? t('sintonizando_eter') : t('deep_interpretation_tap')) : t('deep_interpretation_lock')}
+                                </p>
+
+                                <AnimatePresence>
+                                    {showDeepInsight && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="mt-4 pt-4 border-t border-emerald-500/30 overflow-hidden"
+                                        >
+                                            {isPremium ? (
+                                                nawal && aiLoading[nawal.kicheName] ? (
+                                                    <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                                                        <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+                                                        <span className="text-[9px] uppercase tracking-[0.3em] text-amber-400/70 font-bold animate-pulse">
+                                                            {t('sintonizando_eter')}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4 text-white/90 leading-relaxed font-sans text-xs">
+                                                        {nawal && renderFormattedContent(aiInterpretations[nawal.kicheName])}
+                                                    </div>
+                                                )
+                                            ) : (
+                                                <div className="p-4 bg-black/40 rounded-xl border border-dashed border-emerald-500/30 text-center space-y-3">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto">
+                                                        <Lock className="w-4 h-4 text-emerald-400" />
+                                                    </div>
+                                                    <h5 className="text-xs font-bold text-white uppercase tracking-widest">{t('reserved_content')}</h5>
+                                                    <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
+                                                        {t('pinnacle_lock_desc')}
+                                                    </p>
+                                                    <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
+                                                        {t('view_plans')}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             {/* Wisdom Accordions */}

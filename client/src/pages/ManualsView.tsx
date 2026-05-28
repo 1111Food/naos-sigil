@@ -29,6 +29,25 @@ import { getMayaCrossWisdom as getMayaCrossWisdomEs } from '../data/manuals/maya
 import { getMayaCrossWisdomEn } from '../data/manuals/mayan_en';
 const getMayaCrossWisdom = (isEn: boolean, pos: any, name: string) => isEn ? getMayaCrossWisdomEn(pos, name) : getMayaCrossWisdomEs(pos, name);
 
+const getPlanetGlyph = (name: string) => {
+    const map: Record<string, string> = {
+        'Sol': '☉', 'Sun': '☉',
+        'Luna': '☽', 'Moon': '☽',
+        'Mercurio': '☿', 'Mercury': '☿',
+        'Venus': '♀',
+        'Marte': '♂', 'Mars': '♂',
+        'Júpiter': '♃', 'Jupiter': '♃',
+        'Saturno': '♄', 'Saturn': '♄',
+        'Urano': '♅', 'Uranus': '♅',
+        'Neptuno': '♆', 'Neptune': '♆',
+        'Plutón': '♇', 'Pluto': '♇',
+        'Nodo Norte': '☊', 'North Node': '☊',
+        'Nodo Sur': '☋', 'South Node': '☋',
+        'Quirón': '⚷', 'Chiron': '⚷'
+    };
+    return map[name] || name.charAt(0);
+};
+
 interface ManualsViewProps {
     onBack: () => void;
     initialManual?: string;
@@ -272,8 +291,8 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                             <div key={key} className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openPlanet === key ? 'bg-cyan-500/10 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.05)]' : 'bg-[#080808]/80 border-white/5 hover:border-white/20'}`}>
                                                 <button onClick={() => { playSound('click'); setOpenPlanet(openPlanet === key ? null : key); }} className="w-full p-6 flex flex-col sm:flex-row sm:items-center justify-between text-left gap-4 gap-y-2">
                                                     <div className="flex items-center gap-6">
-                                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-light transition-all ${openPlanet === key ? 'bg-cyan-500 text-black font-bold' : 'bg-white/5 text-zinc-400 group-hover:bg-white/10'}`}>
-                                                            {key.charAt(0)}
+                                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-3xl font-light transition-all ${openPlanet === key ? 'bg-cyan-500/20 text-cyan-300 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)] border border-cyan-400' : 'bg-black/50 border border-white/5 text-zinc-500 group-hover:text-cyan-500/50 group-hover:border-cyan-500/30'}`}>
+                                                            {getPlanetGlyph(key)}
                                                         </div>
                                                         <div>
                                                             <h4 className="text-xl font-serif text-zinc-200 group-hover:text-cyan-300 transition-colors">{key}</h4>
@@ -533,8 +552,10 @@ const AstroManualDetail = ({ onClose, playSound }: { onClose: () => void, playSo
                                             <div key={num} className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openHouse === num ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.05)]' : 'bg-[#080808]/80 border-white/5 hover:border-white/20'}`}>
                                                 <button onClick={() => { playSound('click'); setOpenHouse(openHouse === num ? null : num); }} className="w-full p-6 flex flex-col sm:flex-row sm:items-center justify-between text-left gap-4 gap-y-2">
                                                     <div className="flex items-center gap-6">
-                                                        <div className={`w-12 h-12 flex-shrink-0 flex flex-col items-center justify-center p-1 border rounded-full transition-colors ${openHouse === num ? 'bg-emerald-500 border-emerald-400 text-black' : 'bg-black border-white/10 text-zinc-400'}`}>
-                                                            <span className="text-xl font-serif">{num}</span>
+                                                        <div className={`relative w-12 h-12 flex-shrink-0 flex items-center justify-center transition-colors ${openHouse === num ? 'text-emerald-300' : 'text-zinc-500 group-hover:text-emerald-500/50'}`}>
+                                                            <Hexagon className="absolute inset-0 w-full h-full opacity-20" />
+                                                            {openHouse === num && <Hexagon className="absolute inset-0 w-full h-full text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]" />}
+                                                            <span className="relative text-xl font-serif z-10">{num}</span>
                                                         </div>
                                                         <div>
                                                             <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1 block group-hover:text-emerald-500/50 transition-colors">Casa {num}</span>

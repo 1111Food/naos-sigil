@@ -16,7 +16,7 @@ export const getCompletedProtocols = async (userId: string) => {
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'completed')
-        .order('end_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
     if (error) {
         console.error("Error obteniendo el historial:", error);

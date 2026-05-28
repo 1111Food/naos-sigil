@@ -295,6 +295,18 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                      </div>
                                 </div>
 
+                                {selectedArchetype.interpretacion_profunda && (
+                                    <div className="pt-8 border-t border-white/5 space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] uppercase tracking-[0.5em] text-cyan-400 font-bold">{t('soul_architecture') || "Arquitectura del Alma"}</span>
+                                            <div className="flex-1 h-px bg-cyan-400/20" />
+                                        </div>
+                                        <p className="text-sm text-white/70 font-serif leading-relaxed text-justify">
+                                            {selectedArchetype.interpretacion_profunda}
+                                        </p>
+                                    </div>
+                                )}
+
                                 <button 
                                     onClick={() => setSelectedArchetype(null)}
                                     className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white/40 text-[10px] uppercase tracking-widest font-black hover:bg-white/10 hover:text-white transition-all mt-8"

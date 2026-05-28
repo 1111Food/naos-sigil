@@ -10,7 +10,7 @@ import { useProfile } from '../hooks/useProfile';
 import { usePerformance } from '../context/PerformanceContext';
 import { supabase } from '../lib/supabase';
 import { IntentionWidget } from '../components/IntentionWidget';
-import { BentoBlock } from '../components/BentoBlock';
+import { Carousel3D } from '../components/Carousel3D';
 import { useSound } from '../hooks/useSound';
 import { useUpgrade } from '../contexts/UpgradeContext';
 import { LegalView } from '../components/LegalView';
@@ -168,116 +168,21 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
             </div>
             {isBunkerMode && <div className="fixed inset-0 z-[1] bg-red-900/5 mix-blend-color-burn pointer-events-none" />}
 
-            {/* 2. SIGIL LAYER (PERSISTENT NARRATOR) */}
-            <header className="relative z-50 w-full max-w-2xl px-6 pt-12 pb-8 flex flex-col items-center">
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-                    className="w-full text-center cursor-pointer group"
-                    onClick={() => { 
-                        if (!isPremium) {
-                            triggerUpgrade('sigil');
-                            return;
-                        }
-                        playSound('click'); 
-                        onSelectFeature('CHAT'); 
-                    }}
-                >
-                    <div className="relative p-6 rounded-[2rem] glass-card hover:border-white/10 transition-all aura-zen-white:hover:border-black/20">
-                        <p className="text-lg md:text-xl font-serif italic theme-aware-text leading-relaxed transition-colors">
-                            {isDormant ? (
-                                "Tus coordenadas han sido procesadas. Entra a tu Código de Identidad para revelar tus Arquetipos."
-                            ) : (
-                                t('sigil_temple_ready') || "El Templo está activo. El Sigil observa tus ciclos."
-                            )}
-                        </p>
-                        <div className="mt-4 flex items-center justify-center gap-3 opacity-20 group-hover:opacity-60 transition-opacity aura-zen-white:opacity-10 aura-zen-white:group-hover:opacity-40">
-                            <div className="h-[0.5px] w-4 bg-current" />
-                            <span className="text-[8px] uppercase tracking-[0.6em] font-black theme-aware-text">Sigil Guardian</span>
-                            <div className="h-[0.5px] w-4 bg-current" />
-                        </div>
-                    </div>
-                </motion.div>
-            </header>
+            {/* Removed SIGIL LAYER to clean up the UI */}
+            <div className="pt-8" />
 
             {/* 3. BENTO GRID (THE PIECES) */}
             <main className="relative z-10 w-full max-w-6xl mx-auto px-6 pb-24 flex-1 flex flex-col justify-center gap-12">
 
-                {/* 1. SVG CLIP PATHS DEFINITIONS */}
-                <svg width="0" height="0" className="absolute pointer-events-none">
-                    <defs>
-                        <clipPath id="puzzle-astro" clipPathUnits="objectBoundingBox">
-                            <path d="M 0,0 H 0.9 V 0.4 C 0.8,0.4 0.8,0.6 0.9,0.6 V 0.9 H 0.6 C 0.6,1 0.4,1 0.4,0.9 H 0 Z" />
-                        </clipPath>
-                        <clipPath id="puzzle-command" clipPathUnits="objectBoundingBox">
-                            <path d="M 0.1,0 H 1 V 0.9 H 0.6 C 0.6,0.8 0.4,0.8 0.4,0.9 H 0.1 V 0.6 C 0,0.6 0,0.4 0.1,0.4 Z" />
-                        </clipPath>
-                        <clipPath id="puzzle-protocol" clipPathUnits="objectBoundingBox">
-                            <path d="M 0,0.1 H 0.4 C 0.4,0.2 0.6,0.2 0.6,0.1 H 0.9 V 0.4 C 1,0.4 1,0.6 0.9,0.6 V 1 H 0 Z" />
-                        </clipPath>
-                        <clipPath id="puzzle-evolution" clipPathUnits="objectBoundingBox">
-                            <path d="M 0.1,0.1 H 0.4 C 0.4,0 0.6,0 0.6,0.1 H 1 V 1 H 0.1 V 0.6 C 0.2,0.6 0.2,0.4 0.1,0.4 Z" />
-                        </clipPath>
-                    </defs>
-                </svg>
-
-
-                {/* THE OVERLAPPING PUZZLE CONTAINER */}
-                <div className="relative w-full aspect-square max-w-[800px] mx-auto my-0 md:my-12">
-                    <div className={cn(
-                        "absolute top-0 left-0 w-[55.5%] h-[55.5%] z-30 transition-all duration-1000",
-                        isDormant && "animate-pulse"
-                    )}>
-                        <BentoBlock
-                            position="top-left"
-                            title={t('identity').toUpperCase()}
-                            accent="cyan"
-                            clipPath="url(#puzzle-astro)"
-                            pathData="M 0,0 H 0.9 V 0.4 C 0.8,0.4 0.8,0.6 0.9,0.6 V 0.9 H 0.6 C 0.6,1 0.4,1 0.4,0.9 H 0 Z"
-                            onClick={() => { playSound('click'); onSelectFeature('IDENTITY_NEXUS'); }}
-                        />
-                    </div>
-                    <div className={cn(
-                        "absolute top-0 right-0 w-[55.5%] h-[55.5%] z-10 transition-all duration-1000",
-                        isDormant && "grayscale opacity-30 blur-[1px] pointer-events-none"
-                    )}>
-                        <BentoBlock
-                            position="top-right"
-                            title={t('oracle').toUpperCase()}
-                            accent="magenta"
-                            clipPath="url(#puzzle-command)"
-                            pathData="M 0.1,0 H 1 V 0.9 H 0.6 C 0.6,0.8 0.4,0.8 0.4,0.9 H 0.1 V 0.6 C 0,0.6 0,0.4 0.1,0.4 Z"
-                            onClick={() => { playSound('click'); onSelectFeature('ORACLE_SOULS'); }}
-                        />
-                    </div>
-
-                    <div className={cn(
-                        "absolute bottom-0 left-0 w-[55.5%] h-[55.5%] z-20 transition-all duration-1000",
-                        isDormant && "grayscale opacity-30 blur-[1px] pointer-events-none"
-                    )}>
-                        <BentoBlock
-                            position="bottom-left"
-                            title={t('protocols').toUpperCase()}
-                            accent="emerald"
-                            clipPath="url(#puzzle-protocol)"
-                            pathData="M 0,0.1 H 0.4 C 0.4,0.2 0.6,0.2 0.6,0.1 H 0.9 V 0.4 C 1,0.4 1,0.6 0.9,0.6 V 1 H 0 Z"
-                            locked={!isPremium}
-                            onClick={() => { playSound('click'); if (!isPremium) triggerUpgrade('protocol'); else onSelectFeature('PROTOCOL21'); }}
-                        />
-                    </div>
-                    <div className={cn(
-                        "absolute bottom-0 right-0 w-[55.5%] h-[55.5%] z-10 transition-all duration-1000",
-                        isDormant && "grayscale opacity-30 blur-[1px] pointer-events-none"
-                    )}>
-                        <BentoBlock
-                            position="bottom-right"
-                            title={t('laboratory').toUpperCase()}
-                            accent="orange"
-                            clipPath="url(#puzzle-evolution)"
-                            pathData="M 0.1,0.1 H 0.4 C 0.4,0 0.6,0 0.6,0.1 H 1 V 1 H 0.1 V 0.6 C 0.2,0.6 0.2,0.4 0.1,0.4 Z"
-                            locked={!isPremium}
-                            onClick={() => { playSound('click'); if (!isPremium) triggerUpgrade('evolution'); else onSelectFeature('ELEMENTAL_LAB'); }}
-                        />
-                    </div>
+                {/* 3. 3D CAROUSEL CONTAINER */}
+                <div className="relative w-full flex items-center justify-center my-0 md:my-12">
+                    <Carousel3D
+                        isDormant={isDormant}
+                        isPremium={isPremium}
+                        onSelectFeature={onSelectFeature}
+                        triggerUpgrade={triggerUpgrade}
+                        playSound={playSound}
+                    />
                 </div>
 
                 <div className="flex justify-center w-full">

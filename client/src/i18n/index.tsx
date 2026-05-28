@@ -218,6 +218,22 @@ export const translations = {
         identity_entorno: "Arquitectura del Entorno",
         identity_manifestacion: "Umbral de Manifestación",
 
+        // 11-Section Identity Core
+        identity_nucleo_estructural: "Núcleo Estructural",
+        identity_campo_perceptivo: "Campo Perceptivo",
+        identity_arquitectura_mental: "Arquitectura Mental",
+        identity_motor_accion: "Motor de Acción",
+        identity_expresion_proyeccion: "Expresión y Proyección",
+        identity_direccion_evolutiva: "Dirección Evolutiva",
+        identity_conflicto_central: "Conflicto Central",
+        identity_diagnostico_global: "Diagnóstico Global",
+        identity_potencial_elevado: "Potencial Elevado",
+        identity_sombra_riesgo: "Sombra y Riesgos",
+        identity_conclusion_directa: "Conclusión Directa",
+
+        sintonizando_eter: "Sintonizando el éter...",
+        decodificando_alineacion: "Decodificando la alineación estelar...",
+
         // Error Messages
         identity_error_generic: "Error al compilar el código",
         identity_error_quota: "El oráculo está en meditación profunda (Límite de Cuota). Intenta de nuevo en unos minutos.",
@@ -1552,6 +1568,22 @@ export const translations = {
         identity_vinculos: "Relationship Alchemy",
         identity_entorno: "Environment Architecture",
         identity_manifestacion: "Manifestation Threshold",
+
+        // 11-Section Identity Core
+        identity_nucleo_estructural: "Structural Core",
+        identity_campo_perceptivo: "Perceptive Field",
+        identity_arquitectura_mental: "Mental Architecture",
+        identity_motor_accion: "Action Engine",
+        identity_expresion_proyeccion: "Expression & Projection",
+        identity_direccion_evolutiva: "Evolutionary Direction",
+        identity_conflicto_central: "Central Conflict",
+        identity_diagnostico_global: "Global Diagnosis",
+        identity_potencial_elevado: "Elevated Potential",
+        identity_sombra_riesgo: "Shadow & Risks",
+        identity_conclusion_directa: "Direct Conclusion",
+
+        sintonizando_eter: "Tuning the ether...",
+        decodificando_alineacion: "Decoding stellar alignment...",
 
         // Error Messages
         identity_error_generic: "Error compiling code",

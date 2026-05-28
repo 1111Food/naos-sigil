@@ -12,6 +12,7 @@ import { PLANETS_LIB_EN, SIGNS_LIB_EN, HOUSES_LIB_EN } from '../data/astrologyLi
 import { ASTRO_EDUCATION, PLANET_DESCRIPTIONS, HOUSE_DESCRIPTIONS, SIGN_DESCRIPTIONS } from '../data/astrologyEducation';
 import { ASTRO_EDUCATION_EN, PLANET_DESCRIPTIONS_EN, HOUSE_DESCRIPTIONS_EN, SIGN_DESCRIPTIONS_EN } from '../data/astrologyEducation_en';
 import { getZodiacImage } from '../utils/zodiacMapper';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 
 
 // 🌟 GLIFOS ASTROLÓGICOS
@@ -226,6 +227,100 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     const [showDeepInsight, setShowDeepInsight] = useState<string | null>(null); // Track which planet's deep insight is shown
     const [isManualOpen, setIsManualOpen] = useState(false);
     const [selectedDetail, setSelectedDetail] = useState<any>(null);
+    const [aiInterpretations, setAiInterpretations] = useState<Record<string, string>>({});
+    const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
+
+    const fetchAiInterpretation = async (planetKey: string, signKey: string, houseNum: number) => {
+        const cacheKey = `${planetKey}-${signKey}-${houseNum}`;
+        if (aiInterpretations[cacheKey]) return;
+
+        setAiLoading(prev => ({ ...prev, [cacheKey]: true }));
+        try {
+            const authHeaders = await getAsyncAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/api/energy-code/interpret`, {
+                method: 'POST',
+                headers: {
+                    ...authHeaders,
+                    'Content-Type': 'application/json'
+                } as HeadersInit,
+                body: JSON.stringify({
+                    school: 'ASTRO',
+                    planet: planetKey,
+                    sign: signKey,
+                    house: houseNum,
+                    language: language
+                })
+            });
+
+            if (!res.ok) throw new Error("Fallo al obtener la sintonía.");
+            const data = await res.json();
+            setAiInterpretations(prev => ({ ...prev, [cacheKey]: data.interpretation }));
+        } catch (err) {
+            console.error("🔥 Error fetching AI interpretation:", err);
+            setAiInterpretations(prev => ({ 
+                ...prev, 
+                [cacheKey]: language === 'en' 
+                    ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
+                    : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+            }));
+        } finally {
+            setAiLoading(prev => ({ ...prev, [cacheKey]: false }));
+        }
+    };
+
+    const renderFormattedContent = (text: string) => {
+        if (!text) return null;
+        const lines = text.split('\n');
+        return (
+            <div className="space-y-3 font-serif italic leading-relaxed text-sm text-white/80">
+                {lines.map((line, i) => {
+                    const trimmed = line.trim();
+                    if (trimmed === '⸻' || trimmed === '---' || trimmed.startsWith('⸻')) {
+                        return <div key={i} className="my-6 h-px w-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />;
+                    }
+                    if (trimmed.match(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/)) {
+                        return (
+                            <h4 key={i} className="text-amber-400 font-bold text-sm uppercase tracking-wider mt-6 mb-2 flex items-center gap-2 not-italic">
+                                {trimmed}
+                            </h4>
+                        );
+                    }
+                    if (trimmed.includes('**')) {
+                        const parts = trimmed.split('**');
+                        return (
+                            <p key={i} className="text-justify leading-relaxed">
+                                {parts.map((part, index) => 
+                                    index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
+                                )}
+                            </p>
+                        );
+                    }
+                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                        const content = trimmed.substring(2);
+                        if (content.includes('**')) {
+                            const parts = content.split('**');
+                            return (
+                                <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
+                                    {parts.map((part, index) => 
+                                        index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
+                                    )}
+                                </li>
+                            );
+                        }
+                        return (
+                            <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
+                                {content}
+                            </li>
+                        );
+                    }
+                    if (trimmed === '') {
+                        return <div key={i} className="h-2" />;
+                    }
+                    return <p key={i} className="text-justify leading-relaxed">{trimmed}</p>;
+                })}
+            </div>
+        );
+    };
 
     const displayName = profile?.nickname || profile?.name || t('viajero');
 
@@ -712,7 +807,11 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                 className="mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setShowDeepInsight(showDeepInsight === body.key ? null : body.key);
+                                                    const isOpening = showDeepInsight !== body.key;
+                                                    setShowDeepInsight(isOpening ? body.key : null);
+                                                    if (isOpening && isPremium) {
+                                                        fetchAiInterpretation(body.key, body.signName, body.house);
+                                                    }
                                                 }}
                                             >
                                                 <div className="flex items-center gap-2 text-amber-400 mb-1">
@@ -722,7 +821,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                         <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight === body.key ? 'rotate-90' : ''}`} />
                                                     )}
                                                 </div>
-                                                <p className="text-[9px] text-white/40 font-medium">{isPremium ? t('interpreting') : t('premium_locked_desc')}</p>
+                                                <p className="text-[9px] text-white/40 font-medium">{isPremium ? (aiLoading[`${body.key}-${body.signName}-${body.house}`] ? t('sintonizando_eter') : t('deep_interpretation_tap')) : t('premium_locked_desc')}</p>
 
                                                 <AnimatePresence>
                                                     {showDeepInsight === body.key && (
@@ -733,7 +832,18 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                             className="mt-4 pt-4 border-t border-purple-500/30 overflow-hidden"
                                                         >
                                                             {isPremium ? (
-                                                                generateDeepInsight(body.key, body.signName, body.house)
+                                                                aiLoading[`${body.key}-${body.signName}-${body.house}`] ? (
+                                                                    <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                                                                        <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+                                                                        <span className="text-[9px] uppercase tracking-[0.3em] text-amber-400/70 font-bold animate-pulse">
+                                                                            {t('sintonizando_eter')}
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="space-y-4 text-white/90 leading-relaxed font-sans text-xs">
+                                                                        {renderFormattedContent(aiInterpretations[`${body.key}-${body.signName}-${body.house}`])}
+                                                                    </div>
+                                                                )
                                                             ) : (
                                                                 <div className="p-4 bg-black/40 rounded-xl border border-dashed border-purple-500/30 text-center space-y-3">
                                                                     <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">

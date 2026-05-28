@@ -409,7 +409,6 @@ function App() {
 
                 {/* RIGHT/BOTTOM ROW: LUNAR PHASE & TOOLS */}
                 <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 md:gap-6">
-                  <StatusBadge plan={status?.plan || 'FREE'} className="hidden md:flex" />
                   
                   <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0">
                     <span className="text-[8px] md:text-[10px] uppercase tracking-[0.3em] text-white/30 font-medium whitespace-nowrap">{t('lunar_phase_label')}</span>

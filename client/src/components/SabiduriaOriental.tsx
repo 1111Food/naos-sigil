@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Scroll, Sparkles, Users, Heart, Coins, ChevronDown } from 'lucide-react';
+import { Scroll, Sparkles, Users, Heart, Coins, ChevronDown, Lock, Zap, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '../hooks/useProfile';
+import { useSubscription } from '../hooks/useSubscription';
 import { CHINESE_ZODIAC_WISDOM } from '../data/chineseZodiacData';
 import { CHINESE_ZODIAC_WISDOM_EN } from '../data/chineseZodiacData_en';
 import { getChineseZodiacImage } from '../utils/chineseMapper';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 
 interface SabiduriaOrientalProps {
     overrideProfile?: any;
@@ -41,6 +43,114 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
 
     // HOOKS FIRST:
     const [openSectionId, setOpenSectionId] = useState<string | null>(null);
+
+    const { status: subscription } = useSubscription(!overrideProfile);
+    const isPremium = overrideProfile
+        ? true
+        : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
+
+    const [showDeepInsight, setShowDeepInsight] = useState<boolean>(false);
+    const [aiInterpretations, setAiInterpretations] = useState<Record<string, string>>({});
+    const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
+
+    const fetchAiInterpretation = async (animalName: string) => {
+        if (aiInterpretations[animalName]) return;
+
+        setAiLoading(prev => ({ ...prev, [animalName]: true }));
+        try {
+            const authHeaders = await getAsyncAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/api/energy-code/interpret`, {
+                method: 'POST',
+                headers: {
+                    ...authHeaders,
+                    'Content-Type': 'application/json'
+                } as HeadersInit,
+                body: JSON.stringify({
+                    school: 'ORIENTAL',
+                    animal: animalName,
+                    language: language
+                })
+            });
+
+            if (!res.ok) throw new Error("Fallo al obtener la sintonía.");
+            const data = await res.json();
+            setAiInterpretations(prev => ({ ...prev, [animalName]: data.interpretation }));
+        } catch (err) {
+            console.error("🔥 Error fetching AI interpretation:", err);
+            setAiInterpretations(prev => ({ 
+                ...prev, 
+                [animalName]: language === 'en' 
+                    ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
+                    : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+            }));
+        } finally {
+            setAiLoading(prev => ({ ...prev, [animalName]: false }));
+        }
+    };
+
+    const renderFormattedContent = (text: string) => {
+        if (!text) return null;
+        const lines = text.split('\n');
+        return (
+            <div className="space-y-4 font-serif leading-relaxed text-sm text-white/70">
+                {lines.map((line, i) => {
+                    const trimmed = line.trim();
+                    if (trimmed === '⸻' || trimmed === '---' || trimmed.startsWith('⸻')) {
+                        return <div key={i} className="my-8 h-px w-full bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />;
+                    }
+                    
+                    // Match headers with or without emojis
+                    const isHeader = trimmed.match(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/) || 
+                                     (trimmed.startsWith('**') && trimmed.endsWith('**') && !trimmed.substring(2, trimmed.length-2).includes('**') && trimmed.length < 50);
+
+                    if (isHeader) {
+                        const cleanHeader = trimmed.replace(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/, '').replace(/\*\*/g, '').trim();
+                        return (
+                            <div key={i} className="flex items-center gap-3 mt-8 mb-4">
+                                <span className="text-[10px] uppercase tracking-[0.4em] text-rose-400 font-bold">{cleanHeader}</span>
+                                <div className="flex-1 h-px bg-rose-500/20" />
+                            </div>
+                        );
+                    }
+                    
+                    if (trimmed.includes('**')) {
+                        const parts = trimmed.split('**');
+                        return (
+                            <p key={i} className="text-justify leading-relaxed">
+                                {parts.map((part, index) => 
+                                    index % 2 === 1 ? <strong key={index} className="text-white/90 font-bold">{part}</strong> : part
+                                )}
+                            </p>
+                        );
+                    }
+                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                        const content = trimmed.substring(2);
+                        if (content.includes('**')) {
+                            const parts = content.split('**');
+                            return (
+                                <li key={i} className="ml-4 list-none relative text-white/70 text-sm text-justify pl-4 before:content-[''] before:absolute before:left-0 before:top-2 before:w-1 before:h-1 before:bg-rose-500/40 before:rounded-full">
+                                    {parts.map((part, index) => 
+                                        index % 2 === 1 ? <strong key={index} className="text-white/90 font-bold">{part}</strong> : part
+                                    )}
+                                </li>
+                            );
+                        }
+                        return (
+                            <li key={i} className="ml-4 list-none relative text-white/70 text-sm text-justify pl-4 before:content-[''] before:absolute before:left-0 before:top-2 before:w-1 before:h-1 before:bg-rose-500/40 before:rounded-full">
+                                {content}
+                            </li>
+                        );
+                    }
+                    if (trimmed === '') {
+                        return <div key={i} className="h-2" />;
+                    }
+                    return <p key={i} className="text-justify leading-relaxed">{trimmed}</p>;
+                })}
+            </div>
+        );
+    };
 
     // Calculate locally if we have birthDate
     const chineseData = profile?.birthDate ? calculateChineseZodiac(profile.birthDate, language) : null;
@@ -100,40 +210,37 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
             id: 'elemento', 
             title: t('element_nature'), 
             icon: Sparkles, 
-            color: 'cyan', 
             content: `"${elementDescription}"` 
         },
         { 
             id: 'horizonte', 
             title: t('horizon_2026'), 
             icon: Sparkles, 
-            color: 'amber', 
             content: animalData?.forecast_2026_title ? `${animalData.forecast_2026_title}. ${animalData.forecast_general}` : t('year_of_horse_desc')
         },
         { 
             id: 'alianzas', 
             title: t('alliance_dynamics'), 
             icon: Users, 
-            color: 'indigo', 
             content: (
                 <div className="space-y-3 pt-2">
                     <div>
-                        <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-1">{t('best_with')}</span>
+                        <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-2">{t('best_with')}</span>
                         <div className="flex flex-wrap gap-2">
                             {allies.map(ally => (
-                                <div key={ally} className="px-3 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-200 flex items-center gap-1 shrink-0" title={ally}>
-                                    <span className="text-sm">{getAnimalEmoji(ally, language)}</span> {ally}
+                                <div key={ally} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white/80 flex items-center gap-2 shrink-0" title={ally}>
+                                    <span className="text-sm grayscale opacity-70">{getAnimalEmoji(ally, language)}</span> {ally}
                                 </div>
                             ))}
                         </div>
                     </div>
                     {enemies.length > 0 && (
-                        <div className="pt-2 border-t border-white/5">
-                            <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-1">{t('avoid')}</span>
+                        <div className="pt-4 border-t border-white/5">
+                            <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 block mb-2">{t('avoid')}</span>
                             <div className="flex flex-wrap gap-2">
                                 {enemies.map(en => (
-                                    <div key={en} className="px-3 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-xs text-rose-200 flex items-center gap-1 shrink-0" title={en}>
-                                        <span className="text-sm">{getAnimalEmoji(en, language)}</span> {en}
+                                    <div key={en} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white/80 flex items-center gap-2 shrink-0" title={en}>
+                                        <span className="text-sm grayscale opacity-70">{getAnimalEmoji(en, language)}</span> {en}
                                     </div>
                                 ))}
                             </div>
@@ -146,28 +253,24 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
             id: 'esencia', 
             title: t('totem_essence'), 
             icon: Scroll, 
-            color: 'rose', 
             content: `"${animalData?.totem_essence}"` 
         },
         { 
             id: 'sombra', 
             title: t('conscious_shadow'), 
             icon: Scroll, 
-            color: 'amber', 
             content: animalData?.totem_shadow 
         },
         { 
             id: 'amor', 
             title: t('love_bonds'), 
             icon: Heart, 
-            color: 'rose', 
             content: animalData?.forecast_love 
         },
         { 
             id: 'abundancia', 
             title: t('abundance_flow'), 
             icon: Coins, 
-            color: 'emerald', 
             content: animalData?.forecast_wealth 
         }
     ];
@@ -240,20 +343,75 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                     </div>
                 </div>
 
+                {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
+                <div
+                    className="w-full mt-10 p-5 bg-gradient-to-br from-rose-950/60 to-slate-950/80 rounded-[2rem] border border-rose-500/20 shadow-lg cursor-pointer hover:border-rose-400 transition-all active:scale-[0.98] text-left"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        const isOpening = !showDeepInsight;
+                        setShowDeepInsight(isOpening);
+                        if (isOpening && isPremium && chineseData?.animal) {
+                            fetchAiInterpretation(chineseData.animal);
+                        }
+                    }}
+                >
+                    <div className="flex items-center gap-2 text-amber-400 mb-1">
+                        <Zap className={`w-4 h-4 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
+                        <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
+                        {isPremium && (
+                            <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight ? 'rotate-90' : ''}`} />
+                        )}
+                    </div>
+                    <p className="text-[9px] text-white/40 font-medium">
+                        {isPremium ? (chineseData?.animal && aiLoading[chineseData.animal] ? t('sintonizando_eter') : t('deep_interpretation_tap')) : t('deep_interpretation_lock')}
+                    </p>
+
+                    <AnimatePresence>
+                        {showDeepInsight && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="mt-4 pt-4 border-t border-rose-500/30 overflow-hidden"
+                            >
+                                {isPremium ? (
+                                    chineseData?.animal && aiLoading[chineseData.animal] ? (
+                                        <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                                            <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+                                            <span className="text-[9px] uppercase tracking-[0.3em] text-amber-400/70 font-bold animate-pulse">
+                                                {t('sintonizando_eter')}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4 text-white/90 leading-relaxed font-sans text-xs">
+                                            {chineseData?.animal && renderFormattedContent(aiInterpretations[chineseData.animal])}
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="p-4 bg-black/40 rounded-xl border border-dashed border-rose-500/30 text-center space-y-3">
+                                        <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center mx-auto">
+                                            <Lock className="w-4 h-4 text-rose-400" />
+                                        </div>
+                                        <h5 className="text-xs font-bold text-white uppercase tracking-widest">{t('reserved_content')}</h5>
+                                        <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
+                                            {t('pinnacle_lock_desc')}
+                                        </p>
+                                        <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-600 to-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
+                                            {t('view_plans')}
+                                        </button>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
                 {/* Wisdom Accordions */}
                 <div className="space-y-4 pt-10 border-t border-white/5">
                     {sections.map((sec, idx) => {
                         const isOpen = openSectionId === sec.id;
                         const Icon = sec.icon;
                         
-                        const colorClasses = {
-                            cyan: "text-cyan-400 border-cyan-500/30 bg-cyan-500/5",
-                            amber: "text-amber-400 border-amber-500/30 bg-amber-500/5",
-                            indigo: "text-indigo-400 border-indigo-500/30 bg-indigo-500/5",
-                            rose: "text-rose-400 border-rose-500/30 bg-rose-500/5",
-                            emerald: "text-emerald-400 border-emerald-500/30 bg-emerald-500/5"
-                        }[sec.color as 'cyan' | 'amber' | 'indigo' | 'rose' | 'emerald'] || "text-white border-white/10 bg-white/5";
-
                         return (
                             <motion.div
                                 key={sec.id}
@@ -270,7 +428,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                                     className="w-full px-6 py-5 flex items-center justify-between text-left group/btn"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={cn("p-2 rounded-xl border", colorClasses)}>
+                                        <div className="p-2 rounded-xl border text-rose-400 border-rose-500/20 bg-rose-500/5 group-hover/btn:border-rose-500/40 transition-colors">
                                             <Icon className="w-4 h-4" />
                                         </div>
                                         <h4 className="text-[11px] uppercase tracking-[0.3em] text-white/70 font-bold group-hover/btn:text-white transition-colors">

@@ -198,6 +198,12 @@ export class NotificationEngine {
                     console.info(`📡 [NOTIF] 12-Factor Oracle Result for ${user.email}: ${success}`);
                 }
 
+                // --- EXECUTION 4: Inactivity Check (LOCAL TIME 11:30) ---
+                if (userTimeStr === '11:30') {
+                    console.info(`⏰ [NOTIF] Triggering Local Inactivity sweep for ${user.email}`);
+                    await this.triggerInactivity(user);
+                }
+
             } catch (e) {
                 console.error(`[NOTIF_ENGINE] Failed processing triggers for ${user.id}`, e);
             }
@@ -205,6 +211,19 @@ export class NotificationEngine {
 
         console.log(`[CRON] Revisando notificaciones... Hora Servidor: ${now.toLocaleString()} | Pendientes encontradas: ${matchCount}`);
     }
+
+    private static async triggerInactivity(user: any) {
+        const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
+        const prompt = `[NOTIFICACIÓN DE INACTIVIDAD]: Actúa como el Sigil. Realiza una Calibración de Inercia Energética.
+        Instrucción: Cruza la Biblia de Datos del usuario con el Pulso del Día. 
+        ${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
+        const sigil = new SigilService();
+        const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+        const tts = new TTSService();
+        const useVoice = user.profile_data?.telegram_voice_enabled !== false;
+        await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice);
+    }
+
     private static async sendFullMessage(chatId: string, text: string, tts: TTSService, useVoice: boolean, region: string = 'global') {
         if (useVoice) {
             const { buffer } = await tts.generateVoice(text, region);
@@ -226,9 +245,9 @@ export class NotificationEngine {
                 await this.checkTuningCycles();
                 
                 const now = new Date();
-                if (now.getHours() === 11 && now.getMinutes() === 30) {
-                    await this.checkInactivity();
-                }
+                // Removed the fixed 11:30 server check. 
+                // Now checkInactivity is called inside checkTuningCycles for each user locally.
+
             } catch (error) {
                 console.error("🔥 [NOTIF_ENGINE] Daemon Loop Error:", error);
             }
@@ -236,16 +255,12 @@ export class NotificationEngine {
     }
 
     private static getUniqueTelegramUsers(users: any[]): any[] {
-        const uniqueMap = new Map<string, any>();
-        for (const user of users) {
-            if (!user.telegram_chat_id) continue;
-            const existing = uniqueMap.get(user.telegram_chat_id);
-            if (!existing || (user.language && !existing.language)) {
-                uniqueMap.set(user.telegram_chat_id, user);
-            }
-        }
-        return Array.from(uniqueMap.values());
+        // BUG FIX: Do NOT deduplicate profiles by telegram_chat_id yet.
+        // We need to check tunings for ALL duplicate profiles because the user might have saved 
+        // a tuning in one profile and the reading time in another.
+        return users.filter(u => u.telegram_chat_id);
     }
+
 
     public static async checkInactivity() {
         console.info("⏰ [NOTIF_ENGINE] Checking Inactivity sweep...");
@@ -255,7 +270,9 @@ export class NotificationEngine {
         for (const user of uniqueUsers) {
             try {
                 const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
-                const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
+                const prompt = `[NOTIFICACIÓN DE INACTIVIDAD]: Actúa como el Sigil. Realiza una Calibración de Inercia Energética.
+                Instrucción: Cruza la Biblia de Datos del usuario con el Pulso del Día. 
+                ${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
                 const sigil = new SigilService();
                 const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
                 const tts = new TTSService();

@@ -353,10 +353,8 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                     </div>
                 </div>
 
-                {/* RANK & ACTIONS */}
+                {/* ACTIONS */}
                 <div className="flex flex-col items-center gap-12 mt-4">
-                    <StatCard label={t('rank_label')} value={rank} highlight delay={0.6} />
-
                     <div className="flex flex-col items-center gap-6">
                         <button
                             onClick={onEdit}

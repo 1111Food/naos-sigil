@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCoherence } from '../hooks/useCoherence';
 import { useSound } from '../hooks/useSound';
-import { useEnergy } from '../hooks/useEnergy';
 import { useProfile } from '../hooks/useProfile';
+import { MessageCircle, Beaker, X } from 'lucide-react';
 
 interface SigilBubbleProps {
     activeView?: string;
@@ -13,101 +12,92 @@ interface SigilBubbleProps {
 
 export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate }) => {
     const { t } = useTranslation();
-    const { score, trend } = useCoherence();
     const { profile } = useProfile();
-    const { energy } = useEnergy();
     const { playSound } = useSound();
-    const [message, setMessage] = React.useState<string | null>(null);
-    const hasTriggeredRef = React.useRef(false);
-    const welcomeTriggeredRef = React.useRef(false);
-
-    // Keep track of latest values without resetting the idle countdown timer
-    const scoreRef = React.useRef(score);
-    const trendRef = React.useRef(trend);
+    const [isVisible, setIsVisible] = useState(false);
     
-    React.useEffect(() => { scoreRef.current = score; }, [score]);
-    React.useEffect(() => { trendRef.current = trend; }, [trend]);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Initial Welcome Logic (Personalized + Guidance)
-    React.useEffect(() => {
-        if (activeView !== 'TEMPLE' || welcomeTriggeredRef.current) return;
+    const resetIdleTimer = () => {
+        if (activeView !== 'TEMPLE') return;
+        
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        
+        // Hide if they start moving again
+        if (isVisible) setIsVisible(false);
 
-        const timer = setTimeout(() => {
-            if (welcomeTriggeredRef.current) return;
-            
-            const name = profile?.nickname || profile?.name || t('viajero');
-            const welcome = t('sigil_welcome_1', { name });
-            
-            setMessage(welcome);
+        // 60 seconds (1 minute) of true inactivity
+        timeoutRef.current = setTimeout(() => {
+            setIsVisible(true);
             playSound('success');
-            welcomeTriggeredRef.current = true;
-            hasTriggeredRef.current = true; // Mark as triggered so idle doesn't fire immediately
-        }, 3000); // Trigger 3s after landing
+        }, 60000);
+    };
 
-        return () => clearTimeout(timer);
-    }, [activeView, profile, energy, t, playSound]);
-
-    React.useEffect(() => {
-        if (activeView !== 'TEMPLE' || hasTriggeredRef.current) {
-            if (activeView !== 'TEMPLE') {
-                setMessage(null);
-                welcomeTriggeredRef.current = false;
-                hasTriggeredRef.current = false;
-            }
+    useEffect(() => {
+        if (activeView !== 'TEMPLE') {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            setIsVisible(false);
             return;
         }
 
-        const timer = setTimeout(() => {
-            if (hasTriggeredRef.current) return;
+        resetIdleTimer();
 
-            const currScore = scoreRef.current;
-            const currTrend = trendRef.current;
+        window.addEventListener('mousemove', resetIdleTimer);
+        window.addEventListener('keydown', resetIdleTimer);
+        window.addEventListener('touchstart', resetIdleTimer);
+        window.addEventListener('click', resetIdleTimer);
 
-            if (currScore && currScore < 60) {
-                setMessage(t('friction_detected'));
-                playSound('success');
-                hasTriggeredRef.current = true;
-            } else if (currTrend === 'down') {
-                setMessage(t('frequency_dropping'));
-                playSound('success');
-                hasTriggeredRef.current = true;
-            }
-        }, 15000 * 2.5); // 37.5 seconds idle trigger (given initial welcome)
-
-        return () => clearTimeout(timer);
-    }, [activeView, playSound, t]);
-
-    if (!message) return null;
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            window.removeEventListener('mousemove', resetIdleTimer);
+            window.removeEventListener('keydown', resetIdleTimer);
+            window.removeEventListener('touchstart', resetIdleTimer);
+            window.removeEventListener('click', resetIdleTimer);
+        };
+    }, [activeView, isVisible]);
 
     return (
         <AnimatePresence>
-            {message && (
+            {isVisible && (
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
-                    className="fixed z-[99] top-[140px] left-1/2 -translate-x-1/2 w-[90vw] max-w-md bg-black/80 backdrop-blur-3xl border border-cyan-500/20 rounded-2xl p-5 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col items-center gap-4 text-center transition-all"
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                    className="fixed z-[100] bottom-8 left-1/2 -translate-x-1/2 w-[90vw] max-w-sm bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-4 text-center"
                 >
-                    <p className="text-[11px] md:text-sm text-white leading-relaxed font-light tracking-wide whitespace-pre-wrap">
-                        {message}
+                    <button 
+                        onClick={() => setIsVisible(false)}
+                        className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
+                    >
+                        <X size={14} />
+                    </button>
+                    
+                    <p className="text-sm text-white/80 leading-relaxed font-light mt-2">
+                        {profile?.nickname || profile?.name ? `Parece que hay quietud en el sistema, ${profile.nickname || profile.name}.` : "Parece que hay quietud en el sistema."}
+                        <br/><br/>
+                        ¿Te gustaría conversar conmigo o explorar el Laboratorio Elemental?
                     </p>
-                    <div className="flex gap-2 w-full justify-center">
+                    
+                    <div className="flex flex-col gap-2 w-full mt-2">
                         <button 
-                            onClick={() => setMessage(null)}
-                            className="px-6 py-2 rounded-full border border-white/5 text-[9px] uppercase tracking-[0.2em] text-white/40 hover:bg-white/5 transition-all"
+                            onClick={() => {
+                                setIsVisible(false);
+                                if (onNavigate) onNavigate('CHAT');
+                            }}
+                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-xs font-bold uppercase tracking-widest text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400/50 transition-all"
                         >
-                            {t('ignore')}
+                            <MessageCircle size={14} />
+                            Conversar con NAOS
                         </button>
                         <button 
                             onClick={() => {
-                                setMessage(null);
-                                if (onNavigate) {
-                                    onNavigate('CHAT'); // Changed to Chat for better engagement with the message
-                                }
+                                setIsVisible(false);
+                                if (onNavigate) onNavigate('LABS');
                             }}
-                            className="px-6 py-2 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-[9px] font-bold uppercase tracking-[0.2em] text-white hover:bg-cyan-500/30 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold uppercase tracking-widest text-emerald-100 hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-all"
                         >
-                            {t('calibrate') || 'CALIBRAR'}
+                            <Beaker size={14} />
+                            Laboratorio Elemental
                         </button>
                     </div>
                 </motion.div>
