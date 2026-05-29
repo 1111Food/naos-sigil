@@ -516,9 +516,9 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
         }
 
         // CONFIRMED MODEL: gemini-flash-latest (Points to 1.5 stable)
-        const TARGET_MODEL = "gemini-flash-latest";
+        const modelName = "gemini-2.5-flash"; 
         const API_VERSION = "v1beta";
-        const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;
+        const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${modelName}:generateContent?key=${apiKey}`;
 
         const payload = {
             system_instruction: { parts: [{ text: systemInstruction }] },
@@ -527,7 +527,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
         };
 
         try {
-            console.log(`🚀 Sigil v2.0 Launching with model: ${TARGET_MODEL}...`);
+            console.log(`🚀 Sigil v2.0 Launching with model: ${modelName}...`);
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s
 
