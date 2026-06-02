@@ -211,8 +211,7 @@ async function startDaemon() {
         }, TICK_INTERVAL_MS);
 
     } catch (err) {
-        console.error("🔥 Sigil Agent Loop: FATAL CRASH", err);
-        process.exit(1);
+        console.error("🔥 Sigil Agent Loop: CRASHED during startup, but allowing main server to continue.", err);
     }
 }
 
