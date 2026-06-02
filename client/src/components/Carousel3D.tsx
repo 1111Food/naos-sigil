@@ -46,7 +46,7 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
         {
             id: 'oracle',
             title: t('oracle') || 'Oráculo de Almas',
-            subtitle: 'Sincronía & Tarot',
+            subtitle: 'Sincronía & Resonancia',
             accent: 'magenta',
             icon: Eye,
             featureId: 'ORACLE_SOULS',
@@ -170,24 +170,22 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
                 <ChevronRight className="w-8 h-8" />
             </button>
 
-            {/* Mobile Drag/Swipe Area */}
-            <div className="absolute inset-0 z-50 md:hidden" 
-                {...{
-                    onTouchStart: (e: any) => {
-                        const touch = e.touches[0];
-                        (window as any).startX = touch.clientX;
-                    },
-                    onTouchEnd: (e: any) => {
-                        const touch = e.changedTouches[0];
-                        const diff = (window as any).startX - touch.clientX;
-                        if (diff > 50) nextSlide();
-                        if (diff < -50) prevSlide();
-                    }
-                }}
-            />
-
             {/* Carousel Container */}
-            <div className="relative w-[320px] md:w-[420px] h-[460px] transform-style-3d">
+            <div 
+                className="relative w-[320px] md:w-[420px] h-[460px] transform-style-3d"
+                onTouchStart={(e: any) => {
+                    const touch = e.touches[0];
+                    (window as any).startX = touch.clientX;
+                }}
+                onTouchEnd={(e: any) => {
+                    const touch = e.changedTouches[0];
+                    const diff = (window as any).startX - touch.clientX;
+                    // If diff is greater than threshold, it's a swipe
+                    if (diff > 50) nextSlide();
+                    else if (diff < -50) prevSlide();
+                    // Otherwise it's a tap, let the onClick of motion.div handle it
+                }}
+            >
                 <AnimatePresence initial={false}>
                     {items.map((item, index) => {
                         const { scale, x, z, rotateY, opacity, zIndex, applyDormant } = getCardProps(index, item);

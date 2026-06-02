@@ -12,6 +12,7 @@ import { cn } from '../lib/utils';
 import { LowEnergyWarningModal } from '../components/LowEnergyWarningModal';
 import { useSound } from '../hooks/useSound';
 import { useTranslation } from '../i18n';
+import { useProfile } from '../contexts/ProfileContext';
 
 // Local Error Boundary for Spline to avoid "Fractured Reality" on 3D load failure
 class SplineErrorBoundary extends React.Component<{ children: React.ReactNode, fallback?: React.ReactNode }, { hasError: boolean }> {
@@ -49,6 +50,7 @@ type Tab = 'TAROT' | 'SOULS';
 
 export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavigate }) => {
     const { t } = useTranslation();
+    const { profile } = useProfile();
     const { score } = useCoherence();
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
     const [step, setStep] = useState<'LOBBY' | 'INTENTION' | 'ACTIVE'>('LOBBY');
@@ -164,8 +166,10 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
         playSound('click');
     };
 
+    const isGodMode = profile?.email === 'luisalfredoherreramendez@gmail.com' || profile?.plan_type === 'admin';
+
     const tabs = [
-        {
+        ...(isGodMode ? [{
             id: 'TAROT',
             label: t('oracle_individual_label'),
             subtitle: t('oracle_individual_subtitle'),
@@ -175,7 +179,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
             border: "border-rose-500/30",
             glow: "shadow-[0_0_40px_-10px_rgba(244,63,94,0.4)]",
             scene: "https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode"
-        },
+        }] : []),
         {
             id: 'SOULS',
             label: t('oracle_links_label'),
@@ -236,7 +240,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                             <p className="text-[11px] uppercase tracking-[0.6em] text-secondary font-black">{t('oracle_welcome_nexus')}</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl z-10">
+                        <div className={cn("grid gap-8 w-full z-10", tabs.length === 1 ? "grid-cols-1 max-w-md mx-auto" : "grid-cols-1 md:grid-cols-2 max-w-5xl")}>
                             {tabs.map((tab, i) => (
                                 <motion.div
                                     key={tab.id}

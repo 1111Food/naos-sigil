@@ -63,43 +63,42 @@ export const SigilBubble: React.FC<SigilBubbleProps> = ({ activeView, onNavigate
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                    className="fixed z-[100] bottom-8 left-1/2 -translate-x-1/2 w-[90vw] max-w-sm bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-4 text-center"
+                    className="fixed z-[100] bottom-24 left-1/2 -translate-x-1/2 w-max max-w-[95vw] bg-black/80 backdrop-blur-3xl border border-white/10 rounded-full px-4 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex items-center gap-3"
                 >
-                    <button 
-                        onClick={() => setIsVisible(false)}
-                        className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
-                    >
-                        <X size={14} />
-                    </button>
+                    <div className="flex items-center gap-2 pr-3 border-r border-white/10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                        <span className="text-[9px] text-white/60 font-light uppercase tracking-[0.2em] hidden sm:inline-block">¿Quietud?</span>
+                    </div>
                     
-                    <p className="text-sm text-white/80 leading-relaxed font-light mt-2">
-                        {profile?.nickname || profile?.name ? `Parece que hay quietud en el sistema, ${profile.nickname || profile.name}.` : "Parece que hay quietud en el sistema."}
-                        <br/><br/>
-                        ¿Te gustaría conversar conmigo o explorar el Laboratorio Elemental?
-                    </p>
-                    
-                    <div className="flex flex-col gap-2 w-full mt-2">
+                    <div className="flex items-center gap-2">
                         <button 
                             onClick={() => {
                                 setIsVisible(false);
                                 if (onNavigate) onNavigate('CHAT');
                             }}
-                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-xs font-bold uppercase tracking-widest text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400/50 transition-all"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-bold uppercase tracking-widest text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400/50 transition-all"
                         >
-                            <MessageCircle size={14} />
-                            Conversar con NAOS
+                            <MessageCircle size={12} />
+                            Hablar
                         </button>
                         <button 
                             onClick={() => {
                                 setIsVisible(false);
                                 if (onNavigate) onNavigate('LABS');
                             }}
-                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold uppercase tracking-widest text-emerald-100 hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-all"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-widest text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-all"
                         >
-                            <Beaker size={14} />
-                            Laboratorio Elemental
+                            <Beaker size={12} />
+                            Laboratorio
                         </button>
                     </div>
+
+                    <button 
+                        onClick={() => setIsVisible(false)}
+                        className="p-1 ml-1 text-white/30 hover:text-white transition-colors"
+                    >
+                        <X size={12} />
+                    </button>
                 </motion.div>
             )}
         </AnimatePresence>

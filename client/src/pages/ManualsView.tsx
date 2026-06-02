@@ -1665,7 +1665,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                         <ArrowLeft size={18} /> {isEn ? 'Back to Library' : 'Volver a Biblioteca'}
                     </button>
                     <div className="flex items-center gap-3">
-                        <Moon className="text-indigo-400" size={20} />
+                        <Moon className="text-rose-400" size={20} />
                         <span className="text-sm font-light text-white uppercase tracking-[0.3em]">{isEn ? 'The Ancestral Cycle' : 'El Ciclo Ancestral'}</span>
                     </div>
                 </nav>
@@ -1678,12 +1678,12 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                 <header className="mb-20 space-y-4">
                     <h2 className="text-5xl md:text-7xl font-serif text-white/90 leading-tight">
                         {data.intro.headerTitle1} <br />
-                        <span className="text-indigo-500 italic">{data.intro.headerTitle2}</span>
+                        <span className="text-rose-500 italic">{data.intro.headerTitle2}</span>
                     </h2>
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="h-px w-8 bg-indigo-500/30" />
-                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em]">{data.intro.sources}</span>
-                        <span className="h-px w-8 bg-indigo-500/30" />
+                        <span className="h-px w-8 bg-rose-500/30" />
+                        <span className="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em]">{data.intro.sources}</span>
+                        <span className="h-px w-8 bg-rose-500/30" />
                     </div>
                     <p className="text-xl text-white/50 font-sans font-light max-w-2xl leading-relaxed">
                         {data.intro.content}
@@ -1695,13 +1695,13 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                     <section className="space-y-16">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="space-y-6">
-                                <h3 className="text-3xl font-light text-indigo-300 tracking-wide">Yin y Yang: El Latido</h3>
+                                <h3 className="text-3xl font-light text-rose-300 tracking-wide">Yin y Yang: El Latido</h3>
                                 <p className="text-lg text-white/70 leading-relaxed font-light italic">
                                     {data.intro.yinyang}
                                 </p>
                             </div>
-                            <div className="p-8 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl space-y-4">
-                                <h4 className="text-xl text-indigo-400 font-medium">Concepto Maestro</h4>
+                            <div className="p-8 bg-rose-500/5 border border-rose-500/10 rounded-3xl space-y-4">
+                                <h4 className="text-xl text-rose-400 font-medium">Concepto Maestro</h4>
                                 <p className="text-2xl text-white/80 italic font-light leading-snug">
                                     "{data.intro.concept}"
                                 </p>
@@ -1709,7 +1709,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                         </div>
 
                         <div className="space-y-8">
-                            <h3 className="text-4xl text-indigo-400 font-serif italic tracking-wide">
+                            <h3 className="text-4xl text-rose-400 font-serif italic tracking-wide">
                                 Los 5 Elementos
                             </h3>
                             <span className="text-zinc-500 font-sans font-light uppercase tracking-widest text-xs pt-2 block">
@@ -1717,11 +1717,11 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                             </span>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                                 {data.elements.map((el: any) => (
-                                    <div key={el.id} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 hover:border-indigo-500/30 transition-all hover:bg-white/5 group">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-colors">
-                                            <div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.5)]" />
+                                    <div key={el.id} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 hover:border-rose-500/30 transition-all hover:bg-white/5 group">
+                                        <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center border border-rose-500/20 group-hover:bg-rose-500/20 transition-colors">
+                                            <div className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
                                         </div>
-                                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{el.name}</span>
+                                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{el.name}</span>
                                         <p className="text-[11px] text-white/50 leading-relaxed font-light">{el.quality}</p>
                                     </div>
                                 ))}
@@ -1732,7 +1732,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                     {/* 12 Animals Section */}
                     <section className="space-y-12">
                         <div className="space-y-4">
-                            <h3 className="text-4xl text-indigo-400 font-serif italic tracking-wide">
+                            <h3 className="text-4xl text-rose-400 font-serif italic tracking-wide">
                                 {data.animalsSectionTitle}
                             </h3>
                             <span className="text-zinc-500 font-sans font-light uppercase tracking-widest text-xs pt-2 block">
@@ -1744,7 +1744,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                             {data.animals.map((a: any) => (
                                 <div
                                     key={a.id}
-                                    className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openAnimal === a.id ? 'bg-indigo-500/10 border-indigo-500/40' : 'bg-white/5 border-white/5 hover:border-white/20'
+                                    className={`group rounded-3xl border transition-all duration-500 overflow-hidden ${openAnimal === a.id ? 'bg-rose-500/10 border-rose-500/40' : 'bg-white/5 border-white/5 hover:border-white/20'
                                         }`}
                                 >
                                     <button
@@ -1752,7 +1752,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                         className="w-full p-6 flex items-center justify-between text-left"
                                     >
                                         <div className="flex items-center gap-6">
-                                            <div className={`w-11 aspect-[3/4] rounded-lg border transition-all flex items-center justify-center overflow-hidden shadow-lg ${openAnimal === a.id ? 'bg-indigo-500/20 border-indigo-500/50' : 'bg-black/40 border-white/10 group-hover:border-white/20'
+                                            <div className={`w-11 aspect-[3/4] rounded-lg border transition-all flex items-center justify-center overflow-hidden shadow-lg ${openAnimal === a.id ? 'bg-rose-500/20 border-rose-500/50' : 'bg-black/40 border-white/10 group-hover:border-white/20'
                                                 }`}>
                                                 <img
                                                     src={getChineseZodiacImage(a.id)}
@@ -1761,11 +1761,11 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                 />
                                             </div>
                                             <div>
-                                                <h4 className="text-xl text-white font-light group-hover:text-indigo-300 transition-colors">{a.name}</h4>
-                                                <p className="text-[10px] text-indigo-500/50 uppercase tracking-[0.2em]">{a.archetype}</p>
+                                                <h4 className="text-xl text-white font-light group-hover:text-rose-300 transition-colors">{a.name}</h4>
+                                                <p className="text-[10px] text-rose-500/50 uppercase tracking-[0.2em]">{a.archetype}</p>
                                             </div>
                                         </div>
-                                        <ChevronDown className={`w-5 h-5 text-white/20 transition-transform duration-500 ${openAnimal === a.id ? 'rotate-180 text-indigo-400' : ''}`} />
+                                        <ChevronDown className={`w-5 h-5 text-white/20 transition-transform duration-500 ${openAnimal === a.id ? 'rotate-180 text-rose-400' : ''}`} />
                                     </button>
 
                                     <AnimatePresence>
@@ -1780,7 +1780,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
 
                                                     {/* Large Card Preview */}
                                                     <div className="flex w-full justify-center items-center py-6">
-                                                        <div className="w-48 md:w-64 aspect-[2/3] flex items-center justify-center rounded-xl overflow-hidden shadow-2xl border border-indigo-500/20 bg-black/40 group/large">
+                                                        <div className="w-48 md:w-64 aspect-[2/3] flex items-center justify-center rounded-xl overflow-hidden shadow-2xl border border-rose-500/20 bg-black/40 group/large">
                                                             <img
                                                                 src={getChineseZodiacImage(a.id)}
                                                                 alt={a.name}
@@ -1790,7 +1790,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{data.labels.essence}</span>
+                                                        <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{data.labels.essence}</span>
                                                         <p className="text-white/80 text-lg leading-relaxed font-light">{a.essence}</p>
                                                     </div>
 
@@ -1806,8 +1806,8 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                     </div>
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div className="p-6 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl space-y-2">
-                                                            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest block mb-2">{data.labels.advice}</span>
+                                                        <div className="p-6 bg-rose-500/5 border border-rose-500/20 rounded-2xl space-y-2">
+                                                            <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest block mb-2">{data.labels.advice}</span>
                                                             <p className="text-white italic text-sm font-light">"{a.advice}"</p>
                                                         </div>
                                                         <div className="p-6 bg-amber-500/5 border border-amber-500/20 rounded-2xl space-y-2">
@@ -1822,7 +1822,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                     <div className="pt-6 border-t border-white/5 flex justify-center">
                                                         <button
                                                             onClick={() => { playSound('click'); setOpenLibAnimal(openLibAnimal === a.id ? null : a.id); }}
-                                                            className={`px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-2 ${openLibAnimal === a.id ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]' : 'bg-white/5 text-indigo-300/70 hover:text-indigo-300 hover:bg-white/10 border border-indigo-500/20'}`}
+                                                            className={`px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-2 ${openLibAnimal === a.id ? 'bg-rose-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]' : 'bg-white/5 text-rose-300/70 hover:text-rose-300 hover:bg-white/10 border border-rose-500/20'}`}
                                                         >
                                                             {openLibAnimal === a.id 
                                                                 ? (isEn ? 'Close Deep Library' : 'Cerrar Biblioteca Profunda') 
@@ -1837,14 +1837,14 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                                                                     <div className="pt-8 space-y-6">
                                                         <div className="flex flex-col items-center text-center space-y-2 mb-8">
-                                                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-400">{isEn ? 'Ludovica Squirru Archives' : 'Archivos de Ludovica Squirru'}</span>
-                                                            <div className="h-px w-12 bg-indigo-500/30" />
+                                                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-rose-400">{isEn ? 'Ludovica Squirru Archives' : 'Archivos de Ludovica Squirru'}</span>
+                                                            <div className="h-px w-12 bg-rose-500/30" />
                                                         </div>
 
-                                                                        <p className="text-indigo-400/50 text-[10px] uppercase tracking-widest">{data.years}</p>
+                                                                        <p className="text-rose-400/50 text-[10px] uppercase tracking-widest">{data.years}</p>
 
                                                                         <div className="space-y-1">
-                                                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">{isEn ? 'Deep Profile' : 'Perfil Profundo'}</span>
+                                                                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? 'Deep Profile' : 'Perfil Profundo'}</span>
                                                                             <p className="text-zinc-300 text-sm leading-relaxed font-light">{data.profile}</p>
                                                                         </div>
 
@@ -1853,8 +1853,8 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                                                 <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? '❤ Love' : '❤ Amor'}</span>
                                                                                 <p className="text-zinc-400 text-xs leading-relaxed">{data.love}</p>
                                                                             </div>
-                                                                            <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/15 space-y-2">
-                                                                                <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block">{isEn ? '✦ Career' : '✦ Carrera'}</span>
+                                                                            <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 space-y-2">
+                                                                                <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block">{isEn ? '✦ Career' : '✦ Carrera'}</span>
                                                                                 <p className="text-zinc-400 text-xs leading-relaxed">{data.career}</p>
                                                                             </div>
                                                                         </div>
@@ -1878,8 +1878,8 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                                                             </div>
                                                                         </div>
 
-                                                                        <div className="p-4 bg-indigo-500/5 border-l-2 border-indigo-400/30 rounded-r-xl">
-                                                                            <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest block mb-1">{isEn ? 'Life Karma' : 'Karma de vida'}</span>
+                                                                        <div className="p-4 bg-rose-500/5 border-l-2 border-rose-400/30 rounded-r-xl">
+                                                                            <span className="text-[9px] font-black text-rose-300 uppercase tracking-widest block mb-1">{isEn ? 'Life Karma' : 'Karma de vida'}</span>
                                                                             <p className="text-zinc-300 text-xs italic leading-relaxed">{data.karma}</p>
                                                                         </div>
 
@@ -1903,7 +1903,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
 
                     {/* Integration Section */}
                     <section className="p-12 bg-white/5 border border-white/10 rounded-[3rem] space-y-12 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent" />
 
                         <div className="max-w-2xl mx-auto text-center space-y-8">
                             <h3 className="text-4xl font-light text-white">{data.integration.title}</h3>
@@ -1911,7 +1911,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
                                 {data.integration.content}
                             </p>
                             <div className="pt-8 border-t border-white/5">
-                                <p className="text-2xl text-indigo-400 italic font-medium">
+                                <p className="text-2xl text-rose-400 italic font-medium">
                                     "{data.integration.closing}"
                                 </p>
                             </div>
@@ -1921,7 +1921,7 @@ const ChineseManualDetail = ({ onClose, playSound }: { onClose: () => void, play
 
                 <footer className="mt-32 p-12 bg-white/5 rounded-3xl border border-white/10 text-center">
                     <p className="text-white/40 text-sm tracking-widest uppercase mb-4">{isEn ? 'End of Ancestral Cycle' : 'Fin del Ciclo Ancestral'}</p>
-                    <button onClick={() => { playSound('transition'); onClose(); }} className="px-8 py-3 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 rounded-full transition-all border border-indigo-500/30 uppercase text-xs font-bold tracking-[0.2em]">
+                    <button onClick={() => { playSound('transition'); onClose(); }} className="px-8 py-3 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded-full transition-all border border-rose-500/30 uppercase text-xs font-bold tracking-[0.2em]">
                         {isEn ? 'Close and Go Back' : 'Cerrar y Volver'}
                     </button>
                 </footer>
