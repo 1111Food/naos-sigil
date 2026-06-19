@@ -8,66 +8,70 @@ interface WelcomeExplainerProps {
     onClose: () => void;
 }
 
-const WELCOME_SLIDES = [
-    {
-        title: "Bienvenido a Naos",
-        subtitle: "El Ecosistema Arquitectónico",
-        icon: Hexagon,
-        iconColor: "text-amber-400",
-        colorBg: "bg-amber-500/10",
-        borderColor: "border-amber-500/30",
-        description: "Has ingresado al Templo de Naos. Un ecosistema cuántico diseñado para decodificar tu diseño original, expandir tu consciencia y alinear tus acciones diarias con tu máximo potencial evolutivo."
-    },
-    {
-        title: "Código de Identidad",
-        subtitle: "Tu Diseño Original",
-        icon: Sparkles,
-        iconColor: "text-cyan-400",
-        colorBg: "bg-cyan-500/10",
-        borderColor: "border-cyan-500/30",
-        description: "El Sigil ha calculado tu Arquetipo Maestro. Una síntesis exclusiva de tu Astrología, Numerología y sabiduría Maya/Oriental que revela tus dones innatos y bloqueos kármicos."
-    },
-    {
-        title: "Omnipresencia Digital",
-        subtitle: "Conexión vía Telegram",
-        icon: MessageSquare,
-        iconColor: "text-purple-400",
-        colorBg: "bg-purple-500/10",
-        borderColor: "border-purple-500/30",
-        description: "Conecta tu perfil con Telegram. El Sigil te enviará recordatorios proactivos, notificaciones de tránsitos astrológicos y te acompañará en tu día a día como un mentor de bolsillo."
-    },
-    {
-        title: "Los Oráculos",
-        subtitle: "Respuestas Cuánticas",
-        icon: Compass,
-        iconColor: "text-rose-400",
-        colorBg: "bg-rose-500/10",
-        borderColor: "border-rose-500/30",
-        description: "Consulta al Oráculo de Energía o tira los Arcanos en tiempo real. Obtén perspectiva sagrada sobre tus dilemas actuales basada en tu configuración estelar del momento."
-    },
-    {
-        title: "Protocolo 21",
-        subtitle: "Forja de Disciplina",
-        icon: Shield,
-        iconColor: "text-emerald-400",
-        colorBg: "bg-emerald-500/10",
-        borderColor: "border-emerald-500/30",
-        description: "Sube de nivel instalando hábitos élite. El Protocolo 21 sincroniza tu progreso diario, otorgándote puntos de consciencia para evolucionar tu rango de Iniciado hasta Arquitecto."
-    },
-    {
-        title: "Laboratorio Elemental",
-        subtitle: "Alquimia de Redes",
-        icon: FlaskConical,
-        iconColor: "text-indigo-400",
-        colorBg: "bg-indigo-500/10",
-        borderColor: "border-indigo-500/30",
-        description: "Cruza tu código con el de otras almas (Dual) o con tu equipo de trabajo (Redes). Mide la compatibilidad, descubre zonas de fricción kármica y potencia la sinergia grupal."
-    }
-];
+
 
 export const WelcomeExplainer: React.FC<WelcomeExplainerProps> = ({ onClose }) => {
     const { playSound } = useSound();
+    const { t } = useTranslation();
     const [currentIndex, setCurrentIndex] = React.useState(0);
+
+    const WELCOME_SLIDES = [
+        {
+            title: t('ws_1_title') || "Bienvenido a Naos",
+            subtitle: t('ws_1_sub') || "El Ecosistema Arquitectónico",
+            icon: Hexagon,
+            iconColor: "text-amber-400",
+            colorBg: "bg-amber-500/10",
+            borderColor: "border-amber-500/30",
+            description: t('ws_1_desc')
+        },
+        {
+            title: t('ws_2_title'),
+            subtitle: t('ws_2_sub'),
+            icon: Sparkles,
+            iconColor: "text-cyan-400",
+            colorBg: "bg-cyan-500/10",
+            borderColor: "border-cyan-500/30",
+            description: t('ws_2_desc')
+        },
+        {
+            title: t('ws_3_title'),
+            subtitle: t('ws_3_sub'),
+            icon: MessageSquare,
+            iconColor: "text-purple-400",
+            colorBg: "bg-purple-500/10",
+            borderColor: "border-purple-500/30",
+            description: t('ws_3_desc')
+        },
+        {
+            title: t('ws_4_title'),
+            subtitle: t('ws_4_sub'),
+            icon: Compass,
+            iconColor: "text-rose-400",
+            colorBg: "bg-rose-500/10",
+            borderColor: "border-rose-500/30",
+            description: t('ws_4_desc')
+        },
+        {
+            title: t('ws_5_title'),
+            subtitle: t('ws_5_sub'),
+            icon: Shield,
+            iconColor: "text-emerald-400",
+            colorBg: "bg-emerald-500/10",
+            borderColor: "border-emerald-500/30",
+            description: t('ws_5_desc')
+        },
+        {
+            title: t('ws_6_title'),
+            subtitle: t('ws_6_sub'),
+            icon: FlaskConical,
+            iconColor: "text-indigo-400",
+            colorBg: "bg-indigo-500/10",
+            borderColor: "border-indigo-500/30",
+            description: t('ws_6_desc')
+        }
+    ];
+
     const totalSteps = WELCOME_SLIDES.length;
     const currentSlide = WELCOME_SLIDES[currentIndex];
     const SlideIcon = currentSlide.icon;
@@ -153,8 +157,8 @@ export const WelcomeExplainer: React.FC<WelcomeExplainerProps> = ({ onClose }) =
 
                             <div className="space-y-3">
                                 <h2 className="text-3xl md:text-5xl font-serif italic text-white tracking-wider leading-tight">
-                                    {currentSlide.title === "Bienvenido a Naos" ? (
-                                        <>Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-amber-300">Naos</span></>
+                                    {(currentSlide.title === "Bienvenido a Naos" || currentSlide.title === "Welcome to Naos") ? (
+                                        <>{t('welcome_temple_title').replace("Naos", "")}<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-amber-300">Naos</span></>
                                     ) : currentSlide.title}
                                 </h2>
                                 <p className={cn("text-[10px] md:text-[11px] uppercase tracking-[0.5em] font-black brightness-125", currentSlide.iconColor)}>
@@ -180,7 +184,7 @@ export const WelcomeExplainer: React.FC<WelcomeExplainerProps> = ({ onClose }) =
                         )}
                     >
                         <ArrowLeft size={16} />
-                        Atrás
+                        {t('ws_back') || 'Atrás'}
                     </button>
 
                     <button
@@ -191,7 +195,7 @@ export const WelcomeExplainer: React.FC<WelcomeExplainerProps> = ({ onClose }) =
                         )}
                     >
                         <span className="relative z-10 flex items-center gap-3">
-                            {currentIndex === totalSteps - 1 ? 'Adentrarse al Templo' : 'Continuar'} 
+                            {currentIndex === totalSteps - 1 ? (t('ws_enter') || 'Adentrarse al Templo') : (t('ws_continue') || 'Continuar')} 
                             {currentIndex !== totalSteps - 1 && <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />}
                         </span>
                     </button>

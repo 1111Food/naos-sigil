@@ -281,7 +281,7 @@ Escribe una introducción poética y profunda sobre esta firma instintiva terren
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
             }
 
-            // 5. Llamar a la API de Gemini
+            // 5. Llamar a la API de Gemini (con reintentos y logs detallados)
             const apiKey = config.GOOGLE_API_KEY;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
@@ -300,21 +300,41 @@ Always write your response strictly in ${language === 'es' ? 'SPANISH' : 'ENGLIS
                 generationConfig: { temperature: 0.35 }
             };
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 40000);
+            let response;
+            let data;
+            let retries = 2;
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-                signal: controller.signal
-            });
+            while (retries > 0) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error(`Gemini API Response Error: ${response.status}`);
+                    response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        signal: controller.signal
+                    });
 
-            const data = await response.json();
-            const rawInterpretation = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`Gemini Error (${response.status}):`, errorText);
+                        throw new Error(`Gemini API Response Error: ${response.status} - ${errorText}`);
+                    }
+
+                    data = await response.json();
+                    break; // Exito
+                } catch (err: any) {
+                    console.error(`Gemini fetch attempt failed. Retries left: ${retries - 1}. Error:`, err.message);
+                    retries--;
+                    if (retries === 0) throw err;
+                    await new Promise(res => setTimeout(res, 2000)); // wait 2s before retry
+                }
+            }
+
+            const rawInterpretation = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
             if (!rawInterpretation) {
                 throw new Error("No se pudo generar la interpretación dinámica.");

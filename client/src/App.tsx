@@ -80,6 +80,7 @@ function App() {
   const [welcomeUser, setWelcomeUser] = useState<{ id: string, nickname: string } | null>(null);
   const [storageReady, setStorageReady] = useState(false);
   const [headerOpacity] = useState(1);
+  const [isWakingServer, setIsWakingServer] = useState(false);
 
   // 0. GHOST SESSION PURGE (SECURITY UPGRADE)
   useEffect(() => {
@@ -126,6 +127,37 @@ function App() {
       setStorageReady(true);
     };
     init();
+  }, []);
+
+  // 1.5 RENDER COLD START PING
+  useEffect(() => {
+    let timeoutId: any;
+    let isMounted = true;
+
+    const pingServer = async () => {
+      // Si en 1.5 segundos no responde, Render está dormido, mostramos cartel
+      timeoutId = setTimeout(() => {
+        if (isMounted) setIsWakingServer(true);
+      }, 1500);
+
+      try {
+        const { API_BASE_URL } = await import('./lib/api');
+        await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
+      } catch (e) {
+        // Ignoramos error, solo queremos que despierte
+      } finally {
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setIsWakingServer(false);
+        }
+      }
+    };
+    pingServer();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const isAppFullyReady = storageReady && profileReady;
@@ -499,7 +531,19 @@ function App() {
             )}
 
             {/* NOTIFICACIONES Y DEGRADACIÓN */}
-
+            <AnimatePresence>
+              {isWakingServer && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-cyan-950/90 border border-cyan-500/50 text-cyan-50 px-6 py-3 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-3"
+                >
+                  <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[10px] uppercase tracking-widest font-bold">{t('sintonizando_eter') || 'Despertando el Templo...'}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
         </WisdomProvider>
