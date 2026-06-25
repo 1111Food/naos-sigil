@@ -1,8 +1,9 @@
-﻿// client/src/components/AiInterpretationCards.tsx
+// client/src/components/AiInterpretationCards.tsx
 // Premium swipeable card viewer for Gemini AI interpretation results
 
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 
