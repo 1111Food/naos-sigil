@@ -189,7 +189,15 @@ function App() {
   // 4. ADMIN ROUTE DETECT
   useEffect(() => {
     if (window.location.pathname === '/admin') {
-      if ((profile as any)?.plan_type === 'admin') {
+      const userEmail = (user?.email || '').toLowerCase();
+      const isAdminUser = 
+        (profile as any)?.plan_type === 'admin' ||
+        userEmail === 'luisalfredoherreramendez@gmail.com' ||
+        userEmail.includes('luisalfredoherreramendez') ||
+        userEmail.includes('luisalfredo.herrera') ||
+        userEmail.includes('herreramendez');
+
+      if (isAdminUser) {
         // Only force ADMIN view if we are not actively in another major view
         if (activeView === 'LANDING' || activeView === 'WELCOME_BACK') {
             setActiveView('ADMIN');
@@ -199,7 +207,7 @@ function App() {
         window.location.href = '/'; 
       }
     }
-  }, [profile, activeView]);
+  }, [profile, user, activeView]);
 
 
   // --- HANDLERS ---

@@ -9,6 +9,8 @@ import { TelegramConnectModal } from './TelegramConnectModal';
 import { SigilSettingsModal } from './SigilSettingsModal';
 import { ProfileSelector } from './ProfileSelector';
 import { useProfile } from '../contexts/ProfileContext';
+import { supabase } from '../lib/supabase';
+
 
 interface SacredDockProps {
     activeView: string;
@@ -43,12 +45,26 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
 
     const { profile } = useProfile();
 
+    const [currentUserEmail, setCurrentUserEmail] = React.useState<string>('');
+    React.useEffect(() => {
+        supabase.auth.getSession().then(({ data }) => {
+            setCurrentUserEmail((data.session?.user?.email || '').toLowerCase());
+        });
+    }, []);
+
+    const isAdminUser = 
+        (profile as any)?.plan_type === 'admin' ||
+        currentUserEmail === 'luisalfredoherreramendez@gmail.com' ||
+        currentUserEmail.includes('luisalfredoherreramendez') ||
+        currentUserEmail.includes('luisalfredo.herrera') ||
+        currentUserEmail.includes('herreramendez');
+
     const items = [
         { id: 'TEMPLE', icon: Home, label: t('temple'), color: 'text-amber-400' },
         { id: 'PROFILE', icon: User, label: t('profile'), color: 'text-purple-400' },
     ];
 
-    if ((profile as any)?.plan_type === 'admin') {
+    if (isAdminUser) {
         items.push({ id: 'ADMIN', icon: Shield, label: 'Admin', color: 'text-red-500' });
     }
 
