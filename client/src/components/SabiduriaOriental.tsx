@@ -10,6 +10,8 @@ import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { AiInterpretationCards } from './AiInterpretationCards';
+
 
 interface SabiduriaOrientalProps {
     overrideProfile?: any;
@@ -74,7 +76,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                 })
             });
 
-            if (!res.ok) throw new Error("Fallo al obtener la sintonía.");
+            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
             const data = await res.json();
             setAiInterpretations(prev => ({ ...prev, [animalName]: data.interpretation }));
         } catch (err) {
@@ -90,67 +92,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
         }
     };
 
-    const renderFormattedContent = (text: string) => {
-        if (!text) return null;
-        const lines = text.split('\n');
-        return (
-            <div className="space-y-4 font-serif leading-relaxed text-sm text-white/70">
-                {lines.map((line, i) => {
-                    const trimmed = line.trim();
-                    if (trimmed === '⸻' || trimmed === '---' || trimmed.startsWith('⸻')) {
-                        return <div key={i} className="my-8 h-px w-full bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />;
-                    }
-                    
-                    // Match headers with or without emojis
-                    const isHeader = trimmed.match(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/) || 
-                                     (trimmed.startsWith('**') && trimmed.endsWith('**') && !trimmed.substring(2, trimmed.length-2).includes('**') && trimmed.length < 50);
 
-                    if (isHeader) {
-                        const cleanHeader = trimmed.replace(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/, '').replace(/\*\*/g, '').trim();
-                        return (
-                            <div key={i} className="flex items-center gap-3 mt-8 mb-4">
-                                <span className="text-[10px] uppercase tracking-[0.4em] text-rose-400 font-bold">{cleanHeader}</span>
-                                <div className="flex-1 h-px bg-rose-500/20" />
-                            </div>
-                        );
-                    }
-                    
-                    if (trimmed.includes('**')) {
-                        const parts = trimmed.split('**');
-                        return (
-                            <p key={i} className="text-justify leading-relaxed">
-                                {parts.map((part, index) => 
-                                    index % 2 === 1 ? <strong key={index} className="text-white/90 font-bold">{part}</strong> : part
-                                )}
-                            </p>
-                        );
-                    }
-                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-                        const content = trimmed.substring(2);
-                        if (content.includes('**')) {
-                            const parts = content.split('**');
-                            return (
-                                <li key={i} className="ml-4 list-none relative text-white/70 text-sm text-justify pl-4 before:content-[''] before:absolute before:left-0 before:top-2 before:w-1 before:h-1 before:bg-rose-500/40 before:rounded-full">
-                                    {parts.map((part, index) => 
-                                        index % 2 === 1 ? <strong key={index} className="text-white/90 font-bold">{part}</strong> : part
-                                    )}
-                                </li>
-                            );
-                        }
-                        return (
-                            <li key={i} className="ml-4 list-none relative text-white/70 text-sm text-justify pl-4 before:content-[''] before:absolute before:left-0 before:top-2 before:w-1 before:h-1 before:bg-rose-500/40 before:rounded-full">
-                                {content}
-                            </li>
-                        );
-                    }
-                    if (trimmed === '') {
-                        return <div key={i} className="h-2" />;
-                    }
-                    return <p key={i} className="text-justify leading-relaxed">{trimmed}</p>;
-                })}
-            </div>
-        );
-    };
 
     // Calculate locally if we have birthDate
     const chineseData = profile?.birthDate ? calculateChineseZodiac(profile.birthDate, language) : null;
@@ -383,9 +325,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                                             </span>
                                         </div>
                                     ) : (
-                                        <div className="space-y-4 text-white/90 leading-relaxed font-sans text-xs">
-                                            {chineseData?.animal && renderFormattedContent(aiInterpretations[chineseData.animal])}
-                                        </div>
+                                        {chineseData?.animal && <AiInterpretationCards text={aiInterpretations[chineseData.animal]} />}
                                     )
                                 ) : (
                                     <div className="p-4 bg-black/40 rounded-xl border border-dashed border-rose-500/30 text-center space-y-3">

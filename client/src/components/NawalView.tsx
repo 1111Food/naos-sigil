@@ -9,6 +9,8 @@ import { getNahualImage, getMayanToneName } from '../utils/nahualMapper';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { AiInterpretationCards } from './AiInterpretationCards';
+
 
 // Placeholder for glyph path logic if needed, or use image
 const GlyphPlaceholder = ({ tone, id, size = 'md', showTone = true }: { tone: number, id?: string, size?: 'xs' | 'sm' | 'md' | 'lg', showTone?: boolean }) => {
@@ -130,7 +132,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                 })
             });
 
-            if (!res.ok) throw new Error("Fallo al obtener la sintonía.");
+            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
             const data = await res.json();
             setAiInterpretations(prev => ({ ...prev, [nawalName]: data.interpretation }));
         } catch (err) {
@@ -146,59 +148,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
         }
     };
 
-    const renderFormattedContent = (text: string) => {
-        if (!text) return null;
-        const lines = text.split('\n');
-        return (
-            <div className="space-y-3 font-serif italic leading-relaxed text-sm text-white/80">
-                {lines.map((line, i) => {
-                    const trimmed = line.trim();
-                    if (trimmed === '⸻' || trimmed === '---' || trimmed.startsWith('⸻')) {
-                        return <div key={i} className="my-6 h-px w-full bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />;
-                    }
-                    if (trimmed.match(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/)) {
-                        return (
-                            <h4 key={i} className="text-amber-400 font-bold text-sm uppercase tracking-wider mt-6 mb-2 flex items-center gap-2 not-italic">
-                                {trimmed}
-                            </h4>
-                        );
-                    }
-                    if (trimmed.includes('**')) {
-                        const parts = trimmed.split('**');
-                        return (
-                            <p key={i} className="text-justify leading-relaxed">
-                                {parts.map((part, index) => 
-                                    index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
-                                )}
-                            </p>
-                        );
-                    }
-                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-                        const content = trimmed.substring(2);
-                        if (content.includes('**')) {
-                            const parts = content.split('**');
-                            return (
-                                <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
-                                    {parts.map((part, index) => 
-                                        index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
-                                    )}
-                                </li>
-                            );
-                        }
-                        return (
-                            <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
-                                {content}
-                            </li>
-                        );
-                    }
-                    if (trimmed === '') {
-                        return <div key={i} className="h-2" />;
-                    }
-                    return <p key={i} className="text-justify leading-relaxed">{trimmed}</p>;
-                })}
-            </div>
-        );
-    };
+
 
     if (isLoading) return <div className="p-20 text-center text-white/20 uppercase tracking-[0.4em] text-[10px]">{t('consulting_time')}</div>;
 
@@ -410,9 +360,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                                         </span>
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-4 text-white/90 leading-relaxed font-sans text-xs">
-                                                        {nawal && renderFormattedContent(aiInterpretations[nawal.kicheName])}
-                                                    </div>
+                                                    {nawal && <AiInterpretationCards text={aiInterpretations[nawal.kicheName]} />}
                                                 )
                                             ) : (
                                                 <div className="p-4 bg-black/40 rounded-xl border border-dashed border-emerald-500/30 text-center space-y-3">

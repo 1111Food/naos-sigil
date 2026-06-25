@@ -11,6 +11,8 @@ import { useSubscription } from '../hooks/useSubscription';
 import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { AiInterpretationCards } from './AiInterpretationCards';
+
 
 interface NumerologyViewProps {
     data?: any; // Mantener por compatibilidad
@@ -45,7 +47,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                 })
             });
 
-            if (!res.ok) throw new Error("Fallo al obtener la sintonía.");
+            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
             const data = await res.json();
             setAiInterpretations(prev => ({ ...prev, [cacheKey]: data.interpretation }));
         } catch (err) {
@@ -61,59 +63,6 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
         }
     };
 
-    const renderFormattedContent = (text: string) => {
-        if (!text) return null;
-        const lines = text.split('\n');
-        return (
-            <div className="space-y-3 font-serif italic leading-relaxed text-sm text-white/80">
-                {lines.map((line, i) => {
-                    const trimmed = line.trim();
-                    if (trimmed === '⸻' || trimmed === '---' || trimmed.startsWith('⸻')) {
-                        return <div key={i} className="my-6 h-px w-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />;
-                    }
-                    if (trimmed.match(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/)) {
-                        return (
-                            <h4 key={i} className="text-amber-400 font-bold text-sm uppercase tracking-wider mt-6 mb-2 flex items-center gap-2 not-italic">
-                                {trimmed}
-                            </h4>
-                        );
-                    }
-                    if (trimmed.includes('**')) {
-                        const parts = trimmed.split('**');
-                        return (
-                            <p key={i} className="text-justify leading-relaxed">
-                                {parts.map((part, index) => 
-                                    index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
-                                )}
-                            </p>
-                        );
-                    }
-                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-                        const content = trimmed.substring(2);
-                        if (content.includes('**')) {
-                            const parts = content.split('**');
-                            return (
-                                <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
-                                    {parts.map((part, index) => 
-                                        index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
-                                    )}
-                                </li>
-                            );
-                        }
-                        return (
-                            <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
-                                {content}
-                            </li>
-                        );
-                    }
-                    if (trimmed === '') {
-                        return <div key={i} className="h-2" />;
-                    }
-                    return <p key={i} className="text-justify leading-relaxed">{trimmed}</p>;
-                })}
-            </div>
-        );
-    };
     const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const { trackEvent } = useGuardianState();
@@ -483,9 +432,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                                             </span>
                                                                         </div>
                                                                     ) : (
-                                                                        <div className="space-y-4 text-white/90 leading-relaxed font-sans text-xs">
-                                                                            {renderFormattedContent(aiInterpretations[`${numValue}-${item.l}`])}
-                                                                        </div>
+                                                                        <AiInterpretationCards text={aiInterpretations[`${numValue}-${item.l}`]} />
                                                                     )
                                                                 ) : (
                                                                     <div className="p-4 bg-black/40 rounded-xl border border-dashed border-purple-500/30 text-center space-y-3">

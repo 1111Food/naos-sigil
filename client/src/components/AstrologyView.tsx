@@ -13,6 +13,7 @@ import { ASTRO_EDUCATION, PLANET_DESCRIPTIONS, HOUSE_DESCRIPTIONS, SIGN_DESCRIPT
 import { ASTRO_EDUCATION_EN, PLANET_DESCRIPTIONS_EN, HOUSE_DESCRIPTIONS_EN, SIGN_DESCRIPTIONS_EN } from '../data/astrologyEducation_en';
 import { getZodiacImage } from '../utils/zodiacMapper';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { AiInterpretationCards } from './AiInterpretationCards';
 
 
 // 🌟 GLIFOS ASTROLÓGICOS
@@ -252,7 +253,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                 })
             });
 
-            if (!res.ok) throw new Error("Fallo al obtener la sintonía.");
+            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
             const data = await res.json();
             setAiInterpretations(prev => ({ ...prev, [cacheKey]: data.interpretation }));
         } catch (err) {
@@ -268,59 +269,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
         }
     };
 
-    const renderFormattedContent = (text: string) => {
-        if (!text) return null;
-        const lines = text.split('\n');
-        return (
-            <div className="space-y-3 font-serif italic leading-relaxed text-sm text-white/80">
-                {lines.map((line, i) => {
-                    const trimmed = line.trim();
-                    if (trimmed === '⸻' || trimmed === '---' || trimmed.startsWith('⸻')) {
-                        return <div key={i} className="my-6 h-px w-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />;
-                    }
-                    if (trimmed.match(/^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🏮|🐅|❤️|📈)/)) {
-                        return (
-                            <h4 key={i} className="text-amber-400 font-bold text-sm uppercase tracking-wider mt-6 mb-2 flex items-center gap-2 not-italic">
-                                {trimmed}
-                            </h4>
-                        );
-                    }
-                    if (trimmed.includes('**')) {
-                        const parts = trimmed.split('**');
-                        return (
-                            <p key={i} className="text-justify leading-relaxed">
-                                {parts.map((part, index) => 
-                                    index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
-                                )}
-                            </p>
-                        );
-                    }
-                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-                        const content = trimmed.substring(2);
-                        if (content.includes('**')) {
-                            const parts = content.split('**');
-                            return (
-                                <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
-                                    {parts.map((part, index) => 
-                                        index % 2 === 1 ? <strong key={index} className="text-white font-bold not-italic">{part}</strong> : part
-                                    )}
-                                </li>
-                            );
-                        }
-                        return (
-                            <li key={i} className="ml-4 list-disc text-white/70 text-xs text-justify">
-                                {content}
-                            </li>
-                        );
-                    }
-                    if (trimmed === '') {
-                        return <div key={i} className="h-2" />;
-                    }
-                    return <p key={i} className="text-justify leading-relaxed">{trimmed}</p>;
-                })}
-            </div>
-        );
-    };
+
 
     const displayName = profile?.nickname || profile?.name || t('viajero');
 
@@ -840,9 +789,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                                         </span>
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="space-y-4 text-white/90 leading-relaxed font-sans text-xs">
-                                                                        {renderFormattedContent(aiInterpretations[`${body.key}-${body.signName}-${body.house}`])}
-                                                                    </div>
+                                                                    <AiInterpretationCards text={aiInterpretations[`${body.key}-${body.signName}-${body.house}`]} />
                                                                 )
                                                             ) : (
                                                                 <div className="p-4 bg-black/40 rounded-xl border border-dashed border-purple-500/30 text-center space-y-3">
