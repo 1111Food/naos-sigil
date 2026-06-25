@@ -325,7 +325,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                                             </span>
                                         </div>
                                     ) : (
-                                        {chineseData?.animal && <AiInterpretationCards text={aiInterpretations[chineseData.animal]} />}
+                                        chineseData?.animal ? <AiInterpretationCards text={aiInterpretations[chineseData.animal]} /> : null
                                     )
                                 ) : (
                                     <div className="p-4 bg-black/40 rounded-xl border border-dashed border-rose-500/30 text-center space-y-3">

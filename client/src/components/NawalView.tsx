@@ -360,7 +360,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                                         </span>
                                                     </div>
                                                 ) : (
-                                                    {nawal && <AiInterpretationCards text={aiInterpretations[nawal.kicheName]} />}
+                                                    nawal ? <AiInterpretationCards text={aiInterpretations[nawal.kicheName]} /> : null
                                                 )
                                             ) : (
                                                 <div className="p-4 bg-black/40 rounded-xl border border-dashed border-emerald-500/30 text-center space-y-3">
