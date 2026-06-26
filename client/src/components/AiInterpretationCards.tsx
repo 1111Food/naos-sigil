@@ -14,7 +14,7 @@ interface Section {
     isIntro?: boolean;
 }
 
-const SECTION_EMOJI_RE = /^(🧠|🗣️|📚|🧩|👨‍👩‍👧|🌍|🧭|⚡|🌑|🔥|🧬|🔍|🎭|💼|👁️|🌊|🤝|🐅|❤️|📈|✨)/u;
+const SECTION_EMOJIS = ['🧠', '🗣️', '📚', '🧩', '👨‍👩‍👧', '🌍', '🧭', '⚡', '🌑', '🔥', '🧬', '🔍', '🎭', '💼', '👁️', '🌊', '🤝', '🐅', '❤️', '📈', '✨'];
 
 function parseInterpretationToCards(text: string): { intro: string; sections: Section[] } {
     if (!text) return { intro: '', sections: [] };
@@ -31,13 +31,19 @@ function parseInterpretationToCards(text: string): { intro: string; sections: Se
             if (isIntro) isIntro = false;
             continue;
         }
-        const sectionMatch = trimmed.match(SECTION_EMOJI_RE);
-        if (sectionMatch) {
+        let matchedEmoji = null;
+        for (const emoji of SECTION_EMOJIS) {
+            if (trimmed.startsWith(emoji)) {
+                matchedEmoji = emoji;
+                break;
+            }
+        }
+        
+        if (matchedEmoji) {
             isIntro = false;
             if (currentSection) sections.push(currentSection);
-            const emoji = sectionMatch[0];
-            const title = trimmed.slice(emoji.length).replace(/^\s*\d+\.\s*/, '').trim();
-            currentSection = { emoji, title, body: [] };
+            const title = trimmed.slice(matchedEmoji.length).replace(/^\s*\d+\.\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '').trim();
+            currentSection = { emoji: matchedEmoji, title, body: [] };
             continue;
         }
         if (isIntro) { if (trimmed) introLines.push(trimmed); }
