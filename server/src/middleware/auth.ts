@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { supabase } from '../lib/supabase';
+import { config } from '../config/env';
 
 export const validateUser = async (request: FastifyRequest, reply: FastifyReply) => {
     const requestId = Math.random().toString(36).substring(7);
@@ -52,8 +53,8 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         // Let's use the user's own token to fetch their profile directly via REST API
         if (!profilePlan) {
             try {
-                const supabaseUrl = process.env.SUPABASE_URL || 'https://avaikhukgugvcocwedsz.supabase.co';
-                const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+                const supabaseUrl = config.SUPABASE_URL || 'https://avaikhukgugvcocwedsz.supabase.co';
+                const supabaseAnonKey = config.SUPABASE_ANON_KEY || '';
                 const res = await fetch(`${supabaseUrl}/rest/v1/profiles?select=plan_type&id=eq.${user.id}`, {
                     headers: {
                         'apikey': supabaseAnonKey,
@@ -80,7 +81,8 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
             userEmail.includes('luisalfredoherreramendez') || 
             userEmail.includes('luis.herrera') ||
             userEmail.includes('herreramendez') ||
-            userEmail.includes('luisalfredo.herrera');
+            userEmail.includes('luisalfredo.herrera') ||
+            userEmail === 'luis@luis.com';
 
         const isAdminId = 
             user.id === '22325a10-7b9f-4606-8a54-574bb63ba6a8' || 
