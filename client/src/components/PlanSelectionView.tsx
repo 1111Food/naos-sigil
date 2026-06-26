@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
+import { API_BASE_URL } from '../lib/api';
 
 interface PlanSelectionViewProps {
     onBack?: () => void;
@@ -21,9 +22,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
         setIsCheckoutLoading(true);
 
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
-            
-            const response = await fetch(`${apiUrl}/api/checkout/create-session`, {
+            const response = await fetch(`${API_BASE_URL}/api/checkout/create-session`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

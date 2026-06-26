@@ -20,6 +20,7 @@ import { GuardianProvider } from './contexts/GuardianContext';
 import { UpgradeProvider } from './contexts/UpgradeContext';
 import { OnboardingInitiation } from './components/OnboardingInitiation';
 import { SigilBubble } from './components/SigilBubble';
+import { GlobalUpgradeButton } from './components/GlobalUpgradeButton';
 
 
 import { StatusBadge } from './components/StatusBadge';
@@ -458,6 +459,7 @@ function App() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <GlobalUpgradeButton />
                     <PWAInstallButton />
 
                     <button
