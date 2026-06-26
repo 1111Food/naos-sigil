@@ -40,13 +40,36 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         (request as any).token = token;
 
         // --- RBAC INJECTION (Consolidated Prompts) ---
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
             .from('profiles')
             .select('plan_type')
             .eq('id', user.id)
             .single();
 
-        let plan = (profile?.plan_type || 'free').toLowerCase();
+        let profilePlan = profile?.plan_type;
+
+        // If profile wasn't found, it might be due to RLS blocking the Anon Key (Service Role Key missing on Render)
+        // Let's use the user's own token to fetch their profile directly via REST API
+        if (!profilePlan) {
+            try {
+                const supabaseUrl = process.env.SUPABASE_URL || 'https://avaikhukgugvcocwedsz.supabase.co';
+                const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+                const res = await fetch(`${supabaseUrl}/rest/v1/profiles?select=plan_type&id=eq.${user.id}`, {
+                    headers: {
+                        'apikey': supabaseAnonKey,
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) profilePlan = data[0].plan_type;
+                }
+            } catch (fetchErr) {
+                console.warn(`⚠️ [AUTH_FETCH] Failed to fetch profile directly:`, fetchErr);
+            }
+        }
+
+        let plan = (profilePlan || 'free').toLowerCase();
         
         const userEmail = (user.email || user.user_metadata?.email || '').toLowerCase();
         console.log(`📧 [AUTH_EMAIL] Request ${requestId} | Email: ${userEmail}`);
