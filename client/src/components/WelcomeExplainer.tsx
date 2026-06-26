@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Hexagon, MessageSquare, Compass, Shield, ArrowLeft, ChevronRight, FlaskConical } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSound } from '../hooks/useSound';
-
+import { useTranslation } from '../i18n';
 interface WelcomeExplainerProps {
     onClose: () => void;
 }
