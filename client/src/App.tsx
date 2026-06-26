@@ -32,7 +32,7 @@ import { useProfile } from './hooks/useProfile';
 import { useAuth } from './contexts/AuthContext';
 import { useSubscription } from './hooks/useSubscription';
 import { Sanctuary } from './pages/Sanctuary';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TempleLoading } from './components/TempleLoading';
 import { getMoonPhase } from './utils/lunar';
 
