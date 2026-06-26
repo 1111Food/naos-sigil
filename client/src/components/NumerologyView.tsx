@@ -12,6 +12,7 @@ import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AiInterpretationCards } from './AiInterpretationCards';
+import { DeepInterpretationModal } from './DeepInterpretationModal';
 
 
 interface NumerologyViewProps {
@@ -397,9 +398,8 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                     className="mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const isOpening = showDeepInsight !== item.l;
-                                                        setShowDeepInsight(isOpening ? item.l : null);
-                                                        if (isOpening && isPremium) {
+                                                        setShowDeepInsight(item.l);
+                                                        if (isPremium && !aiInterpretations[`${numValue}-${item.l}`]) {
                                                             fetchAiInterpretation(numValue, item.l);
                                                         }
                                                     }}
@@ -408,50 +408,24 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                         <div className="w-3.5 h-3.5 flex items-center justify-center">⚡</div>
                                                         <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
                                                         {isPremium && (
-                                                            <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight === item.l ? 'rotate-90' : ''}`} />
+                                                            <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500`} />
                                                         )}
                                                     </div>
                                                     <p className="text-[9px] text-white/40 font-medium">
-                                                        {isPremium ? (aiLoading[`${numValue}-${item.l}`] ? t('sintonizando_eter') : t('deep_interpretation_tap')) : t('deep_interpretation_lock')}
+                                                        {isPremium ? t('deep_interpretation_tap') : t('deep_interpretation_lock')}
                                                     </p>
-
-                                                    <AnimatePresence>
-                                                        {showDeepInsight === item.l && (
-                                                            <motion.div
-                                                                initial={{ height: 0, opacity: 0 }}
-                                                                animate={{ height: 'auto', opacity: 1 }}
-                                                                exit={{ height: 0, opacity: 0 }}
-                                                                className="mt-4 pt-4 border-t border-purple-500/30 overflow-hidden"
-                                                            >
-                                                                {isPremium ? (
-                                                                    aiLoading[`${numValue}-${item.l}`] ? (
-                                                                        <div className="flex flex-col items-center justify-center py-10 space-y-4">
-                                                                            <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
-                                                                            <span className="text-[9px] uppercase tracking-[0.3em] text-amber-400/70 font-bold animate-pulse">
-                                                                                {t('sintonizando_eter')}
-                                                                            </span>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <AiInterpretationCards text={aiInterpretations[`${numValue}-${item.l}`]} />
-                                                                    )
-                                                                ) : (
-                                                                    <div className="p-4 bg-black/40 rounded-xl border border-dashed border-purple-500/30 text-center space-y-3">
-                                                                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto">
-                                                                            <Lock className="w-4 h-4 text-purple-400" />
-                                                                        </div>
-                                                                        <h5 className="text-xs font-bold text-white uppercase tracking-widest">{t('reserved_content')}</h5>
-                                                                        <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
-                                                                            {t('pinnacle_lock_desc')}
-                                                                        </p>
-                                                                        <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
-                                                                            {t('view_plans')}
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
                                                 </div>
+
+                                                {/* MODAL PARA LA INTERPRETACIÓN */}
+                                                {isPremium && showDeepInsight === item.l && (
+                                                    <DeepInterpretationModal
+                                                        isOpen={showDeepInsight === item.l}
+                                                        onClose={() => setShowDeepInsight(null)}
+                                                        title={`Número ${numValue} en ${PINNACLE_POS_LIB[item.l]?.title || item.t}`}
+                                                        text={aiInterpretations[`${numValue}-${item.l}`]}
+                                                        isLoading={aiLoading[`${numValue}-${item.l}`]}
+                                                    />
+                                                )}
                                             </motion.div>
                                         )}
                                     </AnimatePresence>

@@ -10,6 +10,7 @@ import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AiInterpretationCards } from './AiInterpretationCards';
+import { DeepInterpretationModal } from './DeepInterpretationModal';
 
 
 // Placeholder for glyph path logic if needed, or use image
@@ -325,9 +326,8 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                 className="w-full mt-10 p-5 bg-gradient-to-br from-emerald-950/60 to-slate-950/80 rounded-[2rem] border border-emerald-500/20 shadow-lg cursor-pointer hover:border-emerald-400 transition-all active:scale-[0.98] text-left"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    const isOpening = !showDeepInsight;
-                                    setShowDeepInsight(isOpening);
-                                    if (isOpening && isPremium && nawal) {
+                                    setShowDeepInsight(true);
+                                    if (isPremium && nawal && !aiInterpretations[nawal.kicheName]) {
                                         fetchAiInterpretation(nawal.kicheName);
                                     }
                                 }}
@@ -336,49 +336,24 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                     <Zap className={`w-4 h-4 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
                                     <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
                                     {isPremium && (
-                                        <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight ? 'rotate-90' : ''}`} />
+                                        <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500`} />
                                     )}
                                 </div>
                                 <p className="text-[9px] text-white/40 font-medium">
-                                    {isPremium ? (nawal && aiLoading[nawal.kicheName] ? t('sintonizando_eter') : t('deep_interpretation_tap')) : t('deep_interpretation_lock')}
+                                    {isPremium ? t('deep_interpretation_tap') : t('deep_interpretation_lock')}
                                 </p>
+                            </div>
 
-                                <AnimatePresence>
-                                    {showDeepInsight && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="mt-4 pt-4 border-t border-emerald-500/30 overflow-hidden"
-                                        >
-                                            {isPremium ? (
-                                                nawal && aiLoading[nawal.kicheName] ? (
-                                                    <div className="flex flex-col items-center justify-center py-10 space-y-4">
-                                                        <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
-                                                        <span className="text-[9px] uppercase tracking-[0.3em] text-amber-400/70 font-bold animate-pulse">
-                                                            {t('sintonizando_eter')}
-                                                        </span>
-                                                    </div>
-                                                ) : (
-                                                    nawal ? <AiInterpretationCards text={aiInterpretations[nawal.kicheName]} /> : null
-                                                )
-                                            ) : (
-                                                <div className="p-4 bg-black/40 rounded-xl border border-dashed border-emerald-500/30 text-center space-y-3">
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto">
-                                                        <Lock className="w-4 h-4 text-emerald-400" />
-                                                    </div>
-                                                    <h5 className="text-xs font-bold text-white uppercase tracking-widest">{t('reserved_content')}</h5>
-                                                    <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
-                                                        {t('pinnacle_lock_desc')}
-                                                    </p>
-                                                    <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
-                                                        {t('view_plans')}
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                            {/* MODAL PARA LA INTERPRETACIÓN */}
+                            {isPremium && showDeepInsight && nawal && (
+                                <DeepInterpretationModal
+                                    isOpen={showDeepInsight}
+                                    onClose={() => setShowDeepInsight(false)}
+                                    title={`Nawal ${nawal.kicheName}`}
+                                    text={aiInterpretations[nawal.kicheName]}
+                                    isLoading={aiLoading[nawal.kicheName]}
+                                />
+                            )}
                             </div>
 
                             {/* Wisdom Accordions */}

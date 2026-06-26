@@ -11,6 +11,7 @@ import { useTranslation } from '../i18n';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { AiInterpretationCards } from './AiInterpretationCards';
+import { DeepInterpretationModal } from './DeepInterpretationModal';
 
 
 interface SabiduriaOrientalProps {
@@ -290,9 +291,8 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                     className="w-full mt-10 p-5 bg-gradient-to-br from-rose-950/60 to-slate-950/80 rounded-[2rem] border border-rose-500/20 shadow-lg cursor-pointer hover:border-rose-400 transition-all active:scale-[0.98] text-left"
                     onClick={(e) => {
                         e.stopPropagation();
-                        const isOpening = !showDeepInsight;
-                        setShowDeepInsight(isOpening);
-                        if (isOpening && isPremium && chineseData?.animal) {
+                        setShowDeepInsight(true);
+                        if (isPremium && chineseData?.animal && !aiInterpretations[chineseData.animal]) {
                             fetchAiInterpretation(chineseData.animal);
                         }
                     }}
@@ -301,50 +301,24 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                         <Zap className={`w-4 h-4 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
                         <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
                         {isPremium && (
-                            <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500 ${showDeepInsight ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500`} />
                         )}
                     </div>
                     <p className="text-[9px] text-white/40 font-medium">
-                        {isPremium ? (chineseData?.animal && aiLoading[chineseData.animal] ? t('sintonizando_eter') : t('deep_interpretation_tap')) : t('deep_interpretation_lock')}
+                        {isPremium ? t('deep_interpretation_tap') : t('deep_interpretation_lock')}
                     </p>
-
-                    <AnimatePresence>
-                        {showDeepInsight && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="mt-4 pt-4 border-t border-rose-500/30 overflow-hidden"
-                            >
-                                {isPremium ? (
-                                    chineseData?.animal && aiLoading[chineseData.animal] ? (
-                                        <div className="flex flex-col items-center justify-center py-10 space-y-4">
-                                            <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
-                                            <span className="text-[9px] uppercase tracking-[0.3em] text-amber-400/70 font-bold animate-pulse">
-                                                {t('sintonizando_eter')}
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        chineseData?.animal ? <AiInterpretationCards text={aiInterpretations[chineseData.animal]} /> : null
-                                    )
-                                ) : (
-                                    <div className="p-4 bg-black/40 rounded-xl border border-dashed border-rose-500/30 text-center space-y-3">
-                                        <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center mx-auto">
-                                            <Lock className="w-4 h-4 text-rose-400" />
-                                        </div>
-                                        <h5 className="text-xs font-bold text-white uppercase tracking-widest">{t('reserved_content')}</h5>
-                                        <p className="text-[10px] text-white/50 leading-relaxed max-w-sm mx-auto">
-                                            {t('pinnacle_lock_desc')}
-                                        </p>
-                                        <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-600 to-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
-                                            {t('view_plans')}
-                                        </button>
-                                    </div>
-                                )}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
                 </div>
+
+                {/* MODAL PARA LA INTERPRETACIÓN */}
+                {isPremium && showDeepInsight && chineseData?.animal && (
+                    <DeepInterpretationModal
+                        isOpen={showDeepInsight}
+                        onClose={() => setShowDeepInsight(false)}
+                        title={`Animal ${chineseData.animal}`}
+                        text={aiInterpretations[chineseData.animal]}
+                        isLoading={aiLoading[chineseData.animal]}
+                    />
+                )}
 
                 {/* Wisdom Accordions */}
                 <div className="space-y-4 pt-10 border-t border-white/5">
