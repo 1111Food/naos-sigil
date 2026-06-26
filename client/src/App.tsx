@@ -20,7 +20,7 @@ import { GuardianProvider } from './contexts/GuardianContext';
 import { UpgradeProvider } from './contexts/UpgradeContext';
 import { OnboardingInitiation } from './components/OnboardingInitiation';
 import { SigilBubble } from './components/SigilBubble';
-import { LanguagePromptBanner } from './components/LanguagePromptBanner';
+
 
 import { StatusBadge } from './components/StatusBadge';
 import { LoginView } from './components/LoginView';
@@ -399,7 +399,7 @@ function App() {
           <Guardian view={activeView as any} onOpenChat={() => setActiveView('CHAT')} />
           {/* Removing FloatingLaboratorio per request */}
           <SigilBubble activeView={activeView as any} onNavigate={navigateWithRitual} />
-          <LanguagePromptBanner />
+
 
           <div className="relative z-10 min-h-screen flex flex-col animate-in fade-in duration-1000">
             {/* ... header and main content ... */}
