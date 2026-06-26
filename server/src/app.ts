@@ -1,5 +1,6 @@
 import fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import fastifyRawBody from 'fastify-raw-body';
 import { config } from './config/env';
 import { apiRoutes } from './routes/api';
 import { tarotRoutes } from './routes/tarot';
@@ -11,6 +12,7 @@ import rosterRoutes from './modules/roster/roster.routes';
 import { adminRoutes } from './modules/admin/admin.routes';
 import { webhookRoutes } from './routes/webhooks';
 import { interpretRoutes } from './routes/interpret';
+import { checkoutRoutes } from './routes/checkout';
 
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
@@ -18,6 +20,13 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         ignoreTrailingSlash: true
     });
 
+    // Required for Stripe Webhook signature verification
+    await app.register(fastifyRawBody, {
+        field: 'rawBody',
+        global: false,
+        encoding: 'utf8',
+        runFirst: true
+    });
 
     await app.register(cors, {
         origin: [
@@ -44,6 +53,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     await app.register(adminRoutes, { prefix: '/api/admin' });
     await app.register(webhookRoutes);
     await app.register(interpretRoutes, { prefix: '/api/energy-code' });
+    await app.register(checkoutRoutes, { prefix: '/api/checkout' });
 
     return app;
 };

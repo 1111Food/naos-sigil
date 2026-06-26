@@ -1,20 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
-
-// Typing for Lemon Squeezy SDK
-declare global {
-    interface Window {
-        createLemonSqueezy?: () => void;
-        LemonSqueezy?: {
-            Url: {
-                Open: (url: string) => void;
-            };
-            Setup: (config: { eventHandler: (event: any) => void }) => void;
-        };
-    }
-}
 
 interface PlanSelectionViewProps {
     onBack?: () => void;
@@ -22,45 +9,40 @@ interface PlanSelectionViewProps {
 }
 
 export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) => {
-    const { profile, refreshProfile } = useProfile();
+    const { profile } = useProfile();
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
-    // Initialize Lemon Squeezy Overlay
-    useEffect(() => {
-        if (window.createLemonSqueezy) {
-            window.createLemonSqueezy();
-            
-            // Setup global event handler for real-time sync
-            window.LemonSqueezy?.Setup({
-                eventHandler: (event) => {
-                    if (event.event === 'Checkout.Success') {
-                        console.log('💰 [PAYMENT] Checkout success detected. Refreshing profile...');
-                        refreshProfile();
-                    }
-                }
-            });
-        }
-    }, [refreshProfile]);
-
-    const handleLemonSqueezyCheckout = (variantId: string) => {
+    const handleStripeCheckout = async (priceId: string) => {
         if (!profile?.id) {
             console.error("❌ Checkout Error: No authenticated user found.");
             return;
         }
 
         setIsCheckoutLoading(true);
-        
-        // Construct checkout URL with user_id in custom_data
-        // store.lemonsqueezy.com/checkout/buy/variant_id?checkout[custom][user_id]=xxx
-        const storeUrl = import.meta.env.VITE_LEMON_SQUEEZY_STORE_URL || 'naos.lemonsqueezy.com';
-        const checkoutUrl = `https://${storeUrl}/checkout/buy/${variantId}?checkout[custom][user_id]=${profile.id}&checkout[email]=${profile.email || ''}&embed=1`;
 
-        if (window.LemonSqueezy) {
-            window.LemonSqueezy.Url.Open(checkoutUrl);
-            setTimeout(() => setIsCheckoutLoading(false), 2000); // Safety reset
-        } else {
-            // Fallback for direct link if SDK failed
-            window.open(checkoutUrl, '_blank');
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+            
+            const response = await fetch(`${apiUrl}/api/checkout/create-session`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-profile-id': profile.id
+                },
+                body: JSON.stringify({ priceId })
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                // Redirect user to Stripe Checkout
+                window.location.href = data.url;
+            } else {
+                console.error("❌ Stripe session creation failed:", data.error);
+                setIsCheckoutLoading(false);
+            }
+        } catch (err) {
+            console.error("🔥 Error connecting to checkout service:", err);
             setIsCheckoutLoading(false);
         }
     };
@@ -78,7 +60,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
                 {/* Monthly */}
                 <motion.div
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.03)' }}
-                    onClick={() => handleLemonSqueezyCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VAR_MONTHLY || 'default_monthly_id')}
+                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_MONTHLY || '')}
                     className={`p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between cursor-pointer transition-all ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                     <div className="flex flex-col items-start">
@@ -93,7 +75,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
                 {/* Yearly */}
                 <motion.div
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(6,182,212,0.05)' }}
-                    onClick={() => handleLemonSqueezyCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VAR_YEARLY || 'default_yearly_id')}
+                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_YEARLY || '')}
                     className={`p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 flex items-center justify-between cursor-pointer transition-all relative overflow-hidden ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                     <div className="absolute top-0 right-0 bg-cyan-500 text-black text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-wider">
@@ -101,10 +83,10 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
                     </div>
                     <div className="flex flex-col items-start">
                         <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Anual</span>
-                        <span className="text-[10px] text-cyan-300/60">Ahorra más del 30%</span>
+                        <span className="text-[10px] text-cyan-300/60">Ahorras 2 meses</span>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                        <span className="text-sm font-black text-cyan-400">$88 <span className="text-[10px] font-normal text-white/40">/ año</span></span>
+                        <span className="text-sm font-black text-cyan-400">$111.00 <span className="text-[10px] font-normal text-white/40">/ año</span></span>
                     </div>
                 </motion.div>
                 
