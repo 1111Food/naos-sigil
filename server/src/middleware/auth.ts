@@ -82,7 +82,8 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
             userEmail.includes('luis.herrera') ||
             userEmail.includes('herreramendez') ||
             userEmail.includes('luisalfredo.herrera') ||
-            userEmail === 'luis@luis.com';
+            userEmail === 'luis@luis.com' ||
+            userEmail === 'lahm@lahm.com';
 
         const isAdminId = 
             user.id === '22325a10-7b9f-4606-8a54-574bb63ba6a8' || 

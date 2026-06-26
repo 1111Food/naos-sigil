@@ -13,7 +13,7 @@ export const AiInterpretationCards: React.FC<AiInterpretationCardsProps> = ({ te
     const lines = text.split('\n');
 
     return (
-        <div className="w-full bg-black/40 border border-purple-500/30 rounded-2xl p-5 max-h-[500px] overflow-y-auto custom-scrollbar shadow-[0_0_30px_rgba(168,85,247,0.1)]">
+        <div className="w-full bg-black/40 border border-purple-500/30 rounded-2xl p-5 shadow-[0_0_30px_rgba(168,85,247,0.1)]">
             <div className="space-y-4">
                 {lines.map((line, idx) => {
                     const trimmed = line.trim();
