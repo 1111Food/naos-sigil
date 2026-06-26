@@ -354,8 +354,6 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                     isLoading={aiLoading[nawal.kicheName]}
                                 />
                             )}
-                            </div>
-
                             {/* Wisdom Accordions */}
                             <div className="space-y-4 pt-10 border-t border-white/5 w-full">
                                 {sections.map((sec, idx) => {
