@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import { UsageGuardService } from '../user/UsageGuard';
 
 import { FastifyRequest, FastifyReply } from 'fastify';
@@ -55,7 +55,7 @@ export class SynastryController {
             const hash = generateSynastryHash(userProfile.birthDate, partnerData.birthDate, type);
 
             // 1. LIMIT CHECK - Max 5 entries per user
-            const { count, error: countError } = await supabase
+            const { count, error: countError } = await supabaseAdmin
                 .from('synastry_history')
                 .select('*', { count: 'exact', head: true })
                 .eq('user_id', userId);
@@ -63,7 +63,7 @@ export class SynastryController {
             if (countError) throw countError;
 
             // Check cache FIRST - if it exists, we don't count it as a "new" entry against the limit
-            const { data: cached } = await supabase.from('synastry_history')
+            const { data: cached } = await supabaseAdmin.from('synastry_history')
                 .select('*')
                 .eq('user_id', userId)
                 .eq('combination_hash', hash)
@@ -109,7 +109,7 @@ export class SynastryController {
                     // Fire-and-forget update to Supabase
                     (async () => {
                         try {
-                            const { error } = await supabase.from('synastry_history')
+                            const { error } = await supabaseAdmin.from('synastry_history')
                                 .update({ calculated_results: results })
                                 .eq('id', cached.id);
                             if (error) console.error("Cache upgrade failed:", error);
@@ -172,7 +172,7 @@ export class SynastryController {
             };
 
             if (userId && userId !== '00000000-0000-0000-0000-000000000000') {
-                const { error: insertError } = await supabase.from('synastry_history').insert({
+                const { error: insertError } = await supabaseAdmin.from('synastry_history').insert({
                     user_id: userId,
                     partner_name: partnerData.name,
                     partner_birth_date: partnerData.birthDate,
@@ -243,7 +243,7 @@ export class SynastryController {
                 const partnerNames = rosterProfiles.map((p: any) => p.name).join(', ');
                 const comboHash = `group_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-                const { error: insertError } = await supabase.from('synastry_history').insert({
+                const { error: insertError } = await supabaseAdmin.from('synastry_history').insert({
                     user_id: userId,
                     partner_name: partnerNames,
                     partner_birth_date: rosterProfiles[0].birthDate, // Required by DB schema
@@ -324,7 +324,7 @@ export class SynastryController {
     }
     public static async getHistory(request: FastifyRequest, reply: FastifyReply) {
         const userId = (request as any).user_id;
-        const { data, error } = await supabase.from('synastry_history').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+        const { data, error } = await supabaseAdmin.from('synastry_history').select('*').eq('user_id', userId).order('created_at', { ascending: false });
         if (error) return reply.status(500).send({ error: "Failed to fetch history." });
 
         // On-the-fly 'Reflejo' sanitization for cached records
@@ -336,7 +336,7 @@ export class SynastryController {
                     const fixedStr = resultStr.replace(/Reflejo/g, partnerFirstName);
                     item.calculated_results = JSON.parse(fixedStr);
                     // Fire and forget deep DB clean
-                    supabase.from('synastry_history')
+                    supabaseAdmin.from('synastry_history')
                         .update({ calculated_results: item.calculated_results })
                         .eq('id', item.id).then();
                 }
@@ -358,7 +358,7 @@ export class SynastryController {
 
         console.log(`🗑️ Deleting Synastry Record: ${id} (Original was prefixed: ${id !== (request.params as any).id}) for User: ${userId}`);
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
             .from('synastry_history')
             .delete()
             .eq('id', id)
