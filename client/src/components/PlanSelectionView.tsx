@@ -59,7 +59,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
                 {/* Monthly */}
                 <motion.div
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.03)' }}
-                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_MONTHLY || '')}
+                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_MONTHLY || 'price_1TmbfCFIjbyv9xZ7MNfxPLG6')}
                     className={`p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between cursor-pointer transition-all ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                     <div className="flex flex-col items-start">
@@ -74,7 +74,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
                 {/* Yearly */}
                 <motion.div
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(6,182,212,0.05)' }}
-                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_YEARLY || '')}
+                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_YEARLY || 'price_1TmblLFIjbyv9xZ7NvzEUX7e')}
                     className={`p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 flex items-center justify-between cursor-pointer transition-all relative overflow-hidden ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                     <div className="absolute top-0 right-0 bg-cyan-500 text-black text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-wider">
