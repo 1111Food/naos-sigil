@@ -210,7 +210,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Auto-Calibración de Timezone para soporte global
     useEffect(() => {
-        if (profile) {
+        if (profile && profile.onboarding_completed) {
             const currentOffset = new Date().getTimezoneOffset() / -60;
             const savedOffset = profile.astrology?.timezone_offset;
 
