@@ -83,10 +83,48 @@ export const webhookRoutes = async (app: FastifyInstance) => {
                 
                 case 'customer.subscription.deleted': {
                     const subscription = event.data.object as Stripe.Subscription;
+                    const customerId = subscription.customer as string;
                     
-                    // Note: If you want to handle cancellation accurately, you'd need the customer ID
-                    // mapped to user ID, or look up by email. For now, this is a placeholder.
-                    console.log(`📉 [WEBHOOK] Subscription ended: ${subscription.id}.`);
+                    try {
+                        // Fetch the customer from Stripe to get their email
+                        const customer = await stripe.customers.retrieve(customerId);
+                        if (customer && !customer.deleted) {
+                            const email = (customer as Stripe.Customer).email;
+                            if (email) {
+                                const { error } = await supabaseAdmin
+                                    .from('profiles')
+                                    .update({ plan_type: 'free', updated_at: new Date().toISOString() })
+                                    .eq('email', email);
+                                
+                                if (error) throw error;
+                                console.log(`📉 [WEBHOOK] Subscription deleted. Degraded ${email} to free.`);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("❌ [WEBHOOK] Error degrading user on subscription deletion:", e);
+                    }
+                    break;
+                }
+
+                case 'invoice.payment_failed': {
+                    const invoice = event.data.object as Stripe.Invoice;
+                    const email = invoice.customer_email;
+                    
+                    if (email) {
+                        try {
+                            const { error } = await supabaseAdmin
+                                .from('profiles')
+                                .update({ plan_type: 'free', updated_at: new Date().toISOString() })
+                                .eq('email', email);
+                            
+                            if (error) throw error;
+                            console.log(`⚠️ [WEBHOOK] Payment failed. Degraded ${email} to free.`);
+                        } catch (e) {
+                            console.error("❌ [WEBHOOK] Error degrading user on payment failure:", e);
+                        }
+                    } else {
+                        console.warn(`⚠️ [WEBHOOK] Payment failed but no email found in invoice: ${invoice.id}`);
+                    }
                     break;
                 }
 
