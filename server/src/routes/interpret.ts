@@ -21,7 +21,15 @@ interface InterpretRequest {
 const interpretationCache = new Map<string, string>();
 
 export async function interpretRoutes(app: FastifyInstance) {
-    app.post<{ Body: InterpretRequest }>('/interpret', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: InterpretRequest }>('/interpret', { 
+        preHandler: [validateUser],
+        config: {
+            rateLimit: {
+                max: 5,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const userId = (req as any).user_id;
         const { school, planet, sign, house, number, nawal, animal, language = 'es' } = req.body;
 

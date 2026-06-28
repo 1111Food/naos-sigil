@@ -13,7 +13,7 @@ import { adminRoutes } from './modules/admin/admin.routes';
 import { webhookRoutes } from './routes/webhooks';
 import { interpretRoutes } from './routes/interpret';
 import { checkoutRoutes } from './routes/checkout';
-
+import fastifyRateLimit from '@fastify/rate-limit';
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
         logger: true,
@@ -26,6 +26,19 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         global: false,
         encoding: 'utf8',
         runFirst: true
+    });
+
+    await app.register(fastifyRateLimit, {
+        global: false,
+        max: 5,
+        timeWindow: '1 minute',
+        errorResponseBuilder: function (request, context) {
+            return {
+                statusCode: 429,
+                error: 'Too Many Requests',
+                message: 'Frecuencia saturada. El Sigil necesita estabilizarse. Por favor, espera un minuto antes de enviar otra consulta.'
+            }
+        }
     });
 
     await app.register(cors, {

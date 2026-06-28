@@ -123,7 +123,15 @@ export async function apiRoutes(app: FastifyInstance) {
     app.get('/ping', async () => ({ status: 'vibrant', message: `Cosmos is alive on Port ${config.PORT}` }));
 
     // 🔮 Sigil Chat / Interaction Endpoint
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { 
+        preHandler: [validateUser],
+        config: {
+            rateLimit: {
+                max: 5,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
         const userId = (req as any).user_id;
 

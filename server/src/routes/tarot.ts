@@ -35,7 +35,15 @@ export async function tarotRoutes(app: FastifyInstance) {
         return handleAnalyze(request, reply);
     });
 
-    app.post<{ Body: TarotRequest }>('/analyze', { preHandler: [validateUser] }, async (request, reply) => {
+    app.post<{ Body: TarotRequest }>('/analyze', { 
+        preHandler: [validateUser],
+        config: {
+            rateLimit: {
+                max: 5,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (request, reply) => {
         return handleAnalyze(request, reply);
     });
 
