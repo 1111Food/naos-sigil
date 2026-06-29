@@ -33,11 +33,9 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         max: 5,
         timeWindow: '1 minute',
         errorResponseBuilder: function (request, context) {
-            return {
-                statusCode: 429,
-                error: 'Too Many Requests',
-                message: 'Frecuencia saturada. El Sigil necesita estabilizarse. Por favor, espera un minuto antes de enviar otra consulta.'
-            }
+            const err: any = new Error('Frecuencia saturada. El Sigil necesita estabilizarse. Por favor, espera un minuto antes de enviar otra consulta.');
+            err.statusCode = 429;
+            return err;
         }
     });
 
