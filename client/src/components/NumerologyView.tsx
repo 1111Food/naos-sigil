@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Hash, ChevronRight, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PINNACLE_INTERPRETATIONS, PINNACLE_POSITIONS } from '../data/pinnacleData';
@@ -85,6 +85,19 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
         : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
         (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
+
+    // Bug 2 – Pre-load AI interpretations saved in DB on login
+    useEffect(() => {
+        if (!isPremium || !profile?.ai_interpretations) return;
+        const saved = profile.ai_interpretations as Record<string, string>;
+        const numericKeys = Object.keys(saved).filter(k => k.startsWith('NUMERO-'));
+        if (numericKeys.length === 0) return;
+        const preloaded: Record<string, string> = {};
+        numericKeys.forEach(fullKey => {
+            preloaded[fullKey] = saved[fullKey];
+        });
+        setAiInterpretations(preloaded);
+    }, [isPremium, profile]);
 
     // Obtener datos de numerología del perfil
     const data = profile?.numerology;
@@ -376,7 +389,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
 
                                     {/* Expanded Contents */}
                                     <AnimatePresence>
-                                        {isExpanded && interp && (
+                                        {isExpanded && (item.v !== undefined && item.v !== null && item.v !== '?') && (
                                             <motion.div 
                                                 initial={{ height: 0, opacity: 0 }} 
                                                 animate={{ height: 'auto', opacity: 1 }} 

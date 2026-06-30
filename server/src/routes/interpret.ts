@@ -69,12 +69,14 @@ export async function interpretRoutes(app: FastifyInstance) {
             const chinese = ChineseAstrology.calculate(birthDate);
 
             // 3. Crear bloque de contexto completo del Viajero para Gemini
+            const savedNawal = (profile as any).nawal || (profile as any).maya?.nawal || (profile as any).maya?.kiche_name || (profile as any).maya?.kicheName || maya.kicheName;
+            const savedTone = (profile as any).maya?.tone || maya.tone;
             const userContext = `
 CONTEXTO INTEGRADO DEL VIAJERO:
 - Nombre: ${profile.name || 'Viajero'}
 - Carta Astral: Sol en ${astro.sunSign || astro.sun?.sign}, Luna en ${astro.moonSign || astro.moon?.sign}, Ascendente en ${astro.risingSign || astro.rising?.sign}. Placements principales: ${JSON.stringify(astro.planets?.map((p: any) => ({ name: p.name, sign: p.sign, house: p.house })))}
 - Numerología: Sendero de Vida (Life Path) ${num.lifePathNumber}, Pináculo: ${JSON.stringify(num.pinaculo)}
-- Cosmogonía Maya: Nawal ${maya.kicheName}, Tono ${maya.tone}
+- Cosmogonía Maya: Nawal ${savedNawal}, Tono ${savedTone}
 - Sabiduría Oriental: Animal ${chinese.animal}, Elemento ${chinese.element}
 `;
 
@@ -108,7 +110,7 @@ Provide a beautiful poetic header explaining the mixture of these 3 energies.
 (Provide a brief poetic, philosophical summary wrapping up the lesson of this placement)
 ⸻
 🧬 Integration with you
-(In this section, analyze in real-time how this placement (${planet} in ${sign} in House ${house}) interacts, contrasts, or synchronizes with the rest of their personal context: Life Path ${num.lifePathNumber}, Mayan Nawal ${maya.kicheName}, and Chinese Animal ${chinese.animal}. Point out internal tensions, synergies, and how they act in reality.)
+(In this section, analyze in real-time how this placement (${planet} in ${sign} in House ${house}) interacts, contrasts, or synchronizes with the rest of their personal context: Life Path ${num.lifePathNumber}, Mayan Nawal ${savedNawal}, and Chinese Animal ${chinese.animal}. Point out internal tensions, synergies, and how they act in reality.)
 
 Use clean bold formatting, bullet points, and high contrast tone.` 
                     : `Actúa como un psicoterapeuta clínico-místico y astrólogo evolutivo de primer nivel.
@@ -132,7 +134,7 @@ Escribe una introducción poética y profunda sobre la mezcla de estas tres ener
 (Escribe una breve conclusión filosófica y poética sobre el aprendizaje de esta posición)
 ⸻
 🧬 Integración contigo
-(En esta sección, analiza en tiempo real cómo esta posición astrológica (${planet} en ${sign} en la Casa ${house}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sendero de Vida ${num.lifePathNumber}, su Nawal Maya ${maya.kicheName} y su Animal Chino ${chinese.animal}. Señala tensiones internas y cómo se expresa esto en su realidad conductual.)
+(En esta sección, analiza en tiempo real cómo esta posición astrológica (${planet} en ${sign} en la Casa ${house}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sendero de Vida ${num.lifePathNumber}, su Nawal Maya ${savedNawal} y su Animal Chino ${chinese.animal}. Señala tensiones internas y cómo se expresa esto en su realidad conductual.)
 
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
 
@@ -159,7 +161,7 @@ Provide a beautiful poetic header introducing this numerical vibration in their 
 (Provide a brief poetic, philosophical summary wrapping up the lesson of this numerical vibration)
 ⸻
 🧬 Integration with you
-(In this section, analyze in real-time how this numerical vibration (${number} in position ${house}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Mayan Nawal ${maya.kicheName}, and Chinese Animal ${chinese.animal}. Point out internal conflicts, synergies, and how they manifest in their life.)
+(In this section, analyze in real-time how this numerical vibration (${number} in position ${house}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Mayan Nawal ${savedNawal}, and Chinese Animal ${chinese.animal}. Point out internal conflicts, synergies, and how they manifest in their life.)
 
 Use clean bold formatting, bullet points, and high contrast tone.`
                     : `Actúa como un numerólogo pitagórico esotérico y psicólogo clínico de primer nivel.
@@ -182,7 +184,7 @@ Escribe una introducción poética y profunda sobre esta vibración numérica en
 (Escribe una breve conclusión filosófica y poética sobre el aprendizaje de este número)
 ⸻
 🧬 Integración contigo
-(En esta sección, analiza en tiempo real cómo esta vibración numérica (${number} en posición ${house}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Nawal Maya ${maya.kicheName} y su Animal Chino ${chinese.animal}. Señala tensiones internas, bloqueos de ejecución y el puente hacia la manifestación.)
+(En esta sección, analiza en tiempo real cómo esta vibración numérica (${number} en posición ${house}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Nawal Maya ${savedNawal} y su Animal Chino ${chinese.animal}. Señala tensiones internas, bloqueos de ejecución y el puente hacia la manifestación.)
 
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
 
@@ -260,7 +262,7 @@ Provide a beautiful poetic header explaining this earthly animal signature.
 (Provide a brief poetic, philosophical summary wrapping up the lesson of this earthly zodiac animal)
 ⸻
 🧬 Integration with you
-(In this section, analyze in real-time how this Chinese Animal (${animal}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Life Path ${num.lifePathNumber}, and Mayan Nawal ${maya.kicheName}. Point out internal conflicts, synergies, and how they manifest in their life.)
+(In this section, analyze in real-time how this Chinese Animal (${animal}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Life Path ${num.lifePathNumber}, and Mayan Nawal ${savedNawal}. Point out internal conflicts, synergies, and how they manifest in their life.)
 
 Use clean bold formatting, bullet points, and high contrast tone.`
                     : `Actúa como un experto en Astrología Imperial China BaZi y psicólogo conductual-instintivo.
@@ -284,7 +286,7 @@ Escribe una introducción poética y profunda sobre esta firma instintiva terren
 (Escribe una breve conclusión filosófica y poética sobre el aprendizaje de este animal chino)
 ⸻
 🧬 Integración contigo
-(En esta sección, analiza en tiempo real cómo este Animal Chino (${animal}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Sendero de Vida ${num.lifePathNumber} y su Nawal Maya ${maya.kicheName}. Señala tensiones internas, bloqueos, y cómo este animal gobierna su instinto básico y forma de actuar en la realidad.)
+(En esta sección, analiza en tiempo real cómo este Animal Chino (${animal}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Sendero de Vida ${num.lifePathNumber} y su Nawal Maya ${savedNawal}. Señala tensiones internas, bloqueos, y cómo este animal gobierna su instinto básico y forma de actuar en la realidad.)
 
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
             }
