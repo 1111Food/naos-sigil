@@ -16,6 +16,9 @@ import { useUpgrade } from '../contexts/UpgradeContext';
 import { LegalView } from '../components/LegalView';
 import { WelcomeExplainer } from '../components/WelcomeExplainer';
 import { useTranslation } from '../i18n';
+import { ArchitectBenefitsModal } from '../components/ArchitectBenefitsModal';
+import { Sparkles } from 'lucide-react';
+import { useSubscription } from '../hooks/useSubscription';
 
 interface HomeProps {
     onSelectFeature: (feature: any, payload?: any) => void;
@@ -135,17 +138,24 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
 
     const playerProps = React.useMemo(() => ({ score }), [score]);
     const playerStyle = React.useMemo(() => ({ width: '100%', height: '100%', objectFit: 'cover' as const, filter: isBunkerMode ? 'hue-rotate(320deg) saturate(0.8)' : 'none' }), [isBunkerMode]);
-    
-    // ⚖️ Legal States
+    const { status: subscription } = useSubscription();
+
+    // Check Premium status based ONLY on logged-in user
+    const isPremium = (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
+
     const [isLegalOpen, setIsLegalOpen] = useState(false);
-    const [legalType, setLegalType] = useState<'terms' | 'privacy' | 'disclaimer'>('terms');
+    const [legalType, setLegalType] = useState<'terms'|'privacy'|'disclaimer'>('terms');
+    const [showWelcome, setShowWelcome] = useState(false);
+    const [showArchitectBenefits, setShowArchitectBenefits] = useState(false);
 
     const handleLegalOpen = (type: 'terms' | 'privacy' | 'disclaimer') => {
         setLegalType(type);
         setIsLegalOpen(true);
     };
 
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
 
     return (
         <div className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans text-white transition-colors duration-1000 ${isBunkerMode ? 'bg-red-950/20' : 'bg-transparent'}`}>
@@ -185,7 +195,24 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
                     />
                 </div>
 
-                <div className="flex justify-center w-full">
+                <div className="flex justify-center w-full flex-col items-center gap-4">
+                    {/* The Architect Aura / Badge */}
+                    {isPremium && (
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setShowArchitectBenefits(true)}
+                            className="relative group flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mystic-glow overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                            <Sparkles className="w-4 h-4 text-amber-400" />
+                            <span className="text-[10px] uppercase tracking-widest text-amber-400/90 font-bold">
+                                {language === 'en' ? 'Architect Mode Active' : 'Modo Arquitecto Activo'}
+                            </span>
+                        </motion.button>
+                    )}
                     <IntentionWidget />
                 </div>
 
@@ -208,6 +235,11 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
             <AnimatePresence>
                 {showWelcome && <WelcomeExplainer onClose={handleCloseWelcome} />}
             </AnimatePresence>
+
+            <ArchitectBenefitsModal 
+                isOpen={showArchitectBenefits}
+                onClose={() => setShowArchitectBenefits(false)}
+            />
         </div>
     );
 };
