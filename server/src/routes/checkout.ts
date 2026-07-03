@@ -37,6 +37,8 @@ export const checkoutRoutes = async (app: FastifyInstance) => {
                     },
                 ],
                 mode: 'subscription',
+                // Enable promo codes
+                allow_promotion_codes: true,
                 // Important: pass the userId so the webhook can upgrade the correct account
                 client_reference_id: userId,
                 metadata: {
@@ -76,6 +78,7 @@ export const checkoutRoutes = async (app: FastifyInstance) => {
                 payment_method_types: ['card'],
                 line_items: [{ price: priceId, quantity: 1 }],
                 mode: 'payment', // One-time, NOT subscription
+                allow_promotion_codes: true, // Enable promo codes
                 client_reference_id: userId,
                 metadata: {
                     user_id: userId,
