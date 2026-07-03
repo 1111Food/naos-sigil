@@ -174,16 +174,28 @@ export const initTelegramBot = () => {
             }
         });
 
-        // deleteWebhook fixes 409 Conflict after dev restarts
-        bot!.telegram.deleteWebhook().then(() => {
-            bot!.launch().catch(err => {
-                console.error("🔥 Telegram Bot Launch Failed:", err.message || err);
-                console.warn("⚠️ Sigil Telegram Node is offline, but the Great Work continues...");
+        // deleteWebhook + delay fixes 409 Conflict after dev restarts
+        bot!.telegram.deleteWebhook({ drop_pending_updates: true })
+            .then(() => new Promise(resolve => setTimeout(resolve, 2000))) // 2s grace period
+            .then(() => {
+                bot!.launch({ dropPendingUpdates: true }).catch(err => {
+                    if (err?.response?.error_code === 409) {
+                        console.warn('⚠️ [TELEGRAM] 409 Conflict - another instance still running. Will retry in 10s...');
+                        setTimeout(() => {
+                            bot?.launch({ dropPendingUpdates: true }).catch(e => 
+                                console.error('🔥 Telegram relaunch failed:', e.message)
+                            );
+                        }, 10000);
+                    } else {
+                        console.error('🔥 Telegram Bot Launch Failed:', err.message || err);
+                        console.warn('⚠️ Sigil Telegram Node is offline, but the Great Work continues...');
+                    }
+                });
+                console.log('🌌 Sigil Telegram Node: CONNECTED & LISTENING.');
+            })
+            .catch(err => {
+                console.error('🔥 Telegram Webhook Deletion Failed:', err);
             });
-            console.log("🌌 Sigil Telegram Node: CONNECTED & LISTENING.");
-        }).catch(err => {
-            console.error("🔥 Telegram Webhook Deletion Failed:", err);
-        });
 
         // Graceful stop
         process.once('SIGINT', () => bot?.stop('SIGINT'));

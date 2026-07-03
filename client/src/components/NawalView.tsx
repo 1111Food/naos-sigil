@@ -3,6 +3,7 @@ import { Sparkles, Compass, ChevronDown, Scroll, Lock, Zap, ChevronRight } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useSubscription } from '../hooks/useSubscription';
+import { useUpgrade } from '../contexts/UpgradeContext';
 import { MAYAN_MANUAL } from '../data/manuals/mayan';
 import { MAYAN_MANUAL_EN } from '../data/manuals/mayan_en';
 import { getNahualImage, getMayanToneName } from '../utils/nahualMapper';
@@ -92,8 +93,10 @@ const SmallNawal = ({ id, name, label }: { id?: string, name?: string, label: st
 export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
+    const { status: subscription } = useSubscription(!overrideProfile);
+    const { triggerUpgrade } = useUpgrade();
 
-    // Logic for Profile Injection
+    // Prioritize passed profile data over hook if present
     const profile = overrideProfile || activeProfile;
     const isLoading = overrideProfile ? false : activeLoading;
 
@@ -103,7 +106,6 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     // HOOKS
     const [openSectionId, setOpenSectionId] = useState<string | null>(null);
 
-    const { status: subscription } = useSubscription(!overrideProfile);
     const isPremium = overrideProfile
         ? true
         : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
@@ -321,28 +323,39 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                 </div>
                             </div>
 
-                            {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
-                            <div
-                                className="w-full mt-10 p-5 bg-gradient-to-br from-emerald-950/60 to-slate-950/80 rounded-[2rem] border border-emerald-500/20 shadow-lg cursor-pointer hover:border-emerald-400 transition-all active:scale-[0.98] text-left"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowDeepInsight(true);
-                                    if (isPremium && nawal && !aiInterpretations[nawal.kicheName]) {
-                                        fetchAiInterpretation(nawal.kicheName);
-                                    }
-                                }}
-                            >
-                                <div className="flex items-center gap-2 text-amber-400 mb-1">
-                                    <Zap className={`w-4 h-4 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
-                                    {isPremium && (
-                                        <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500`} />
-                                    )}
+                            {/* INTERPRETACIÓN PROFUNDA - SOLO PARA PREMIUM */}
+                            {isPremium ? (
+                                <div
+                                    className="w-full mt-10 p-5 bg-gradient-to-br from-emerald-950/60 to-slate-950/80 rounded-[2rem] border border-emerald-500/20 shadow-lg cursor-pointer hover:border-emerald-400 transition-all active:scale-[0.98] text-left"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowDeepInsight(true);
+                                        if (nawal && !aiInterpretations[nawal.kicheName]) {
+                                            fetchAiInterpretation(nawal.kicheName);
+                                        }
+                                    }}
+                                >
+                                    <div className="flex items-center gap-2 text-amber-400 mb-1">
+                                        <Zap className="w-4 h-4 animate-pulse" />
+                                        <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
+                                        <ChevronRight className="w-4 h-4 ml-auto transition-transform duration-500" />
+                                    </div>
+                                    <p className="text-[9px] text-white/40 font-medium">
+                                        {t('deep_interpretation_tap')}
+                                    </p>
                                 </div>
-                                <p className="text-[9px] text-white/40 font-medium">
-                                    {isPremium ? t('deep_interpretation_tap') : t('deep_interpretation_lock')}
-                                </p>
-                            </div>
+                            ) : (
+                                <div
+                                    className="w-full mt-10 p-5 bg-black/40 rounded-[2rem] border border-white/5 flex items-center gap-2 opacity-60 cursor-pointer hover:opacity-80 transition-all"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        triggerUpgrade('sigil');
+                                    }}
+                                >
+                                    <Lock className="w-3.5 h-3.5 text-white/30" />
+                                    <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · Modo Arquitecto</span>
+                                </div>
+                            )}
 
                             {/* MODAL PARA LA INTERPRETACIÓN */}
                             {isPremium && showDeepInsight && nawal && (

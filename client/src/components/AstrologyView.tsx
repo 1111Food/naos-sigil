@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useSubscription } from '../hooks/useSubscription';
 import { useTranslation } from '../i18n';
+import { useUpgrade } from '../contexts/UpgradeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Star, User, Clock, MapPin, Zap, Info, X, Theater, Shirt, Building2, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -212,6 +213,7 @@ const DetailCardModal = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: 
 
 export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void, overrideProfile?: any }) {
     const { t, language } = useTranslation();
+    const { triggerUpgrade } = useUpgrade();
 
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
@@ -752,26 +754,37 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                 </div>
                                             </div>
 
-                                            {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
-                                            <div
-                                                className="mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setShowDeepInsight(body.key);
-                                                    if (isPremium && !aiInterpretations[`${body.key}-${body.signName}-${body.house}`]) {
-                                                        fetchAiInterpretation(body.key, body.signName, body.house);
-                                                    }
-                                                }}
-                                            >
-                                                <div className="flex items-center gap-2 text-amber-400 mb-1">
-                                                    <Zap className={`w-3.5 h-3.5 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
-                                                    <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
-                                                    {isPremium && (
-                                                        <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500`} />
-                                                    )}
+                                            {/* INTERPRETACIÓN PROFUNDA - SOLO PARA PREMIUM */}
+                                            {isPremium ? (
+                                                <div
+                                                    className="mt-2 p-3 bg-gradient-to-br from-purple-900/60 to-slate-900/80 rounded-xl border border-purple-500/20 shadow-lg cursor-pointer hover:border-purple-400 transition-all active:scale-[0.98]"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setShowDeepInsight(body.key);
+                                                        if (!aiInterpretations[`${body.key}-${body.signName}-${body.house}`]) {
+                                                            fetchAiInterpretation(body.key, body.signName, body.house);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className="flex items-center gap-2 text-amber-400 mb-1">
+                                                        <Zap className="w-3.5 h-3.5 animate-pulse" />
+                                                        <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
+                                                        <ChevronRight className="w-4 h-4 ml-auto transition-transform duration-500" />
+                                                    </div>
+                                                    <p className="text-[9px] text-white/40 font-medium">{t('deep_interpretation_tap')}</p>
                                                 </div>
-                                                <p className="text-[9px] text-white/40 font-medium">{isPremium ? t('deep_interpretation_tap') : t('premium_locked_desc')}</p>
-                                            </div>
+                                            ) : (
+                                                <div
+                                                    className="mt-2 p-3 bg-black/40 rounded-xl border border-white/5 flex items-center gap-2 opacity-60 cursor-pointer hover:opacity-80 transition-all"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerUpgrade('sigil');
+                                                    }}
+                                                >
+                                                    <Lock className="w-3.5 h-3.5 text-white/30" />
+                                                    <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · Modo Arquitecto</span>
+                                                </div>
+                                            )}
 
                                             {/* MODAL PARA LA INTERPRETACIÓN */}
                                             {isPremium && showDeepInsight === body.key && (

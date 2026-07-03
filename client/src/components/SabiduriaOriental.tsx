@@ -3,6 +3,7 @@ import { Scroll, Sparkles, Users, Heart, Coins, ChevronDown, Lock, Zap, ChevronR
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '../hooks/useProfile';
 import { useSubscription } from '../hooks/useSubscription';
+import { useUpgrade } from '../contexts/UpgradeContext';
 import { CHINESE_ZODIAC_WISDOM } from '../data/chineseZodiacData';
 import { CHINESE_ZODIAC_WISDOM_EN } from '../data/chineseZodiacData_en';
 import { getChineseZodiacImage } from '../utils/chineseMapper';
@@ -38,16 +39,15 @@ const ChineseAnimalImage = ({ animal, className }: { animal: string, className?:
 };
 // @ts-ignore
 export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overrideProfile }) => {
-    const { profile: hookProfile, loading } = useProfile();
-    // Logic: Use passed profile (override) OR hook profile
-    const profile = overrideProfile || hookProfile;
     const { t, language } = useTranslation();
     const CHINESE_LIB = language === 'en' ? CHINESE_ZODIAC_WISDOM_EN : CHINESE_ZODIAC_WISDOM;
 
-    // HOOKS FIRST:
-    const [openSectionId, setOpenSectionId] = useState<string | null>(null);
-
+    // --- UNIFIED STATE (v9.16) ---
+    const { profile: hookProfile, loading } = useProfile();
+    const profile = overrideProfile || hookProfile;
     const { status: subscription } = useSubscription(!overrideProfile);
+    const { triggerUpgrade } = useUpgrade();
+
     const isPremium = overrideProfile
         ? true
         : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
@@ -286,28 +286,39 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                     </div>
                 </div>
 
-                {/* INTERPRETACIÓN PROFUNDA (PREMIUM FEATURE) */}
-                <div
-                    className="w-full mt-10 p-5 bg-gradient-to-br from-rose-950/60 to-slate-950/80 rounded-[2rem] border border-rose-500/20 shadow-lg cursor-pointer hover:border-rose-400 transition-all active:scale-[0.98] text-left"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setShowDeepInsight(true);
-                        if (isPremium && chineseData?.animal && !aiInterpretations[chineseData.animal]) {
-                            fetchAiInterpretation(chineseData.animal);
-                        }
-                    }}
-                >
-                    <div className="flex items-center gap-2 text-amber-400 mb-1">
-                        <Zap className={`w-4 h-4 ${isPremium ? 'animate-pulse' : 'text-gray-500'}`} />
-                        <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
-                        {isPremium && (
-                            <ChevronRight className={`w-4 h-4 ml-auto transition-transform duration-500`} />
-                        )}
+                {/* INTERPRETACIÓN PROFUNDA - SOLO PARA PREMIUM */}
+                {isPremium ? (
+                    <div
+                        className="w-full mt-10 p-5 bg-gradient-to-br from-rose-950/60 to-slate-950/80 rounded-[2rem] border border-rose-500/20 shadow-lg cursor-pointer hover:border-rose-400 transition-all active:scale-[0.98] text-left"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeepInsight(true);
+                            if (chineseData?.animal && !aiInterpretations[chineseData.animal]) {
+                                fetchAiInterpretation(chineseData.animal);
+                            }
+                        }}
+                    >
+                        <div className="flex items-center gap-2 text-amber-400 mb-1">
+                            <Zap className="w-4 h-4 animate-pulse" />
+                            <span className="text-[11px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">{t('deep_interpretation')}</span>
+                            <ChevronRight className="w-4 h-4 ml-auto transition-transform duration-500" />
+                        </div>
+                        <p className="text-[9px] text-white/40 font-medium">
+                            {t('deep_interpretation_tap')}
+                        </p>
                     </div>
-                    <p className="text-[9px] text-white/40 font-medium">
-                        {isPremium ? t('deep_interpretation_tap') : t('deep_interpretation_lock')}
-                    </p>
-                </div>
+                ) : (
+                    <div
+                        className="w-full mt-10 p-5 bg-black/40 rounded-[2rem] border border-white/5 flex items-center gap-2 opacity-60 cursor-pointer hover:opacity-80 transition-all"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            triggerUpgrade('sigil');
+                        }}
+                    >
+                        <Lock className="w-3.5 h-3.5 text-white/30" />
+                        <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · Modo Arquitecto</span>
+                    </div>
+                )}
 
                 {/* MODAL PARA LA INTERPRETACIÓN */}
                 {isPremium && showDeepInsight && chineseData?.animal && (
