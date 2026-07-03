@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Zap } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { API_BASE_URL } from '../lib/api';
 
@@ -13,7 +13,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     const { profile } = useProfile();
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
-    const handleStripeCheckout = async (priceId: string) => {
+    const handleStripeCheckout = async (priceId: string, endpoint: string = 'create-session') => {
         if (!profile?.id) {
             console.error("❌ Checkout Error: No authenticated user found.");
             return;
@@ -22,7 +22,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
         setIsCheckoutLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/checkout/create-session`, {
+            const response = await fetch(`${API_BASE_URL}/api/checkout/${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -34,7 +34,6 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
             const data = await response.json();
 
             if (data.url) {
-                // Redirect user to Stripe Checkout
                 window.location.href = data.url;
             } else {
                 console.error("❌ Stripe session creation failed:", data.error);
@@ -56,6 +55,29 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
             </p>
 
             <div className="flex flex-col gap-3 w-full mt-2">
+
+                {/* 🌟 Plan Chispa: $3 / 3 días - NUEVO */}
+                <motion.div
+                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(251,191,36,0.05)' }}
+                    onClick={() => handleStripeCheckout(
+                        import.meta.env.VITE_STRIPE_PRICE_3DAYS || '',
+                        'create-session-3days'
+                    )}
+                    className={`p-4 rounded-2xl bg-amber-500/5 border border-amber-500/30 flex items-center justify-between cursor-pointer transition-all relative overflow-hidden ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                >
+                    <div className="absolute top-0 left-0 bg-amber-400 text-black text-[8px] font-black px-2 py-0.5 rounded-br-lg uppercase tracking-wider flex items-center gap-1">
+                        <Zap className="w-2.5 h-2.5" />
+                        Prueba sin compromiso
+                    </div>
+                    <div className="flex flex-col items-start mt-3">
+                        <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Plan Chispa</span>
+                        <span className="text-[10px] text-amber-300/60">Acceso completo 72 horas · Pago único</span>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 mt-3">
+                        <span className="text-sm font-black text-amber-400">$3.00 <span className="text-[10px] font-normal text-white/40">/ 3 días</span></span>
+                    </div>
+                </motion.div>
+
                 {/* Monthly */}
                 <motion.div
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.03)' }}
@@ -88,7 +110,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
                         <span className="text-sm font-black text-cyan-400">$111.00 <span className="text-[10px] font-normal text-white/40">/ año</span></span>
                     </div>
                 </motion.div>
-                
+
                 {isCheckoutLoading && (
                     <div className="flex items-center justify-center gap-2 text-[10px] text-cyan-400 font-bold animate-pulse">
                         <Loader2 className="w-3 h-3 animate-spin" />

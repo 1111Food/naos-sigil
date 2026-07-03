@@ -1,10 +1,28 @@
 import { SubscriptionStatus } from '../../types';
 import { UserService } from '../user/service';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 
 export class SubscriptionService {
 
     static async getStatus(userId: string): Promise<SubscriptionStatus> {
         const user = await UserService.getProfile(userId);
+        
+        // Auto-degrade expired premium plans (e.g. the 3-day Spark plan)
+        if (user.plan_type === 'premium' || user.plan_type === 'premium_plus') {
+            const expiresAt = (user as any).subscription_expires_at;
+            if (expiresAt && new Date(expiresAt) < new Date()) {
+                console.log(`⏰ [SUBSCRIPTION] Plan expired for user ${userId}. Auto-degrading to free.`);
+                // Downgrade in DB asynchronously (fire and forget)
+                supabaseAdmin.from('profiles')
+                    .update({ plan_type: 'free', updated_at: new Date().toISOString() })
+                    .eq('id', userId)
+                    .then(({ error }) => {
+                        if (error) console.error('❌ Auto-degrade failed:', error.message);
+                    });
+                return { plan: 'FREE', features: ['basic_chat'] };
+            }
+        }
+        
         return user.subscription;
     }
 

@@ -85,6 +85,19 @@ export class UserService {
                     activeSub = baseProfile.sub_profiles.find(p => p.id === baseProfile.active_sub_profile_id);
                 }
 
+                // 🔑 CRITICAL FIX: Derive subscription from the authoritative plan_type SQL column.
+                // The Stripe webhook writes plan_type. We must reflect that here, NOT rely on
+                // the stale JSONB 'subscription' field which is never updated by the webhook.
+                const planType = data.plan_type || baseProfile.plan_type || 'free';
+                const isPremiumPlan = planType === 'premium' || planType === 'premium_plus' || planType === 'admin';
+                const derivedSubscription: any = isPremiumPlan
+                    ? {
+                        plan: planType === 'admin' ? 'EXTENDED' : 'PREMIUM',
+                        validUntil: data.subscription_expires_at || new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+                        features: ['basic_chat', 'daily_energy', 'tarot_spreads', 'full_chart', 'deep_interpretation', 'synastry', 'lab', 'protocols']
+                    }
+                    : (baseProfile.subscription || { plan: 'FREE', features: ['basic_chat'] });
+
                 const dbProfile: UserProfile = {
                     ...baseProfile,
                     id: data.id,
@@ -106,8 +119,8 @@ export class UserService {
                     birthPlace: activeSub?.birthPlace || baseProfile.birthPlace || '',
                     birthState: activeSub?.birthState || baseProfile.birthState || '',
                     birthCountry: activeSub?.birthCountry || baseProfile.birthCountry || 'Guatemala',
-                    subscription: baseProfile.subscription || { plan: 'FREE', features: [] },
-                    plan_type: data.plan_type || baseProfile.plan_type || 'free',
+                    subscription: derivedSubscription,
+                    plan_type: planType,
                     usage_level: data.usage_level || baseProfile.usage_level || 'normal',
                     daily_interactions: data.daily_interactions || baseProfile.daily_interactions || 0,
                     onboarding_completed: data.onboarding_completed || baseProfile.onboarding_completed || false,

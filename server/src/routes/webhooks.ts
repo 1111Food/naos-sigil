@@ -56,12 +56,17 @@ export const webhookRoutes = async (app: FastifyInstance) => {
                         return reply.status(400).send({ error: 'Metadata missing' });
                     }
 
-                    console.log(`💎 Upgrading User ${userId} to PREMIUM. Strategy: checkout.session.completed`);
-
-                    // Set expires_at to 1 year or 1 month in the future, or rely on Stripe's subscription updates
-                    // For now, setting a very long time, Stripe handles rebilling
+                    const is3DayPlan = session.metadata?.plan_mode === '3days';
+                    
+                    // For 3-day plan: expires 72 hours from now. For monthly: 10 years (Stripe manages rebilling).
                     const expiresAt = new Date();
-                    expiresAt.setFullYear(expiresAt.getFullYear() + 10);
+                    if (is3DayPlan) {
+                        expiresAt.setTime(expiresAt.getTime() + 3 * 24 * 60 * 60 * 1000); // +72 hours
+                        console.log(`⚡ [WEBHOOK] 3-Day Plan activated for User ${userId}. Expires: ${expiresAt.toISOString()}`);
+                    } else {
+                        expiresAt.setFullYear(expiresAt.getFullYear() + 10);
+                        console.log(`💎 [WEBHOOK] Upgrading User ${userId} to PREMIUM. Strategy: checkout.session.completed`);
+                    }
 
                     const { error } = await supabaseAdmin
                         .from('profiles')
@@ -77,7 +82,7 @@ export const webhookRoutes = async (app: FastifyInstance) => {
                         return reply.status(500).send({ error: 'DB update failed' });
                     }
 
-                    console.log(`🚀 [SUCCESS] User ${userId} is now a Premium Architect.`);
+                    console.log(`🚀 [SUCCESS] User ${userId} is now a Premium Architect${is3DayPlan ? ' (3-Day Spark)' : ''}.`);
                     break;
                 }
                 

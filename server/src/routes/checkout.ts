@@ -55,4 +55,41 @@ export const checkoutRoutes = async (app: FastifyInstance) => {
         }
     });
 
+    // 🌟 Plan Chispa: $3 por 3 días de acceso completo (pago único)
+    app.post('/create-session-3days', async (request: FastifyRequest, reply: FastifyReply) => {
+        try {
+            if (!stripe) {
+                return reply.status(500).send({ error: 'Stripe configuration missing on server' });
+            }
+
+            const userId = request.headers['x-profile-id'] as string;
+            if (!userId) {
+                return reply.status(401).send({ error: 'User must be authenticated (missing x-profile-id)' });
+            }
+
+            const priceId = (request.body as any).priceId || config.STRIPE_PRICE_3DAYS;
+            if (!priceId) {
+                return reply.status(400).send({ error: 'STRIPE_PRICE_3DAYS not configured on server' });
+            }
+
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                line_items: [{ price: priceId, quantity: 1 }],
+                mode: 'payment', // One-time, NOT subscription
+                client_reference_id: userId,
+                metadata: {
+                    user_id: userId,
+                    plan_mode: '3days' // Webhook uses this to set 72h expiry
+                },
+                success_url: `https://naos-sigil.vercel.app/sanctuary?upgrade=success&plan=spark`,
+                cancel_url: `https://naos-sigil.vercel.app/sanctuary?upgrade=canceled`,
+            });
+
+            return reply.send({ url: session.url });
+        } catch (error: any) {
+            console.error('🔥 Error creating 3-day checkout session:', error);
+            return reply.status(500).send({ error: error.message || 'Internal server error' });
+        }
+    });
+
 };

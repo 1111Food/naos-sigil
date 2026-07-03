@@ -52,7 +52,7 @@ export const DeepIdentityView: React.FC<DeepIdentityViewProps> = ({ profile, onC
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-500/10 blur-[120px] rounded-full pointer-events-none" />
 
             {/* HEADER / NAVIGATION */}
-            <header className="relative z-10 w-full max-w-6xl mx-auto px-6 flex flex-col gap-8 pb-4">
+            <header className="relative z-[600] w-full max-w-6xl mx-auto px-6 flex flex-col gap-8 pb-4">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={onClose}
