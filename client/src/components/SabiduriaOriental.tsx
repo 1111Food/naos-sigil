@@ -43,14 +43,13 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
     const CHINESE_LIB = language === 'en' ? CHINESE_ZODIAC_WISDOM_EN : CHINESE_ZODIAC_WISDOM;
 
     // --- UNIFIED STATE (v9.16) ---
-    const { profile: hookProfile, loading } = useProfile();
-    const profile = overrideProfile || hookProfile;
-    const { status: subscription } = useSubscription(!overrideProfile);
+    const { profile: activeProfile, loading } = useProfile();
+    const profile = overrideProfile || activeProfile;
+    const { status: subscription } = useSubscription();
     const { triggerUpgrade } = useUpgrade();
 
-    const isPremium = overrideProfile
-        ? true
-        : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+    // Check Premium status based ONLY on logged-in user
+    const isPremium = (activeProfile?.plan_type === 'premium' || activeProfile?.plan_type === 'premium_plus' || activeProfile?.plan_type === 'admin') ||
         (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 

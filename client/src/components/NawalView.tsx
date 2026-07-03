@@ -93,7 +93,7 @@ const SmallNawal = ({ id, name, label }: { id?: string, name?: string, label: st
 export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
-    const { status: subscription } = useSubscription(!overrideProfile);
+    const { status: subscription } = useSubscription();
     const { triggerUpgrade } = useUpgrade();
 
     // Prioritize passed profile data over hook if present
@@ -106,9 +106,8 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     // HOOKS
     const [openSectionId, setOpenSectionId] = useState<string | null>(null);
 
-    const isPremium = overrideProfile
-        ? true
-        : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+    // Check Premium status based ONLY on logged-in user
+    const isPremium = (activeProfile?.plan_type === 'premium' || activeProfile?.plan_type === 'premium_plus' || activeProfile?.plan_type === 'admin') ||
         (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 

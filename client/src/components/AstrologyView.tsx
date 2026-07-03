@@ -218,8 +218,8 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     // --- UNIFIED STATE (v9.16) ---
     const { profile: activeProfile, loading: activeLoading } = useActiveProfile();
 
-    // Only fetch subscription if we are NOT in guest mode (overrideProfile is undefined)
-    const { status: subscription } = useSubscription(!overrideProfile);
+    // Always fetch subscription for the current logged-in user to check premium access
+    const { status: subscription } = useSubscription();
 
     // Logic for Profile Injection (Guest Mode vs User Mode)
     // PRIORIDAD CRÍTICA: Si existe overrideProfile, úsalo y NO esperes a loading
@@ -467,9 +467,8 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     };
 
     // Check Premium status (Guest Mode is always Premium)
-    const isPremium = overrideProfile
-        ? true
-        : (profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || profile?.plan_type === 'admin') ||
+    // Premium access is based ONLY on the logged-in user's active profile and subscription
+    const isPremium = (activeProfile?.plan_type === 'premium' || activeProfile?.plan_type === 'premium_plus' || activeProfile?.plan_type === 'admin') ||
         (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 
