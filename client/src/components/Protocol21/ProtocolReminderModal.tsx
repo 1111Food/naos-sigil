@@ -4,6 +4,10 @@ import { Sparkles, X, Clock, MessageCircle, Check, Bell } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../i18n';
+import { useActiveProfile } from '../../hooks/useActiveProfile';
+import { useSubscription } from '../../hooks/useSubscription';
+import { useUpgrade } from '../../contexts/UpgradeContext';
+import { Lock } from 'lucide-react';
 
 interface ProtocolReminderModalProps {
     isOpen: boolean;
@@ -18,6 +22,14 @@ export const ProtocolReminderModal: React.FC<ProtocolReminderModalProps> = ({ is
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
+
+    // Premium Check
+    const { profile: activeProfile } = useActiveProfile();
+    const { status: subscription } = useSubscription();
+    const { triggerUpgrade } = useUpgrade();
+    const isPremium = (activeProfile?.plan_type === 'premium' || activeProfile?.plan_type === 'premium_plus' || activeProfile?.plan_type === 'admin') ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 
     useEffect(() => {
         if (!isOpen || !userId) return;
@@ -159,18 +171,29 @@ export const ProtocolReminderModal: React.FC<ProtocolReminderModalProps> = ({ is
                                         </label>
                                         
                                         <div className="grid grid-cols-2 gap-4">
-                                            <button
-                                                onClick={() => setIsTelegramEnabled(!isTelegramEnabled)}
-                                                className={cn(
-                                                    "flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border transition-all duration-500",
-                                                    isTelegramEnabled 
-                                                        ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-400" 
-                                                        : "bg-white/[0.03] border-white/5 text-white/30 hover:bg-white/[0.05]"
-                                                )}
-                                            >
-                                                <MessageCircle className={cn("w-6 h-6", isTelegramEnabled ? "animate-pulse" : "")} />
-                                                <span className="text-[10px] uppercase tracking-widest font-bold">{t('protocol_reminder_telegram' as any)}</span>
-                                            </button>
+                                            {isPremium ? (
+                                                <button
+                                                    onClick={() => setIsTelegramEnabled(!isTelegramEnabled)}
+                                                    className={cn(
+                                                        "flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border transition-all duration-500",
+                                                        isTelegramEnabled 
+                                                            ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-400" 
+                                                            : "bg-white/[0.03] border-white/5 text-white/30 hover:bg-white/[0.05]"
+                                                    )}
+                                                >
+                                                    <MessageCircle className={cn("w-6 h-6", isTelegramEnabled ? "animate-pulse" : "")} />
+                                                    <span className="text-[10px] uppercase tracking-widest font-bold">{t('protocol_reminder_telegram' as any)}</span>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => triggerUpgrade('sigil')}
+                                                    className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border bg-black/40 border-white/5 text-white/30 hover:opacity-80 transition-all group"
+                                                >
+                                                    <Lock className="w-5 h-5 opacity-50" />
+                                                    <span className="text-[10px] uppercase tracking-widest font-bold">Telegram</span>
+                                                    <span className="text-[8px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full font-bold">Arquitecto</span>
+                                                </button>
+                                            )}
 
                                             <button
                                                 disabled

@@ -6,6 +6,10 @@ import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
 import { getAsyncAuthHeaders } from '../lib/api';
 import { SigilExplainer } from './SigilExplainer';
+import { useActiveProfile } from '../hooks/useActiveProfile';
+import { useSubscription } from '../hooks/useSubscription';
+import { useUpgrade } from '../contexts/UpgradeContext';
+import { Lock } from 'lucide-react';
 
 interface SigilSettingsModalProps {
     isOpen: boolean;
@@ -23,6 +27,14 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
     const [isOracleEnabled, setIsOracleEnabled] = useState(true);
     const [saving, setSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    
+    // Plan and upgrade hooks
+    const { profile: activeProfile } = useActiveProfile();
+    const { status: subscription } = useSubscription();
+    const { triggerUpgrade } = useUpgrade();
+    const isPremium = (activeProfile?.plan_type === 'premium' || activeProfile?.plan_type === 'premium_plus' || activeProfile?.plan_type === 'admin') ||
+        (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
+        (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
     const [isVoiceEnabled, setIsVoiceEnabled] = useState(() => {
         return localStorage.getItem('naos_sigil_voice_enabled') === 'true';
     });
@@ -172,16 +184,29 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
                             <label className="text-xs uppercase tracking-wider font-semibold text-white/50">{t('dispatch_channels')}</label>
                             
                             <div className="flex flex-col gap-2">
-                                <button 
-                                    onClick={onOpenTelegram}
-                                    className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 hover:border-cyan-500/30 rounded-xl transition-all group"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <Send size={20} className="text-cyan-400 group-hover:scale-110 transition-transform"/>
-                                        <span className="text-sm font-light text-white/80">{t('link_telegram')}</span>
-                                    </div>
-                                    <span className="text-xs text-cyan-400/50">{t('open')}</span>
-                                </button>
+                                {isPremium ? (
+                                    <button 
+                                        onClick={onOpenTelegram}
+                                        className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 hover:border-cyan-500/30 rounded-xl transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Send size={20} className="text-cyan-400 group-hover:scale-110 transition-transform"/>
+                                            <span className="text-sm font-light text-white/80">{t('link_telegram')}</span>
+                                        </div>
+                                        <span className="text-xs text-cyan-400/50">{t('open')}</span>
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={() => triggerUpgrade('sigil')}
+                                        className="w-full flex items-center justify-between p-4 bg-black/40 border border-white/5 opacity-60 hover:opacity-80 rounded-xl transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Lock size={18} className="text-white/30" />
+                                            <span className="text-sm font-light text-white/40">{t('link_telegram')}</span>
+                                        </div>
+                                        <span className="text-[10px] uppercase tracking-wider text-amber-400/70 font-bold bg-amber-400/10 px-2 py-1 rounded-md">Arquitecto</span>
+                                    </button>
+                                )}
 
                                 <button 
                                     disabled

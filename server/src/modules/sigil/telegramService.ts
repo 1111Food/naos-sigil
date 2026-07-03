@@ -68,13 +68,21 @@ export const initTelegramBot = () => {
             // 1. Verificar si ya está vinculado
             const { data: profile, error: checkError } = await supabase
                 .from('profiles')
-                .select('id, full_name, email, language, profile_data')
+                .select('id, full_name, email, language, profile_data, plan_type')
                 .eq('telegram_chat_id', chatId)
                 .maybeSingle();
 
             if (checkError) console.error("[TELEGRAM] Check Error:", checkError);
 
             if (profile) {
+                // Check if user has a premium plan
+                if (profile.plan_type !== 'premium' && profile.plan_type !== 'premium_plus' && profile.plan_type !== 'admin') {
+                    ctx.reply(profile.language === 'en' 
+                        ? "Your current access level does not permit Sigil interaction via Telegram. Please upgrade to the Architect plan in the Temple."
+                        : "Tu nivel de acceso actual no permite la interacción con el Sigil vía Telegram. Por favor, adquiere el plan Arquitecto en el Templo.");
+                    return;
+                }
+
                 // Ya está vinculado -> Interacción conversacional con el Sigil
                 console.log(`[TELEGRAM] Interactuando con Sigil para ${profile.full_name} (${profile.email})`);
                 
