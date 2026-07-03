@@ -54,6 +54,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
 
     const [showDeepInsight, setShowDeepInsight] = useState<boolean>(false);
+    const [openSectionId, setOpenSectionId] = useState<string | null>(null);
     const [aiInterpretations, setAiInterpretations] = useState<Record<string, string>>({});
     const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
 
