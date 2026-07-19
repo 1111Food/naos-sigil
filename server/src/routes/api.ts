@@ -15,6 +15,8 @@ import { NaosCompilerService } from '../modules/user/naosCompiler.service';
 import { ProtocolService } from '../modules/protocol/service';
 import { UsageGuardService } from '../modules/user/UsageGuard';
 import { sendProactiveMessage } from '../modules/sigil/telegramService';
+import { ForecastService } from '../modules/forecast/service';
+import { LifelineService } from '../modules/lifeline/service';
 
 import { TTSService } from '../modules/sigil/ttsService';
 const geoip = require('geoip-lite');
@@ -121,6 +123,80 @@ export async function apiRoutes(app: FastifyInstance) {
 
 
     app.get('/ping', async () => ({ status: 'vibrant', message: `Cosmos is alive on Port ${config.PORT}` }));
+
+    // 🔮 Forecast (Time Map) Endpoints
+    app.get<{ Querystring: { lang?: string } }>('/api/forecast', { preHandler: [validateUser] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        const lang = req.query.lang || 'es';
+        
+        try {
+            const map = await ForecastService.getTimeMap(userId, lang);
+            if (!map) {
+                return reply.status(404).send({ error: "No forecast found", needsGeneration: true });
+            }
+            return { map };
+        } catch (error: any) {
+            console.error("🔥 Error getting forecast:", error);
+            return reply.status(500).send({ error: error.message });
+        }
+    });
+
+    app.post<{ Body: { lang?: string } }>('/api/forecast/generate', { preHandler: [validateUser] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        const lang = req.body.lang || 'es';
+        
+        try {
+            const map = await ForecastService.generateTimeMap(userId, lang);
+            return { map };
+        } catch (error: any) {
+            console.error("🔥 Error generating forecast:", error);
+            return reply.status(500).send({ error: error.message });
+        }
+    });
+
+    // 🧬 Lifeline (Eje Evolutivo) Endpoints
+    app.get<{ Querystring: { lang?: string } }>('/api/lifeline', { preHandler: [validateUser] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        const lang = req.query.lang || 'es';
+        
+        try {
+            const map = await LifelineService.getLifeline(userId, lang);
+            if (!map) {
+                return reply.status(404).send({ error: "No lifeline found", needsGeneration: true });
+            }
+            return { map };
+        } catch (error: any) {
+            console.error("🔥 Error getting lifeline:", error);
+            return reply.status(500).send({ error: error.message });
+        }
+    });
+
+    app.post<{ Body: { lang?: string } }>('/api/lifeline/generate', { preHandler: [validateUser] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        const lang = req.body.lang || 'es';
+        
+        try {
+            const map = await LifelineService.generateLifeline(userId, lang);
+            return { map };
+        } catch (error: any) {
+            console.error("🔥 Error generating lifeline:", error);
+            return reply.status(500).send({ error: error.message });
+        }
+    });
+
+    // ⚡ Current Energy Endpoint
+    app.get<{ Querystring: { lang?: string } }>('/api/energy/current', { preHandler: [validateUser] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        const lang = req.query.lang || 'es';
+        
+        try {
+            const energy = await EnergyService.getCurrentEnergy(userId, lang);
+            return { energy };
+        } catch (error: any) {
+            console.error("🔥 Error getting current energy:", error);
+            return reply.status(500).send({ error: error.message });
+        }
+    });
 
     // 🔮 Sigil Chat / Interaction Endpoint
     app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { 
@@ -439,6 +515,24 @@ export async function apiRoutes(app: FastifyInstance) {
          } catch (e: any) {
              return reply.status(400).send({ error: e.message });
          }
+    });
+
+
+    // 🔮 Pulso Cuántico (Daily Oracle)
+    app.get<{ Querystring: { offset?: number, lang?: string } }>('/api/oracle/daily', { preHandler: [validateUser] }, async (req, reply) => {
+        try {
+            const offset = Number(req.query.offset) || 0;
+            const lang = (req.query.lang || 'es') as 'es' | 'en';
+            const userLocal = new Date(new Date().getTime() + (offset * 3600000));
+            
+            const { DailyOracleEngine } = require('../modules/oracle/DailyOracleEngine');
+            const readingData = await DailyOracleEngine.getOrGenerateDailyReading((req as any).user_id, userLocal, offset, lang);
+
+            return { status: 'ok', data: readingData };
+        } catch (error: any) {
+            console.error("API Error (/api/oracle/daily):", error);
+            return reply.status(500).send({ error: error.message });
+        }
     });
 
     app.post<{ Body: { active_sub_profile_id?: string } }>('/api/user/profiles/switch', { preHandler: [validateUser] }, async (req, reply) => {

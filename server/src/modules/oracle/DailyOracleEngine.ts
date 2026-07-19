@@ -1,6 +1,7 @@
 import { AstrologyEngine } from '../astrology/engine';
 import { NumerologyService } from '../numerology/service';
 import { MayanCalculator } from '../maya/calculator';
+import { supabase } from '../../lib/supabase';
 
 const NAHUALES = [
     "Imox", "Ik", "Akbal", "Kan", "Chicchan", "Cimi", "Manik", "Lamat", "Muluk", "Ok",
@@ -37,21 +38,35 @@ export class DailyOracleEngine {
      * This represents the "PULSO DE HOY" (Transit Data).
      */
     public static async getDayPillars(date: Date, lat: number = 14.6349, lng: number = -90.5069) {
-        // 1. Astrology Transits (Sun, Moon, Phase)
+        // We use UTC date string for caching global state
+        const dateStr = date.toISOString().split('T')[0];
+
+        // 1. Check Cache in daily_cosmic_states
+        const { data: cachedState, error } = await supabase
+            .from('daily_cosmic_states')
+            .select('*')
+            .eq('date_utc', dateStr)
+            .maybeSingle();
+            
+        if (cachedState) {
+            return {
+                astrology: cachedState.astrology_data,
+                numerology: cachedState.numerology_data,
+                mayan: cachedState.mayan_data,
+                chinese: cachedState.chinese_data
+            };
+        }
+
+        // 2. Generate if not cached
         const transitChart = AstrologyEngine.calculateNatalChart(date, lat, lng);
         const sun = transitChart.planets.find(p => p.name === 'Sun');
         const moon = transitChart.planets.find(p => p.name === 'Moon');
         
-        // 2. Numerology (Universal Day)
         const universalNum = this.calculateUniversalDay(date);
-
-        // 3. Mayan (Daily Nahual)
         const mayan = this.calculateTzolkin(date);
-
-        // 4. Chinese (Yearly Animal influence)
         const chinese = { animal: this.getChineseAnimal(date.getUTCFullYear()) };
 
-        return {
+        const dayPillars = {
             astrology: {
                 sunSign: sun?.sign || 'Unknown',
                 moonSign: moon?.sign || 'Unknown',
@@ -62,6 +77,18 @@ export class DailyOracleEngine {
             mayan,
             chinese
         };
+
+        // 3. Save to cache
+        // Ignore errors if another process created it concurrently
+        await supabase.from('daily_cosmic_states').insert({
+            date_utc: dateStr,
+            astrology_data: dayPillars.astrology,
+            numerology_data: dayPillars.numerology,
+            mayan_data: dayPillars.mayan,
+            chinese_data: dayPillars.chinese
+        });
+
+        return dayPillars;
     }
 
     /**
@@ -222,5 +249,91 @@ export class DailyOracleEngine {
             adjustedScores: { resonanceScore, frictionScore, activationScore },
             toneProfile
         };
+    }
+
+    /**
+     * Reusable method to get or generate a daily reading for a user.
+     * Checks if it exists for the user's local day. If not, generates and caches it.
+     */
+    public static async getOrGenerateDailyReading(userId: string, userLocal: Date, offset: number, lang: 'es' | 'en') {
+        const todayStr = userLocal.toISOString().split('T')[0];
+        
+        // 1. Calculate precise UTC bounds for the user's local day to avoid double generation
+        const utcStartOfDay = new Date(new Date(`${todayStr}T00:00:00.000Z`).getTime() - (offset * 3600000)).toISOString();
+        const utcEndOfDay = new Date(new Date(`${todayStr}T23:59:59.999Z`).getTime() - (offset * 3600000)).toISOString();
+        
+        // 2. Check Cache
+        const { data: cached } = await supabase
+            .from('daily_readings')
+            .select('reading_data, reading_text, is_read, energy_score')
+            .eq('user_id', userId)
+            .gte('created_at', utcStartOfDay)
+            .lte('created_at', utcEndOfDay)
+            .maybeSingle();
+
+        if (cached && cached.reading_data) {
+            return cached.reading_data;
+        }
+
+        // 3. Generate 12-Factor Oracle
+        const { data: fullProfile } = await supabase
+            .from('profiles')
+            .select('astrology, numerology, mayan, chinese_animal, chinese_element, nickname, full_name')
+            .eq('id', userId)
+            .single();
+
+        if (!fullProfile) throw new Error("Profile not found");
+
+        const profileForEngine = {
+            astrology_data: fullProfile?.astrology,
+            numerology_data: fullProfile?.numerology,
+            maya_data: fullProfile?.mayan,
+            china_data: { animal: fullProfile?.chinese_animal, element: fullProfile?.chinese_element }
+        };
+
+        const dayPillars = await this.getDayPillars(userLocal);
+        const interaction = this.calculateFusion(profileForEngine, dayPillars);
+        
+        // Fetch Coherence (using dynamic import or mock if service is not imported, but CoherenceService should be available)
+        // Since we didn't import CoherenceService here to avoid circular dependencies, we can fetch directly:
+        const { data: coherenceData } = await supabase
+            .from('coherence_metrics')
+            .select('global_coherence')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+            
+        const gc = coherenceData?.global_coherence || 50;
+        const coherence = {
+            state: gc >= 75 ? 'HIGH' : gc < 45 ? 'LOW' : 'MEDIUM',
+            level: gc / 100
+        };
+        const { toneProfile } = this.getAdaptiveProfile(interaction, coherence.state);
+
+        // This requires importing DailyOracleOracle
+        // We will import it at the top of the file.
+        const { DailyOracleOracle } = require('./DailyOracleOracle');
+
+        const readingData = await DailyOracleOracle.generateDailyReading({
+            userName: fullProfile.nickname || fullProfile.full_name,
+            userPillars: profileForEngine, // Passed in the right format
+            dayPillars,
+            interaction,
+            coherence,
+            toneProfile,
+            language: lang
+        });
+
+        // Cache Result
+        await supabase.from('daily_readings').insert({
+            user_id: userId,
+            reading_text: readingData.texto_principal, // Fallback for old clients
+            reading_data: readingData,
+            energy_score: readingData.score_energia_general,
+            pillars_data: { dayPillars, interaction }
+        });
+
+        return readingData;
     }
 }

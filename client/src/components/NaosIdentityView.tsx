@@ -334,6 +334,24 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     const archetype = synthesis?.arquetipo;
     const archColor = archetype ? (colorConfig[archetype.elemento === 'fuego' ? 'rose' : archetype.elemento === 'tierra' ? 'amber' : archetype.elemento === 'aire' ? 'cyan' : 'indigo']) : colorConfig.cyan;
 
+    // --- DYNAMIC TRANSLATION RESOLVER FOR ARCHETYPE ---
+    const archLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
+    let resolvedId = archetype?.id;
+    if (!resolvedId && archetype?.nombre) {
+        const searchName = archetype.nombre.toLowerCase().trim();
+        const foundInSp = NAOS_ARCHETYPES.find(a => a.nombre.toLowerCase().trim() === searchName);
+        const foundInEn = NAOS_ARCHETYPES_EN.find(a => a.nombre.toLowerCase().trim() === searchName);
+        resolvedId = foundInSp?.id || foundInEn?.id;
+    }
+    const archInfo = resolvedId 
+        ? archLib.find(a => a.id === resolvedId) 
+        : archLib.find(a => a.nombre.toLowerCase().trim() === (archetype?.nombre || '').toLowerCase().trim());
+        
+    const displayArchName = archInfo?.nombre || archetype?.nombre || (language === 'en' ? 'The Custodian' : 'El Custodio');
+    const displayArchFreq = archInfo?.frecuencia || archetype?.frecuencia;
+    const displayArchRole = archInfo?.rol || archetype?.rol;
+    const displayDeepText = archInfo?.interpretacion_profunda || archetype?.interpretacion_profunda || archInfo?.descripcion || archetype?.descripcion;
+
 
     return (
         <div className="relative w-full max-w-6xl mx-auto px-4 pb-32">
@@ -369,7 +387,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                 <div className="md:col-span-2 lg:col-span-3">
                     <InnerStatCard 
                         label={t('identity_archetype_label')} 
-                        value={synthesis?.arquetipo?.nombre || (language === 'en' ? 'The Custodian' : 'El Custodio')} 
+                        value={displayArchName} 
                         isArchetype={true}
                         archColor={synthesis?.arquetipo?.elemento ? frequencyConfig[synthesis.arquetipo.frecuencia] : undefined}
                         delay={0.1}
@@ -435,22 +453,19 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                         
                         <div className="space-y-2">
                             <h1 className="text-4xl md:text-6xl font-serif italic text-white tracking-tighter">
-                                {archetype.nombre}
+                                {displayArchName}
                             </h1>
                             <p className="text-[11px] uppercase tracking-[0.4em] font-bold" style={{ color: archColor.main }}>
-                                {archetype.frecuencia} • {archetype.rol}
+                                {displayArchFreq} • {displayArchRole}
                             </p>
                         </div>
                         
                         <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent" />
                         
                         {isPremium ? (() => {
-                            const localLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
-                            const localMatch = localLib.find(a => a.nombre === archetype.nombre || a.id === archetype.id);
-                            const deepText = archetype.interpretacion_profunda || localMatch?.interpretacion_profunda || archetype.descripcion;
                             return (
-                                <p className="text-xl md:text-2xl text-white/70 font-light italic leading-relaxed max-w-4xl">
-                                    "{deepText}"
+                                <p className="text-white/60 leading-relaxed font-serif text-lg italic mt-8 relative z-10">
+                                    "{displayDeepText}"
                                 </p>
                             );
                         })() : (

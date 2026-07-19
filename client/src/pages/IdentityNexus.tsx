@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, User, ArrowLeft, Info, Lock } from 'lucide-react';
+import { Book, User, ArrowLeft, Info, Lock, Map as MapIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { OracleExplainer } from '../components/OracleExplainer';
 import { useSound } from '../hooks/useSound';
@@ -50,6 +50,16 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
             border: "border-purple-500/30",
             glow: "shadow-[0_0_40px_-10px_rgba(139,92,246,0.4)]",
             locked: false
+        },
+        {
+            id: 'TIME_MAP_NEXUS',
+            title: "Mapa Temporal",
+            subtitle: "Simulador Cuántico y Ciclos Mayores",
+            icon: MapIcon,
+            color: "from-naos-gold/20 to-yellow-500/10",
+            border: "border-naos-gold/30",
+            glow: "shadow-[0_0_40px_-10px_rgba(212,175,55,0.4)]",
+            locked: false
         }
     ];
 
@@ -91,7 +101,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
                     <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-bold">{t('architecture_ser')}</p>
                 </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
                 {options.map((opt, i) => (
                     <motion.div
                         key={opt.id}

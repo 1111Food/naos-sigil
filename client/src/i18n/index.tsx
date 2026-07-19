@@ -98,6 +98,11 @@ export const translations = {
         save_as_task: "Guardar como tarea de hoy",
         interpreting: "Interpretando...",
         discipline_warning: "Tu sistema está perdiendo disciplina. ¿Vas a cerrar el día o lo dejamos caer?",
+        
+        "sigil.dailyFrequency": "Frecuencia del Día",
+        "sigil.quantumEnergyLevel": "Nivel de Energía Cuántica",
+        "sigil.risk": "Riesgo",
+        "sigil.opportunity": "Oportunidad",
         seal_day_now: "Cerrar Día Ahora",
         go_to_sanctuary: "Ir a Santuario",
         oracle_placeholder: "Escribe tu consulta al oráculo...",
@@ -1337,7 +1342,18 @@ export const translations = {
         ritual_air_biohack_meditation_neuro: "Estimula el procesamiento de la corriente dorsal de visión espacial.",
         ritual_air_biohack_anchor_title: "Neuro-Plasticity",
         ritual_air_biohack_anchor_copy: "Mi mente es maleable y expansiva. Aprendo a la velocidad de la luz.",
-        ritual_air_biohack_anchor_description: "Comando de actualización de software. Refuerza la creencia subyacente de que la inteligencia y las habilidades no son fijas, sino sistemas dinámicos que pueden ser reconfigurados a voluntad."
+        ritual_air_biohack_anchor_description: "Comando de actualización de software. Refuerza la creencia subyacente de que la inteligencia y las habilidades no son fijas, sino sistemas dinámicos que pueden ser reconfigurados a voluntad.",
+        coming_soon: "Próximamente",
+        access: "Acceder",
+        lifeline_title: "Línea de Vida (Macro)",
+        lifeline_subtitle: "Ciclos Mayores y Pináculos",
+        annual_horizon_title: "Horizonte Anual (Meso)",
+        annual_horizon_subtitle: "Simulador Cuántico de 12 Meses",
+        current_energy_title: "Energía Actual (Micro)",
+        current_energy_subtitle: "Tránsito Semanal y Diario",
+        identity_nexus: "Nexo de Identidad",
+        time_map: "Mapa Temporal",
+        time_navigator: "Navegador del Tiempo"
     },
     en: {
         language_code: "en",
@@ -2665,7 +2681,18 @@ export const translations = {
         ritual_air_biohack_meditation_neuro: "Stimulates dorsal stream processing of spatial vision.",
         ritual_air_biohack_anchor_title: "Neuro-Plasticity",
         ritual_air_biohack_anchor_copy: "My mind is malleable and expansive. I learn at the speed of light.",
-        ritual_air_biohack_anchor_description: "Software update command. Reinforces the underlying belief that intelligence and skills are not fixed, but dynamic systems that can be reconfigured at will."
+        ritual_air_biohack_anchor_description: "Software update command. Reinforces the underlying belief that intelligence and skills are not fixed, but dynamic systems that can be reconfigured at will.",
+        coming_soon: "Coming Soon",
+        access: "Access",
+        lifeline_title: "Lifeline (Macro)",
+        lifeline_subtitle: "Major Cycles and Pinnacles",
+        annual_horizon_title: "Annual Horizon (Meso)",
+        annual_horizon_subtitle: "12-Month Quantum Simulator",
+        current_energy_title: "Current Energy (Micro)",
+        current_energy_subtitle: "Weekly and Daily Transit",
+        identity_nexus: "Identity Nexus",
+        time_map: "Time Map",
+        time_navigator: "Time Navigator"
     }
 };
 

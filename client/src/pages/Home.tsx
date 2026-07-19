@@ -33,7 +33,6 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
     const { isSettled } = usePerformance();
     const playerRef = React.useRef<PlayerRef>(null);
 
-    const isPremium = (profile as any)?.plan_type === 'premium' || (profile as any)?.plan_type === 'admin';
 
     React.useEffect(() => {
         if (!playerRef.current) return;
@@ -147,7 +146,6 @@ export const Home: React.FC<HomeProps> = ({ onSelectFeature }) => {
 
     const [isLegalOpen, setIsLegalOpen] = useState(false);
     const [legalType, setLegalType] = useState<'terms'|'privacy'|'disclaimer'>('terms');
-    const [showWelcome, setShowWelcome] = useState(false);
     const [showArchitectBenefits, setShowArchitectBenefits] = useState(false);
 
     const handleLegalOpen = (type: 'terms' | 'privacy' | 'disclaimer') => {

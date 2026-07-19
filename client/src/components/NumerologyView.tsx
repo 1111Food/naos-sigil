@@ -437,7 +437,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                         }}
                                                     >
                                                         <Lock className="w-3.5 h-3.5 text-white/30" />
-                                                        <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · Modo Arquitecto</span>
+                                                        <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · {language === 'en' ? 'Architect Mode' : 'Modo Arquitecto'}</span>
                                                     </div>
                                                 )}
 
@@ -446,7 +446,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                     <DeepInterpretationModal
                                                         isOpen={showDeepInsight === item.l}
                                                         onClose={() => setShowDeepInsight(null)}
-                                                        title={`Número ${numValue} en ${PINNACLE_POS_LIB[item.l]?.title || item.t}`}
+                                                        title={`${language === 'en' ? 'Number' : 'Número'} ${numValue} ${language === 'en' ? 'in' : 'en'} ${PINNACLE_POS_LIB[item.l]?.title || item.t}`}
                                                         text={aiInterpretations[`${numValue}-${item.l}`]}
                                                         isLoading={aiLoading[`${numValue}-${item.l}`]}
                                                     />

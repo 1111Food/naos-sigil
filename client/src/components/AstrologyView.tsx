@@ -781,7 +781,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                     }}
                                                 >
                                                     <Lock className="w-3.5 h-3.5 text-white/30" />
-                                                    <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · Modo Arquitecto</span>
+                                                    <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · {language === 'en' ? 'Architect Mode' : 'Modo Arquitecto'}</span>
                                                 </div>
                                             )}
 
@@ -790,7 +790,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                 <DeepInterpretationModal
                                                     isOpen={showDeepInsight === body.key}
                                                     onClose={() => setShowDeepInsight(null)}
-                                                    title={`${body.key} en ${body.signName} (Casa ${body.house})`}
+                                                    title={`${body.key} ${language === 'en' ? 'in' : 'en'} ${body.signName} (${language === 'en' ? 'House' : 'Casa'} ${body.house})`}
                                                     text={aiInterpretations[`${body.key}-${body.signName}-${body.house}`]}
                                                     isLoading={aiLoading[`${body.key}-${body.signName}-${body.house}`]}
                                                 />

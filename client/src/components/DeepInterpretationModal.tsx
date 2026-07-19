@@ -64,8 +64,8 @@ export const DeepInterpretationModal: React.FC<DeepInterpretationModalProps> = (
                                 </div>
                             </div>
                             <button
-                                onClick={onClose}
-                                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors border border-white/10"
+                                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors border border-white/10 relative z-50 cursor-pointer"
                             >
                                 <X className="w-5 h-5 text-white/70" />
                             </button>

@@ -95,6 +95,26 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
         if (profile?.id) fetchRank();
     }, [profile?.id, profile?.plan_type, t]);
 
+    // Archetype resolution for English translations
+    const archName = synthesis?.arquetipo?.nombre || t('the_custodian');
+    const archLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
+    const archetypeId = synthesis?.arquetipo?.id;
+    
+    let resolvedId = archetypeId;
+    if (!resolvedId && archName) {
+        const searchName = archName.toLowerCase().trim();
+        const foundInSp = NAOS_ARCHETYPES.find(a => a.nombre.toLowerCase().trim() === searchName);
+        const foundInEn = NAOS_ARCHETYPES_EN.find(a => a.nombre.toLowerCase().trim() === searchName);
+        resolvedId = foundInSp?.id || foundInEn?.id;
+    }
+
+    const archInfo = resolvedId 
+        ? archLib.find(a => a.id === resolvedId) 
+        : archLib.find(a => a.nombre.toLowerCase().trim() === (archName || '').toLowerCase().trim());
+        
+    const arcanoImage = archInfo?.imagePath;
+    const displayArchName = archInfo?.nombre || archName;
+
     const getQuickIntelData = (type: 'MAYA' | 'NUMERO' | 'ASTRO' | 'ORIENTAL' | 'NAOS') => {
         if (type === 'MAYA') {
             const lib = language === 'en' ? NAHUAL_WISDOM_EN : NAHUAL_WISDOM;
@@ -143,10 +163,9 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
             };
         }
         if (type === 'NAOS') {
-            const arch = synthesis?.arquetipo;
             return {
-                title: arch?.nombre || t('the_custodian'),
-                desc: arch?.descripcion || t('resonating_frequency_desc'),
+                title: displayArchName,
+                desc: archInfo?.descripcion || t('resonating_frequency_desc'),
                 color: "cyan",
                 manualId: "naos",
                 deepTab: "NAOS"
@@ -154,28 +173,6 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
         }
         return null;
     };
-
-    const archName = synthesis?.arquetipo?.nombre || t('the_custodian');
-    const archLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
-    const archetypeId = synthesis?.arquetipo?.id;
-    
-    // Cross-reference lookup: If we don't have an ID, we might be comparing a cached Spanish name 
-    // against the English library. We must find the ID first using both libraries.
-    let resolvedId = archetypeId;
-    if (!resolvedId && archName) {
-        const searchName = archName.toLowerCase().trim();
-        const foundInSp = NAOS_ARCHETYPES.find(a => a.nombre.toLowerCase().trim() === searchName);
-        const foundInEn = NAOS_ARCHETYPES_EN.find(a => a.nombre.toLowerCase().trim() === searchName);
-        resolvedId = foundInSp?.id || foundInEn?.id;
-    }
-
-    const archInfo = resolvedId 
-        ? archLib.find(a => a.id === resolvedId) 
-        : archLib.find(a => a.nombre.toLowerCase().trim() === (archName || '').toLowerCase().trim());
-        
-    const arcanoImage = archInfo?.imagePath;
-    const displayArchName = archInfo?.nombre || archName;
-
     return (
         <div className="w-full h-full flex flex-col items-center justify-center relative min-h-[60vh] py-12">
             <WisdomOverlay
@@ -242,7 +239,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                                         }}
                                         className={cn(
                                             "px-8 py-2 rounded-full text-black font-bold text-[9px] uppercase tracking-widest transition-all",
-                                            `bg-${quickIntel.color}-400 hover:scale-105`
+                                            "bg-cyan-400 hover:scale-105"
                                         )}
                                     >
                                         {t('explore_code')}

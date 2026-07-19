@@ -441,6 +441,7 @@ ${segments.truth_injection.waiting_desc}
     3. Saludo Cuidado: Es MANDATORIO que empieces siempre con la palabra "Saludos" o "Hola" seguida del nombre. Nunca abrevies palabras. PROHIBIDO usar "Hla".
     4. Ortografía: Escribe correctamente la palabra "conocimiento". JAMÁS escribas "conooimiento".
     5. Tono: Sintoniza con el elemento actual del usuario.
+    6. HERRAMIENTAS ASTRONÓMICAS: Si el usuario proporciona una fecha de nacimiento (suya o de otra persona) y pide compatibilidad o lectura, DEBES llamar a la función 'calculate_astrological_profile' para obtener cálculos matemáticos exactos del Sol, Numerología, Nawal y Año Chino. No intentes adivinarlos, usa la herramienta.
     `;
 
             let response: string;
@@ -520,41 +521,152 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
         const API_VERSION = "v1beta";
         const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${modelName}:generateContent?key=${apiKey}`;
 
-        const payload = {
+        let payload: any = {
             system_instruction: { parts: [{ text: systemInstruction }] },
             contents: [...history, { role: "user", parts: [{ text: message }] }],
-            generationConfig: { temperature: 0.7, topP: 0.8, topK: 40 }
+            generationConfig: { temperature: 0.7, topP: 0.8, topK: 40 },
+            tools: [{
+                functionDeclarations: [{
+                    name: "calculate_astrological_profile",
+                    description: "Calculates Sun sign, Numerology (Life Path), Mayan Nawal, and Chinese Year for a given birth date.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            date: { type: "STRING", description: "YYYY-MM-DD format" }
+                        },
+                        required: ["date"]
+                    }
+                }]
+            }]
         };
 
         try {
             console.log(`🚀 Sigil v2.0 Launching with model: ${modelName}...`);
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s
+            
+            // Define a helper to execute the call
+            const executeCall = async (currentPayload: any, attempt = 1): Promise<any> => {
+                const maxAttempts = 3;
+                const activeModel = attempt > 1 ? "gemini-1.5-flash" : modelName;
+                const currentUrl = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${activeModel}:generateContent?key=${apiKey}`;
 
-            const response = await fetch(GENERATE_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-                signal: controller.signal
-            });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s
 
-            clearTimeout(timeoutId);
+                try {
+                    const response = await fetch(currentUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(currentPayload),
+                        signal: controller.signal
+                    });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
-                const statusCode = response.status;
-                const errorMessage = errorData.error?.message || response.statusText;
+                    clearTimeout(timeoutId);
 
-                console.error(`❌ API ERROR (${statusCode}):`, JSON.stringify(errorData));
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
+                        const statusCode = response.status;
+                        const errorMessage = errorData.error?.message || response.statusText;
 
-                if (statusCode === 429) {
-                    throw new Error("LIMITE_CUOTA: El Oráculo ha alcanzado su límite de expansión hoy. Revisa tu plan o intenta más tarde.");
+                        console.error(`❌ API ERROR (${statusCode}) on attempt ${attempt}:`, JSON.stringify(errorData));
+
+                        if ((statusCode === 503 || statusCode === 429) && attempt < maxAttempts) {
+                            console.log(`⚠️ Gemini API Limit/Overload (${statusCode}). Retrying with fallback model...`);
+                            await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+                            return executeCall(currentPayload, attempt + 1);
+                        }
+
+                        if (statusCode === 429) {
+                            throw new Error("LIMITE_CUOTA: El Oráculo ha alcanzado su límite de expansión hoy. Revisa tu plan o intenta más tarde.");
+                        }
+
+                        throw new Error(`Google API Error ${statusCode}: ${errorMessage}`);
+                    }
+
+                    return await response.json();
+                } catch (e: any) {
+                    clearTimeout(timeoutId);
+                    if ((e.name === 'AbortError' || e.message.includes('fetch')) && attempt < maxAttempts) {
+                        console.log(`⚠️ Fetch aborted/failed. Retrying in ${attempt * 2} seconds...`);
+                        await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+                        return executeCall(currentPayload, attempt + 1);
+                    }
+                    throw e;
                 }
+            };
 
-                throw new Error(`Google API Error ${statusCode}: ${errorMessage}`);
+            let data = await executeCall(payload);
+            const firstPart = data.candidates?.[0]?.content?.parts?.[0];
+
+            if (firstPart?.functionCall) {
+                console.log("🛠️ Sigil invoked tool:", firstPart.functionCall.name, firstPart.functionCall.args);
+                
+                if (firstPart.functionCall.name === "calculate_astrological_profile") {
+                    const args = firstPart.functionCall.args;
+                    const dateStr = args.date; // e.g. "1983-09-14"
+                    
+                    let resultData: any = { error: "Formato de fecha inválido. Usa YYYY-MM-DD." };
+                    
+                    if (dateStr && dateStr.length === 10) {
+                        const [year, month, day] = dateStr.split('-').map(Number);
+                        
+                        // 1. Sun Sign (Aproximate)
+                        const getSunSign = (m: number, d: number) => {
+                            if ((m == 1 && d <= 20) || (m == 12 && d >= 22)) return "Capricornio";
+                            if ((m == 1 && d >= 21) || (m == 2 && d <= 18)) return "Acuario";
+                            if ((m == 2 && d >= 19) || (m == 3 && d <= 20)) return "Piscis";
+                            if ((m == 3 && d >= 21) || (m == 4 && d <= 19)) return "Aries";
+                            if ((m == 4 && d >= 20) || (m == 5 && d <= 20)) return "Tauro";
+                            if ((m == 5 && d >= 21) || (m == 6 && d <= 20)) return "Géminis";
+                            if ((m == 6 && d >= 21) || (m == 7 && d <= 22)) return "Cáncer";
+                            if ((m == 7 && d >= 23) || (m == 8 && d <= 22)) return "Leo";
+                            if ((m == 8 && d >= 23) || (m == 9 && d <= 22)) return "Virgo";
+                            if ((m == 9 && d >= 23) || (m == 10 && d <= 22)) return "Libra";
+                            if ((m == 10 && d >= 23) || (m == 11 && d <= 21)) return "Escorpio";
+                            if ((m == 11 && d >= 22) || (m == 12 && d <= 21)) return "Sagitario";
+                            return "Desconocido";
+                        };
+
+                        // 2. Numerology (Life Path)
+                        const reduceToSingleDigit = (num: number) => {
+                            while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
+                                num = String(num).split('').map(Number).reduce((a, b) => a + b, 0);
+                            }
+                            return num;
+                        };
+                        const lifePath = reduceToSingleDigit(reduceToSingleDigit(year) + reduceToSingleDigit(month) + reduceToSingleDigit(day));
+
+                        // 3. Mayan Nawal
+                        const mayan = MayanCalculator.calculate(dateStr);
+
+                        // 4. Chinese Astrology
+                        const chinese = ChineseAstrology.calculate(year);
+
+                        resultData = {
+                            sun_sign: getSunSign(month, day),
+                            moon_and_ascendant: "No se pueden calcular sin hora exacta de nacimiento. Pide al usuario estos datos si son estrictamente necesarios, de lo contrario infiere con el sol.",
+                            life_path_number: lifePath,
+                            mayan_nawal: `${mayan.toneName} ${mayan.kicheName}`,
+                            chinese_year: `${chinese.animal} de ${chinese.element}`
+                        };
+                    }
+
+                    // Append the model's functionCall and our functionResponse to the history
+                    payload.contents.push({ role: "model", parts: [firstPart] });
+                    payload.contents.push({ 
+                        role: "user", 
+                        parts: [{ 
+                            functionResponse: { 
+                                name: "calculate_astrological_profile", 
+                                response: resultData 
+                            } 
+                        }] 
+                    });
+
+                    // Second API Call with the function response
+                    console.log("🛠️ Sending tool response back to Gemini...");
+                    data = await executeCall(payload);
+                }
             }
-
-            const data = await response.json();
 
             if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
                 return data.candidates[0].content.parts[0].text;
@@ -563,7 +675,6 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                 return "El oráculo guarda silencio...";
             }
 
-
         } catch (e: any) {
             throw e;
         }
@@ -571,11 +682,11 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
 
     private applyOutputGuard(text: string, language: string = 'es'): string {
         const words = text.split(/\s+/);
-        // Límite de seguridad de 200 palabras para evitar desbordes detectados
-        if (words.length > 200) {
+        // Límite expandido para permitir lecturas profundas (antes 200, ahora 1500)
+        if (words.length > 1500) {
             console.warn(`⚠️ OUTPUT GUARD: Trimming response for user. Current length: ${words.length}`);
             const suffix = '...';
-            return words.slice(0, 200).join(" ") + suffix;
+            return words.slice(0, 1500).join(" ") + suffix;
         }
         return text;
     }

@@ -130,72 +130,26 @@ export class NotificationEngine {
 
                 // --- EXECUTION 3: Daily Reading (12-Factor Oracle) ---
                 if (isOracleDue) {
-                    const todayStr = userLocal.toISOString().split('T')[0];
+                    console.info(`🚀 [NOTIF] Checking Frecuencia del Día (Pulso Cuántico) for ${user.email}`);
                     
-                    // 1. Calculate precise UTC bounds for the user's local day to avoid double generation
-                    const utcStartOfDay = new Date(new Date(`${todayStr}T00:00:00.000Z`).getTime() - (offset * 3600000)).toISOString();
-                    const utcEndOfDay = new Date(new Date(`${todayStr}T23:59:59.999Z`).getTime() - (offset * 3600000)).toISOString();
-                    
-                    // 2. Check Cache
-                    const { data: cached } = await supabase
-                        .from('daily_readings')
-                        .select('reading_text')
-                        .eq('user_id', user.id)
-                        .gte('created_at', utcStartOfDay)
-                        .lte('created_at', utcEndOfDay)
-                        .maybeSingle();
+                    try {
+                        const readingData = await DailyOracleEngine.getOrGenerateDailyReading(user.id, userLocal, offset, lang);
 
-                    let reading: string;
+                        // Format magnetic hook for Telegram
+                        const telegramMessage = \`🌌 \${lang === 'en' ? 'Daily Frequency' : 'Frecuencia del Día'} — \${user.nickname || user.full_name}
 
-                    if (cached) {
-                        console.info(`📦 [NOTIF] Using cached Oracle for ${user.email}`);
-                        reading = cached.reading_text;
-                    } else {
-                        console.info(`🚀 [NOTIF] Generating 12-Factor Oracle for ${user.email}`);
-                        
-                        // Fetch full profile for 12-factor data
-                        const { data: fullProfile } = await supabase
-                            .from('profiles')
-                            .select('astrology, numerology, mayan, chinese_animal, chinese_element')
-                            .eq('id', user.id)
-                            .single();
+⚡ \${lang === 'en' ? 'Energy Level' : 'Nivel de Energía'}: \${readingData.score_energia_general}%
 
-                        const profileForEngine = {
-                            astrology_data: fullProfile?.astrology,
-                            numerology_data: fullProfile?.numerology,
-                            maya_data: fullProfile?.mayan,
-                            china_data: { animal: fullProfile?.chinese_animal, element: fullProfile?.chinese_element }
-                        };
+\${lang === 'en' ? 'Active Priorities:' : 'Prioridades Activas:'}
+\${readingData.prioridades_dinamicas?.map((p: any) => \`\${p.icono} \${p.nombre}: \${p.score}\`).join('\\n') || ''}
 
-                        const dayPillars = await DailyOracleEngine.getDayPillars(userLocal);
-                        const interaction = DailyOracleEngine.calculateFusion(profileForEngine, dayPillars);
-                        const coherenceData = await CoherenceService.getCoherence(user.id);
-                        const coherence = {
-                            state: coherenceData.global_coherence >= 75 ? 'HIGH' : coherenceData.global_coherence < 45 ? 'LOW' : 'MEDIUM',
-                            level: coherenceData.global_coherence / 100
-                        };
-                        const { toneProfile } = DailyOracleEngine.getAdaptiveProfile(interaction, coherence.state);
+"\${readingData.conversational_hook}"\`;
 
-                        reading = await DailyOracleOracle.generateDailyReading({
-                            userName: user.nickname || user.full_name,
-                            userPillars: fullProfile,
-                            dayPillars,
-                            interaction,
-                            coherence,
-                            toneProfile,
-                            language: lang
-                        });
-
-                        // Cache Result
-                        await supabase.from('daily_readings').insert({
-                            user_id: user.id,
-                            reading_text: reading,
-                            pillars_data: { dayPillars, interaction }
-                        });
+                        const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                        console.info(\`📡 [NOTIF] Frecuencia del Día Result for \${user.email}: \${success}\`);
+                    } catch (err: any) {
+                        console.error(\`🔥 [NOTIF] Error processing Frecuencia del Día for \${user.email}:\`, err.message);
                     }
-
-                    const success = await this.sendFullMessage(user.telegram_chat_id, reading, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                    console.info(`📡 [NOTIF] 12-Factor Oracle Result for ${user.email}: ${success}`);
                 }
 
                 // --- EXECUTION 4: Inactivity Check (LOCAL TIME 11:30) ---

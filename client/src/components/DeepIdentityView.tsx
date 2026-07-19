@@ -7,7 +7,8 @@ import { NumerologyView } from './NumerologyView';
 import { NawalView } from './NawalView';
 import { SabiduriaOriental } from './SabiduriaOriental';
 import { NaosIdentityView } from './NaosIdentityView';
-import { Zap } from 'lucide-react';
+import { TimeMap } from './TimeMap/TimeMap';
+import { Zap, Map as MapIcon } from 'lucide-react';
 
 interface DeepIdentityViewProps {
     profile: any;

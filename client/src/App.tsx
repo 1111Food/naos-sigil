@@ -6,6 +6,10 @@ import { ChatInterface } from './components/ChatInterface';
 import { LandingScreen } from './components/LandingScreen';
 import { WelcomeBackView } from './pages/WelcomeBackView';
 import { AdminView } from './pages/AdminView';
+import { TimeMap } from './components/TimeMap/TimeMap';
+import { TimeMapNexus } from './pages/TimeMapNexus';
+import { LifelineView } from './pages/LifelineView';
+import { CurrentEnergyView } from './pages/CurrentEnergyView';
 // OnboardingForm removed
 import { Home } from './pages/Home';
 import { SacredDock } from './components/SacredDock';
@@ -377,6 +381,25 @@ function App() {
         return <EvolutionView onBack={() => setActiveView('TEMPLE')} />;
       case 'MANUALS':
         return <ManualsView onBack={() => setActiveView('TEMPLE')} initialManual={viewPayload?.initialManual} />;
+      case 'TIME_MAP_NEXUS':
+        return <TimeMapNexus onNavigate={setActiveView} onBack={() => setActiveView('IDENTITY_NEXUS')} />;
+      case 'TIME_MAP_LIFELINE':
+        return <LifelineView onBack={() => setActiveView('TIME_MAP_NEXUS')} />;
+      case 'TIME_MAP_CURRENT':
+        return <CurrentEnergyView onBack={() => setActiveView('TIME_MAP_NEXUS')} />;
+      case 'TIME_MAP_ANNUAL':
+        return (
+          <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-24 min-h-screen">
+              <button
+                  onClick={() => setActiveView('TIME_MAP_NEXUS')}
+                  className="absolute top-6 left-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-white transition-colors group z-50"
+              >
+                  <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                  Volver al Navegador
+              </button>
+              <TimeMap />
+          </div>
+        );
       case 'ORACLE_SOULS':
         return <OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
       case 'SYNASTRY':

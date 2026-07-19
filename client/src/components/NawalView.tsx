@@ -352,7 +352,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                     }}
                                 >
                                     <Lock className="w-3.5 h-3.5 text-white/30" />
-                                    <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · Modo Arquitecto</span>
+                                    <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{t('deep_interpretation')} · {language === 'en' ? 'Architect Mode' : 'Modo Arquitecto'}</span>
                                 </div>
                             )}
 
