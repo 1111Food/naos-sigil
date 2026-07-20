@@ -89,7 +89,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         className="text-center mt-6 px-4"
                     >
                         <p className="font-serif italic text-white/50 text-sm md:text-base tracking-wide drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-                            "{getDailySynchronyQuote(t('lang' as any) as any)}"
+                            "{getDailySynchronyQuote(i18n.language as any)}"
                         </p>
                     </motion.div>
                 </header>
@@ -272,7 +272,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                 className="max-w-2xl mx-auto px-6 pt-8 pb-2 text-center"
             >
                 <p className="font-serif italic text-white/50 text-sm md:text-base tracking-wide drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                    "{getDailySynchronyQuote(t('lang' as any) as any)}"
+                    "{getDailySynchronyQuote(i18n.language as any)}"
                 </p>
             </motion.div>
 

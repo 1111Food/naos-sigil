@@ -150,7 +150,7 @@ export const ProtocolVault: React.FC<ProtocolVaultProps> = ({ userId, onClose })
                 {/* Footer Subliminal */}
                 <div className="px-12 py-6 border-t border-white/5 bg-white/[0.01]">
                     <p className="text-center font-serif italic text-white/20 text-xs tracking-widest leading-relaxed">
-                        "{getDailySynchronyQuote(t('lang' as any) as any)}"
+                        "{getDailySynchronyQuote(i18n.language as any)}"
                     </p>
                 </div>
             </motion.div>
