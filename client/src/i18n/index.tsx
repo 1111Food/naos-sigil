@@ -2281,7 +2281,7 @@ export const translations = {
         synastry_guide_mid: "50% - 79%: dynamic balance. Requires conscious adjustment but offers great growth.",
         synastry_guide_low: "0% - 49%: radical friction. The bond acts as a mirror of shadows for evolution.",
         synastry_guide_footer: "Each pillar represents an area of life. Click on them to read the synthesis of the AI dedicated to your bond.",
-        synastry_member: "Member",
+        synastry_member: "Members",
         synastry_city_example: "e.g. CDMX",
         synastry_role_example: "e.g. CEO",
         synastry_edit: "Edit",

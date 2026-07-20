@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { Sparkles, ShieldAlert, Zap, Brain, Heart, Target, Compass, Activity, X, ArrowRight } from 'lucide-react';
-import { SYNASTRY_GLOSSARY } from '../constants/synastryGlossary';
+import { getSynastryGlossary } from '../constants/synastryGlossary';
 import { WisdomOverlay } from './WisdomOverlay';
 import { useTranslation } from '../i18n';
 
@@ -94,7 +94,8 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
     ];
 
     const openGlossary = (item: any) => {
-        const entry = SYNASTRY_GLOSSARY[item.key];
+        const glossary = getSynastryGlossary(i18n.language);
+        const entry = glossary[item.key];
         if (entry) {
             setGlossaryEntry(entry);
         }
@@ -358,7 +359,7 @@ export const SynastryResultView: React.FC<{ data: any; onNew: () => void; userA:
                             <div className="space-y-2">
                                 <span className="text-[8px] uppercase tracking-[0.2em] text-secondary font-bold">{t('synastry_alchemical_definition')}</span>
                                 <p className="text-sm text-secondary font-light leading-relaxed">
-                                    {SYNASTRY_GLOSSARY[`PILLAR_${(activeExplanation as any).key?.toUpperCase()}`]?.description || t('tarot_meaning_placeholder')}
+                                    {getSynastryGlossary(i18n.language)[`PILLAR_${(activeExplanation as any).key?.toUpperCase()}`]?.description || t('tarot_meaning_placeholder')}
                                 </p>
                             </div>
 
