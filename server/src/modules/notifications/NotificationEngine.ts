@@ -136,19 +136,19 @@ export class NotificationEngine {
                         const readingData = await DailyOracleEngine.getOrGenerateDailyReading(user.id, userLocal, offset, lang);
 
                         // Format magnetic hook for Telegram
-                        const telegramMessage = \`🌌 \${lang === 'en' ? 'Daily Frequency' : 'Frecuencia del Día'} — \${user.nickname || user.full_name}
+                        const telegramMessage = `🌌 ${lang === 'en' ? 'Daily Frequency' : 'Frecuencia del Día'} — ${user.nickname || user.full_name}
 
-⚡ \${lang === 'en' ? 'Energy Level' : 'Nivel de Energía'}: \${readingData.score_energia_general}%
+⚡ ${lang === 'en' ? 'Energy Level' : 'Nivel de Energía'}: ${readingData.score_energia_general}%
 
-\${lang === 'en' ? 'Active Priorities:' : 'Prioridades Activas:'}
-\${readingData.prioridades_dinamicas?.map((p: any) => \`\${p.icono} \${p.nombre}: \${p.score}\`).join('\\n') || ''}
+${lang === 'en' ? 'Active Priorities:' : 'Prioridades Activas:'}
+${readingData.prioridades_dinamicas?.map((p: any) => `${p.icono} ${p.nombre}: ${p.score}`).join('\n') || ''}
 
-"\${readingData.conversational_hook}"\`;
+"${readingData.conversational_hook}"`;
 
                         const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                        console.info(\`📡 [NOTIF] Frecuencia del Día Result for \${user.email}: \${success}\`);
+                        console.info(`📡 [NOTIF] Frecuencia del Día Result for ${user.email}: ${success}`);
                     } catch (err: any) {
-                        console.error(\`🔥 [NOTIF] Error processing Frecuencia del Día for \${user.email}:\`, err.message);
+                        console.error(`🔥 [NOTIF] Error processing Frecuencia del Día for ${user.email}:`, err.message);
                     }
                 }
 
