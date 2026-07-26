@@ -86,7 +86,7 @@ Debes devolver UNICAMENTE un objeto JSON con la siguiente estructura exacta:
                 }
             };
 
-            console.log(\`🚀 DailyOracle: Launching with model: \${TARGET_MODEL} (JSON Mode)...\`);
+            console.log(`🚀 DailyOracle: Launching with model: ${TARGET_MODEL} (JSON Mode)...`);
             const response = await fetch(GENERATE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -95,7 +95,7 @@ Debes devolver UNICAMENTE un objeto JSON con la siguiente estructura exacta:
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
-                throw new Error(\`Google API Error \${response.status}: \${errorData.error?.message || response.statusText}\`);
+                throw new Error(`Google API Error ${response.status}: ${errorData.error?.message || response.statusText}`);
             }
 
             const data = await response.json();

@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import { API_BASE_URL, getAuthHeaders } from '../lib/api';
 import { SynastryResultView } from './SynastryResultView';
 import { RelationshipType } from './SynastryModule';
+import { RelationshipLaboratory } from '../pages/RelationshipLaboratory';
 import { useTranslation } from '../i18n';
 
 interface DualSynastryViewProps {
@@ -100,17 +101,56 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
         }
     };
 
-    const handleSelectHistory = (item: any) => {
-        const results = item.calculated_results;
-        setExecutionData(results);
-        setPartnerData({
-            name: item.partner_name,
-            birthDate: '', birthTime: '',
-            birthCity: results?.partnerInfo?.birthCity || '',
-            birthCountry: results?.partnerInfo?.birthCountry || ''
-        });
-        setStep('RESULT');
-        setActiveTab('FORM'); // switch back to calculator view logic
+    const handleSelectHistory = async (item: any) => {
+        // If it's already V4.1 and the language matches, we could theoretically just use it.
+        // But to ensure it gets migrated properly if it's an old version, we route it through the analysis endpoint.
+        // The backend cache logic will detect if it needs V4.1 migration and do it on the fly.
+        
+        setActiveTab('FORM');
+        setStep('TUNING');
+        setIsLoading(true);
+        
+        try {
+            const reconstructedPartnerData = {
+                name: item.partner_name,
+                birthDate: item.partner_birth_date || '', 
+                birthTime: '12:00',
+                birthCity: item.calculated_results?.partnerInfo?.birthCity || 'Guatemala',
+                birthCountry: item.calculated_results?.partnerInfo?.birthCountry || 'Guatemala'
+            };
+            
+            setPartnerData(reconstructedPartnerData);
+            setRelationshipType(item.relationship_type);
+            
+            const payload = { 
+                userProfile: profile, 
+                partnerData: reconstructedPartnerData, 
+                relationshipType: item.relationship_type,
+                language: language || 'es'
+            };
+
+            const response = await fetch(`${API_BASE_URL}/api/synastry/analyze`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || err.error || t('synastry_fetch_error'));
+            }
+
+            const result = await response.json();
+            
+            setExecutionData(result.data);
+            setStep('RESULT');
+        } catch (err: any) {
+            console.error("❌ History Resync Error:", err);
+            setError(err.message || t('synastry_network_error'));
+            setStep('FORM');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleDeleteHistory = async (e: React.MouseEvent, id: string) => {
@@ -318,19 +358,26 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                         {step === 'RESULT' && executionData && (
                             <div className="w-full">
                                 <div className="flex justify-center mb-6">
-                                    <button onClick={() => setStep('FORM')} className="text-[10px] uppercase tracking-widest border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 text-white/50 hover:text-white transition-colors">
+                                    <button onClick={() => setStep('FORM')} className="text-[10px] uppercase tracking-widest border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 text-white/50 hover:text-white transition-colors relative z-50">
                                         {t('synastry_clear_analysis')}
                                     </button>
                                 </div>
-                                <SynastryResultView
-                                    data={executionData}
-                                    onNew={() => setStep('FORM')}
-                                    userA={profile}
-                                    userB={{
-                                        ...executionData.partnerInfo,
-                                        ...partnerData
-                                    }}
-                                />
+                                {executionData.consultation ? (
+                                    <RelationshipLaboratory 
+                                        metrics={executionData.metrics}
+                                        report={executionData.consultation}
+                                    />
+                                ) : (
+                                    <SynastryResultView
+                                        data={executionData}
+                                        onNew={() => setStep('FORM')}
+                                        userA={profile}
+                                        userB={{
+                                            ...executionData.partnerInfo,
+                                            ...partnerData
+                                        }}
+                                    />
+                                )}
                             </div>
                         )}
                     </motion.div>

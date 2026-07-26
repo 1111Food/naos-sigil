@@ -1,0 +1,48 @@
+.metric-radar-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.radar-svg {
+    overflow: visible;
+}
+
+.radar-grid-polygon {
+    fill: rgba(255, 255, 255, 0.02);
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 1;
+}
+
+.radar-axis {
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 1;
+}
+
+.radar-data-polygon {
+    fill: var(--rip-accent-glow);
+    stroke: var(--rip-accent);
+    stroke-width: 2;
+    transition: all 0.5s ease-in-out;
+}
+
+.radar-point {
+    fill: #fff;
+    stroke: var(--rip-accent);
+    stroke-width: 2;
+}
+
+.radar-label {
+    fill: var(--rip-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.radar-fallback {
+    color: var(--rip-text-muted);
+    font-size: 0.9rem;
+    font-style: italic;
+}

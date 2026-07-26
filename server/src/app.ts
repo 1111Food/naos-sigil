@@ -13,6 +13,7 @@ import { adminRoutes } from './modules/admin/admin.routes';
 import { webhookRoutes } from './routes/webhooks';
 import { interpretRoutes } from './routes/interpret';
 import { checkoutRoutes } from './routes/checkout';
+import { relationshipRoutes } from './routes/relationship';
 import fastifyRateLimit from '@fastify/rate-limit';
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
@@ -40,13 +41,35 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     });
 
     await app.register(cors, {
-        origin: [
-            'https://naos-sigil.vercel.app',
-            'http://localhost:5173',
-            'http://localhost:5174'
-        ],
+        origin: (origin, cb) => {
+            // Allow requests with no origin (like mobile apps, curl, postman)
+            if (!origin) return cb(null, true);
+
+            const allowedStatic = [
+                'https://naos-sigil.vercel.app',
+                'https://naosos.app',
+                'https://www.naosos.app',
+                'https://naos-os.com',
+                'https://www.naos-os.com',
+                'http://localhost:5173',
+                'http://localhost:5174',
+                'http://localhost:3000',
+                'http://localhost:3001'
+            ];
+
+            if (
+                allowedStatic.includes(origin) ||
+                origin.endsWith('.naosos.app') ||
+                origin.endsWith('.naos-os.com') ||
+                origin.endsWith('.vercel.app')
+            ) {
+                return cb(null, true);
+            }
+
+            cb(null, true); // Fallback allow to guarantee no user gets blocked by CORS on new domains
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Profile-Id', 'x-profile-id'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Profile-Id', 'x-profile-id', 'Accept', 'Origin'],
         credentials: true
     });
 
@@ -65,6 +88,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     await app.register(webhookRoutes);
     await app.register(interpretRoutes, { prefix: '/api/energy-code' });
     await app.register(checkoutRoutes, { prefix: '/api/checkout' });
+    await app.register(relationshipRoutes, { prefix: '/api/relationship' });
 
     return app;
 };

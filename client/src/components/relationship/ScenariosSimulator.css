@@ -1,0 +1,123 @@
+.scenarios-simulator {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.simulator-header h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+    color: #fff;
+}
+
+.simulator-header p {
+    color: var(--rip-text-muted);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.scenarios-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.scenario-tab {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--rip-border);
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    color: var(--rip-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.scenario-tab:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.scenario-tab.active {
+    background: rgba(109, 93, 252, 0.15);
+    border-color: var(--rip-accent);
+}
+
+.scenario-title {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.scenario-prob {
+    font-size: 0.85rem;
+    color: var(--rip-accent);
+    font-weight: 600;
+}
+
+.scenario-content {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--rip-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.scenario-summary p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin: 0;
+    color: #fff;
+}
+
+.scenario-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.scenario-column h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 1rem 0;
+}
+
+.scenario-column.strengths h3 {
+    color: #4ade80;
+}
+
+.scenario-column.risks h3 {
+    color: #f87171;
+}
+
+.scenario-column ul, .scenario-action-plan ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.scenario-action-plan {
+    border-top: 1px solid var(--rip-border);
+    padding-top: 1.5rem;
+}
+
+.scenario-action-plan h3 {
+    color: var(--rip-accent);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 1rem 0;
+}
+
+@media (max-width: 768px) {
+    .scenario-grid {
+        grid-template-columns: 1fr;
+    }
+}

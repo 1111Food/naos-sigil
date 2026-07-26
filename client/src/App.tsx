@@ -16,6 +16,7 @@ import { SacredDock } from './components/SacredDock';
 import { EvolutionView } from './pages/EvolutionView';
 import { ManualsView } from './pages/ManualsView';
 import { OracleSoulsView } from './pages/OracleSoulsView';
+import { RelationshipLaboratory } from './pages/RelationshipLaboratory';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { EtherBackground } from './components/EtherBackground';
 import { IdentityAltar } from './components/IdentityAltar';
@@ -401,7 +402,6 @@ function App() {
           </div>
         );
       case 'ORACLE_SOULS':
-        return <OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
       case 'SYNASTRY':
         return <OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
       case 'ADMIN':

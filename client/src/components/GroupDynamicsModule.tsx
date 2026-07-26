@@ -5,6 +5,7 @@ import { RosterService } from '../services/rosterService';
 import type { RosterProfile } from '../services/rosterService';
 import { API_BASE_URL, getAuthHeaders } from '../lib/api';
 import { useTranslation } from '../i18n';
+import { RelationshipLaboratory } from '../pages/RelationshipLaboratory';
 
 interface GroupDynamicsModuleProps {
     initialReport?: any;
@@ -170,6 +171,22 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
     }
 
     if (report) {
+        if (report.consultation) {
+            return (
+                <div className="w-full h-full relative z-10 animate-in fade-in">
+                    <div className="flex justify-center mb-4 mt-2">
+                        <button onClick={() => { setReport(null); if (onClearReport) onClearReport(); }} className="text-[10px] uppercase tracking-widest border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 text-white/50 hover:text-white transition-colors relative z-50">
+                            {t('synastry_clear_analysis')}
+                        </button>
+                    </div>
+                    <RelationshipLaboratory 
+                        metrics={report.metrics}
+                        report={report.consultation}
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className="w-full max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 <button onClick={() => {

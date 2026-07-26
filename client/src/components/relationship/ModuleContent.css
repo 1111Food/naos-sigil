@@ -1,0 +1,126 @@
+.module-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--rip-text);
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--rip-border);
+    padding-bottom: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.module-header h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+}
+
+.module-confidence {
+    background: rgba(109, 93, 252, 0.1);
+    color: var(--rip-accent);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.module-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--rip-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.module-section.summary {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #fff;
+}
+
+.module-section h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--rip-text-muted);
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.module-section p {
+    line-height: 1.6;
+    margin: 0;
+}
+
+.module-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.module-section ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.module-section ul li {
+    line-height: 1.5;
+}
+
+.module-section.evidence {
+    border-color: rgba(109, 93, 252, 0.3);
+}
+
+.module-section.evidence h3 {
+    color: var(--rip-accent);
+}
+
+.action-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.action-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.step-number {
+    background: var(--rip-accent);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-text {
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .module-grid {
+        grid-template-columns: 1fr;
+    }
+}

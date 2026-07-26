@@ -15,6 +15,7 @@ import { GroupSynastryEngine } from './GroupSynastryEngine';
 import { GroupOracle } from './GroupOracle';
 import { ArchetypeEngine } from '../user/archetypeEngine';
 import { ProfileConsolidator } from '../user/profileConsolidator';
+import { NAOSIntelligenceKernel } from '../relationship/kernel/NAOSIntelligenceKernel';
 
 export class SynastryController {
     public static async analyze(request: FastifyRequest, reply: FastifyReply) {
@@ -74,37 +75,40 @@ export class SynastryController {
                 console.log("⚡ Cache Hit: Returning existing resonance.");
                 let results = cached.calculated_results;
 
-                // --- ON-THE-FLY MIGRATION FOR V3 FERRARI ENGINE & REFLEJO PURGE ---
+                // --- ON-THE-FLY MIGRATION FOR V4.1 NAOS Intelligence Kernel ---
                 const hasReflejo = JSON.stringify(results).includes('Reflejo');
-                if (!results.report || !results.report.explanations || hasReflejo) {
-                    console.log(`🛠️ ${hasReflejo ? 'Reflejo placeholder detected' : 'Old Synastry format detected'}. Upgrading to Ferrari Engine...`);
-                    // Recalculate using the new engine & proper names
+                if (!results.consultation || hasReflejo) {
+                    console.log(`🛠️ ${hasReflejo ? 'Reflejo placeholder detected' : 'Old Synastry format detected'}. Upgrading to V4.1 Kernel...`);
+                    
                     const pillarsB = await SynastryController.calculatePillarsB(partnerData);
                     const nameA = (userProfile.nickname || userProfile.name || userProfile.full_name || 'Arquitecto').split(' ')[0];
                     const nameB = (partnerData.name || 'Vínculo').split(' ')[0];
 
-                    // ARCHETYPE CALCULATION (DUAL)
-                    const archA = ArchetypeEngine.calculate({
-                        ...userProfile,
-                        astrology: userProfile.astrology || (await SynastryController.calculatePillarsB(userProfile)).astrology,
-                        numerology: userProfile.numerology || (await SynastryController.calculatePillarsB(userProfile)).numerology
-                    }, lang);
-                    const archB = ArchetypeEngine.calculate({
-                        ...partnerData,
-                        astrology: pillarsB.astrology,
-                        numerology: pillarsB.numerology
-                    }, lang);
+                    // Use NAOS Intelligence Kernel V4.1
+                    const kernel = new NAOSIntelligenceKernel();
+                    const context: any = { type, duration: 0, intensity: 1, language: lang };
+                    const entity: any = { id: hash };
 
-                    const newReport = SynastryEngine.calculate(userProfile, pillarsB, type, nameA, nameB);
-                    results.report = newReport;
+                    console.log(`🤖 Invoking NAOS Intelligence Kernel V4.1 for Cache Upgrade... (${nameA} <-> ${nameB})`);
+                    const kernelResult = await kernel.process(
+                        entity, 
+                        { ...userProfile, name: nameA, profile_data: userProfile }, 
+                        { ...partnerData, name: nameB, profile_data: partnerData }, 
+                        context, 
+                        'analysis'
+                    );
 
-                    // If we found 'Reflejo', we MUST recalculate the Oracle too
-                    if (hasReflejo) {
-                        console.log("🤖 Purging Reflejo and Injecting Archetypes into Oracle...");
-                        const timeWindows = TemporalEngine.project(userProfile, pillarsB);
-                        results.synthesis = await SynastryOracle.generateSynthesis(newReport, timeWindows, type, nameA, nameB, archA, archB, lang);
-
-                    }
+                    results = {
+                        metrics: kernelResult.metrics,
+                        consultation: kernelResult.consultation,
+                        partnerInfo: {
+                            name: partnerData.name,
+                            birthCity: partnerData.birthCity,
+                            birthCountry: partnerData.birthCountry,
+                            pillars: pillarsB
+                        },
+                        metadata: { hash, type, calculatedAt: new Date().toISOString() }
+                    };
 
                     // Fire-and-forget update to Supabase
                     (async () => {
@@ -113,7 +117,7 @@ export class SynastryController {
                                 .update({ calculated_results: results })
                                 .eq('id', cached.id);
                             if (error) console.error("Cache upgrade failed:", error);
-                            else console.log(`✓ Cache ${cached.id} purged successfully.`);
+                            else console.log(`✓ Cache ${cached.id} upgraded to V4.1 successfully.`);
                         } catch (err: any) {
                             console.error("Cache upgrade failed exception:", err);
                         }
@@ -139,29 +143,23 @@ export class SynastryController {
             const nameA = (userProfile.nickname || userProfile.name || userProfile.full_name || 'Arquitecto').split(' ')[0];
             const nameB = (partnerData.name || 'Vínculo').split(' ')[0];
 
-            // 3. ARCHETYPE CALCULATION (DUAL)
-            const archA = ArchetypeEngine.calculate({
-                ...userProfile,
-                astrology: userProfile.astrology || (await SynastryController.calculatePillarsB(userProfile)).astrology,
-                numerology: userProfile.numerology || (await SynastryController.calculatePillarsB(userProfile)).numerology
-            }, lang);
-            const archB = ArchetypeEngine.calculate({
-                ...partnerData,
-                astrology: pillarsB.astrology,
-                numerology: pillarsB.numerology
-            }, lang);
+            // Use NAOS Intelligence Kernel V4.1
+            const kernel = new NAOSIntelligenceKernel();
+            const context: any = { type, duration: 0, intensity: 1, language: lang };
+            const entity: any = { id: hash };
 
-            const report = SynastryEngine.calculate(userProfile, pillarsB, type, nameA, nameB, lang);
-            const timeWindows = TemporalEngine.project(userProfile, pillarsB);
-
-            // Generate Premium AI Narration
-            console.log(`🤖 Invoking Archetypal Oracle Synthesis... (${archA.nombre} <-> ${archB.nombre})`);
-            const synthesis = await SynastryOracle.generateSynthesis(report, timeWindows, type, nameA, nameB, archA, archB, lang);
+            console.log(`🤖 Invoking NAOS Intelligence Kernel V4.1... (${nameA} <-> ${nameB})`);
+            const kernelResult = await kernel.process(
+                entity, 
+                { ...userProfile, name: nameA, profile_data: userProfile }, 
+                { ...partnerData, name: nameB, profile_data: partnerData }, 
+                context, 
+                'analysis'
+            );
 
             const finalResult = {
-                report,
-                timeWindows,
-                synthesis,
+                metrics: kernelResult.metrics,
+                consultation: kernelResult.consultation,
                 partnerInfo: {
                     name: partnerData.name,
                     birthCity: partnerData.birthCity,
@@ -183,7 +181,7 @@ export class SynastryController {
                 if (insertError) console.error("❌ History Insertion Error:", insertError);
             }
 
-            console.log("📤 API RESPONSE EXPLANATIONS:", finalResult.report.explanations ? "OK" : "MISSING");
+            console.log("📤 API RESPONSE MODULES:", finalResult.consultation?.modules ? "OK" : "MISSING");
             await UsageGuardService.incrementUsage(userId, 'synastry_dual');
             return reply.send({ success: true, cached: false, data: finalResult });
         } catch (error: any) {
@@ -232,8 +230,17 @@ export class SynastryController {
             const synthesis = await GroupOracle.generateSynthesis(groupReport, lang);
 
             const finalResult = {
-                technicalReport: groupReport,
-                synthesis,
+                metrics: [
+                    { id: 'group_synergy', label: isEn ? 'Systemic Synergy' : 'Sinergia Sistémica', value: groupReport.score, confidence: 90, category: 'compatibility' },
+                    { id: 'group_fire', label: isEn ? 'Fire (Drive)' : 'Fuego (Empuje)', value: groupReport.mesh.fire, confidence: 95, category: 'emotion' },
+                    { id: 'group_earth', label: isEn ? 'Earth (Execution)' : 'Tierra (Ejecución)', value: groupReport.mesh.earth, confidence: 95, category: 'stability' },
+                    { id: 'group_air', label: isEn ? 'Air (Strategy)' : 'Aire (Estrategia)', value: groupReport.mesh.air, confidence: 95, category: 'communication' },
+                    { id: 'group_water', label: isEn ? 'Water (Cohesion)' : 'Agua (Cohesión)', value: groupReport.mesh.water, confidence: 95, category: 'emotion' }
+                ],
+                consultation: synthesis,
+                partnerInfo: {
+                    name: rosterProfiles.map((p: any) => p.name).join(', ')
+                },
                 metadata: { calculatedAt: new Date().toISOString(), type: 'GROUP_DYNAMICS' }
             };
 
