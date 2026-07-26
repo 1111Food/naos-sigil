@@ -174,7 +174,7 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
     };
 
     return (
-        <div className="w-full flex flex-col items-center justify-center relative p-4 mt-8">
+        <div className="w-full flex flex-col items-center justify-center relative p-4 mt-4 pb-36 md:pb-20">
             <div className="absolute inset-0 bg-[#050505]">
                 <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-900/10 blur-[100px] rounded-full" />
             </div>
