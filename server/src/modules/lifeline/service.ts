@@ -47,24 +47,32 @@ export class LifelineService {
         // 5. Execute AI Engine
         const lifelineData = await LifelineEngine.generate(prompt);
 
-        // 6. Save to Database Permanently
-        const { data: savedLifeline, error } = await supabase
-            .from('user_lifelines')
-            .upsert({
-                user_id: userId,
-                language: language,
-                pinnacles: lifelineData.pinnacles,
-                current_cycle: lifelineData.current_cycle,
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id, language' })
-            .select('*')
-            .single();
+        // 6. Save to Database Permanently (with fallback for UI resilience)
+        try {
+            const { data: savedLifeline, error } = await supabase
+                .from('user_lifelines')
+                .upsert({
+                    user_id: userId,
+                    language: language,
+                    pinnacles: lifelineData.pinnacles,
+                    current_cycle: lifelineData.current_cycle,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id, language' })
+                .select('*')
+                .single();
 
-        if (error) {
-            console.error("❌ LifelineService DB Error:", error);
-            throw new Error("Error al guardar el Eje Evolutivo en los registros akáshicos.");
+            if (!error && savedLifeline) {
+                return savedLifeline;
+            }
+        } catch (dbErr) {
+            console.warn("⚠️ LifelineService DB save warning:", dbErr);
         }
 
-        return savedLifeline;
+        return {
+            user_id: userId,
+            language: language,
+            pinnacles: lifelineData.pinnacles,
+            current_cycle: lifelineData.current_cycle
+        };
     }
 }

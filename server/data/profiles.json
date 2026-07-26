@@ -188,7 +188,7 @@
     "oracle_time": "08:00:00",
     "usage_level": "normal",
     "usage_stats": {
-      "naos_code_count": 1,
+      "naos_code_count": 5,
       "last_active_date": "2026-07-26",
       "tarot_draw_count": 0,
       "synastry_dual_count": 0,
@@ -198,13 +198,220 @@
     "birthCountry": "Guatemala",
     "sub_profiles": [
       {
-        "id": "tvioyzo",
-        "name": "vania",
+        "id": "ppx81np",
+        "name": "Campeon",
+        "mayan": {
+          "tone": 5,
+          "meaning": "Muerte, Renacimiento",
+          "mission": "Misión de Kame: Muerte, Renacimiento. Expandir la conciencia a través de El ciclo de la vida y la muerte.",
+          "glyphUrl": "/nawales/kame.svg",
+          "toneName": "Job' (5) - Empoderamiento, La Mano",
+          "kicheName": "Kame",
+          "challenges": "Desafío: Integrar la sombra de Kame y usar su energía para construir, no para destruir.",
+          "nawal_maya": "Kame",
+          "nawal_tono": 5,
+          "description": "El ciclo de la vida y la muerte. Transformación profunda, paz interior y conexión con los dimensiones espirituales."
+        },
+        "astrology": {
+          "houses": [
+            {
+              "sign": "Libra",
+              "house": 1,
+              "degree": 29.35245106798294,
+              "absDegree": 209.35245106798294
+            },
+            {
+              "sign": "Scorpio",
+              "house": 2,
+              "degree": 29.35245106798294,
+              "absDegree": 239.35245106798294
+            },
+            {
+              "sign": "Sagittarius",
+              "house": 3,
+              "degree": 29.35245106798294,
+              "absDegree": 269.35245106798294
+            },
+            {
+              "sign": "Capricorn",
+              "house": 4,
+              "degree": 29.35245106798294,
+              "absDegree": 299.35245106798294
+            },
+            {
+              "sign": "Aquarius",
+              "house": 5,
+              "degree": 29.35245106798294,
+              "absDegree": 329.35245106798294
+            },
+            {
+              "sign": "Pisces",
+              "house": 6,
+              "degree": 29.35245106798294,
+              "absDegree": 359.35245106798294
+            },
+            {
+              "sign": "Aries",
+              "house": 7,
+              "degree": 29.35245106798294,
+              "absDegree": 29.35245106798294
+            },
+            {
+              "sign": "Taurus",
+              "house": 8,
+              "degree": 29.35245106798294,
+              "absDegree": 59.35245106798294
+            },
+            {
+              "sign": "Gemini",
+              "house": 9,
+              "degree": 29.35245106798294,
+              "absDegree": 89.35245106798294
+            },
+            {
+              "sign": "Cancer",
+              "house": 10,
+              "degree": 29.35245106798294,
+              "absDegree": 119.35245106798294
+            },
+            {
+              "sign": "Leo",
+              "house": 11,
+              "degree": 29.35245106798294,
+              "absDegree": 149.35245106798294
+            },
+            {
+              "sign": "Virgo",
+              "house": 12,
+              "degree": 29.352451067982884,
+              "absDegree": 179.35245106798288
+            }
+          ],
+          "planets": [
+            {
+              "name": "Sun",
+              "sign": "Leo",
+              "house": 10,
+              "degree": 7.48,
+              "absDegree": 127.48019907374648,
+              "retrograde": false
+            },
+            {
+              "name": "Moon",
+              "sign": "Virgo",
+              "house": 11,
+              "degree": 19.41,
+              "absDegree": 169.41221401686025,
+              "retrograde": false
+            },
+            {
+              "name": "Mercury",
+              "sign": "Cancer",
+              "house": 9,
+              "degree": 27.51,
+              "absDegree": 117.51080631203718,
+              "retrograde": false
+            },
+            {
+              "name": "Venus",
+              "sign": "Cancer",
+              "house": 9,
+              "degree": 14.69,
+              "absDegree": 104.68524709047247,
+              "retrograde": false
+            },
+            {
+              "name": "Mars",
+              "sign": "Scorpio",
+              "house": 1,
+              "degree": 2.46,
+              "absDegree": 212.46249283601182,
+              "retrograde": false
+            },
+            {
+              "name": "Jupiter",
+              "sign": "Leo",
+              "house": 10,
+              "degree": 3.18,
+              "absDegree": 123.17575178315339,
+              "retrograde": false
+            },
+            {
+              "name": "Saturn",
+              "sign": "Scorpio",
+              "house": 1,
+              "degree": 16.72,
+              "absDegree": 226.72366160182403,
+              "retrograde": false
+            },
+            {
+              "name": "Uranus",
+              "sign": "Aries",
+              "house": 6,
+              "degree": 16.48,
+              "absDegree": 16.478201642755305,
+              "retrograde": true
+            },
+            {
+              "name": "Neptune",
+              "sign": "Pisces",
+              "house": 5,
+              "degree": 6.96,
+              "absDegree": 336.9640439948202,
+              "retrograde": true
+            },
+            {
+              "name": "Pluto",
+              "sign": "Capricorn",
+              "house": 3,
+              "degree": 11.66,
+              "absDegree": 281.6575786258162,
+              "retrograde": true
+            }
+          ],
+          "elements": {
+            "air": 0,
+            "fire": 3,
+            "earth": 2,
+            "water": 5
+          },
+          "ascendant": 209.35245106798294,
+          "midheaven": 118.16723726936533,
+          "modalities": {
+            "fixed": 4,
+            "mutable": 2,
+            "cardinal": 4
+          }
+        },
         "birthCity": "guatemala",
-        "birthDate": "2010-10-15",
-        "birthTime": "01:30",
+        "birthDate": "2014-07-30",
+        "birthTime": "11:30",
+        "nawal_maya": "5 Kame",
+        "numerology": {
+          "pinaculo": {
+            "a": 7,
+            "b": 3,
+            "c": 7,
+            "d": 8,
+            "e": 1,
+            "f": 1,
+            "g": 2,
+            "h": 6,
+            "i": 11,
+            "j": 4,
+            "o": 4,
+            "p": 4,
+            "q": 0,
+            "r": 8,
+            "s": 8
+          },
+          "nameNumber": 4,
+          "lifePathNumber": 8
+        },
         "birthCountry": "guatemala",
-        "birthDepartment": "guatemala"
+        "chinese_animal": "Caballo",
+        "birthDepartment": "guatemala",
+        "chinese_element": "Madera"
       }
     ],
     "subscription": {
@@ -230,29 +437,28 @@
     "daily_interactions": 0,
     "naos_identity_code": {
       "arquetipo": {
-        "id": "tierra-4",
-        "rol": "Analista",
-        "nombre": "El Arquitecto",
-        "elemento": "tierra",
-        "frecuencia": "Telúrica",
-        "descripcion": "Tejedor de lo visible; dibuja los planos de la existencia y materializa los sueños etéreos en estructuras de roca y luz."
+        "id": "fuego-2",
+        "rol": "Constructor",
+        "nombre": "El Forjador",
+        "elemento": "fuego",
+        "frecuencia": "Ígnea",
+        "descripcion": "Escultor de la voluntad; transmuta el calor denso en pilares sagrados, modelando la realidad con la persistencia del metal al rojo vivo."
       },
-      "motor_accion": "Voluntad de ejecución regulada por Marte en Capricornio en Casa V y la Misión de Vida 1. La pulsión de actuar no nace del impulso desordenado, sino de un cálculo frío de resistencia y soberanía. Existe un impulso primordial por crear obras legatarias, donde la energía vital es canalizada rigurosamente hacia la conquista de la forma, transformando la creatividad en un ejercicio de maestría sobre la materia.",
-      "sombra_riesgo": "Parálisis por hiper-análisis y somatización de la angustia. La Luna en Casa I en Virgo puede traducirse en una auto-devoración psíquica mediante el perfeccionismo destructivo. Venus en Casa XII en Virgo corre el riesgo de claustrofobia afectiva: el retiro al aislamiento ascético por considerar que el mundo humano es demasiado imperfecto o caótico para ser amado.",
-      "campo_perceptivo": "Percepción filtrada a través de un tamiz quirúrgico de alta precisión somática. La ausencia total de elemento Aire canaliza la conciencia directamente a través de la masa y la linfa: el mundo no se abstrae en teorías volátiles, sino que se percibe como tensión, pulso orgánico, peso y textura. La realidad es leída dinámicamente como un diagnóstico continuo donde cada fragmento fuera de eje es detectado de inmediato para ser alineado con el orden sagrado.",
-      "conflicto_central": "Tensión intrínseca entre las profundidades emocionales y de pertenencia (Sol en Cáncer, Venus en XII) y la exigencia tiranizante de imperfección cero (Luna/Ascendente en Virgo). Un río subterráneo de afecto y vulnerabilidad busca emerger, pero es contenido sistemáticamente por un juez interno hiper-vigilante que teme la contaminación del caos y la pérdida de control estructural.",
-      "potencial_elevado": "La encarnación del Mago-Constructor. Capacidad superior para manifestar sistemas, instituciones, hábitats o marcos conceptuales capaces de trascender el tiempo. Posee la facultad de otorgar orden al caos ajeno, actuando como un faro de certidumbre pragmática y refugio espiritual para el colectivo en momentos de colapso.",
-      "conclusion_directa": "Eres la piedra angular sobre la que se edifica lo perdurable. Tu misión no es erradicar la imperfección del universo, sino erigir un santuario lo suficientemente noble y elástico para contener la vida en toda su compleja belleza.",
-      "diagnostico_global": "Psique de altísima densidad operativa, caracterizada por una fortaleza telúrica superior que procesa cargas emocionales mediante el trabajo metodológico. Funciona como una fortaleza gótica: impenetrable en su fachada, profundamente reflexiva en sus criptas y diseñada para canalizar las grandes presiones psíquicas hacia proyectos de utilidad permanente. Su vulnerabilidad radica en la fatiga por hiper-procesamiento.",
-      "nucleo_estructural": "Síntesis telúrica y profunda de una psique diseñada para traducir lo inefable en materia duradera. La convergencia del Sol en Cáncer en Casa XI con el anclaje simétrico de la Luna y el Ascendente en Virgo edifica un templo interior donde la alta sensibilidad protectora es destilada mediante una severa disciplina formal. Con la vibración del Camino de Vida 7 y la Misión 1, el individuo opera como un sabio soberano: un arquitecto del alma que explora los misterios profundos para erigir estructuras inquebrantables en el plano tangible.",
-      "arquitectura_mental": "Un entramado cognitivo de extraordinaria agudeza, modulado por la vibración analítica del 7 y consolidado por Saturno en Sagitario en Casa III. La mente opera como un laboratorio de geometría aplicada: descompone la complejidad del entorno en variables cuantificables sin perder la resonancia con las corrientes subterráneas del inconsciente. Su pensamiento es denso, estratificado y estratégico, enfocado en prever fracturas colaterales a décadas de distancia.",
-      "direccion_evolutiva": "Vector de transmutación que exige el paso de la vigilancia obsesiva a la entrega mística. La presencia de Júpiter en Piscis en la Casa VII señala que el salto cuántico de este ser requiere flexibilizar el andamiaje defensivo para permitir que la gracia y la intuición transpersonal permeen sus vínculos. La maestría final consiste en comprender que el cimiento más resistente es aquel que sabe fluctuar con el sismo sin perder su eje.",
-      "expresion_proyeccion": "Proyección pública caracterizada por la pulcritud, el pragmatismo observador y una dignidad reservada. No obstante, bajo la fachada sobria del Ascendente en Virgo se proyecta la influencia magnánima de Mercurio en Leo en la Casa XI: el individuo se presenta como un guardián visionario de la tribu, un estratega silencioso que sostiene el peso del colectivo con autoridad natural sin necesidad de estridencias superficiales."
+      "motor_accion": "Una compulsión ígnea de automaestría e impacto duradero. Movilizado por el impulso marciano en Escorpio y el Sendero de Vida 8, tu acción es implacable, estratégica y metabólicamente resistente. No te mueve el entusiasmo efímero, sino el fuego de largo alcance que busca la trascendencia. Trabajas mejor cuando la presión destruye lo frágil, obligándote a erigir lo indestructible.",
+      "sombra_riesgo": "El Tirano Inflexible: la rigidización del carácter por temor al colapso. Ocurre cuando el tándem Marte-Saturno reprime la sensibilidad de Cáncer, transformando el deseo de orden en paranoia, perfeccionamiento compulsivo y dominación implacable. En este estado, el Forjador destruye la materia que pretende moldear por exceso de calor y presión.",
+      "campo_perceptivo": "Tu lente sobre el mundo desarticula la realidad en materia prima y potencial estructural. Con la Luna en Virgo en Casa XI y Plutón en Capricornio, tu percepción escanea instantáneamente las fisuras, las dinámicas de poder subyacentes y el orden implícito de los sistemas sociales. No ves las cosas como son, sino como podrían ser pulidas, perfeccionadas y llevadas a su máxima eficiencia funcional.",
+      "conflicto_central": "Ficción entre el deseo absoluto de soberanía autónoma y la necesidad del alma de vulnerabilidad y alianza. El conflicto enfrenta la desconfianza telúrica de Escorpio en Casa I y el perfeccionamiento frío de la Luna en Virgo contra la llamada del Ascendente Libra y la Misión 2, que exigen soltar las armas para permitir que el otro participe en la construcción del templo.",
+      "potencial_elevado": "El Arquitecto Soberano: la encarnación del Forjador que ha integrado el arte de la maestría material con la sabiduría distributiva. Capaz de erigir legados institucionales, espirituales o materiales que sobreviven al tiempo, sirviendo como un pilar de estabilidad, justicia y poder transformador para su comunidad.",
+      "conclusion_directa": "Eres el yunque y el martillo de tu propia trayectoria. Tu destino no es encajar en estructuras preexistentes, sino templar la fuerza bruta del espíritu hasta convertirla en realidades tangibles y bellas. Suelta el control paranoico sobre el proceso; confía en que la estructura que has diseñado es lo suficientemente fuerte como para albergar la vida sin asfixiarla.",
+      "diagnostico_global": "Psiquismo de altísima densidad operativa y resistencia estructural. Exhibes un diseño arquetípico preparado para sostener responsabilidades masivas y gestionar crisis complejas. No obstante, existe un riesgo intrínseco de hiperrigidez: la combinación de fuego denso y tierra metódica puede desecar la fluidez emocional si la voluntad de hierro no se somete voluntariamente al flujo del entorno.",
+      "nucleo_estructural": "Consolidación de la voluntad soberana en la materia denso-espiritual. La alianza entre un Sol-Júpiter magnánimo en la Casa X y la vibración numérica 8 erige una identidad cuya función primaria es la arquitectura de imperios duraderos. La presencia imperativa de Marte y Saturno en Escorpio sobre el Ascendente actúa como el yunque alquímico: la identidad no se recibe, se forja bajo presiones extremas. Eres un alquimista de la forma que transmuta la pasión pura en estructuras inquebrantables.",
+      "arquitectura_mental": "Estrategia penetrante guiada por un rigor metódico e intuición oceánica. Mercurio en Cáncer en Casa IX nutre la mente con visiones filosóficas arquetípicas, mientras Plutón en Casa III otorga una palabra quirúrgica y un pensamiento que destruye la ilusión. Procesas la información combinando la precisión analítica de Virgo con la profundidad psicológica de Escorpio, convirtiendo el caos conceptual en leyes operativas.",
+      "direccion_evolutiva": "La transmutación del control coercitivo hacia el servicio coordinado. Tu Misión 2 exige integrar la ferocidad constructora de la frecuencia 8 con la diplomacia, el equilibrio de polaridades y la cooperación consciente. Tu evolución radica en pasar de ser un gobernante autocrático de la materia a un catalizador que orquesta voluntades para el beneficio colectivo.",
+      "expresion_proyeccion": "Una fachada de refinamiento diplomático que enmascara un reactor de energía volcánica. Tu Ascendente en Libra proyecta elegancia, simetría y contención, sirviendo como el guante de seda sobre el puño de hierro de Marte-Saturno en Casa I. Hacia la esfera pública (Casa X), te presentas con la autoridad natural y el carisma regio del León, comandando respeto sin necesidad de artificios."
     },
     "consciousness_level": "Iniciado",
     "consciousness_points": 0,
     "onboarding_completed": true,
-    "active_sub_profile_id": "tvioyzo",
     "telegram_voice_enabled": false
   }
 }

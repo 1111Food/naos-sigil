@@ -4,6 +4,10 @@ import { Users, Plus, Lock, Trash2 } from 'lucide-react';
 import { useProfile } from '../contexts/ProfileContext';
 import { API_BASE_URL, getAsyncAuthHeaders } from '../lib/api';
 import { cn } from '../lib/utils';
+import { AstrologyEngine } from '../lib/astrologyEngine';
+import { NumerologyEngine } from '../lib/numerologyEngine';
+import { MayanEngine } from '../lib/mayanEngine';
+import { calculateChineseZodiac } from '../utils/chineseMapper';
 
 export const ProfileSelector: React.FC = () => {
     const { profile, refreshProfile } = useProfile();
@@ -43,11 +47,35 @@ export const ProfileSelector: React.FC = () => {
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const cleanTime = birthTime ? birthTime.substring(0, 5) : '12:00';
+            const birthDateTime = new Date(`${birthDate}T${cleanTime}:00`);
+
+            const astrology = AstrologyEngine.calculateNatalChart(birthDateTime, 14.6349, -90.5069);
+            const { lifePathNumber, pinaculo } = NumerologyEngine.calculateFullChart(birthDate);
+            const nameNumber = NumerologyEngine.calculateNameNumerology(name);
+            const mayan = MayanEngine.calculateNawal(birthDate);
+            const chinese = calculateChineseZodiac(birthDateTime.toISOString());
+
+            const payload = {
+                name,
+                birthDate,
+                birthTime,
+                birthCity,
+                birthDepartment,
+                birthCountry,
+                astrology,
+                numerology: { lifePathNumber, pinaculo, nameNumber },
+                mayan,
+                nawal_maya: `${mayan.tone} ${mayan.kicheName}`,
+                chinese_animal: chinese.animal,
+                chinese_element: chinese.element
+            };
+
             const headers = await getAsyncAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/api/user/profiles`, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify({ name, birthDate, birthTime, birthCity, birthDepartment, birthCountry })
+                body: JSON.stringify(payload)
             });
             if (!res.ok) {
                 const err = await res.json();
@@ -96,7 +124,7 @@ export const ProfileSelector: React.FC = () => {
                             !profile.active_sub_profile_id ? "bg-white/10 text-white font-bold" : "text-white/60 hover:bg-white/5 hover:text-white"
                         )}
                     >
-                        <span>{profile.name} (Principal)</span>
+                        <span>{profile.masterName || 'Luis Alfredo Herrera Mendez'} (Principal)</span>
                     </button>
 
                     {/* Sub Profiles */}

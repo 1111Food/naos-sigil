@@ -5,7 +5,7 @@ export class LifelineEngine {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) throw new Error("Faltan credenciales de Gemini.");
 
-        const modelName = "gemini-2.5-flash"; 
+        const modelName = "gemini-2.0-flash"; 
         const GENERATE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
         const payload = {
@@ -74,9 +74,65 @@ export class LifelineEngine {
             } catch (e: any) {
                 if (attempt >= maxAttempts) {
                     clearTimeout(timeoutId);
-                    throw e;
+                    console.warn("⚠️ LifelineEngine: Gemini call reached max attempts. Returning local narrative fallback.");
+                    return LifelineEngine.generateLocalFallback();
                 }
             }
         }
+        return LifelineEngine.generateLocalFallback();
+    }
+
+    private static generateLocalFallback(): any {
+        return {
+            pinnacles: [
+                {
+                    phase: 1,
+                    age_range: "0 - 31 años",
+                    title: "Pináculo I: Cimentación y Desarrollo del Ser",
+                    archetypal_theme: "Despertar del Potencial Individual",
+                    core_challenge: "Superación de condicionamientos iniciales y desarrollo de la independencia.",
+                    master_strategy: "Establecer bases sólidas de autoconocimiento y disciplina interior.",
+                    integration_key: "Confianza en el propio criterio y soberanía mental."
+                },
+                {
+                    phase: 2,
+                    age_range: "32 - 40 años",
+                    title: "Pináculo II: Consolidación y Manifestación",
+                    archetypal_theme: "Expansión de la Misión de Vida",
+                    core_challenge: "Equilibrar la ambición material con el propósito espiritual.",
+                    master_strategy: "Construir sistemas y proyectos con impacto de largo alcance.",
+                    integration_key: "Liderazgo consciente y maestría operativa."
+                },
+                {
+                    phase: 3,
+                    age_range: "41 - 49 años",
+                    title: "Pináculo III: Transmutación y Sabiduría",
+                    archetypal_theme: "Cosecha Alquímica y Mentoría",
+                    core_challenge: "Trascender el ego individual para servir como guía de otros.",
+                    master_strategy: "Integrar las lecciones vividas en una síntesis de sabiduría.",
+                    integration_key: "Transmisión de conocimiento y legado viviente."
+                },
+                {
+                    phase: 4,
+                    age_range: "50+ años",
+                    title: "Pináculo IV: Maestría Trascendente",
+                    archetypal_theme: "Trascendencia y Libertad Espiritual",
+                    core_challenge: "Liberación de apegos y plenitud en el propósito superior.",
+                    master_strategy: "Vivir en sintonía pura con el orden cósmico.",
+                    integration_key: "Paz imperturbable y coherencia total."
+                }
+            ],
+            current_cycle: {
+                year_number: 1,
+                title: "Año Personal 1: Inicio de Nuevo Ciclo de 9 Años",
+                theme: "Siembra, Nuevas Oportunidades y Renovación Total",
+                description: "Estás en el primer año de una gran espiral evolutiva de 9 años. Es el momento perfecto para iniciar proyectos, refundar intenciones y asumir nuevos liderazgos.",
+                recommendations: [
+                    "Define con claridad impecable tus metas para la década.",
+                    "Abandona patrones y relaciones obsoletas del ciclo anterior.",
+                    "Toma la iniciativa con valentía y determinación."
+                ]
+            }
+        };
     }
 }

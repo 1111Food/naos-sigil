@@ -68,7 +68,7 @@ const frequencyConfig: Record<string, { main: string, glow: string, bg: string }
 
 export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile }) => {
     const { t, language } = useTranslation();
-    const activeSubKey = _profile?.active_sub_profile_id || _profile?.sub_id || _profile?.name || 'master';
+    const activeSubKey = _profile?.active_sub_profile_id || 'master';
     const cacheKey = `naos_identity_${_profile?.id || 'guest'}_${activeSubKey}_${language}`;
     const { status: subscription } = useSubscription();
     const { triggerUpgrade } = useUpgrade();

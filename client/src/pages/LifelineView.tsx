@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useTranslation } from '../i18n';
 import { supabase } from '../lib/supabase';
-import { API_BASE_URL } from '../lib/api';
+import { API_BASE_URL, getAsyncAuthHeaders } from '../lib/api';
 import { LaborIllusion } from '../components/TimeMap/LaborIllusion';
 
 interface LifelineViewProps {
@@ -48,11 +48,9 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
     const fetchLifeline = async () => {
         try {
             setLoading(true);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
+            const headers = await getAsyncAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/api/lifeline?lang=${language}`, {
-                headers: { 'Authorization': `Bearer ${session.access_token}` }
+                headers
             });
             const data = await res.json();
             
@@ -67,20 +65,16 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
     const executeGeneration = React.useCallback(async () => {
         try {
             setGenerating(true);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
+            const headers = await getAsyncAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/api/lifeline/generate`, {
                 method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${session.access_token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers,
                 body: JSON.stringify({ lang: language })
             });
             const data = await res.json();
             
             if (data.map) setLifeline(data.map);
+            else if (data.error) alert(data.error);
         } catch (e) {
             console.error("Error generating Lifeline:", e);
         } finally {
@@ -196,15 +190,16 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                     {/* Ciclo de 9 Años */}
                     <div className="w-full max-w-3xl mb-16 relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-8 backdrop-blur-md">
                         <div className="absolute inset-0 bg-gradient-to-br from-naos-gold/5 to-transparent pointer-events-none" />
-                        <h3 className="text-2xl font-serif italic text-white/90 mb-2">Ciclo Actual (Escala 9 Años)</h3>
-                        <p className="text-[10px] uppercase tracking-widest text-white/40 mb-8">Año Personal {lifeline.current_cycle.year_number}</p>
+                        <h3 className="text-2xl font-serif italic text-white/90 mb-2">{lifeline.current_cycle?.title || "Ciclo Actual (Escala 9 Años)"}</h3>
+                        <p className="text-[10px] uppercase tracking-widest text-white/40 mb-8">Año Personal {lifeline.current_cycle?.year_number || 1}</p>
                         
                         {/* Barra de Progreso 1-9 */}
                         <div className="flex justify-between items-center mb-8 relative">
                             <div className="absolute top-1/2 left-0 right-0 h-px bg-white/10 -translate-y-1/2" />
                             {[1,2,3,4,5,6,7,8,9].map(num => {
-                                const isCurrent = num === lifeline.current_cycle.year_number;
-                                const isPast = num < lifeline.current_cycle.year_number;
+                                const currentNum = lifeline.current_cycle?.year_number || 1;
+                                const isCurrent = num === currentNum;
+                                const isPast = num < currentNum;
                                 return (
                                     <div key={num} className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500
                                         ${isCurrent ? 'bg-naos-gold text-black shadow-[0_0_20px_rgba(212,175,55,0.6)] scale-125' : 
@@ -216,20 +211,28 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                             })}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                <span className="text-[10px] uppercase tracking-widest text-white/40 block mb-2">Objetivo</span>
-                                <p className="text-white/90 text-sm">
-                                    {viewMode === 'symbolic' ? lifeline.current_cycle.esoteric_reading.objetivo_evolutivo : lifeline.current_cycle.biohacking_reading.objetivo_evolutivo}
-                                </p>
-                            </div>
-                            <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                <span className="text-[10px] uppercase tracking-widest text-red-400/60 block mb-2">Riesgo</span>
-                                <p className="text-white/90 text-sm">
-                                    {viewMode === 'symbolic' ? lifeline.current_cycle.esoteric_reading.riesgo_principal : lifeline.current_cycle.biohacking_reading.riesgo_principal}
-                                </p>
-                            </div>
-                        </div>
+                        {(() => {
+                            const cycleReading = (viewMode === 'symbolic' ? lifeline.current_cycle?.esoteric_reading : lifeline.current_cycle?.biohacking_reading) || {
+                                objetivo_evolutivo: lifeline.current_cycle?.theme || lifeline.current_cycle?.description || "Siembra, Nuevas Oportunidades y Renovación Total",
+                                riesgo_principal: "Aferrarse a estructuras del ciclo anterior"
+                            };
+                            return (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                                        <span className="text-[10px] uppercase tracking-widest text-white/40 block mb-2">Objetivo</span>
+                                        <p className="text-white/90 text-sm">
+                                            {cycleReading.objetivo_evolutivo}
+                                        </p>
+                                    </div>
+                                    <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                                        <span className="text-[10px] uppercase tracking-widest text-red-400/60 block mb-2">Riesgo</span>
+                                        <p className="text-white/90 text-sm">
+                                            {cycleReading.riesgo_principal}
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         <button 
                             onClick={() => setShowCycleDeepDive(!showCycleDeepDive)}
@@ -248,7 +251,9 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                     className="overflow-hidden"
                                 >
                                     <div className="pt-6 mt-6 border-t border-white/10 text-white/70 leading-relaxed text-sm">
-                                        {viewMode === 'symbolic' ? lifeline.current_cycle.deep_dive_esoteric : lifeline.current_cycle.deep_dive_biohacking}
+                                        {viewMode === 'symbolic' 
+                                            ? (lifeline.current_cycle?.deep_dive_esoteric || lifeline.current_cycle?.description || "Aprovecha la inercia de este ciclo para cimentar tus metas.") 
+                                            : (lifeline.current_cycle?.deep_dive_biohacking || lifeline.current_cycle?.description || "Optimiza tu ritmo circadiano y enfoque diario para sostener el crecimiento.")}
                                     </div>
                                 </motion.div>
                             )}
@@ -259,10 +264,17 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                     <div className="w-full max-w-3xl space-y-6">
                         <h3 className="text-2xl font-serif italic text-white/90 mb-8 text-center">La Década (Pináculos)</h3>
                         
-                        {lifeline.pinnacles.map((pin: any, idx: number) => {
+                        {(lifeline.pinnacles || []).map((pin: any, idx: number) => {
                             const isExpanded = expandedPinnacle === idx;
                             const isDeepDive = showDeepDive === idx;
-                            const reading = viewMode === 'symbolic' ? pin.esoteric_reading : pin.biohacking_reading;
+                            const reading = (viewMode === 'symbolic' ? pin.esoteric_reading : pin.biohacking_reading) || {
+                                objetivo_evolutivo: pin.title || pin.archetypal_theme || "Desarrollo y Consolidación del Ser",
+                                metricas_naos: pin.integration_key || "Coherencia al 90%",
+                                riesgo_principal: pin.core_challenge || "Resistencia al cambio y dispersión de energía",
+                                virtud_desarrollar: pin.master_strategy || "Enfoque y disciplina alineada",
+                                talento_dormido: pin.integration_key || "Intuición estratégica"
+                            };
+                            const indicators = pin.indicators || { creativity: 85, leadership: 80, learning: 90, expansion: 75, relationships: 85 };
                             
                             return (
                                 <motion.div 
@@ -279,13 +291,13 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                         onClick={() => setExpandedPinnacle(isExpanded ? null : idx)}
                                     >
                                         <div className="flex-1 space-y-2">
-                                            <h4 className="text-xl font-serif italic text-white">Etapa {pin.index}</h4>
+                                            <h4 className="text-xl font-serif italic text-white">{pin.title || `Etapa ${pin.index || idx + 1}`}</h4>
                                             <p className="text-sm text-white/70">{reading.objetivo_evolutivo}</p>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="flex flex-col items-end">
                                                 <span className="text-[10px] uppercase tracking-widest text-white/40">Métrica Principal</span>
-                                                <span className="text-xs text-white/60">{reading.metricas_naos}</span>
+                                                <span className="text-xs text-white/60">{reading.metricas_naos || "Coherencia Arquetípica"}</span>
                                             </div>
                                             <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/50">
                                                 {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -320,11 +332,11 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                                         
                                                         <div className="bg-black/30 p-6 rounded-2xl border border-white/5">
                                                             <h5 className="text-[10px] uppercase tracking-widest text-white/50 mb-6 text-center">Indicadores de Energía</h5>
-                                                            <IndicatorBar label="Creatividad" value={pin.indicators.creativity} colorClass="bg-purple-500" />
-                                                            <IndicatorBar label="Liderazgo" value={pin.indicators.leadership} colorClass="bg-red-500" />
-                                                            <IndicatorBar label="Aprendizaje" value={pin.indicators.learning} colorClass="bg-blue-500" />
-                                                            <IndicatorBar label="Expansión" value={pin.indicators.expansion} colorClass="bg-green-500" />
-                                                            <IndicatorBar label="Relaciones" value={pin.indicators.relationships} colorClass="bg-pink-500" />
+                                                            <IndicatorBar label="Creatividad" value={indicators.creativity} colorClass="bg-purple-500" />
+                                                            <IndicatorBar label="Liderazgo" value={indicators.leadership} colorClass="bg-red-500" />
+                                                            <IndicatorBar label="Aprendizaje" value={indicators.learning} colorClass="bg-blue-500" />
+                                                            <IndicatorBar label="Expansión" value={indicators.expansion} colorClass="bg-green-500" />
+                                                            <IndicatorBar label="Relaciones" value={indicators.relationships} colorClass="bg-pink-500" />
                                                         </div>
                                                     </div>
 
@@ -346,7 +358,9 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                                                 className="overflow-hidden"
                                                             >
                                                                 <div className="p-6 mt-6 rounded-xl bg-black/40 border border-white/5 text-white/70 leading-relaxed text-sm">
-                                                                    {viewMode === 'symbolic' ? pin.deep_dive_esoteric : pin.deep_dive_biohacking}
+                                                                    {viewMode === 'symbolic' 
+                                                                        ? (pin.deep_dive_esoteric || pin.master_strategy || "Sintonización completa de la etapa.") 
+                                                                        : (pin.deep_dive_biohacking || pin.core_challenge || "Integración conductual de la etapa.")}
                                                                 </div>
                                                             </motion.div>
                                                         )}

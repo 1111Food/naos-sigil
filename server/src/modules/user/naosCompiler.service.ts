@@ -49,7 +49,9 @@ export class NaosCompilerService {
         const userProfile = await this.getCompleteProfile(userId);
         const { bible, archetype } = await this.consolidateBible(userProfile, language);
 
-        if (!forceRefresh) {
+        const isSubProfileActive = !!userProfile.active_sub_profile_id;
+
+        if (!forceRefresh && !isSubProfileActive) {
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('naos_identity_code, profile_data')
@@ -304,7 +306,22 @@ export class NaosCompilerService {
     }
 
     private static async getCompleteProfile(userId: string): Promise<any> {
-        return await UserService.getProfile(userId);
+        const master = await UserService.getProfile(userId);
+        if (master.active_sub_profile_id && Array.isArray(master.sub_profiles)) {
+            const sub: any = master.sub_profiles.find((sp: any) => sp.id === master.active_sub_profile_id);
+            if (sub) {
+                return {
+                    ...master,
+                    ...sub,
+                    name: sub.name || sub.full_name || master.name,
+                    birthDate: sub.birthDate || sub.birth_date || master.birthDate,
+                    birthTime: sub.birthTime || sub.birth_time || master.birthTime,
+                    birthCity: sub.birthCity || sub.birth_city || master.birthCity,
+                    birthCountry: sub.birthCountry || sub.birth_country || master.birthCountry,
+                };
+            }
+        }
+        return master;
     }
 
     private static async consolidateBible(profile: any, language: 'es' | 'en' = 'es') {

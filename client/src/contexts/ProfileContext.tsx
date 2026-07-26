@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { AstrologyEngine } from '../lib/astrologyEngine';
+import { NumerologyEngine } from '../lib/numerologyEngine';
+import { MayanEngine } from '../lib/mayanEngine';
+import { calculateChineseZodiac } from '../utils/chineseMapper';
 
 export interface SubProfile {
     id: string;
@@ -29,6 +33,7 @@ export interface SubProfile {
 export interface UserProfile {
     id: string; // Authenticated User UUID
     name: string;
+    masterName?: string;
     email?: string;
     nickname?: string;
     birthDate: string;
@@ -77,17 +82,51 @@ interface ProfileContextType {
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 /**
+ * Utility to compute cosmic profile attributes (astrology, numerology, mayan, chinese) on the fly
+ */
+const buildSubprofileCosmicData = (sub: any) => {
+    if (!sub || !sub.birthDate) return sub;
+
+    try {
+        const cleanTime = sub.birthTime ? sub.birthTime.substring(0, 5) : '12:00';
+        const birthDateTime = new Date(`${sub.birthDate}T${cleanTime}:00`);
+
+        const astrology = sub.astrology || AstrologyEngine.calculateNatalChart(birthDateTime, 14.6349, -90.5069);
+        const { lifePathNumber, pinaculo } = sub.numerology || NumerologyEngine.calculateFullChart(sub.birthDate);
+        const nameNumber = NumerologyEngine.calculateNameNumerology(sub.name || '');
+        const numerology = sub.numerology || { lifePathNumber, pinaculo, nameNumber };
+        const mayan = sub.mayan || MayanEngine.calculateNawal(sub.birthDate);
+        const chinese = calculateChineseZodiac(birthDateTime.toISOString());
+
+        return {
+            ...sub,
+            astrology,
+            numerology,
+            mayan,
+            nawal_maya: sub.nawal_maya || (mayan ? `${mayan.tone} ${mayan.kicheName}` : undefined),
+            chinese_animal: sub.chinese_animal || chinese.animal,
+            chinese_element: sub.chinese_element || chinese.element,
+        };
+    } catch (e) {
+        console.error("Error building cosmic data for subprofile:", e);
+        return sub;
+    }
+};
+
+/**
  * Utility to map Supabase snake_case profile data to our camelCase UserProfile interface.
  */
 const mapProfileData = (data: any, userEmail?: string): UserProfile => {
     const rawEmail = data.email || data.profile_data?.email || userEmail || '';
     const isRoot = rawEmail?.toLowerCase().includes('luisalfredoherreramendez');
+    const rootName = data.full_name || data.name || data.profile_data?.name || 'Luis Alfredo Herrera Mendez';
 
     const masterProfile: UserProfile = {
         ...data,
         ...(data.profile_data || {}),
         plan_type: isRoot ? 'admin' : (data.plan_type || data.profile_data?.plan_type || 'free'),
-        name: data.full_name || data.name || data.profile_data?.name || 'Viajero',
+        masterName: rootName,
+        name: rootName,
         nickname: data.nickname || data.profile_data?.nickname || '',
         email: data.email,
         birthDate: data.birth_date,
@@ -105,21 +144,23 @@ const mapProfileData = (data: any, userEmail?: string): UserProfile => {
 
     // If an active subprofile is selected (e.g. Vania), overlay its attributes onto profile
     if (masterProfile.active_sub_profile_id && Array.isArray(masterProfile.sub_profiles)) {
-        const selectedSub = masterProfile.sub_profiles.find((sp: any) => sp.id === masterProfile.active_sub_profile_id);
-        if (selectedSub) {
+        const rawSub = masterProfile.sub_profiles.find((sp: any) => sp.id === masterProfile.active_sub_profile_id);
+        if (rawSub) {
+            const selectedSub = buildSubprofileCosmicData(rawSub);
             return {
                 ...masterProfile,
                 ...selectedSub,
+                masterName: rootName,
                 name: selectedSub.name || selectedSub.full_name || masterProfile.name,
                 birthDate: selectedSub.birthDate || selectedSub.birth_date || masterProfile.birthDate,
                 birthTime: selectedSub.birthTime || selectedSub.birth_time || masterProfile.birthTime,
                 birthCity: selectedSub.birthCity || selectedSub.birth_city || masterProfile.birthCity,
                 birthCountry: selectedSub.birthCountry || selectedSub.birth_country || masterProfile.birthCountry,
-                astrology: selectedSub.astrology || masterProfile.astrology,
-                numerology: selectedSub.numerology || masterProfile.numerology,
-                mayan: selectedSub.mayan || masterProfile.mayan,
-                chinese_animal: selectedSub.chinese_animal || masterProfile.chinese_animal,
-                chinese_element: selectedSub.chinese_element || masterProfile.chinese_element,
+                astrology: selectedSub.astrology,
+                numerology: selectedSub.numerology,
+                mayan: selectedSub.mayan,
+                chinese_animal: selectedSub.chinese_animal,
+                chinese_element: selectedSub.chinese_element,
                 // Preserve Root Master identity keys
                 id: masterProfile.id,
                 plan_type: masterProfile.plan_type,
