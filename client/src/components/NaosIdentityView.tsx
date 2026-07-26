@@ -68,7 +68,8 @@ const frequencyConfig: Record<string, { main: string, glow: string, bg: string }
 
 export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile }) => {
     const { t, language } = useTranslation();
-    const cacheKey = `naos_identity_${_profile?.id || 'guest'}_${language}`;
+    const activeSubKey = _profile?.active_sub_profile_id || _profile?.sub_id || _profile?.name || 'master';
+    const cacheKey = `naos_identity_${_profile?.id || 'guest'}_${activeSubKey}_${language}`;
     const { status: subscription } = useSubscription();
     const { triggerUpgrade } = useUpgrade();
 
@@ -78,8 +79,8 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     
     // Initial state hydration: Prop > LocalStorage > null
     const [synthesis, setSynthesis] = useState<NaosIdentitySynthesis | null>(() => {
-        if (_profile?.naos_identity_code) return _profile.naos_identity_code;
-        if (_profile?.naosIdentityCode) return _profile.naosIdentityCode;
+        if (_profile?.naos_identity_code && !(_profile?.active_sub_profile_id)) return _profile.naos_identity_code;
+        if (_profile?.naosIdentityCode && !(_profile?.active_sub_profile_id)) return _profile.naosIdentityCode;
         try {
             const cached = localStorage.getItem(cacheKey);
             return cached ? JSON.parse(cached) : null;
@@ -95,6 +96,24 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     const [explainerType, setExplainerType] = useState<'IDENTITY_ARCHETYPE' | null>(null);
     const hasAutoRefreshed = React.useRef(false);
     const hasInitialFetched = React.useRef(false);
+
+    // Re-sync synthesis whenever active profile or language changes
+    useEffect(() => {
+        hasInitialFetched.current = false;
+        hasAutoRefreshed.current = false;
+        try {
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                setSynthesis(JSON.parse(cached));
+            } else {
+                setSynthesis(null);
+                fetchSynthesis(true);
+            }
+        } catch (e) {
+            setSynthesis(null);
+            fetchSynthesis(true);
+        }
+    }, [activeSubKey, language]);
 
     const fetchSynthesis = async (refresh = false) => {
         console.log("🧬 [NaosIdentityView] fetchSynthesis triggered. Refresh:", refresh);

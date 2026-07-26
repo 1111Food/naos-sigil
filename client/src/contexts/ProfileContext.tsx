@@ -83,7 +83,7 @@ const mapProfileData = (data: any, userEmail?: string): UserProfile => {
     const rawEmail = data.email || data.profile_data?.email || userEmail || '';
     const isRoot = rawEmail?.toLowerCase().includes('luisalfredoherreramendez');
 
-    return {
+    const masterProfile: UserProfile = {
         ...data,
         ...(data.profile_data || {}),
         plan_type: isRoot ? 'admin' : (data.plan_type || data.profile_data?.plan_type || 'free'),
@@ -102,6 +102,35 @@ const mapProfileData = (data: any, userEmail?: string): UserProfile => {
         fengShui: data.fengShui || undefined,
         naosIdentityCode: data.naos_identity_code || data.profile_data?.naos_identity_code || undefined
     };
+
+    // If an active subprofile is selected (e.g. Vania), overlay its attributes onto profile
+    if (masterProfile.active_sub_profile_id && Array.isArray(masterProfile.sub_profiles)) {
+        const selectedSub = masterProfile.sub_profiles.find((sp: any) => sp.id === masterProfile.active_sub_profile_id);
+        if (selectedSub) {
+            return {
+                ...masterProfile,
+                ...selectedSub,
+                name: selectedSub.name || selectedSub.full_name || masterProfile.name,
+                birthDate: selectedSub.birthDate || selectedSub.birth_date || masterProfile.birthDate,
+                birthTime: selectedSub.birthTime || selectedSub.birth_time || masterProfile.birthTime,
+                birthCity: selectedSub.birthCity || selectedSub.birth_city || masterProfile.birthCity,
+                birthCountry: selectedSub.birthCountry || selectedSub.birth_country || masterProfile.birthCountry,
+                astrology: selectedSub.astrology || masterProfile.astrology,
+                numerology: selectedSub.numerology || masterProfile.numerology,
+                mayan: selectedSub.mayan || masterProfile.mayan,
+                chinese_animal: selectedSub.chinese_animal || masterProfile.chinese_animal,
+                chinese_element: selectedSub.chinese_element || masterProfile.chinese_element,
+                // Preserve Root Master identity keys
+                id: masterProfile.id,
+                plan_type: masterProfile.plan_type,
+                email: masterProfile.email,
+                active_sub_profile_id: masterProfile.active_sub_profile_id,
+                sub_profiles: masterProfile.sub_profiles
+            };
+        }
+    }
+
+    return masterProfile;
 };
 
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
