@@ -14,7 +14,7 @@ export const LaborIllusion: React.FC<LaborIllusionProps> = ({ onComplete }) => {
         "𓂀 Interpretando energía del Nahual...",
         "龍 Sincronizando Calendario Chino...",
         "🧠 Integrando tu historial en NAOS...",
-        "🌀 Fusionando las 5 escuelas...",
+        "🌀 Fusionando las 5 Intelligence Sources...",
         "⏳ Construyendo Línea Temporal...",
         "✨ Conectando con Sigil..."
     ];

@@ -61,7 +61,7 @@ FORMATO OBLIGATORIO DE RESPUESTA (Solo JSON, sin Markdown \`\`\`json):
          "expansion": 60,
          "relationships": 40
       },
-      "deep_dive_esoteric": "Texto profundo de 3-4 líneas cruzando las 4 escuelas en lenguaje místico.",
+      "deep_dive_esoteric": "Texto profundo de 3-4 líneas sintetizando las 4 Intelligence Sources en un lenguaje clínico y estratégico.",
       "deep_dive_biohacking": "Texto profundo de 3-4 líneas en lenguaje de alto rendimiento y biohacking."
     }
   ], // Repetir para los 4 pináculos

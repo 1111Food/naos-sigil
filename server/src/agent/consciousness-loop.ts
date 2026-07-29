@@ -125,7 +125,7 @@ Coherencia Global: ${contextData.coherence.global.toFixed(1)}%
             console.log(`[SIGIL_CONSCIOUSNESS] Dreaming a response via Gemini...`);
             
             const apiKey = config.GOOGLE_API_KEY;
-            const TARGET_MODEL = "gemini-flash-latest";
+            const TARGET_MODEL = "gemini-3.5-flash-lite";
             const API_VERSION = "v1beta";
             const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;
 

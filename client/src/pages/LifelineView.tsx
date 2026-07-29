@@ -345,7 +345,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                                             onClick={(e) => { e.stopPropagation(); setShowDeepDive(isDeepDive ? null : idx); }}
                                                             className="text-xs uppercase tracking-widest text-purple-400/70 hover:text-purple-400 transition-colors py-2 px-6 rounded-full border border-purple-500/30 hover:bg-purple-900/20"
                                                         >
-                                                            {isDeepDive ? 'Ocultar Profundización' : 'Profundizar en la Fusión de las 4 Escuelas'}
+                                                            {isDeepDive ? 'Ocultar Profundización' : 'Profundizar en la Fusión de las 4 Intelligence Sources'}
                                                         </button>
                                                     </div>
 

@@ -6,6 +6,7 @@ import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS } from '../sigil/prompts';
 import { TTSService } from '../sigil/ttsService';
 import { DailyOracleEngine } from '../oracle/DailyOracleEngine';
 import { DailyOracleOracle } from '../oracle/DailyOracleOracle';
+import { ConsciousnessEngine, TransmissionMoment } from '../sigil/ConsciousnessEngine';
 
 export class NotificationEngine {
 
@@ -79,7 +80,8 @@ export class NotificationEngine {
                     matchCount++;
                 }
 
-                if (!isProtocolDue && !isOracleDue && labAspects.length === 0) continue;
+                const isFixedTimeDue = ['07:00', '11:30', '12:30', '21:00'].includes(userTimeStr);
+                if (!isProtocolDue && !isOracleDue && labAspects.length === 0 && !isFixedTimeDue) continue;
 
                 console.info(`🎯 [CRON] Match FOUND for ${user.email} at ${userTimeStr} (Offset: ${offset})`);
 
@@ -156,6 +158,26 @@ ${readingData.prioridades_dinamicas?.map((p: any) => `${p.icono} ${p.nombre}: ${
                 if (userTimeStr === '11:30') {
                     console.info(`⏰ [NOTIF] Triggering Local Inactivity sweep for ${user.email}`);
                     await this.triggerInactivity(user);
+                }
+
+                // --- EXECUTION 5: Consciousness Engine (Vigía Cósmico) ---
+                let moment: TransmissionMoment | null = null;
+                if (userTimeStr === '07:00') moment = 'AURORA';
+                else if (userTimeStr === '12:30') moment = 'ZENITH';
+                else if (userTimeStr === '21:00') moment = 'VESPER';
+
+                if (moment) {
+                    console.info(`👁️ [NOTIF] Triggering Vigía Cósmico (${moment}) for ${user.email}`);
+                    try {
+                        const transmission = await ConsciousnessEngine.trySendTransmission(user.id, userDateStr, moment, lang);
+                        if (transmission) {
+                            const telegramMessage = `👁️ **VIGÍA CÓSMICO** — ${moment}\n\n${transmission}`;
+                            const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                            console.info(`📡 [NOTIF] Vigía Result for ${user.email}: ${success}`);
+                        }
+                    } catch(err: any) {
+                        console.error(`🔥 [NOTIF] Error processing Vigía Cósmico for ${user.email}:`, err.message);
+                    }
                 }
 
             } catch (e) {

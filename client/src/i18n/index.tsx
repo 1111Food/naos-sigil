@@ -7,7 +7,7 @@ export const translations = {
         language_code: "es",
         // Original Dashboard/Main
         identity: "Código de Identidad",
-        identity_description: "El mapa de tu arquitectura espiritual. Una síntesis exclusiva que unifica para ti 4 escuelas energéticas (Astrología, Numerología, Maya y Oriental) para revelar tu Arcano de Naos.",
+        identity_description: "El mapa de tu arquitectura espiritual. Una síntesis exclusiva que unifica para ti 4 fuentes de inteligencia (Astrología, Numerología, Maya y Oriental) para revelar tu Arcano de Naos.",
         oracle: "Oráculo",
         protocols: "Protocolos 21/90",
         laboratory: "Laboratorio Elemental",
@@ -209,7 +209,7 @@ export const translations = {
         identity_interrupted: "SECUENCIA INTERRUMPIDA",
         identity_fail_title: "Fallo en la Compilación",
         identity_invoking_msg: "Invocando Código de Identidad",
-        identity_syncing_msg: "Sincronizando Escuelas Energéticas...",
+        identity_syncing_msg: "Sincronizando Fuentes de Inteligencia...",
         identity_aligning: "Alineando...",
         identity_retry_btn: "Reiniciar Núcleo",
 
@@ -247,7 +247,7 @@ export const translations = {
         identity_error_prefix: "Error de síntesis",
 
         // New Audit Keys
-        landing_connect_soul: "Conecta con tu Alma",
+        landing_connect_soul: "Plataforma de Inteligencia Humana",
         landing_slide_connect: "Desliza para conectar",
         landing_login_btn: "Ya Tengo Mi Llave (Ingresar)",
         footer_terms: "Términos",
@@ -459,7 +459,7 @@ export const translations = {
         // Onboarding Keys
         onboarding_welcome_title: "Sigil: La Sintonización Inicial",
         onboarding_analyzing: "Analizando tu Arquitectura...",
-        onboarding_welcome_message: "Bienvenido al Templo de Naos.\n\nTu arquitectura está siendo trazada a través de las cuatro grandes escuelas:\n\n• El Cosmos Astral y su diseño celeste.\n• La Vibración Numérica de tu esencia.\n• El Nawal Maya de tu cuenta larga.\n• El Tótem Oriental de tu instinto animal.\n\n• El Sigil ha de sintonizar las coordenadas para tu avatar.\n\nSincronizando frecuencias...",
+        onboarding_welcome_message: "Bienvenido al Templo de Naos.\n\nTu arquitectura está siendo trazada a través de las cuatro grandes Intelligence Sources:\n\n• Astronomical Intelligence Source (El Cosmos Astral).\n• Numerological Intelligence Source (La Vibración Numérica).\n• Mayan Intelligence Source (El Nawal de tu cuenta larga).\n• Chinese Intelligence Source (El Tótem Oriental).\n\n• El Sigil ha de sintonizar las coordenadas para tu avatar.\n\nSincronizando frecuencias...",
         tune_coordinates: "Sintonizar Coordenadas",
         calibration_title: "Calibración de Identidad Original",
         earthly_identity: "Identidad Terrenal",
@@ -539,12 +539,12 @@ export const translations = {
         oracle_nexus_step1_title: "Fusión Holística",
         oracle_nexus_step1_desc: "Tu diseño suma 4 vertientes (Astrología, Números, Maya y Chino) para unificarse en el Arcano NAOS.",
         oracle_nexus_step2_title: "Alineación de Poder",
-        oracle_nexus_step2_desc: "Cada escuela inyecta una respuesta a tus nodos evolutivos para trazar el sendero de tu rol maestro.",
+        oracle_nexus_step2_desc: "Cada Intelligence Source inyecta una respuesta a tus nodos evolutivos para trazar el sendero de tu rol maestro.",
         oracle_nexus_step3_title: "ADN Bio-Arquitectónico",
         oracle_nexus_step3_desc: "Descubre las fuerzas latentes y sintonizaciones diarias asignadas para elevar tu nivel de consciencia hoy.",
 
         oracle_complete_title: 'El Código de Identidad',
-        oracle_complete_subtitle: "Alquimia de Escuelas",
+        oracle_complete_subtitle: "Alquimia de Fuentes de Inteligencia",
         oracle_complete_step1_title: "Astrología Occidental",
         oracle_complete_step1_desc: "Analizamos tu Sol, Luna y Ascendente para descifrar tu núcleo radiante, instinto y máscara social.",
         oracle_complete_step2_title: "Numerología Evolutiva",
@@ -554,7 +554,7 @@ export const translations = {
         oracle_complete_step4_title: "Zodiaco Oriental",
         oracle_complete_step4_desc: "Revelamos el instinto y sabiduría de tu Tótem para equilibrar tu energía con el entorno de la Tierra.",
         oracle_complete_step5_title: "El Arquetipo NAOS",
-        oracle_complete_step5_desc: "La fusión cuántica. El Sigil condensa las 4 escuelas en tu Esencia Primordial maestra habilitada.",
+        oracle_complete_step5_desc: "La fusión cuántica. El Sigil condensa las 4 Intelligence Sources en tu Esencia Primordial maestra habilitada.",
 
         oracle_wisdom_title: 'Biblioteca de Sabiduría',
         oracle_wisdom_subtitle: "Acceso al Conocimiento",
@@ -566,8 +566,8 @@ export const translations = {
         oracle_wisdom_step3_desc: "Agrega rituales a la biblioteca con tu Sigil para acelerar tu salto evolutivo.",
 
         oracle_archetype_title: 'Código de Identidad',
-        oracle_archetype_subtitle: "Alquimia de Escuelas",
-        oracle_archetype_step1_title: "Cuatro Escuelas",
+        oracle_archetype_subtitle: "Alquimia de Fuentes de Inteligencia",
+        oracle_archetype_step1_title: "Cuatro Intelligence Sources",
         oracle_archetype_step1_desc: "Integra el análisis entrelazado de tu Astrología, Numerología, Cosmogonía Maya y Horóscopo Chino.",
         oracle_archetype_step2_title: "Quinto Elemento: El Arcano",
         oracle_archetype_step2_desc: "Surge de una Alquimia Sagrada que unifica las 4 vertientes para condensar tu Esencia Primordial o Arcano NAOS.",
@@ -1653,7 +1653,7 @@ export const translations = {
         identity_error_prefix: "Synthesis error",
 
         // New Audit Keys
-        landing_connect_soul: "Connect with your Soul",
+        landing_connect_soul: "Human Intelligence Platform",
         landing_slide_connect: "Slide to connect",
         landing_login_btn: "I Have My Key (Login)",
         footer_terms: "Terms",
