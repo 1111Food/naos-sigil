@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Clock, Sparkles, Info, MessageCircle } from 'lucide-react';
+import { X, Send, Clock, Sparkles, Info, MessageCircle, Brain } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
