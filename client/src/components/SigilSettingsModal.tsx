@@ -6,6 +6,7 @@ import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
 import { getAsyncAuthHeaders } from '../lib/api';
 import { SigilExplainer } from './SigilExplainer';
+import { NaosManifesto } from './NaosManifesto';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useSubscription } from '../hooks/useSubscription';
 import { useUpgrade } from '../contexts/UpgradeContext';
@@ -39,6 +40,7 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
         return localStorage.getItem('naos_sigil_voice_enabled') === 'true';
     });
     const [showExplainer, setShowExplainer] = useState(false);
+    const [showManifesto, setShowManifesto] = useState(false);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -248,6 +250,25 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
                             </button>
                             <p className="text-[10px] text-white/30">{t('voice_toggle_desc')}</p>
                         </div>
+                        
+                        <div className="pt-8 border-t border-white/5 flex flex-col gap-4">
+                            <button
+                                onClick={() => setShowManifesto(true)}
+                                className="flex items-center justify-between w-full p-4 rounded-2xl bg-gradient-to-r from-emerald-500/5 to-cyan-500/5 border border-emerald-500/10 hover:border-emerald-500/30 hover:bg-emerald-500/10 transition-all group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
+                                        <Brain className="w-5 h-5" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="text-sm font-bold text-emerald-100 group-hover:text-white transition-colors">
+                                            Filosofía NAOS
+                                        </h3>
+                                        <p className="text-xs text-emerald-100/50">La arquitectura del sistema</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="mt-8 flex gap-3">
@@ -267,6 +288,9 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
                     <AnimatePresence>
                         {showExplainer && (
                             <SigilExplainer onClose={() => setShowExplainer(false)} />
+                        )}
+                        {showManifesto && (
+                            <NaosManifesto onClose={() => setShowManifesto(false)} />
                         )}
                     </AnimatePresence>
                 </motion.div>

@@ -459,7 +459,7 @@ export const translations = {
         // Onboarding Keys
         onboarding_welcome_title: "Sigil: La Sintonización Inicial",
         onboarding_analyzing: "Analizando tu Arquitectura...",
-        onboarding_welcome_message: "Bienvenido al Templo de Naos.\n\nTu arquitectura está siendo trazada a través de las cuatro grandes Intelligence Sources:\n\n• Astronomical Intelligence Source (El Cosmos Astral).\n• Numerological Intelligence Source (La Vibración Numérica).\n• Mayan Intelligence Source (El Nawal de tu cuenta larga).\n• Chinese Intelligence Source (El Tótem Oriental).\n\n• El Sigil ha de sintonizar las coordenadas para tu avatar.\n\nSincronizando frecuencias...",
+        onboarding_welcome_message: "Bienvenido a NAOS, la Plataforma de Inteligencia Humana diseñada para la evolución estructural.\n\nTu arquitectura está siendo trazada a través de las cuatro grandes Intelligence Sources:\n\n• Astronomical Intelligence Source (El Cosmos Astral).\n• Numerological Intelligence Source (La Vibración Numérica).\n• Mayan Intelligence Source (El Nawal de tu cuenta larga).\n• Chinese Intelligence Source (El Tótem Oriental).\n\n• El Sigil ha de sintonizar las coordenadas para tu avatar.\n\nSincronizando frecuencias...",
         tune_coordinates: "Sintonizar Coordenadas",
         calibration_title: "Calibración de Identidad Original",
         earthly_identity: "Identidad Terrenal",
@@ -1344,7 +1344,7 @@ export const translations = {
         ritual_air_biohack_anchor_copy: "Mi mente es maleable y expansiva. Aprendo a la velocidad de la luz.",
         ritual_air_biohack_anchor_description: "Comando de actualización de software. Refuerza la creencia subyacente de que la inteligencia y las habilidades no son fijas, sino sistemas dinámicos que pueden ser reconfigurados a voluntad.",
         coming_soon: "Próximamente",
-        access: "Acceder",
+
         lifeline_title: "Línea de Vida (Macro)",
         lifeline_subtitle: "Ciclos Mayores y Pináculos",
         annual_horizon_title: "Horizonte Anual (Meso)",
@@ -1834,7 +1834,7 @@ export const translations = {
         // Onboarding Keys
         onboarding_welcome_title: "Sigil: Initial Tuning",
         onboarding_analyzing: "Analyzing your Architecture...",
-        onboarding_welcome_message: "Welcome to the Temple of Naos.\n\nYour architecture is being mapped through the four great schools:\n\n• The Astral Cosmos and its celestial design.\n• The Numerical Vibration of your essence.\n• The Mayan Nawal of your long count.\n• The Oriental Totem of your animal instinct.\n\n• The Sigil must tune the coordinates for your avatar.\n\nSynchronizing frequencies...",
+        onboarding_welcome_message: "Welcome to NAOS, the Human Intelligence Platform designed for structural evolution.\n\nYour architecture is being mapped through the four great Intelligence Sources:\n\n• Astronomical Intelligence Source (The Astral Cosmos).\n• Numerological Intelligence Source (The Numerical Vibration).\n• Mayan Intelligence Source (The Mayan Nawal).\n• Chinese Intelligence Source (The Oriental Totem).\n\n• The Sigil must tune the coordinates for your avatar.\n\nSynchronizing frequencies...",
         tune_coordinates: "Tune Coordinates",
         calibration_title: "Original Identity Calibration",
         earthly_identity: "Earthly Identity",
@@ -2683,7 +2683,7 @@ export const translations = {
         ritual_air_biohack_anchor_copy: "My mind is malleable and expansive. I learn at the speed of light.",
         ritual_air_biohack_anchor_description: "Software update command. Reinforces the underlying belief that intelligence and skills are not fixed, but dynamic systems that can be reconfigured at will.",
         coming_soon: "Coming Soon",
-        access: "Access",
+
         lifeline_title: "Lifeline (Macro)",
         lifeline_subtitle: "Major Cycles and Pinnacles",
         annual_horizon_title: "Annual Horizon (Meso)",
