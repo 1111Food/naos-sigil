@@ -11,7 +11,7 @@ export class GroupOracle {
 
         if (!apiKey) return this.getFallback(lang);
 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const context = {
             teamMembers: report.teamNames,

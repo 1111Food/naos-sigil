@@ -5,7 +5,7 @@ export class LifelineEngine {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) throw new Error("Faltan credenciales de Gemini.");
 
-        const modelName = "gemini-3.6-flash"; // Deep generation model for lifeline pinnacles
+        const modelName = "gemini-1.5-pro"; // Deep generation model for lifeline pinnacles
         const GENERATE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
         const payload = {
@@ -29,7 +29,7 @@ export class LifelineEngine {
             try {
                 attempt++;
                 // Fallback to older model if 2.5 is overloaded on attempt 2+
-                const activeModel = attempt > 1 ? "gemini-3.5-flash-lite" : modelName;
+                const activeModel = attempt > 1 ? "gemini-1.5-flash" : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`;
 
                 console.log(`⏳ LifelineEngine: Calling ${activeModel} for Macro Evolution Axis (Attempt ${attempt})...`);

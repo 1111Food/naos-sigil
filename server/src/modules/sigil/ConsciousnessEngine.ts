@@ -5,7 +5,7 @@ import { config } from '../../config/env';
 export type TransmissionMoment = 'AURORA' | 'ZENITH' | 'VESPER';
 
 export class ConsciousnessEngine {
-    private static TARGET_MODEL = "gemini-3.6-flash";
+    private static TARGET_MODEL = "gemini-1.5-pro";
     
     /**
      * Generates a daily transmission crossing user's deep data with today's energy

@@ -73,7 +73,7 @@ Debes devolver UNICAMENTE un objeto JSON con la siguiente estructura exacta:
         `;
 
         try {
-            const TARGET_MODEL = "gemini-3.5-flash-lite";
+            const TARGET_MODEL = "gemini-1.5-flash";
             const API_VERSION = "v1beta";
             const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${TARGET_MODEL}:generateContent?key=${apiKey}`;
 
