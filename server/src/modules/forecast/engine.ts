@@ -5,7 +5,7 @@ export class ForecastEngine {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) throw new Error("Faltan credenciales de Gemini.");
 
-        const modelName = "gemini-1.5-pro"; // Deep generation model for 12-month forecasts
+        const modelName = "gemini-3.6-flash"; // Deep generation model for 12-month forecasts
         const GENERATE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
         const payload = {
@@ -28,7 +28,7 @@ export class ForecastEngine {
         while (attempt < maxAttempts) {
             try {
                 attempt++;
-                const activeModel = attempt > 1 ? "gemini-1.5-flash" : modelName;
+                const activeModel = attempt > 1 ? "gemini-3.5-flash-lite" : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`;
 
                 console.log(`⏳ ForecastEngine: Calling ${activeModel} for 12-month map (Attempt ${attempt})...`);

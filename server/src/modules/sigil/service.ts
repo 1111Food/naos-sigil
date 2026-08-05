@@ -516,8 +516,8 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             throw new Error("❌ Error: Faltan las credenciales (API Key).");
         }
 
-        // PRODUCTION MODEL: gemini-1.5-flash (cost-optimized for conversational AI)
-        const modelName = "gemini-1.5-flash"; 
+        // PRODUCTION MODEL: gemini-3.5-flash-lite (cost-optimized for conversational AI)
+        const modelName = "gemini-3.5-flash-lite"; 
         const API_VERSION = "v1beta";
         const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${modelName}:generateContent?key=${apiKey}`;
 
@@ -546,7 +546,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             // Define a helper to execute the call
             const executeCall = async (currentPayload: any, attempt = 1): Promise<any> => {
                 const maxAttempts = 3;
-                const activeModel = attempt > 1 ? "gemini-1.5-flash" : modelName;
+                const activeModel = attempt > 1 ? "gemini-3.5-flash-lite" : modelName;
                 const currentUrl = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${activeModel}:generateContent?key=${apiKey}`;
 
                 const controller = new AbortController();

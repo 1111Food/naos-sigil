@@ -10,7 +10,7 @@ export class SynastryOracle {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) return this.getFallback(language);
 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
 
         const isEn = language === 'en';
 

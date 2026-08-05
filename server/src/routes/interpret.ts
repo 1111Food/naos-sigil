@@ -293,7 +293,7 @@ Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelect
 
             // 5. Llamar a la API de Gemini (con reintentos y logs detallados)
             const apiKey = config.GOOGLE_API_KEY;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
 
             const systemPrompt = `You are a master psychological-astrological synthesizer and clinical-mystical analyst. 
 You write with the authority of a seasoned psychoanalyst and master of esoteric sciences.
