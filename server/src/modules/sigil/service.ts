@@ -536,7 +536,29 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                         },
                         required: ["date"]
                     }
-                }]
+                },
+                {
+                        name: "execute_kernel_action",
+                        description: "Executes a system-level action in the NAOS Intelligence Kernel. Use this when the user wants to navigate, open a module, or when you strongly suggest they do so.",
+                        parameters: {
+                            type: "OBJECT",
+                            properties: {
+                                action_type: { type: "STRING", enum: ["NAVIGATE", "FOCUS", "BACKGROUND", "EXECUTE"] },
+                                intent: { type: "STRING", description: "Brief description of the goal" },
+                                payload: { 
+                                    type: "OBJECT",
+                                    properties: {
+                                        target: { type: "STRING", description: "e.g. laboratory, synastry, timeline, tarot" },
+                                        mode: { type: "STRING", enum: ["OPEN", "SUGGEST"] },
+                                        focus_element: { type: "STRING" }
+                                    },
+                                    required: ["target", "mode"]
+                                }
+                            },
+                            required: ["action_type", "intent", "payload"]
+                        }
+                    }
+                ]
             }]
         };
 
@@ -600,6 +622,12 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             if (firstPart?.functionCall) {
                 console.log("🛠️ Sigil invoked tool:", firstPart.functionCall.name, firstPart.functionCall.args);
                 
+                if (firstPart.functionCall.name === "execute_kernel_action") {
+                    const args = firstPart.functionCall.args;
+                    return `[KERNEL_ACTION:${JSON.stringify(args)}]`;
+                }
+                
+
                 if (firstPart.functionCall.name === "calculate_astrological_profile") {
                     const args = firstPart.functionCall.args;
                     const dateStr = args.date; // e.g. "1983-09-14"

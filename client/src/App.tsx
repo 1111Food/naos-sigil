@@ -214,7 +214,44 @@ function App() {
       }
     }
   }, [profile, user, activeView]);
+  // 5. NAOS KERNEL ACTION ENGINE LISTENER
+  useEffect(() => {
+    const handleSystemAction = (e: CustomEvent) => {
+      const { action_type, payload } = e.detail;
+      
+      if (!payload || !payload.target) return;
+      
+      // Map targets to ViewState
+      const targetMap: Record<string, ViewState> = {
+        'laboratory': 'ELEMENTAL_LAB',
+        'sanctuary': 'SANCTUARY',
+        'synastry': 'IDENTITY_NEXUS',
+        'tarot': 'ORACLE_SOULS',
+        'oracle_souls': 'ORACLE_SOULS',
+        'protocol_21': 'PROTOCOL21',
+        'profile': 'PROFILE',
+        'decision_engine': 'DECISION_ENGINE',
+        'mission_year': 'MISSION_YEAR',
+        'timeline': 'TEMPLE'
+      };
 
+      const view = targetMap[payload.target] || 'TEMPLE';
+
+      if (action_type === 'NAVIGATE' || action_type === 'FOCUS') {
+         setActiveView(view);
+      }
+
+      if (action_type === 'FOCUS' && payload.focus_element) {
+         // Dispatch micro-event so the specific view can scroll to the element
+         setTimeout(() => {
+             window.dispatchEvent(new CustomEvent('naos-focus-element', { detail: payload.focus_element }));
+         }, 500); // Allow time for mount
+      }
+    };
+
+    window.addEventListener('naos-system-action', handleSystemAction as EventListener);
+    return () => window.removeEventListener('naos-system-action', handleSystemAction as EventListener);
+  }, []);
 
   // --- HANDLERS ---
 

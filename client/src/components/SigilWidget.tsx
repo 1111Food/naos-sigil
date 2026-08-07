@@ -77,7 +77,7 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
         if (aiMessages.length > 0) {
             const lastMsg = aiMessages[aiMessages.length - 1];
             if (lastMsg.role === 'model') {
-                setMessages(prev => [...prev, { role: 'sigil', text: lastMsg.text }]);
+                setMessages(prev => [...prev, { role: 'sigil', text: lastMsg.text, kernelAction: lastMsg.kernelAction }]);
             }
         }
     }, [aiMessages]);
@@ -89,8 +89,20 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
             <div className={`pointer-events-auto bg-black/95 backdrop-blur-2xl border border-red-500/20 rounded-3xl w-[85vw] md:w-80 mb-4 overflow-hidden transition-all duration-300 origin-top-right shadow-[0_0_30px_rgba(255,0,0,0.2)] ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 h-0 overflow-hidden'}`}>
                 <div ref={chatRef} className="p-4 h-64 overflow-y-auto flex flex-col gap-3">
                     {messages.map((m, i) => (
-                        <div key={i} className={`text-xs p-3 rounded-xl max-w-[80%] ${m.role === 'sigil' ? 'bg-white/10 self-start text-white' : 'bg-primary/20 self-end text-primary-foreground'}`}>
-                            {m.text}
+                        <div key={i} className={`flex flex-col gap-2 max-w-[80%] ${m.role === 'sigil' ? 'self-start' : 'self-end'}`}>
+                            <div className={`text-xs p-3 rounded-xl ${m.role === 'sigil' ? 'bg-white/10 text-white' : 'bg-primary/20 text-primary-foreground'}`}>
+                                {m.text}
+                            </div>
+                            {m.kernelAction?.payload?.mode === 'SUGGEST' && (
+                                <button 
+                                    onClick={() => {
+                                        window.dispatchEvent(new CustomEvent('naos-system-action', { detail: { ...m.kernelAction, payload: { ...m.kernelAction.payload, mode: 'OPEN' } } }));
+                                    }}
+                                    className="px-4 py-2 text-xs rounded-xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 hover:from-purple-500/40 hover:to-blue-500/40 border border-white/20 text-white transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] backdrop-blur-md"
+                                >
+                                    💫 Abrir {m.kernelAction.payload.target.replace('_', ' ')}
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

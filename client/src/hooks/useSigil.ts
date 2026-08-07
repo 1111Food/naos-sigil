@@ -34,7 +34,8 @@ export function useSigil(userName?: string, energyContext?: any) {
                     text: m.text?.replace(/\bhla\b/gi, 'Saludos').replace(/conooimiento/gi, 'conocimiento') || m.text,
                     isHistory: m.isHistory,
                     audioUrl: m.audioUrl,
-                    audioBase64: m.audioBase64
+                    audioBase64: m.audioBase64,
+                    kernelAction: m.kernelAction
                 })));
         } else if (messages.length === 0) {
             setMessages([{ id: 'welcome', role: 'model', text: getWelcomeMessage(), isHistory: false }]);
@@ -97,8 +98,20 @@ export function useSigil(userName?: string, energyContext?: any) {
                 text: sanitizedData, 
                 sender: 'sigil',
                 audioUrl: data.audioUrl,
-                audioBase64: data.audioBase64 
+                audioBase64: data.audioBase64,
+                kernelAction: data.kernelAction
             });
+
+            // Dispatch global event for Action Engine
+            if (data.kernelAction && data.kernelAction.payload) {
+                // SUGGEST actions wait for the user to click the button in the UI.
+                // OPEN, FOCUS, and BACKGROUND are executed immediately.
+                if (data.kernelAction.payload.mode !== 'SUGGEST') {
+                    window.dispatchEvent(new CustomEvent('naos-system-action', { 
+                        detail: data.kernelAction 
+                    }));
+                }
+            }
 
         } catch (err) {
             console.error("Sigil Connection Error:", err);

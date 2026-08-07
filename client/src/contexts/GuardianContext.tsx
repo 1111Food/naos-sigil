@@ -12,6 +12,7 @@ interface Message {
     isHistory?: boolean;
     audioUrl?: string;
     audioBase64?: string;
+    kernelAction?: any;
 }
 
 interface SynastryEntry {

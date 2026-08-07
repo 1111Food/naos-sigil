@@ -222,14 +222,30 @@ export async function apiRoutes(app: FastifyInstance) {
             console.log(`🌀 INCOMING MESSAGE from ${userId}: "${message}"`);
             const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo);
 
+            let finalText = res;
+            let kernelAction = undefined;
+
+            if (res && res.startsWith('[KERNEL_ACTION:')) {
+                const match = res.match(/\[KERNEL_ACTION:(.*)\]/);
+                if (match && match[1]) {
+                    try {
+                        kernelAction = JSON.parse(match[1]);
+                        finalText = kernelAction.intent || (kernelAction.payload?.mode === 'SUGGEST' ? "Tengo una sugerencia para ti." : "Ejecutando acción...");
+                    } catch (e) {
+                        console.error("Error parsing KERNEL_ACTION:", e);
+                    }
+                }
+            }
+
             // Generate TTS Audio Buffer for the response
             const tts = new TTSService();
-            const { hash, buffer } = await tts.generateVoice(res, (req as any).userGeo?.region || 'global');
+            const { hash, buffer } = await tts.generateVoice(finalText, (req as any).userGeo?.region || 'global');
 
             await UsageGuardService.incrementUsage(userId, 'sigil');
 
             return { 
-                text: res, 
+                text: finalText,
+                kernelAction,
                 audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined,
                 audioBase64: buffer ? buffer.toString('base64') : undefined
             };
