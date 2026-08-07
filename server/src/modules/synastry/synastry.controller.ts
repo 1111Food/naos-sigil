@@ -186,7 +186,8 @@ export class SynastryController {
             return reply.send({ success: true, cached: false, data: finalResult });
         } catch (error: any) {
             console.error("❌ Synastry Analysis Critical Failure:", error);
-            return reply.status(500).send({ error: "System failure.", message: error.message });
+            const errMsg = error.message || "System failure.";
+            return reply.status(500).send({ error: errMsg, message: errMsg });
         }
     }
 
@@ -265,12 +266,9 @@ export class SynastryController {
             return reply.send({ success: true, data: finalResult });
 
         } catch (error: any) {
-            console.error("❌ Group Dynamics Critical Failure:", error);
-            const isEn = (request.body as any)?.language === 'en';
-            return reply.status(500).send({ 
-                error: isEn ? "System failure." : "Falla del sistema.", 
-                message: error.message 
-            });
+            console.error("❌ Group Synastry Critical Failure:", error);
+            const errMsg = error.message || "System failure.";
+            return reply.status(500).send({ error: errMsg, message: errMsg });
         }
     }
 
