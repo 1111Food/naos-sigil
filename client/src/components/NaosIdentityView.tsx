@@ -234,12 +234,12 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             const pin = num.pinaculo || {};
             const maya = _profile?.mayan || {};
 
-            const sun = astro.planets?.find((p: any) => p.name === 'Sun' || p.name === 'Sol')?.sign || astro.sun?.sign || astro.sunSign || (isEn ? 'Sun' : 'Sol');
-            const moon = astro.planets?.find((p: any) => p.name === 'Moon' || p.name === 'Luna')?.sign || astro.moon?.sign || astro.moonSign || (isEn ? 'Moon' : 'Luna');
-            const rising = astro.planets?.find((p: any) => p.name === 'Ascendant' || p.name === 'Ascendente' || p.name === 'Asc')?.sign || astro.rising?.sign || astro.risingSign || 'Asc';
-            const venus = astro.venus?.sign || astro.venusSign || (astro.planets?.find((p: any) => p.name === 'Venus')?.sign) || 'Venus';
-            const node = astro.planets?.find((p: any) => p.name === 'North Node' || p.name === 'Nodo Norte')?.sign || (isEn ? 'Node' : 'Nodo');
-            const house3 = astro.house3 || (astro.planets?.find((p: any) => p.house === 3 || p.name === 'House 3')?.sign) || (isEn ? 'House 3' : 'Casa 3');
+            const sun = astro.planets?.find((p: any) => p.id === 'sun' || p.name === 'Sun' || p.name === 'Sol')?.sign || astro.sun?.sign || astro.sunSign || (isEn ? 'Sun' : 'Sol');
+            const moon = astro.planets?.find((p: any) => p.id === 'moon' || p.name === 'Moon' || p.name === 'Luna')?.sign || astro.moon?.sign || astro.moonSign || (isEn ? 'Moon' : 'Luna');
+            const rising = astro.planets?.find((p: any) => p.id === 'ascendant' || p.name === 'Ascendant' || p.name === 'Ascendente' || p.name === 'Asc')?.sign || astro.rising?.sign || astro.risingSign || 'Asc';
+            const venus = astro.planets?.find((p: any) => p.id === 'venus' || p.name === 'Venus')?.sign || astro.venus?.sign || astro.venusSign || 'Venus';
+            const node = astro.planets?.find((p: any) => p.id === 'north_node' || p.name === 'North Node' || p.name === 'Nodo Norte')?.sign || (isEn ? 'Node' : 'Nodo');
+            const house3 = astro.planets?.find((p: any) => p.house === 3 || p.name === 'House 3')?.sign || astro.house3 || (isEn ? 'House 3' : 'Casa 3');
 
             const personality = pin.b || num.tantric?.soul || '?';
             const essence = pin.d || '?';
