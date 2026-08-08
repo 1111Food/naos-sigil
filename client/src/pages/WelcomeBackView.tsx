@@ -44,8 +44,8 @@ export const WelcomeBackView: React.FC<WelcomeBackViewProps> = ({ nickname, onCo
                             loop
                             muted
                             playsInline
-                            className="w-[150%] h-[150%] object-cover object-center opacity-90 mix-blend-screen"
-                            style={{ filter: 'contrast(1.2) brightness(1.1)' }}
+                            className="w-[150%] h-[150%] object-cover opacity-90 mix-blend-screen"
+                            style={{ filter: 'contrast(1.2) brightness(1.1)', objectPosition: '65% 30%' }}
                         />
                         {/* Inner Glow */}
                         <div className="absolute inset-0 rounded-full shadow-[inset_0_0_20px_rgba(245,158,11,0.3)] pointer-events-none" />

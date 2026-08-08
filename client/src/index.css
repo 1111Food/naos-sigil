@@ -57,11 +57,13 @@
     /* Support for PWA and Mobile Safe Areas */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-    min-height: 100vh;
+    min-height: 100dvh;
+    overscroll-behavior: none;
   }
 
   html {
-    height: -webkit-fill-available;
+    height: 100dvh;
+    overscroll-behavior: none;
   }
 }
 

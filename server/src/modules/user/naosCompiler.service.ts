@@ -208,8 +208,8 @@ export class NaosCompilerService {
         
         const templates_es: Record<string, string[]> = {
             nucleo_estructural: [
-                `Como ${archetype.nombre}, tu esencia reside en unificar tu instinto de ${animal} con la luz solar de ${sign}. Tu ser profundo busca la manifestación consciente de tu maestría.`,
-                `Representas la frecuencia ${archetype.frecuencia} pura. Tu núcleo original te impulsa a liderar con amor y a consolidar tu propósito a través de la disciplina.`
+                `Como ${archetype.nombre}, tu estructura principal se basa en la energía focalizada de ${sign} y la practicidad instintiva de tu ${animal}. Tienes una capacidad natural para entender la realidad a un nivel profundo y construir sobre bases sólidas.`,
+                `Representas la frecuencia ${archetype.frecuencia}. Tu núcleo de identidad te impulsa a organizar tu entorno y a consolidar tus metas a través del análisis y la disciplina.`
             ],
             campo_perceptivo: [
                 `Tu campo de percepción combina una fina intuición con un análisis clínico de la realidad. Eres capaz de captar dinámicas invisibles y decodificar patrones emocionales complejos.`,
@@ -255,8 +255,8 @@ export class NaosCompilerService {
 
         const templates_en: Record<string, string[]> = {
             nucleo_estructural: [
-                `As the ${archetype.nombre}, your essence lies in unifying your ${animal} instinct with the solar light of ${sign}. Your deep self seeks the conscious manifestation of your mastery.`,
-                `You represent the pure ${archetype.frecuencia} frequency. Your original core drives you to lead with love and to consolidate your purpose through discipline.`
+                `As the ${archetype.nombre}, your core structure relies on the focused energy of ${sign} and the instinctive practicality of your ${animal}. You have a natural ability to understand reality deeply and build on solid foundations.`,
+                `You represent the ${archetype.frecuencia} frequency. Your identity core drives you to organize your environment and consolidate your goals through analysis and discipline.`
             ],
             campo_perceptivo: [
                 `Your perceptive field combines a fine intuition with a clinical analysis of reality. You are capable of capturing invisible dynamics and decoding complex emotional patterns.`,
@@ -389,14 +389,14 @@ export class NaosCompilerService {
         const url = `https://generativelanguage.googleapis.com/${this.API_VERSION}/models/${this.TARGET_MODEL}:generateContent?key=${apiKey}`;
 
         const systemPrompt = isEn 
-            ? `You are the NAOS Compiler v3.0. Your function is to consolidate a deep architectural and psychological identity in a clinical, poetic, and mystical way.
+            ? `You are the NAOS Compiler v3.0. Your function is to consolidate a deep architectural and psychological identity in a clinical, analytical, and practical way.
 The user's master archetype is: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
-Avoid excessive superficial technicalities. Use an evocative, clinical, deeply psychological, and serious tone.
+Avoid excessive superficial technicalities and avoid mystical or cryptic language. Use a direct, deeply psychological, and serious tone.
 Respond ONLY in JSON with the 11 blocks of narrative interfaces in ENGLISH.
 FIELDS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion', 'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global', 'potencial_elevado', 'sombra_riesgo', 'conclusion_directa'.`
-            : `Eres el Compilador NAOS v3.0. Tu función es consolidar una identidad arquitectónica y psicológica profunda de forma clínica, poética y mística.
+            : `Eres el Compilador NAOS v3.0. Tu función es consolidar una identidad arquitectónica y psicológica profunda de forma clínica, analítica y práctica.
 El arquetipo maestro del usuario es: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
-Evita tecnicismos superficiales. Usa un tono evocador, analítico, profundamente psicológico y serio.
+Evita tecnicismos superficiales y evita lenguaje místico, esotérico o críptico. Usa un tono directo, profundamente psicológico y serio.
 Responde ÚNICAMENTE en JSON con los 11 bloques de interfaces narrativas en ESPAÑOL.
 CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion', 'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global', 'potencial_elevado', 'sombra_riesgo', 'conclusion_directa'.`;
 
