@@ -88,7 +88,24 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
             {/* Chat Window */}
             <div className={`pointer-events-auto bg-black/95 backdrop-blur-2xl border border-red-500/20 rounded-3xl w-[85vw] md:w-80 mb-4 overflow-hidden transition-all duration-300 origin-top-right shadow-[0_0_30px_rgba(255,0,0,0.2)] ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 h-0 overflow-hidden'}`}>
                 <div ref={chatRef} className="p-4 h-64 overflow-y-auto flex flex-col gap-3">
-                    {messages.map((m, i) => (
+                    {messages.map((m, i) => {
+                        const targetLabels: Record<string, string> = {
+                            'templo': 'Santuario',
+                            'santuario': 'Santuario',
+                            'profile': 'Mi Perfil',
+                            'astro': 'Mapa Astrológico',
+                            'numero': 'Diseño Numerológico',
+                            'maya': 'Frecuencia Maya',
+                            'elemental_lab': 'Laboratorio Elemental',
+                            'tarot': 'Arcanos Místicos',
+                            'protocol_21': 'Protocolo 21',
+                            'decision_engine': 'Motor de Decisiones',
+                            'mission_year': 'Misión del Año'
+                        };
+                        const actionTarget = m.kernelAction?.payload?.target;
+                        const label = actionTarget ? (targetLabels[actionTarget] || actionTarget.replace('_', ' ')) : '';
+
+                        return (
                         <div key={i} className={`flex flex-col gap-2 max-w-[80%] ${m.role === 'sigil' ? 'self-start' : 'self-end'}`}>
                             <div className={`text-xs p-3 rounded-xl ${m.role === 'sigil' ? 'bg-white/10 text-white' : 'bg-primary/20 text-primary-foreground'}`}>
                                 {m.text}
@@ -98,13 +115,14 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
                                     onClick={() => {
                                         window.dispatchEvent(new CustomEvent('naos-system-action', { detail: { ...m.kernelAction, payload: { ...m.kernelAction.payload, mode: 'OPEN' } } }));
                                     }}
-                                    className="px-4 py-2 text-xs rounded-xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 hover:from-purple-500/40 hover:to-blue-500/40 border border-white/20 text-white transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] backdrop-blur-md"
+                                    className="px-4 py-2 text-xs rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/40 hover:to-blue-500/40 border border-white/20 text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] backdrop-blur-md flex items-center justify-center gap-2"
                                 >
-                                    💫 Abrir {m.kernelAction.payload.target.replace('_', ' ')}
+                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                                    Abrir {label}
                                 </button>
                             )}
                         </div>
-                    ))}
+                    )})}
                 </div>
                 <div className="p-3 border-t border-white/10 flex gap-2">
                     <input
