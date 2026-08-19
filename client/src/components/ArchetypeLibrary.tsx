@@ -182,22 +182,24 @@ export const ArchetypeLibrary: React.FC<{ onClose: () => void }> = ({ onClose })
                                 />
                                                              <div className="relative z-10 text-center space-y-8 w-full">
                                     <div className="w-full h-64 md:h-80 mx-auto flex items-center justify-center relative group">
-                                         {/* Spline 3D Background layer */}
-                                         <Suspense fallback={
-                                             <div className="w-32 h-32 rounded-full bg-white/[0.03] border border-white/20 flex items-center justify-center shadow-2xl">
+                                          {/* Spline 3D \u2014 only renders when detail modal is open (selectedArchetype != null) */}
+                                          <Suspense fallback={
+                                              <div className="w-32 h-32 rounded-full bg-white/[0.03] border border-white/20 flex items-center justify-center shadow-2xl">
                                                  <Hexagon className="w-16 h-16 text-cyan-400 opacity-20" />
                                              </div>
                                          }>
-                                             <div className="absolute inset-0 w-full h-full scale-125 md:scale-150 opacity-60">
-                                                 <SplineErrorBoundary fallback={
-                                                     <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                                         <Hexagon className="w-32 h-32 text-cyan-500 animate-pulse" />
-                                                     </div>
-                                                 }>
-                                                     {/* @ts-ignore */}
-                                                     <Spline scene={selectedArchetype?.scene || "https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode"} />
-                                                 </SplineErrorBoundary>
-                                             </div>
+                                             {selectedArchetype && (
+                                                 <div className="absolute inset-0 w-full h-full scale-125 md:scale-150 opacity-60">
+                                                     <SplineErrorBoundary fallback={
+                                                         <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                                                             <Hexagon className="w-32 h-32 text-cyan-500 animate-pulse" />
+                                                         </div>
+                                                     }>
+                                                         {/* @ts-ignore */}
+                                                         <Spline scene={selectedArchetype?.scene || "https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode"} />
+                                                     </SplineErrorBoundary>
+                                                 </div>
+                                             )}
 
                                          </Suspense>
 

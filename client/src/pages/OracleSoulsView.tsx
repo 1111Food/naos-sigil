@@ -56,6 +56,8 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
     const [step, setStep] = useState<'LOBBY' | 'INTENTION' | 'ACTIVE'>('LOBBY');
     const [intention, setIntention] = useState('');
     const [pendingTab, setPendingTab] = useState<Tab | null>(null);
+    // Spline is only alive in LOBBY — unmounts automatically when user enters INTENTION or ACTIVE
+    const splineVisible = step === 'LOBBY';
     const [showWarning, setShowWarning] = useState(false);
     const [hasProceeded, setHasProceeded] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
@@ -211,15 +213,17 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                         exit={{ opacity: 0 }}
                         className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden"
                     >
-                        {/* 3D ATMOSPHERIC BACKGROUND */}
+                        {/* 3D ATMOSPHERIC BACKGROUND — unmounts when leaving LOBBY to save GPU */}
                         <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-                            <SplineErrorBoundary>
-                                <Suspense fallback={<div className="w-full h-full bg-black/20 animate-pulse" />}>
-                                    <Spline 
-                                        scene="https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode" 
-                                    />
-                                </Suspense>
-                            </SplineErrorBoundary>
+                            {splineVisible && (
+                                <SplineErrorBoundary>
+                                    <Suspense fallback={<div className="w-full h-full bg-black/20 animate-pulse" />}>
+                                        <Spline 
+                                            scene="https://prod.spline.design/ATZ-SSTV-rM6Z27Z/scene.splinecode" 
+                                        />
+                                    </Suspense>
+                                </SplineErrorBoundary>
+                            )}
                         </div>
                         
                         <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-transparent to-black/60 pointer-events-none" />
@@ -265,12 +269,15 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                                     <div className="relative z-10 flex flex-col items-center text-center space-y-8 h-full justify-center">
                                         <div className="relative w-full h-48 flex items-center justify-center">
                                             <div className="absolute inset-0 z-0 scale-150 opacity-80 pointer-events-none">
-                                                <SplineErrorBoundary>
-                                                    <Suspense fallback={<div className="w-full h-full bg-white/5 rounded-full animate-pulse" />}>
-                                                        {/* @ts-ignore */}
-                                                        <Spline scene={tab.scene} />
-                                                    </Suspense>
-                                                </SplineErrorBoundary>
+                                                {/* Per-card Spline: only renders in LOBBY, saves GPU in all other states */}
+                                                {splineVisible && (
+                                                    <SplineErrorBoundary>
+                                                        <Suspense fallback={<div className="w-full h-full bg-white/5 rounded-full animate-pulse" />}>
+                                                            {/* @ts-ignore */}
+                                                            <Spline scene={tab.scene} />
+                                                        </Suspense>
+                                                    </SplineErrorBoundary>
+                                                )}
                                             </div>
                                             <div className="relative z-10 p-5 rounded-full bg-black/20 backdrop-blur-md border border-white/10 group-hover:border-white/30 transition-all duration-500">
                                                 <tab.icon size={40} className={cn("transition-colors", tab.color)} />
