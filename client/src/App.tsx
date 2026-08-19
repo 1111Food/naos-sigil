@@ -1,56 +1,57 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useTranslation } from './i18n';
 import { supabase } from './lib/supabase';
 import { ArrowLeft, LogOut, MapPin } from 'lucide-react';
-import { ChatInterface } from './components/ChatInterface';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// ─── CRITICAL: Always loaded (visible on first paint) ───────────────────────
 import { LandingScreen } from './components/LandingScreen';
 import { WelcomeBackView } from './pages/WelcomeBackView';
-import { AdminView } from './pages/AdminView';
-import { TimeMap } from './components/TimeMap/TimeMap';
-import { TimeMapNexus } from './pages/TimeMapNexus';
-import { LifelineView } from './pages/LifelineView';
-import { CurrentEnergyView } from './pages/CurrentEnergyView';
-// OnboardingForm removed
 import { Home } from './pages/Home';
-import { SacredDock } from './components/SacredDock';
-import { EvolutionView } from './pages/EvolutionView';
-import { ManualsView } from './pages/ManualsView';
-import { OracleSoulsView } from './pages/OracleSoulsView';
-import { RelationshipLaboratory } from './pages/RelationshipLaboratory';
-import { PWAInstallButton } from './components/PWAInstallButton';
+import { LoginView } from './components/LoginView';
+import { TempleLoading } from './components/TempleLoading';
 import { EtherBackground } from './components/EtherBackground';
-import { IdentityAltar } from './components/IdentityAltar';
+import { AtmosphereEngine } from './components/AtmosphereEngine';
+import { NaosVibrationEngine } from './components/NaosVibrationEngine';
 import { Guardian } from './components/Guardian';
+import { SigilBubble } from './components/SigilBubble';
+import { SacredDock } from './components/SacredDock';
+import { PWAInstallButton } from './components/PWAInstallButton';
+import { GlobalUpgradeButton } from './components/GlobalUpgradeButton';
 import { GuardianProvider } from './contexts/GuardianContext';
 import { UpgradeProvider } from './contexts/UpgradeContext';
-import { OnboardingInitiation } from './components/OnboardingInitiation';
-import { SigilBubble } from './components/SigilBubble';
-import { GlobalUpgradeButton } from './components/GlobalUpgradeButton';
-
-
+import { WisdomProvider, useWisdom } from './contexts/WisdomContext';
+import { WisdomOverlay } from './components/WisdomOverlay';
 import { StatusBadge } from './components/StatusBadge';
-import { LoginView } from './components/LoginView';
-import { UpdatePasswordView } from './components/UpdatePasswordView';
-import { NaosVibrationEngine } from './components/NaosVibrationEngine';
-import { AtmosphereEngine } from './components/AtmosphereEngine';
+import { getMoonPhase } from './utils/lunar';
+
+// ─── HOOKS & CONTEXTS ────────────────────────────────────────────────────────
 import { useEnergy } from './hooks/useEnergy';
 import { useProfile } from './hooks/useProfile';
 import { useAuth } from './contexts/AuthContext';
 import { useSubscription } from './hooks/useSubscription';
-import { Sanctuary } from './pages/Sanctuary';
-import { motion, AnimatePresence } from 'framer-motion';
-import { TempleLoading } from './components/TempleLoading';
-import { getMoonPhase } from './utils/lunar';
 
-import { RankingView } from './pages/RankingView';
-import { Protocol21 } from './pages/Protocol21';
-import { ElementalLaboratoryView } from './pages/ElementalLaboratoryView';
-import { Tarot } from './pages/Tarot';
-import { IdentityNexus } from './pages/IdentityNexus';
-import { DecisionEngine } from './pages/DecisionEngine';
-import { MissionYear } from './pages/MissionYear';
-import { WisdomProvider, useWisdom } from './contexts/WisdomContext';
-import { WisdomOverlay } from './components/WisdomOverlay';
+// ─── LAZY: Loaded only when the user navigates to that view ─────────────────
+const ChatInterface        = lazy(() => import('./components/ChatInterface').then(m => ({ default: m.ChatInterface })));
+const AdminView            = lazy(() => import('./pages/AdminView').then(m => ({ default: m.AdminView })));
+const TimeMap              = lazy(() => import('./components/TimeMap/TimeMap').then(m => ({ default: m.TimeMap })));
+const TimeMapNexus         = lazy(() => import('./pages/TimeMapNexus').then(m => ({ default: m.TimeMapNexus })));
+const LifelineView         = lazy(() => import('./pages/LifelineView').then(m => ({ default: m.LifelineView })));
+const CurrentEnergyView    = lazy(() => import('./pages/CurrentEnergyView').then(m => ({ default: m.CurrentEnergyView })));
+const EvolutionView        = lazy(() => import('./pages/EvolutionView').then(m => ({ default: m.EvolutionView })));
+const ManualsView          = lazy(() => import('./pages/ManualsView').then(m => ({ default: m.ManualsView })));
+const OracleSoulsView      = lazy(() => import('./pages/OracleSoulsView').then(m => ({ default: m.OracleSoulsView })));
+const Sanctuary            = lazy(() => import('./pages/Sanctuary').then(m => ({ default: m.Sanctuary })));
+const RankingView          = lazy(() => import('./pages/RankingView').then(m => ({ default: m.RankingView })));
+const Protocol21           = lazy(() => import('./pages/Protocol21').then(m => ({ default: m.Protocol21 })));
+const ElementalLaboratoryView = lazy(() => import('./pages/ElementalLaboratoryView').then(m => ({ default: m.ElementalLaboratoryView })));
+const Tarot                = lazy(() => import('./pages/Tarot').then(m => ({ default: m.Tarot })));
+const IdentityNexus        = lazy(() => import('./pages/IdentityNexus').then(m => ({ default: m.IdentityNexus })));
+const DecisionEngine       = lazy(() => import('./pages/DecisionEngine').then(m => ({ default: m.DecisionEngine })));
+const MissionYear          = lazy(() => import('./pages/MissionYear').then(m => ({ default: m.MissionYear })));
+const IdentityAltar        = lazy(() => import('./components/IdentityAltar').then(m => ({ default: m.IdentityAltar })));
+const OnboardingInitiation = lazy(() => import('./components/OnboardingInitiation').then(m => ({ default: m.OnboardingInitiation })));
+const UpdatePasswordView   = lazy(() => import('./components/UpdatePasswordView').then(m => ({ default: m.UpdatePasswordView })));
 
 // Global Wisdom Wrapper to access context safely
 // --- TYPES (v9.12) ---
@@ -537,14 +538,16 @@ function App() {
             {/* MAIN CONTENT WRAPPER */}
             <main className={`flex-1 w-full max-w-6xl mx-auto transition-all duration-1000 ${activeView !== 'WELCOME_BACK' ? 'p-4 md:p-10 md:pl-32 pb-40 md:pb-10 pt-32 md:pt-24 pb-safe' : ''}`}>
 
-              {activeView === 'WELCOME_BACK' ? (
-                // Full screen for Welcome
-                <AnimatePresence mode="wait">
-                  {renderContent()}
-                </AnimatePresence>
-              ) : (
-                renderContent()
-              )}
+              <Suspense fallback={<TempleLoading variant="fullscreen" />}>
+                {activeView === 'WELCOME_BACK' ? (
+                  // Full screen for Welcome
+                  <AnimatePresence mode="wait">
+                    {renderContent()}
+                  </AnimatePresence>
+                ) : (
+                  renderContent()
+                )}
+              </Suspense>
 
             </main>
 
