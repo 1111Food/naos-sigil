@@ -22,7 +22,6 @@ import { GuardianProvider } from './contexts/GuardianContext';
 import { UpgradeProvider } from './contexts/UpgradeContext';
 import { WisdomProvider, useWisdom } from './contexts/WisdomContext';
 import { WisdomOverlay } from './components/WisdomOverlay';
-import { StatusBadge } from './components/StatusBadge';
 import { getMoonPhase } from './utils/lunar';
 
 // ─── HOOKS & CONTEXTS ────────────────────────────────────────────────────────
@@ -55,7 +54,7 @@ const UpdatePasswordView   = lazy(() => import('./components/UpdatePasswordView'
 
 // Global Wisdom Wrapper to access context safely
 // --- TYPES (v9.12) ---
-type ViewState = 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR' | 'ADMIN';
+type ViewState = 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR' | 'ADMIN' | 'TIME_MAP_NEXUS' | 'TIME_MAP_LIFELINE' | 'TIME_MAP_CURRENT' | 'TIME_MAP_ANNUAL';
 
 // Global Wisdom Wrapper to access context safely
 const WisdomManager = () => {
@@ -79,7 +78,7 @@ function App() {
   const { energy } = useEnergy();
   const { user, signOut, isRecoveringPassword } = useAuth();
   const { profile, appReady: profileReady, refreshProfile } = useProfile();
-  const { status } = useSubscription();
+  useSubscription(); // Mantiene el contexto de suscripción activo (estado gestionado internamente)
 
   const [activeView, setActiveView] = useState<ViewState>('LANDING');
   const [activeRitual, setActiveRitual] = useState<{ type: 'BREATH' | 'MEDITATION', techId: string } | undefined>(undefined);

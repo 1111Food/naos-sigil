@@ -14,6 +14,12 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
     const handleStripeCheckout = async (priceId: string, endpoint: string = 'create-session') => {
+        // Guard: env variable must be configured — fail explicitly, not silently
+        if (!priceId || priceId.trim() === '') {
+            alert('Error de configuración: No se ha configurado el plan de pago. Contacta soporte.');
+            return;
+        }
+
         if (!profile?.id) {
             console.error("❌ Checkout Error: No authenticated user found.");
             return;

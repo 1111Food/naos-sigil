@@ -532,23 +532,32 @@ body.aura-zen-white nav.fixed .lucide {
 }
 
 /* --- Energy: Accessibility + Battery Saver --- */
-/* Respects OS-level "Reduce Motion" setting and disables all infinite animations */
+/* Targets ONLY decorative/ambient animations. Critical UI feedback (loaders, buttons) is preserved. */
+/* Note: Framer Motion respects prefers-reduced-motion natively — no override needed for it. */
 @media (prefers-reduced-motion: reduce) {
+  /* Decorative infinite loops: safe to kill */
   .animate-breathe,
   .animate-micro-rotate,
   .animate-pulse-slow,
-  .animate-float-particle,
-  .aura-zen-white,
-  [class*="animate-"] {
+  .animate-float-particle {
     animation: none !important;
     transition-duration: 0.01ms !important;
   }
 
-  /* Stop Framer Motion transitions instantly */
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  /* Ambient aura background animation */
+  .aura-zen-white {
+    animation: none !important;
+  }
+
+  /* Particle / matrix rain systems: heavy and decorative */
+  .theme-aware-symbol,
+  [class*="animate-float"] {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  /* Smooth scroll: auto is better for motion-sensitive users */
+  html {
     scroll-behavior: auto !important;
   }
 }
