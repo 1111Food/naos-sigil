@@ -19,5 +19,13 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Warn on console statements left in production code
+      'no-console': 'warn',
+      // Warn on TypeScript `any` usage — encourages proper typing
+      '@typescript-eslint/no-explicit-any': 'warn',
+      // Allow named exports alongside components (common in NAOS)
+      'react-refresh/only-export-components': 'off',
+    },
   },
 ])
