@@ -6,19 +6,18 @@ export const DEMO_PARTNER_ID = 'demo-partner-5678-efgh';
 export const DEMO_PROFILE: UserProfile = {
     id: DEMO_USER_ID,
     email: 'demo@naosos.app',
-    name: 'Explorer',
-    birth_date: '1990-04-15',
-    birth_time: '14:30',
-    birth_place: 'New York, USA',
-    latitude: 40.7128,
-    longitude: -74.0060,
+    name: 'Neo',
+    birthDate: '1986-07-12',
+    birthTime: '12:00',
+    birthCity: 'Latinoamérica',
     created_at: new Date().toISOString(),
-    is_premium: false,
+    onboarding_completed: true,
+    subscription: { plan: 'FREE', features: [] },
     
     // Astrology
-    sun_sign: 'Aries',
-    moon_sign: 'Capricornio',
-    ascendant_sign: 'Leo',
+    sun_sign: 'Cáncer',
+    moon_sign: 'Virgo',
+    ascendant_sign: 'Libra',
 
     // Numerology
     life_path_number: 11,

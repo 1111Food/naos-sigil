@@ -5,6 +5,7 @@ import { AstrologyEngine } from '../lib/astrologyEngine';
 import { NumerologyEngine } from '../lib/numerologyEngine';
 import { MayanEngine } from '../lib/mayanEngine';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
+import { DEMO_USER_ID, DEMO_PROFILE } from '../constants/demoProfile';
 
 export interface SubProfile {
     id: string;
@@ -186,7 +187,15 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return null;
         }
 
-        if (!profile) setProfileLoading(true); // Solo bloquear la UI si de verdad no hay perfil aún.
+        if (!profile) setProfileLoading(true);
+
+        // DEMO BYPASS
+        if (user.id === DEMO_USER_ID) {
+            setProfile(DEMO_PROFILE);
+            setProfileLoading(false);
+            return DEMO_PROFILE;
+        }
+
         try {
             // console.log("🛡️ SSoT: Fetching profile for authenticated user:", user.id);
             const { data, error } = await supabase
@@ -233,6 +242,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         try {
             console.log("Context: Updating Profile for User:", user.id);
+
+            // DEMO BYPASS
+            if (user.id === DEMO_USER_ID) {
+                // Ignore updates in Demo Mode or return mocked update
+                return DEMO_PROFILE;
+            }
 
             const payload: any = {
                 id: user.id,
