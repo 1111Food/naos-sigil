@@ -142,22 +142,32 @@ export function AdminView() {
                     </div>
                 </div>
 
-                {/* Search Form */}
-                <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
-                    <div className="flex items-center gap-2 flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2">
-                        <Search className="w-4 h-4 text-white/40" />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar por email..." 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-transparent text-sm focus:outline-none flex-grow"
-                        />
-                    </div>
-                    <button type="submit" className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition-colors rounded-xl text-xs font-bold font-sans">
-                        Filtrar
-                    </button>
-                </form>
+                {/* Actions & Search */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                    <a 
+                        href="/review" 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="px-4 py-2 border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors rounded-xl text-xs font-bold font-sans flex items-center justify-center whitespace-nowrap"
+                    >
+                        Ver Demo Mode
+                    </a>
+                    <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
+                        <div className="flex items-center gap-2 flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                            <Search className="w-4 h-4 text-white/40" />
+                            <input 
+                                type="text" 
+                                placeholder="Buscar por email..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-transparent text-sm focus:outline-none flex-grow"
+                            />
+                        </div>
+                        <button type="submit" className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition-colors rounded-xl text-xs font-bold font-sans">
+                            Filtrar
+                        </button>
+                    </form>
+                </div>
             </header>
 
             {/* Stats Dashboard */}
