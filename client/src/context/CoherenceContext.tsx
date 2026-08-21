@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useProfile } from '../hooks/useProfile';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 
@@ -36,54 +37,49 @@ const CoherenceContext = createContext<CoherenceContextType | undefined>(undefin
 
 export const CoherenceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { profile } = useProfile();
-    const [status, setStatus] = useState<CoherenceStatus | null>(null);
-    const [loading, setLoading] = useState(true);
+    const qc = useQueryClient();
 
-    const fetchStatus = useCallback(async () => {
-        if (!profile?.id) return;
-        try {
-            const headers = await getAsyncAuthHeaders();
+    const { data: status, isLoading: loading, refetch } = useQuery<CoherenceStatus>({
+        queryKey: ['coherence-status', profile?.id],
+        queryFn: async () => {
+            const headers = await getAsyncAuthHeaders('GET');
             const response = await fetch(`${API_BASE_URL}/api/coherence/status`, {
                 headers: headers as HeadersInit
             });
-            if (response.ok) {
-                const data = await response.json();
-                setStatus(data);
-            }
-        } catch (e) {
-            console.error("CoherenceContext: Failed to fetch status", e);
-        } finally {
-            setLoading(false);
-        }
-    }, [profile?.id]);
+            if (!response.ok) throw new Error('Failed to fetch coherence status');
+            return response.json();
+        },
+        enabled: !!profile?.id,
+        staleTime: 1000 * 60 * 5, // 5 min
+    });
 
-    useEffect(() => {
-        fetchStatus();
-    }, [fetchStatus]);
-
-    const logAction = async (action: string) => {
-        if (!profile?.id) return;
-        try {
-            const headers = await getAsyncAuthHeaders();
+    const actionMutation = useMutation({
+        mutationFn: async (action: string) => {
+            const headers = await getAsyncAuthHeaders('POST');
             const response = await fetch(`${API_BASE_URL}/api/coherence/action`, {
                 method: 'POST',
                 headers: headers as HeadersInit,
                 body: JSON.stringify({ action })
             });
-
-            if (response.ok) {
-                const result = await response.json();
-                setStatus(prev => prev ? {
+            if (!response.ok) throw new Error('Failed to log action');
+            return response.json();
+        },
+        onSuccess: (result) => {
+            qc.setQueryData<CoherenceStatus | undefined>(['coherence-status', profile?.id], (prev) => {
+                if (!prev) return undefined;
+                return {
                     ...prev,
                     score: result.newScore,
                     lastDelta: result.delta,
                     trend: result.delta >= 0 ? 'up' : 'down'
-                } : null);
-                return result;
-            }
-        } catch (e) {
-            console.error("CoherenceContext: Failed to log action", e);
+                };
+            });
         }
+    });
+
+    const logAction = async (action: string) => {
+        if (!profile?.id) return;
+        return actionMutation.mutateAsync(action);
     };
 
     const value = {
@@ -94,7 +90,7 @@ export const CoherenceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         index: status?.index,
         volatility: status?.volatility,
         loading,
-        refresh: fetchStatus,
+        refresh: async () => { await refetch(); },
         logAction
     };
 

@@ -1,29 +1,33 @@
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Flower2, Repeat } from 'lucide-react';
-import { endpoints, getAuthHeaders } from '../lib/api';
+import { endpoints } from '../lib/api';
 import { cn } from '../lib/utils';
 import { useGuardianState } from '../contexts/GuardianContext';
 import { motion } from 'framer-motion';
+import { naosQueryFn } from '../lib/queryClient';
 
 export const TarotView: React.FC = () => {
     const [reading, setReading] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const { trackEvent } = useGuardianState();
 
-    const drawCard = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch(endpoints.tarot, { headers: getAuthHeaders() });
-            const data = await res.json();
+    const drawCardMutation = useMutation({
+        mutationFn: () => naosQueryFn<any>(endpoints.tarot),
+        onSuccess: (data) => {
             setReading(data);
             setImageLoaded(false);
             trackEvent('TAROT', { card: data.card, meaning: data.meaning, answer: data.answer });
-        } catch (e) {
+        },
+        onError: (e) => {
             console.error(e);
-        } finally {
-            setLoading(false);
         }
+    });
+
+    const loading = drawCardMutation.isPending;
+
+    const drawCard = () => {
+        drawCardMutation.mutate();
     };
 
     return (

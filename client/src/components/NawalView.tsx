@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Sparkles, Compass, ChevronDown, Scroll, Lock, Zap, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useActiveProfile } from '../hooks/useActiveProfile';
@@ -9,7 +10,8 @@ import { MAYAN_MANUAL_EN } from '../data/manuals/mayan_en';
 import { getNahualImage, getMayanToneName } from '../utils/nahualMapper';
 import { cn } from '../lib/utils';
 import { useTranslation } from '../i18n';
-import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { naosQueryMutate } from '../lib/queryClient';
 import { AiInterpretationCards } from './AiInterpretationCards';
 import { DeepInterpretationModal } from './DeepInterpretationModal';
 
@@ -115,39 +117,35 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     const [aiInterpretations, setAiInterpretations] = useState<Record<string, string>>({});
     const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
 
-    const fetchAiInterpretation = async (nawalName: string) => {
+    const interpretationMutation = useMutation({
+        mutationFn: (body: any) => naosQueryMutate(`${API_BASE_URL}/api/energy-code/interpret`, 'POST', body)
+    });
+
+    const fetchAiInterpretation = (nawalName: string) => {
         if (aiInterpretations[nawalName]) return;
 
         setAiLoading(prev => ({ ...prev, [nawalName]: true }));
-        try {
-            const authHeaders = await getAsyncAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/api/energy-code/interpret`, {
-                method: 'POST',
-                headers: {
-                    ...authHeaders,
-                    'Content-Type': 'application/json'
-                } as HeadersInit,
-                body: JSON.stringify({
-                    school: 'MAYA',
-                    nawal: nawalName,
-                    language: language
-                })
-            });
-
-            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
-            const data = await res.json();
-            setAiInterpretations(prev => ({ ...prev, [nawalName]: data.interpretation }));
-        } catch (err) {
-            console.error("🔥 Error fetching AI interpretation:", err);
-            setAiInterpretations(prev => ({ 
-                ...prev, 
-                [nawalName]: language === 'en' 
-                    ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
-                    : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
-            }));
-        } finally {
-            setAiLoading(prev => ({ ...prev, [nawalName]: false }));
-        }
+        interpretationMutation.mutate({
+            school: 'MAYA',
+            nawal: nawalName,
+            language: language
+        }, {
+            onSuccess: (data: any) => {
+                setAiInterpretations(prev => ({ ...prev, [nawalName]: data.interpretation }));
+            },
+            onError: (err) => {
+                console.error("🔥 Error fetching AI interpretation:", err);
+                setAiInterpretations(prev => ({ 
+                    ...prev, 
+                    [nawalName]: language === 'en' 
+                        ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
+                        : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+                }));
+            },
+            onSettled: () => {
+                setAiLoading(prev => ({ ...prev, [nawalName]: false }));
+            }
+        });
     };
 
 

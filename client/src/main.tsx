@@ -13,6 +13,8 @@ import { LanguageProvider } from './i18n';
 import { queryClient } from './lib/queryClient';
 import { DemoProvider } from './contexts/DemoContext';
 
+import ReviewApp from './ReviewApp.tsx';
+
 // --- SERVICE WORKER KILL SWITCH (FORCED UNREGISTRATION) ---
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -29,26 +31,44 @@ window.fetch = async (...args) => {
   return originalFetch(...args);
 };
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <ThemeProvider>
-          <PerformanceProvider>
-            <DemoProvider>
-              <AuthProvider>
-                <ProfileProvider>
-                  <LanguageProvider>
-                    <CoherenceProvider>
-                      <App />
-                    </CoherenceProvider>
-                  </LanguageProvider>
-                </ProfileProvider>
-              </AuthProvider>
-            </DemoProvider>
-          </PerformanceProvider>
-        </ThemeProvider>
-      </ErrorBoundary>
-    </QueryClientProvider>
-  </StrictMode>,
-)
+// --- NAOS REVIEW MODE INTERCEPTOR ---
+const isReviewModePath = window.location.pathname.startsWith('/review');
+const isReviewModeEnabled = import.meta.env.VITE_REVIEW_MODE === 'true';
+
+if (isReviewModePath && isReviewModeEnabled) {
+  console.log("🛡️ NAOS REVIEW MODE IS ACTIVE");
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          <ReviewApp />
+        </ErrorBoundary>
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+} else {
+  // NORMAL APP RENDER
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          <ThemeProvider>
+            <PerformanceProvider>
+              <DemoProvider>
+                <AuthProvider>
+                  <ProfileProvider>
+                    <LanguageProvider>
+                      <CoherenceProvider>
+                        <App />
+                      </CoherenceProvider>
+                    </LanguageProvider>
+                  </ProfileProvider>
+                </AuthProvider>
+              </DemoProvider>
+            </PerformanceProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+}

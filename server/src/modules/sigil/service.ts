@@ -11,6 +11,7 @@ import { CodexService } from '../codex/service';
 import { config } from '../../config/env';
 import { supabase } from '../../lib/supabase';
 import { UserProfile } from '../../types';
+import { memoryService } from '../memory/MemoryService';
 
 export interface SigilState {
     userId: string;
@@ -86,7 +87,8 @@ export class SigilService {
                 evolutionData,
                 toneData,
                 coherence,
-                todaySessionsResponse
+                todaySessionsResponse,
+                longTermMemories
             ] = await Promise.all([
                 UserService.getProfile(userId),
                 this.getSigilState(userId),
@@ -98,7 +100,9 @@ export class SigilService {
                 (async () => { try { return await supabase.rpc('calculate_evolution_stage', { target_user_id: userId }); } catch { return { data: 1 }; } })(),
                 (async () => { try { return await supabase.rpc('determine_preferred_tone', { target_user_id: userId }); } catch { return { data: 'MISTICO' }; } })(),
                 CoherenceService.getCoherence(userId),
-                supabase.from('meditation_sessions').select('regulation_delta').eq('user_id', userId).gte('completed_at', `${today.toISOString().split('T')[0]}T00:00:00.000Z`)
+                supabase.from('meditation_sessions').select('regulation_delta').eq('user_id', userId).gte('completed_at', `${today.toISOString().split('T')[0]}T00:00:00.000Z`),
+                // RAG: Semantic memory recall — runs in parallel with all other fetches
+                (async () => { try { return await memoryService.recall(userId, message, 6); } catch (e) { console.warn('⚠️ Memory recall failed (graceful):', e); return []; } })()
             ]);
 
             let evolutionStage = evolutionData?.data ?? 1;
@@ -168,6 +172,22 @@ export class SigilService {
             // Memory: Guardian Notes (Legacy inter-session awareness)
             // @ts-ignore
             const guardianNotes = userProfile.guardian_notes || segments.guardian_notes_default;
+
+            // RAG: Build long-term memory context block
+            let longTermMemoryBlock = '';
+            if (longTermMemories && longTermMemories.length > 0) {
+                const memoryLines = longTermMemories.map((m: any) => {
+                    const date = new Date(m.created_at).toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    const typeLabel = m.memory_type === 'state' ? '🎯' : m.memory_type === 'evidence' ? '📊' : '💭';
+                    return `${typeLabel} [${date}] (${m.module_source}): ${m.content}`;
+                }).join('\n');
+                longTermMemoryBlock = `
+    [${lang === 'es' ? 'MEMORIA A LARGO PLAZO — CONTEXTO RECUPERADO SEMÁNTICAMENTE' : 'LONG-TERM MEMORY — SEMANTICALLY RETRIEVED CONTEXT'}]
+    ${lang === 'es' ? 'Las siguientes memorias fueron recuperadas porque son semánticamente relevantes al mensaje actual del usuario. Úsalas para dar continuidad y profundidad a tu respuesta, pero NO las menciones explícitamente como "recuerdos" a menos que el usuario pregunte por algo del pasado.' : 'The following memories were retrieved because they are semantically relevant to the current user message. Use them for continuity and depth, but do NOT explicitly mention them as "memories" unless the user asks about something from the past.'}
+    ${memoryLines}
+    `;
+                console.log(`🧠 RAG: Injected ${longTermMemories.length} long-term memories into Sigil context.`);
+            }
 
             // Detect Subscription Status (Supabase Alignment)
             const plan = userProfile.plan_type || 'free';
@@ -434,6 +454,8 @@ ${segments.truth_injection.waiting_desc}
 
     ${awarenessContext}
     ${intentionsPrompt}
+
+    ${longTermMemoryBlock}
     
     [DIRECTIVA DE BREVEDAD V3.0]
     1. JAMÁS uses formatos de reporte como TITLE, ESSENCE, SHADOW. Texto plano y fluido.
@@ -492,7 +514,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             state.relationshipLevel += 1;
             state.lastInteraction = new Date().toISOString();
 
-            // ASYNC PERSISTENCE: Save log and update notes
+            // ASYNC PERSISTENCE: Save log, update notes, and evaluate memory
             this.persistInteraction(userId, message, finalResponse, forceReading).catch(e => console.error("❌ Persistence failed:", e));
             return finalResponse;
 
@@ -771,6 +793,24 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                 } catch (distillErr) {
                     console.warn("⚠️ Distillation failed (likely Quota):", distillErr);
                 }
+            }
+
+            // 3. RAG Memory Evaluation: Asynchronously evaluate if this message is worth storing
+            try {
+                const policyDecision = await memoryService.evaluate(userMsg);
+                if (policyDecision.should_store) {
+                    await memoryService.remember({
+                        user_id: userId,
+                        content: userMsg,
+                        module_source: 'sigil',
+                        memory_type: policyDecision.memory_type,
+                        importance: policyDecision.importance,
+                        skip_policy: true, // Already evaluated
+                    });
+                    console.log(`🧠 Memory stored: importance=${policyDecision.importance}, type=${policyDecision.memory_type}, reason="${policyDecision.reasoning}"`);
+                }
+            } catch (memError) {
+                console.warn('⚠️ Memory evaluation failed (graceful):', memError);
             }
 
         } catch (e) {

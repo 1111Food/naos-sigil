@@ -80,7 +80,7 @@ interface ProfileContextType {
     refreshProfile: () => Promise<UserProfile | null>;
 }
 
-const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
+export const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 /**
  * Utility to compute cosmic profile attributes (astrology, numerology, mayan, chinese) on the fly

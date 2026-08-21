@@ -14,6 +14,7 @@ import { webhookRoutes } from './routes/webhooks';
 import { interpretRoutes } from './routes/interpret';
 import { checkoutRoutes } from './routes/checkout';
 import { relationshipRoutes } from './routes/relationship';
+import memoryRoutes from './modules/memory/memory.routes';
 import fastifyRateLimit from '@fastify/rate-limit';
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
@@ -89,6 +90,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     await app.register(interpretRoutes, { prefix: '/api/energy-code' });
     await app.register(checkoutRoutes, { prefix: '/api/checkout' });
     await app.register(relationshipRoutes, { prefix: '/api/relationship' });
+    await app.register(memoryRoutes, { prefix: '/api/memory' });
 
     return app;
 };

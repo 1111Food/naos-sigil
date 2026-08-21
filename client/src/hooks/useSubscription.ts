@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useProfile } from './useProfile';
-import { endpoints, getAsyncAuthHeaders } from '../lib/api';
+import { endpoints } from '../lib/api';
+import { naosQueryFn, naosQueryMutate } from '../lib/queryClient';
 
 export interface SubscriptionStatus {
     plan: 'FREE' | 'PREMIUM' | 'EXTENDED';
@@ -8,72 +9,46 @@ export interface SubscriptionStatus {
     features: string[];
 }
 
+// Query key factory — garantiza que todas las partes del código usen la misma key
+export const subscriptionKeys = {
+    all: ['subscription'] as const,
+    status: (profileId: string) => [...subscriptionKeys.all, profileId] as const,
+};
+
 export function useSubscription(shouldFetch: boolean = true) {
     const { profile } = useProfile();
-    const [status, setStatus] = useState<SubscriptionStatus | null>(null);
-    const [loading, setLoading] = useState(shouldFetch);
+    const qc = useQueryClient();
 
-    useEffect(() => {
-        const fetchStatus = async () => {
-            // Wait for profile.id to be available before fetching to prevent 401
-            if (!shouldFetch || !profile?.id) {
-                if (!shouldFetch) setLoading(false);
-                return;
-            }
+    const { data: status, isLoading: loading } = useQuery<SubscriptionStatus>({
+        queryKey: subscriptionKeys.status(profile?.id ?? ''),
+        queryFn: () => naosQueryFn<SubscriptionStatus>(endpoints.subscription),
+        // Solo ejecutar cuando hay sesión y se solicita explícitamente
+        enabled: shouldFetch && !!profile?.id,
+        // El plan de suscripción cambia poco — 10 min antes de re-validar
+        staleTime: 1000 * 60 * 10,
+    });
 
-            try {
-                const headers = await getAsyncAuthHeaders();
-                const res = await fetch(endpoints.subscription, { headers });
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    setStatus(data);
-                } else if (res.status === 401) {
-                    console.warn("🔐 useSubscription: Token still invalid or expired.");
-                }
-            } catch (err) {
-                console.error("Failed to fetch subscription", err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { mutateAsync: upgrade } = useMutation({
+        mutationFn: () => naosQueryMutate<SubscriptionStatus>(endpoints.upgrade, 'POST'),
+        onSuccess: (updated) => {
+            // Actualiza el caché inmediatamente sin re-fetch de red
+            qc.setQueryData(subscriptionKeys.status(profile?.id ?? ''), updated);
+        },
+    });
 
-        fetchStatus();
-    }, [shouldFetch, profile?.id]);
-
-    const upgrade = async () => {
-        try {
-            const headers = await getAsyncAuthHeaders();
-            const res = await fetch(endpoints.upgrade, {
-                method: 'POST',
-                headers
-            });
-            if (res.ok) {
-                const updated = await res.json();
-                setStatus(updated);
-            }
-        } catch (err) {
-            console.error("Upgrade failed", err);
-        }
-    };
-
-    const togglePlan = async () => {
-        try {
+    const { mutateAsync: togglePlan } = useMutation({
+        mutationFn: () => {
             const nextPlan = status?.plan === 'PREMIUM' ? 'FREE' : 'PREMIUM';
-            const headers = await getAsyncAuthHeaders();
-            const res = await fetch(endpoints.upgrade, {
-                method: 'POST',
-                headers: { ...headers, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan: nextPlan })
-            });
-            if (res.ok) {
-                const updated = await res.json();
-                setStatus(updated);
-            }
-        } catch (err) {
-            console.error("Toggle Plan failed", err);
-        }
-    };
+            return naosQueryMutate<SubscriptionStatus>(
+                endpoints.upgrade,
+                'POST',
+                { plan: nextPlan }
+            );
+        },
+        onSuccess: (updated) => {
+            qc.setQueryData(subscriptionKeys.status(profile?.id ?? ''), updated);
+        },
+    });
 
-    return { status, loading, upgrade, togglePlan };
+    return { status: status ?? null, loading, upgrade, togglePlan };
 }

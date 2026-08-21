@@ -1,4 +1,5 @@
 import React, { useState, Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flower2, Users, ArrowLeft, Eye, History, X, Calendar, ChevronDown, Info } from 'lucide-react';
 import { OracleExplainer } from '../components/OracleExplainer';
@@ -61,8 +62,6 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
     const [showWarning, setShowWarning] = useState(false);
     const [hasProceeded, setHasProceeded] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
-    const [historyRecords, setHistoryRecords] = useState<any[]>([]);
-    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
     const [explainerType, setExplainerType] = useState<'TAROT' | 'SOULS' | null>(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
@@ -107,32 +106,26 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
         onNavigate('SANCTUARY');
     };
 
-    const fetchHistory = async () => {
-        setIsLoadingHistory(true);
-        try {
-            const { endpoints, getAsyncAuthHeaders } = await import('../lib/api');
-            const headers = await getAsyncAuthHeaders();
+    const { data: historyRecords = [], isLoading: isLoadingHistory } = useQuery({
+        queryKey: ['oracleHistory'],
+        queryFn: async () => {
+            const { endpoints } = await import('../lib/api');
+            const { naosQueryFn } = await import('../lib/queryClient');
             
-            // Parallel fetch for dual history
-            const [tarotRes, synastryRes] = await Promise.all([
-                fetch(`${endpoints.tarot}/history`, { headers: headers as HeadersInit }),
-                fetch(`${endpoints.synastryHistory}`, { headers: headers as HeadersInit })
+            const [tarotData, synastryData] = await Promise.allSettled([
+                naosQueryFn<any[]>(`${endpoints.tarot}/history`),
+                naosQueryFn<any[]>(endpoints.synastryHistory)
             ]);
 
             let mergedRecords: any[] = [];
 
-            if (tarotRes.ok) {
-                const tarotData = await tarotRes.json();
-                mergedRecords = [...tarotData];
+            if (tarotData.status === 'fulfilled') {
+                mergedRecords = [...tarotData.value];
             }
 
-            if (synastryRes.ok) {
-                const synastryData = await synastryRes.json();
-                // Map synastry results to fit the view schema
-                const transformedSynastry = synastryData.map((item: any) => {
+            if (synastryData.status === 'fulfilled') {
+                const transformedSynastry = synastryData.value.map((item: any) => {
                     const synthesis = item.calculated_results?.synthesis;
-                    // If synthesis is an object (standard), extract the 'diagnostico' or similar
-                    // If it's a string (legacy/fallback), use it directly
                     const summaryText = typeof synthesis === 'object' 
                         ? (synthesis?.diagnostico || synthesis?.subtitulo_score || '') 
                         : (synthesis || '');
@@ -140,7 +133,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                     return {
                         id: item.id,
                         intention: `${t('oracle_synastry_with' as any)} ${item.partner_name}`,
-                        cards: [], // Synastry doesn't have cards in this view
+                        cards: [],
                         engine: item.relationship_type,
                         summary: summaryText,
                         created_at: item.created_at
@@ -149,21 +142,13 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
                 mergedRecords = [...mergedRecords, ...transformedSynastry];
             }
 
-            // Sort by most recent
             mergedRecords.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-            setHistoryRecords(mergedRecords.slice(0, 5)); // Final FIFO limit
-
-        } catch (error) {
-            console.error("Error fetching history:", error);
-        } finally {
-            setIsLoadingHistory(false);
-        }
-    };
+            return mergedRecords.slice(0, 5);
+        },
+        enabled: showHistory,
+    });
 
     const toggleHistory = () => {
-        if (!showHistory) {
-            fetchHistory();
-        }
         setShowHistory(!showHistory);
         playSound('click');
     };

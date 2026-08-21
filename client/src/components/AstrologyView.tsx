@@ -1,5 +1,5 @@
-// client/src/components/AstrologyView.tsx
 import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useSubscription } from '../hooks/useSubscription';
 import { useTranslation } from '../i18n';
@@ -13,7 +13,8 @@ import { PLANETS_LIB_EN, SIGNS_LIB_EN, HOUSES_LIB_EN } from '../data/astrologyLi
 import { ASTRO_EDUCATION, PLANET_DESCRIPTIONS, HOUSE_DESCRIPTIONS, SIGN_DESCRIPTIONS } from '../data/astrologyEducation';
 import { ASTRO_EDUCATION_EN, PLANET_DESCRIPTIONS_EN, HOUSE_DESCRIPTIONS_EN, SIGN_DESCRIPTIONS_EN } from '../data/astrologyEducation_en';
 import { getZodiacImage } from '../utils/zodiacMapper';
-import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { naosQueryMutate } from '../lib/queryClient';
 import { AiInterpretationCards } from './AiInterpretationCards';
 import { DeepInterpretationModal } from './DeepInterpretationModal';
 
@@ -227,8 +228,9 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     // Si hay override, loading es false. Si no, usa el loading del hook.
     const loading = overrideProfile ? false : activeLoading;
 
+    const qc = useQueryClient();
     const [selectedPlanet, setSelectedPlanet] = useState<any>(null);
-    const [showDeepInsight, setShowDeepInsight] = useState<string | null>(null); // Track which planet's deep insight is shown
+    const [showDeepInsight, setShowDeepInsight] = useState<string | null>(null);
     const [isManualOpen, setIsManualOpen] = useState(false);
     const [selectedDetail, setSelectedDetail] = useState<any>(null);
     const [aiInterpretations, setAiInterpretations] = useState<Record<string, string>>({});
@@ -240,25 +242,21 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
 
         setAiLoading(prev => ({ ...prev, [cacheKey]: true }));
         try {
-            const authHeaders = await getAsyncAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/api/energy-code/interpret`, {
-                method: 'POST',
-                headers: {
-                    ...authHeaders,
-                    'Content-Type': 'application/json'
-                } as HeadersInit,
-                body: JSON.stringify({
-                    school: 'ASTRO',
-                    planet: planetKey,
-                    sign: signKey,
-                    house: houseNum,
-                    language: language
-                })
+            const interpretation = await qc.fetchQuery({
+                queryKey: ['astro-interpret', profile?.id, cacheKey, language],
+                queryFn: async () => {
+                    const data = await naosQueryMutate<any>(`${API_BASE_URL}/api/energy-code/interpret`, 'POST', {
+                        school: 'ASTRO',
+                        planet: planetKey,
+                        sign: signKey,
+                        house: houseNum,
+                        language: language
+                    });
+                    return data.interpretation;
+                },
+                staleTime: Infinity
             });
-
-            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
-            const data = await res.json();
-            setAiInterpretations(prev => ({ ...prev, [cacheKey]: data.interpretation }));
+            setAiInterpretations(prev => ({ ...prev, [cacheKey]: interpretation }));
         } catch (err) {
             console.error("🔥 Error fetching AI interpretation:", err);
             setAiInterpretations(prev => ({ 

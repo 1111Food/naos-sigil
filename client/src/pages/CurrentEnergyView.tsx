@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Battery, Sparkles, Target, Zap } from 'lucide-react';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useTranslation } from '../i18n';
-import { supabase } from '../lib/supabase';
-import { API_BASE_URL } from '../lib/api';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 import { LaborIllusion } from '../components/TimeMap/LaborIllusion';
 
 interface CurrentEnergyViewProps {
@@ -44,39 +44,29 @@ const MetricRing = ({ label, value, color }: { label: string, value: number, col
 export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) => {
     const { profile } = useActiveProfile();
     const { t, language } = useTranslation();
-    const [energy, setEnergy] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const qc = useQueryClient();
     const [showIllusion, setShowIllusion] = useState(false);
     const [generating, setGenerating] = useState(false);
 
+    const { data: energy, isLoading: loading } = useQuery({
+        queryKey: ['current-energy', profile?.id, language],
+        queryFn: async () => {
+            const headers = await getAsyncAuthHeaders('GET');
+            const res = await fetch(`${API_BASE_URL}/api/energy/current?lang=${language}`, { headers });
+            
+            if (res.status === 404) return null;
+            if (!res.ok) throw new Error('Failed to fetch energy');
+            
+            const data = await res.json();
+            return data.energy || null;
+        },
+        enabled: !!profile?.id,
+        staleTime: 1000 * 60 * 15, // Energy is stable, cache for 15 minutes
+    });
+
     useEffect(() => {
         window.scrollTo(0, 0);
-        if (profile) fetchEnergy();
-    }, [profile]);
-
-    const fetchEnergy = async () => {
-        try {
-            setLoading(true);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
-            const res = await fetch(`${API_BASE_URL}/api/energy/current?lang=${language}`, {
-                headers: { 'Authorization': `Bearer ${session.access_token}` }
-            });
-            
-            if (res.status === 404) {
-                // Not needed for energy since it generates on the fly via service, but just in case
-                setEnergy(null);
-            } else {
-                const data = await res.json();
-                if (data.energy) setEnergy(data.energy);
-            }
-        } catch (e) {
-            console.error("Error fetching Energy:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, []);
 
     const handleGenerate = async () => {
         setShowIllusion(true);
@@ -85,15 +75,15 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
     const executeGeneration = React.useCallback(async () => {
         try {
             setGenerating(true);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
-            const res = await fetch(`${API_BASE_URL}/api/energy/current?lang=${language}`, {
-                headers: { 'Authorization': `Bearer ${session.access_token}` }
-            });
-            const data = await res.json();
+            const headers = await getAsyncAuthHeaders('GET');
+            const res = await fetch(`${API_BASE_URL}/api/energy/current?lang=${language}`, { headers });
             
-            if (data.energy) setEnergy(data.energy);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.energy) {
+                    qc.setQueryData(['current-energy', profile?.id, language], data.energy);
+                }
+            }
         } catch (e) {
             console.error("Error generating Energy:", e);
         } finally {

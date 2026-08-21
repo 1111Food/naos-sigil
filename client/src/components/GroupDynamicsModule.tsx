@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, X, ArrowLeft, Loader2, Trash2, Edit, Building2, Workflow, ShieldAlert, Cpu, Zap, Target, Brain, Sparkles, ChevronDown } from 'lucide-react';
 import { RosterService } from '../services/rosterService';
 import type { RosterProfile } from '../services/rosterService';
-import { API_BASE_URL, getAuthHeaders } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { naosQueryMutate } from '../lib/queryClient';
 import { useTranslation } from '../i18n';
 import { RelationshipLaboratory } from '../pages/RelationshipLaboratory';
 
@@ -14,9 +16,14 @@ interface GroupDynamicsModuleProps {
 
 export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initialReport, onClearReport }) => {
     const { t, language } = useTranslation();
-    const [roster, setRoster] = useState<RosterProfile[]>([]);
+    const queryClient = useQueryClient();
+
+    const { data: roster = [], isLoading } = useQuery({
+        queryKey: ['rosterProfiles'],
+        queryFn: () => RosterService.getProfiles()
+    });
+
     const [selectedMembers, setSelectedMembers] = useState<RosterProfile[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [report, setReport] = useState<any>(null);
     const [expandedKey, setExpandedKey] = useState<string | null>(null);
@@ -36,30 +43,19 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
     const [editingMember, setEditingMember] = useState<RosterProfile | null>(null);
 
     useEffect(() => {
-        loadRoster();
         if (initialReport) {
             setReport(initialReport);
         }
     }, [initialReport]);
-
-    const loadRoster = async () => {
-        setIsLoading(true);
-        try {
-            const data = await RosterService.getProfiles();
-            setRoster(data);
-        } catch (err: any) {
-            console.error(err.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleUpdateMember = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingMember?.id) return;
         try {
             const updated = await RosterService.updateProfile(editingMember.id, editingMember);
-            setRoster(prev => prev.map(m => m.id === updated.id ? updated : m));
+            queryClient.setQueryData(['rosterProfiles'], (prev: RosterProfile[] | undefined) => 
+                prev?.map(m => m.id === updated.id ? updated : m) || []
+            );
             setSelectedMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
             setEditingMember(null);
         } catch (err: any) {
@@ -71,7 +67,9 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
         e.preventDefault();
         try {
             const added = await RosterService.addProfile(newMember as RosterProfile);
-            setRoster([added, ...roster]);
+            queryClient.setQueryData(['rosterProfiles'], (prev: RosterProfile[] | undefined) => 
+                [added, ...(prev || [])]
+            );
             setShowAddForm(false);
             setNewMember(initialProfile);
         } catch (err: any) {
@@ -84,7 +82,9 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
         if (!window.confirm(t('synastry_delete_roster_confirm'))) return;
         try {
             await RosterService.deleteProfile(id);
-            setRoster(prev => prev.filter(m => m.id !== id));
+            queryClient.setQueryData(['rosterProfiles'], (prev: RosterProfile[] | undefined) => 
+                prev?.filter(m => m.id !== id) || []
+            );
             setSelectedMembers(prev => prev.filter(m => m.id !== id));
         } catch (err: any) {
             alert(err.message);
@@ -106,44 +106,32 @@ export const GroupDynamicsModule: React.FC<GroupDynamicsModuleProps> = ({ initia
         });
     };
 
-    const handleAnalyze = async () => {
+    const analyzeMutation = useMutation({
+        mutationFn: (payload: any) => naosQueryMutate(`${API_BASE_URL}/api/synastry/analyze/group`, 'POST', payload),
+        onSuccess: (data: any) => {
+            // Simulating a calculation delay for UX
+            setTimeout(() => {
+                setReport(data.data);
+                setIsAnalyzing(false);
+            }, 3000);
+        },
+        onError: (err: any) => {
+            alert(err.message || (language === 'es' ? 'Error en el análisis de grupo' : 'Error in group analysis'));
+            setIsAnalyzing(false);
+        }
+    });
+
+    const handleAnalyze = () => {
         if (selectedMembers.length < 3) {
             alert(t('synastry_min_profiles'));
             return;
         }
 
         setIsAnalyzing(true);
-        try {
-            // Apply strict slice to prevent validation errors on server
-            const payload = { rosterProfiles: selectedMembers.slice(0, 5) };
-            console.log(`📤 Sending Group Dynamics Analysis Request: ${payload.rosterProfiles.length} members`);
-
-            const response = await fetch(`${API_BASE_URL}/api/synastry/analyze/group`, {
-                method: 'POST',
-                headers: {
-                    ...getAuthHeaders(),
-                    'Accept-Language': language
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message || (language === 'es' ? 'Error en el análisis de grupo' : 'Error in group analysis'));
-            }
-
-            const data = await response.json();
-
-            // Simulating a calculation delay for UX
-            setTimeout(() => {
-                setReport(data.data);
-                setIsAnalyzing(false);
-            }, 3000);
-
-        } catch (err: any) {
-            alert(err.message);
-            setIsAnalyzing(false);
-        }
+        const payload = { rosterProfiles: selectedMembers.slice(0, 5) };
+        console.log(`📤 Sending Group Dynamics Analysis Request: ${payload.rosterProfiles.length} members`);
+        
+        analyzeMutation.mutate(payload);
     };
 
     const getElementStyles = (element: string) => {

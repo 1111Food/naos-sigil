@@ -7,6 +7,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { CoherenceService } from '../modules/coherence/service';
 import { sendProactiveMessage } from '../modules/sigil/telegramService';
+import { memoryService } from '../modules/memory/MemoryService';
 
 // Initialize the MCP Server
 const server = new Server(
@@ -59,6 +60,70 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                         buttonUrl: { type: 'string', description: 'Optional deep link or URL for the button.' },
                     },
                     required: ['userId', 'message', 'aspect'],
+                },
+            },
+            {
+                name: 'search_long_term_memory',
+                description: 'Searches the user\'s long-term semantic memory using RAG. Use when the user references past conversations, goals, decisions, or relationships.',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        userId: { type: 'string', description: 'The UUID of the user.' },
+                        query: { type: 'string', description: 'The search query or context to find relevant memories.' },
+                        limit: { type: 'number', description: 'Maximum number of results (default 8).' },
+                    },
+                    required: ['userId', 'query'],
+                },
+            },
+            {
+                name: 'save_long_term_memory',
+                description: 'Stores an important insight, decision, or user preference into long-term memory. Only use for significant information worth remembering.',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        userId: { type: 'string', description: 'The UUID of the user.' },
+                        content: { type: 'string', description: 'The information to remember.' },
+                        moduleSource: { type: 'string', description: 'The module that generated this insight (e.g., sigil, synastry, lifeline).' },
+                        entityId: { type: 'string', description: 'Optional entity ID if this memory belongs to a relationship, project, or person.' },
+                        entityType: { type: 'string', description: 'Optional entity type: user, relationship, project, team, goal, person.' },
+                    },
+                    required: ['userId', 'content', 'moduleSource'],
+                },
+            },
+            {
+                name: 'evolve_memory',
+                description: 'Updates an existing memory by creating a new version while preserving the old one. Use when the user\'s situation, goal, or opinion has changed.',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        userId: { type: 'string', description: 'The UUID of the user.' },
+                        oldMemoryId: { type: 'string', description: 'The UUID of the memory to evolve.' },
+                        newContent: { type: 'string', description: 'The updated information.' },
+                    },
+                    required: ['userId', 'oldMemoryId', 'newContent'],
+                },
+            },
+            {
+                name: 'get_memory_provenance',
+                description: 'Gets the temporal evolution chain of a specific memory — how it changed over time.',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        memoryId: { type: 'string', description: 'The UUID of the memory to trace.' },
+                    },
+                    required: ['memoryId'],
+                },
+            },
+            {
+                name: 'list_entity_memories',
+                description: 'Lists all memories associated with a specific entity (relationship, project, person).',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        userId: { type: 'string', description: 'The UUID of the user.' },
+                        entityId: { type: 'string', description: 'The UUID of the entity.' },
+                    },
+                    required: ['userId', 'entityId'],
                 },
             },
         ],
@@ -228,6 +293,83 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             return {
                 content: [{ type: 'text', text: `Message delivered and logged for ${userId}.` }],
+            };
+        } catch (error: any) {
+            return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };
+        }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // MEMORY TOOLS (Cognitive Engine)
+    // ═══════════════════════════════════════════════════
+
+    if (name === 'search_long_term_memory') {
+        const { userId, query, limit = 8 } = args as { userId: string; query: string; limit?: number };
+        try {
+            const results = await memoryService.recall(userId, query, limit);
+            return {
+                content: [{ type: 'text', text: JSON.stringify(results) }],
+            };
+        } catch (error: any) {
+            return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };
+        }
+    }
+
+    if (name === 'save_long_term_memory') {
+        const { userId, content, moduleSource, entityId, entityType } = args as {
+            userId: string;
+            content: string;
+            moduleSource: string;
+            entityId?: string;
+            entityType?: string;
+        };
+        try {
+            const record = await memoryService.remember({
+                user_id: userId,
+                content,
+                module_source: moduleSource,
+                entity_id: entityId,
+                entity_type: entityType as any,
+                skip_policy: false,
+            });
+            return {
+                content: [{ type: 'text', text: record ? `Memory saved: ${record.id}` : 'Memory not stored (did not pass policy evaluation).' }],
+            };
+        } catch (error: any) {
+            return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };
+        }
+    }
+
+    if (name === 'evolve_memory') {
+        const { userId, oldMemoryId, newContent } = args as { userId: string; oldMemoryId: string; newContent: string };
+        try {
+            const evolved = await memoryService.evolve(oldMemoryId, newContent, userId);
+            return {
+                content: [{ type: 'text', text: evolved ? `Memory evolved: ${evolved.id}` : 'Evolution failed.' }],
+            };
+        } catch (error: any) {
+            return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };
+        }
+    }
+
+    if (name === 'get_memory_provenance') {
+        const { memoryId } = args as { memoryId: string };
+        try {
+            const chain = await memoryService.getProvenance(memoryId);
+            return {
+                content: [{ type: 'text', text: JSON.stringify(chain) }],
+            };
+        } catch (error: any) {
+            return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };
+        }
+    }
+
+    if (name === 'list_entity_memories') {
+        const { userId, entityId } = args as { userId: string; entityId: string };
+        try {
+            const memories = await memoryService.listMemories(userId, 50, 0, { entity_id: entityId });
+            return {
+                content: [{ type: 'text', text: JSON.stringify(memories) }],
             };
         } catch (error: any) {
             return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };

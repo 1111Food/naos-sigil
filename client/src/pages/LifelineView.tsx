@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { useActiveProfile } from '../hooks/useActiveProfile';
 import { useTranslation } from '../i18n';
-import { supabase } from '../lib/supabase';
-import { API_BASE_URL, getAsyncAuthHeaders } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { naosQueryFn, naosQueryMutate } from '../lib/queryClient';
 import { LaborIllusion } from '../components/TimeMap/LaborIllusion';
 
 interface LifelineViewProps {
@@ -31,8 +32,7 @@ const IndicatorBar = ({ label, value, colorClass }: { label: string, value: numb
 export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
     const { profile } = useActiveProfile();
     const { t, language } = useTranslation();
-    const [lifeline, setLifeline] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const qc = useQueryClient();
     const [generating, setGenerating] = useState(false);
     const [showIllusion, setShowIllusion] = useState(false);
     const [viewMode, setViewMode] = useState<'symbolic' | 'behavioral'>('symbolic');
@@ -40,48 +40,40 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
     const [showDeepDive, setShowDeepDive] = useState<number | null>(null);
     const [showCycleDeepDive, setShowCycleDeepDive] = useState(false);
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-        if (profile) fetchLifeline();
-    }, [profile]);
+    const { data: lifeline, isLoading: loading } = useQuery({
+        queryKey: ['lifeline', profile?.id, language],
+        queryFn: () => naosQueryFn<{ map: any }>(`${API_BASE_URL}/api/lifeline?lang=${language}`).then(data => data.map || null),
+        enabled: !!profile?.id,
+        staleTime: 1000 * 60 * 15, // Cache for 15 mins
+    });
 
-    const fetchLifeline = async () => {
-        try {
-            setLoading(true);
-            const headers = await getAsyncAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/api/lifeline?lang=${language}`, {
-                headers
-            });
-            const data = await res.json();
-            
-            if (data.map) setLifeline(data.map);
-        } catch (e) {
-            console.error("Error fetching Lifeline:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const executeGeneration = React.useCallback(async () => {
-        try {
-            setGenerating(true);
-            const headers = await getAsyncAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/api/lifeline/generate`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ lang: language })
-            });
-            const data = await res.json();
-            
-            if (data.map) setLifeline(data.map);
-            else if (data.error) alert(data.error);
-        } catch (e) {
-            console.error("Error generating Lifeline:", e);
-        } finally {
+    const generateMutation = useMutation({
+        mutationFn: () => naosQueryMutate<{ map: any; error?: string }>(`${API_BASE_URL}/api/lifeline/generate`, 'POST', { lang: language }).then(data => {
+            if (data.error) throw new Error(data.error);
+            return data.map;
+        }),
+        onSuccess: (newLifeline) => {
+            if (newLifeline) {
+                qc.setQueryData(['lifeline', profile?.id, language], newLifeline);
+            }
+        },
+        onError: (err: Error) => {
+            alert(err.message);
+        },
+        onSettled: () => {
             setGenerating(false);
             setShowIllusion(false);
         }
-    }, [language]);
+    });
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    const executeGeneration = React.useCallback(async () => {
+        setGenerating(true);
+        generateMutation.mutate();
+    }, [generateMutation]);
 
     const handleGenerate = async () => {
         setShowIllusion(true);

@@ -1,12 +1,13 @@
-
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useProfile } from '../hooks/useProfile';
 import { PerformanceSparkline } from './PerformanceSparkline';
 import { supabase } from '../lib/supabase';
-import { getAuthHeaders, API_BASE_URL } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { naosQueryFn } from '../lib/queryClient';
 import { useTranslation } from '../i18n';
 
 // --- GEOMETRIC ARTIFACTS (SVG COMPONENTS) ---
@@ -161,70 +162,58 @@ export const BadgeRack: React.FC<{ onRankingClick?: () => void }> = ({ onRanking
     const { profile } = useProfile();
     const completed = profile?.protocols_completed || 0;
 
-    const [stats, setStats] = React.useState({
-        sma_30: 0,
-        current_streak: 0,
-        percentile: 0,
-        history: [] as number[],
-        loading: true
-    });
-
-    React.useEffect(() => {
-        if (!profile?.id) return;
-
-        const fetchStats = async () => {
+    const { data: stats, isLoading: loading } = useQuery({
+        queryKey: ['badge-rack-stats', profile?.id],
+        queryFn: async () => {
+            let rankingData = {
+                sma_30: 82.5,
+                current_streak: 5,
+                percentile: 0.94
+            };
+            
             try {
-                // 1. Fetch Rank Stats
-                const res = await fetch(`${API_BASE_URL}/api/ranking`, {
-                    headers: getAuthHeaders() as HeadersInit
-                });
+                const data = await naosQueryFn<any>(`${API_BASE_URL}/api/ranking`);
+                rankingData = {
+                    sma_30: Number(data.personal.sma_30),
+                    current_streak: data.personal.current_streak,
+                    percentile: parseFloat(data.personal.percentile)
+                };
+            } catch (e) {
+                console.error("Rank fetch error", e);
+            }
 
-                if (res.ok) {
-                    const data = await res.json();
-                    setStats(prev => ({
-                        ...prev,
-                        sma_30: Number(data.personal.sma_30),
-                        current_streak: data.personal.current_streak,
-                        percentile: parseFloat(data.personal.percentile),
-                        loading: false
-                    }));
-                } else {
-                    // Fallback/Simulated for demo if endpoint fails
-                    setStats(prev => ({
-                        ...prev,
-                        sma_30: 82.5,
-                        current_streak: 5,
-                        percentile: 0.94,
-                        loading: false
-                    }));
-                }
-
-                // 2. Fetch History for Sparkline
-                // Using direct DB query for speed (if allowed) or mock
+            let historyData: number[] = [];
+            try {
                 const { data: history } = await supabase
                     .from('coherence_history')
                     .select('score')
-                    .eq('user_id', profile.id)
+                    .eq('user_id', profile!.id)
                     .order('created_at', { ascending: false })
                     .limit(30);
 
                 if (history && history.length > 0) {
-                    setStats(prev => ({
-                        ...prev,
-                        history: history.map(h => h.score).reverse(),
-                        loading: false
-                    }));
-                } else {
-                    setStats(prev => ({ ...prev, loading: false }));
+                    historyData = history.map(h => h.score).reverse();
                 }
-
             } catch (e) {
-                console.error("Rank fetch error", e);
-                setStats(prev => ({ ...prev, loading: false }));
+                console.error("History fetch error", e);
             }
-        };
-        fetchStats();
-    }, [profile?.id]);
+
+            return {
+                ...rankingData,
+                history: historyData
+            };
+        },
+        enabled: !!profile?.id,
+        staleTime: 1000 * 60 * 5, // 5 minutes cache
+    });
+
+    // Provide default stats to match original behavior while loading or error
+    const currentStats = stats || {
+        sma_30: 0,
+        current_streak: 0,
+        percentile: 0,
+        history: [] as number[],
+    };
 
     return (
         <div className="w-full bg-[#050505] border border-white/5 p-6 rounded-[24px] relative overflow-hidden group">
@@ -245,9 +234,9 @@ export const BadgeRack: React.FC<{ onRankingClick?: () => void }> = ({ onRanking
                         </h3>
                         <div className="flex items-center gap-3">
                             <span className="text-[10px] text-white/20 font-mono">ID: {profile?.id?.slice(0, 8) || 'ANON'}</span>
-                            {stats.percentile > 0 && (
+                            {currentStats.percentile > 0 && (
                                 <span className="px-2 py-0.5 rounded bg-cyan-900/30 border border-cyan-500/30 text-[9px] text-cyan-400 font-mono animate-pulse">
-                                    TOP {((1 - stats.percentile) * 100).toFixed(0)}%
+                                    TOP {((1 - currentStats.percentile) * 100).toFixed(0)}%
                                 </span>
                             )}
                         </div>
@@ -259,14 +248,37 @@ export const BadgeRack: React.FC<{ onRankingClick?: () => void }> = ({ onRanking
                     <div className="flex-1">
                         <div className="flex justify-between text-[10px] text-white/30 uppercase tracking-wider mb-2">
                             <span>{t('performance_30_days')}</span>
-                            <span className="text-white/60 font-bold">{(stats.sma_30 && typeof stats.sma_30 === 'number' && stats.sma_30 > 0) ? stats.sma_30.toFixed(1) : '--'} Ø</span>
+                            <div className="text-xl font-mono text-cyan-400">{currentStats.sma_30.toFixed(1)} Ø</div>
                         </div>
-                        <PerformanceSparkline data={stats.history} color={stats.sma_30 > 70 ? '#fcd34d' : '#22d3ee'} />
+                        {loading ? (
+                            <div className="h-6 flex items-center gap-1">
+                                {[...Array(30)].map((_, i) => (
+                                    <div key={i} className="w-1 h-2 bg-white/5 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.05}s` }} />
+                                ))}
+                            </div>
+                        ) : currentStats.history.length > 0 ? (
+                            <div className="h-6 flex items-end gap-1 px-1">
+                                {currentStats.history.map((score, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ height: 0 }}
+                                        animate={{ height: `${(score / 100) * 100}%` }}
+                                        transition={{ delay: i * 0.02, duration: 0.5, type: 'spring' }}
+                                        className={cn(
+                                            "w-1.5 rounded-t-sm",
+                                            score >= 80 ? "bg-cyan-500" : score >= 60 ? "bg-cyan-500/50" : "bg-white/10"
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <PerformanceSparkline data={currentStats.history} color={currentStats.sma_30 > 70 ? '#fcd34d' : '#22d3ee'} />
+                        )}
                     </div>
 
                     {/* Streak Box */}
                     <div className="flex flex-col items-center justify-center pl-4 border-l border-white/10 min-w-[80px]">
-                        <span className="text-[20px] font-black text-white">{stats.current_streak}</span>
+                        <div className="text-xl font-mono text-white/90">{currentStats.current_streak} d</div>
                         <span className="text-[8px] uppercase tracking-widest text-white/40">{t('streak_label')}</span>
                     </div>
                 </div>

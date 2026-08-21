@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Shield, Target, User, AlertTriangle, RefreshCw, Hexagon, Sparkles, Heart, Home, Wind, ChevronDown, BookOpen, Info, Lock, Brain, Compass, Eye, Scroll } from 'lucide-react';
 import { OracleExplainer } from './OracleExplainer';
 import { cn } from '../lib/utils';
-import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { naosQueryFn } from '../lib/queryClient';
 import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
 import { ArchetypeLibrary } from './ArchetypeLibrary';
@@ -77,92 +79,67 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
     
-    // Initial state hydration: Prop > LocalStorage > null
-    const [synthesis, setSynthesis] = useState<NaosIdentitySynthesis | null>(() => {
-        if (_profile?.naos_identity_code && !(_profile?.active_sub_profile_id)) return _profile.naos_identity_code;
-        if (_profile?.naosIdentityCode && !(_profile?.active_sub_profile_id)) return _profile.naosIdentityCode;
-        try {
-            const cached = localStorage.getItem(cacheKey);
-            return cached ? JSON.parse(cached) : null;
-        } catch (e) { return null; }
-    });
-
-    const [loading, setLoading] = useState(false); 
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const [openModuleId, setOpenModuleId] = useState<string | null>('nucleo_estructural');
     const [isArchetypeExpanded, setIsArchetypeExpanded] = useState(false);
     const [showArchetypeLibrary, setShowArchetypeLibrary] = useState(false);
     const [explainerType, setExplainerType] = useState<'IDENTITY_ARCHETYPE' | null>(null);
     const hasAutoRefreshed = React.useRef(false);
-    const hasInitialFetched = React.useRef(false);
 
-    // Re-sync synthesis whenever active profile or language changes
-    useEffect(() => {
-        hasInitialFetched.current = false;
-        hasAutoRefreshed.current = false;
+    // React Query initial data derivation
+    const getInitialSynthesis = () => {
+        if (_profile?.naos_identity_code && !(_profile?.active_sub_profile_id)) return _profile.naos_identity_code;
+        if (_profile?.naosIdentityCode && !(_profile?.active_sub_profile_id)) return _profile.naosIdentityCode;
         try {
             const cached = localStorage.getItem(cacheKey);
-            if (cached) {
-                setSynthesis(JSON.parse(cached));
-            } else {
-                setSynthesis(null);
-                fetchSynthesis(true);
-            }
-        } catch (e) {
-            setSynthesis(null);
-            fetchSynthesis(true);
-        }
-    }, [activeSubKey, language]);
+            return cached ? JSON.parse(cached) : undefined;
+        } catch (e) { return undefined; }
+    };
 
-    const fetchSynthesis = async (refresh = false) => {
-        console.log("🧬 [NaosIdentityView] fetchSynthesis triggered. Refresh:", refresh);
-        if (refresh) setIsRefreshing(true);
-        else setLoading(true);
-        setError(null);
+    const { data: querySynthesis, isLoading: isQueryLoading, error: queryError, refetch } = useQuery<NaosIdentitySynthesis, Error>({
+        queryKey: ['naos_identity', activeSubKey, language],
+        queryFn: () => naosQueryFn(`${API_BASE_URL}/api/naos-code?lang=${language}`),
+        initialData: getInitialSynthesis(),
+    });
 
-        try {
-            console.log("🔑 [NaosIdentityView] Fetching async auth headers...");
-            const authHeaders = await getAsyncAuthHeaders();
-            console.log(`📡 [NaosIdentityView] Requesting /api/naos-code (lang: ${language})...`);
-            const res = await fetch(`${API_BASE_URL}/api/naos-code?lang=${language}${refresh ? '&refresh=true' : ''}`, {
-                headers: authHeaders as HeadersInit
-            });
-            console.log("🔌 [NaosIdentityView] Response status:", res.status);
-            if (!res.ok) {
-                let errMsg = t('identity_error_generic');
-                try {
-                    const errData = await res.json();
-                    console.error("❌ [NaosIdentityView] API Error Data:", errData);
-                    if (errData.details && (errData.details.includes('429') || errData.details.includes('RESOURCE_EXHAUSTED'))) {
-                        errMsg = t('identity_error_quota');
-                    } else if (errData.details && errData.details.includes('TIMEOUT')) {
-                        errMsg = t('identity_error_timeout');
-                    } else if (errData.details && errData.details.includes('SÍNTESIS_INCOMPLETA')) {
-                        errMsg = t('identity_error_incomplete');
-                    } else if (errData.details) {
-                        errMsg = `${t('identity_error_prefix')}: ${errData.details}`;
-                    }
-                } catch (e) { }
-                throw new Error(errMsg);
-            }
-            const data = await res.json();
-            console.log("✅ [NaosIdentityView] Synthesis received and cached.");
-            
-            // Persist to state AND localStorage
-            setSynthesis(data);
+    const refreshMutation = useMutation({
+        mutationFn: () => naosQueryFn<NaosIdentitySynthesis>(`${API_BASE_URL}/api/naos-code?lang=${language}&refresh=true`),
+        onSuccess: (newData) => {
+            queryClient.setQueryData(['naos_identity', activeSubKey, language], newData);
             try {
-                localStorage.setItem(cacheKey, JSON.stringify(data));
+                localStorage.setItem(cacheKey, JSON.stringify(newData));
             } catch (e) { console.warn("Failed to write to localStorage", e); }
+        }
+    });
 
-        } catch (err: any) {
-            console.error("🔥 [NaosIdentityView] Synthesis Fetch Error:", err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-            setIsRefreshing(false);
+    const synthesis = refreshMutation.data || querySynthesis || null;
+    const loading = isQueryLoading && !synthesis;
+    const isRefreshing = refreshMutation.isPending;
+
+    let error: string | null = null;
+    const activeError = queryError || refreshMutation.error;
+    if (activeError) {
+        const errStr = activeError.message;
+        if (errStr.includes('429')) error = t('identity_error_quota');
+        else if (errStr.includes('504')) error = t('identity_error_timeout');
+        else error = errStr || t('identity_error_generic');
+    }
+
+    const fetchSynthesis = (refresh = false) => {
+        if (refresh) {
+            refreshMutation.mutate();
+        } else {
+            refetch();
         }
     };
+
+    useEffect(() => {
+        if (synthesis) {
+            try {
+                localStorage.setItem(cacheKey, JSON.stringify(synthesis));
+            } catch (e) {}
+        }
+    }, [synthesis, cacheKey]);
 
     useEffect(() => {
         const checkCompleteness = () => {
@@ -186,38 +163,11 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             };
         };
 
-        const { isComplete, hasArchetype, hasMandatoryBlocks } = checkCompleteness();
+        const { isComplete } = checkCompleteness();
         
-        console.log("🔄 [NaosIdentityView] Status Check:", { 
-            hasSynthesis: !!synthesis, 
-            loading, 
-            isComplete,
-            hasArchetype,
-            hasMandatoryBlocks,
-            autoRefreshed: hasAutoRefreshed.current,
-            error: !!error,
-            raw_arquetipo: synthesis?.arquetipo
-        });
-
-        if (synthesis) {
-            console.log("🧬 [NaosIdentityView] Full Synthesis Object Keys:", Object.keys(synthesis));
-            if ((synthesis as any).arquetipo) {
-                console.log("🧬 [NaosIdentityView] Archetype Sub-object Keys:", Object.keys((synthesis as any).arquetipo));
-                console.log("🧬 [NaosIdentityView] Archetype Data:", (synthesis as any).arquetipo);
-            } else {
-                console.warn("⚠️ [NaosIdentityView] Archetype property MISSING from synthesis object.");
-            }
-        }
-        
-        // CASE 1: No data at all, trigger initial fetch
-        if (!synthesis && !loading && !hasInitialFetched.current) {
-            console.log("🚀 [NaosIdentityView] No cache found. Triggering initial fetch...");
-            hasInitialFetched.current = true;
-            fetchSynthesis();
-        } 
         // CASE 2: Incomplete data, trigger ONE-TIME deep synchronization
         // DO NOT trigger if there is already an error (like Quota 429) to avoid loops
-        else if (synthesis && !loading && !isRefreshing && !isComplete && !hasAutoRefreshed.current && !error) {
+        if (synthesis && !loading && !isRefreshing && !isComplete && !hasAutoRefreshed.current && !error) {
             console.log("🧬 [NaosIdentityView] Incomplete identity detected. Triggering deep sync...");
             hasAutoRefreshed.current = true;
             // Delay slightly to allow the UI to stabilize

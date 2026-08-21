@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Trophy, Users, Shield, Check } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useProfile } from '../hooks/useProfile';
-import { endpoints, getAuthHeaders } from '../lib/api';
+import { endpoints, getAsyncAuthHeaders } from '../lib/api';
 
 const THEME = {
     bg: 'bg-[#050505]',
@@ -31,31 +31,20 @@ interface RankingData {
 
 export const RankingView = ({ onBack, onNavigate }: { onBack: () => void, onNavigate?: (view: any) => void }) => {
     const { profile } = useProfile();
-    const [data, setData] = useState<RankingData | null>(null);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchRanking = async () => {
-            try {
-                const response = await fetch(endpoints.ranking, {
-                    headers: {
-                        ...getAuthHeaders(),
-                        'x-profile-id': profile?.id || 'anonymous'
-                    }
-                });
-                if (response.ok) {
-                    const result = await response.json();
-                    setData(result);
-                }
-            } catch (error) {
-                console.error("Failed to load ranking:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (profile) fetchRanking();
-    }, [profile]);
+    const { data, isLoading: loading } = useQuery<RankingData>({
+        queryKey: ['ranking', profile?.id],
+        queryFn: async () => {
+            const headers = await getAsyncAuthHeaders('GET');
+            const response = await fetch(endpoints.ranking, {
+                headers: { ...headers, 'x-profile-id': profile?.id || 'anonymous' }
+            });
+            if (!response.ok) throw new Error('Ranking fetch failed');
+            return response.json();
+        },
+        enabled: !!profile,
+        staleTime: 1000 * 60 * 5, // 5 min — ranking can change but not every second
+    });
 
     const pageVariants = {
         initial: { opacity: 0, y: 20 },

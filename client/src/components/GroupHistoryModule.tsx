@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Trash2 } from 'lucide-react';
-import { API_BASE_URL, getAuthHeaders } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
 import { useTranslation } from '../i18n';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { naosQueryFn, naosQueryMutate } from '../lib/queryClient';
 
 interface GroupHistoryModuleProps {
     profileId: string;
@@ -11,35 +13,28 @@ interface GroupHistoryModuleProps {
 
 export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileId, onSelectHistory }) => {
     const { t } = useTranslation();
-    const [history, setHistory] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
 
-    const fetchHistory = useCallback(async () => {
-        if (!profileId) return;
-        setIsLoading(true);
-        setError(null);
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/synastry/history`, { headers: getAuthHeaders() });
-            if (!response.ok) throw new Error(t('synastry_fetch_error'));
-            const result = await response.json();
+    const { data: history = [], isLoading, error } = useQuery({
+        queryKey: ['groupHistory', profileId],
+        queryFn: async () => {
+            const result = await naosQueryFn<any[]>(`${API_BASE_URL}/api/synastry/history`);
+            return result.filter((item: any) => item.relationship_type === 'GROUP_DYNAMICS') || [];
+        },
+        enabled: !!profileId,
+    });
 
-            // Filter strictly for GROUP_DYNAMICS
-            const groupHistory = result.filter((item: any) => item.relationship_type === 'GROUP_DYNAMICS');
-            setHistory(groupHistory || []);
-        } catch (err) {
-            console.error("❌ Group History Error:", err);
-            setError(t('synastry_fetch_error'));
-        } finally {
-            setIsLoading(false);
+    const deleteMutation = useMutation({
+        mutationFn: (sanitizedId: string) => naosQueryMutate(`${API_BASE_URL}/api/synastry/record/${sanitizedId}`, 'DELETE'),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['groupHistory', profileId] });
+        },
+        onError: () => {
+            alert(t('synastry_delete_error'));
         }
-    }, [profileId]);
+    });
 
-    useEffect(() => {
-        fetchHistory();
-    }, [fetchHistory]);
-
-    const handleDeleteHistory = async (e: React.MouseEvent, id: string) => {
+    const handleDeleteHistory = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
         let sanitizedId = id;
         if (id && typeof id === 'string' && id.startsWith('r_')) {
@@ -47,16 +42,7 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
         }
         if (!window.confirm(t('synastry_dissolve_confirm'))) return;
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/synastry/record/${sanitizedId}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders('DELETE')
-            });
-            if (!response.ok) throw new Error(t('synastry_delete_error'));
-            setHistory(prev => prev.filter(item => item.id !== id && item.id !== sanitizedId));
-        } catch (err) {
-            alert(t('synastry_delete_error'));
-        }
+        deleteMutation.mutate(sanitizedId);
     };
 
     if (isLoading) {
@@ -64,7 +50,7 @@ export const GroupHistoryModule: React.FC<GroupHistoryModuleProps> = ({ profileI
     }
 
     if (error) {
-        return <div className="w-full text-center py-20 text-red-400 text-xs uppercase tracking-widest">{error}</div>;
+        return <div className="w-full text-center py-20 text-red-400 text-xs uppercase tracking-widest">{(error as Error).message || t('synastry_fetch_error')}</div>;
     }
 
     if (history.length === 0) {

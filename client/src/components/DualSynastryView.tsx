@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Infinity as InfinityIcon, ArrowRight, Loader2, Trash2, ChevronDown } from 'lucide-react';
-import { cn } from '../lib/utils';
-import { API_BASE_URL, getAuthHeaders } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { naosQueryFn, naosQueryMutate } from '../lib/queryClient';
 import { SynastryResultView } from './SynastryResultView';
 import { RelationshipType } from './SynastryModule';
 import { RelationshipLaboratory } from '../pages/RelationshipLaboratory';
@@ -23,9 +23,58 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
     const [relationshipType, setRelationshipType] = useState<RelationshipType>(RelationshipType.ROMANTIC);
     const [executionData, setExecutionData] = useState<any>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [history, setHistory] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const qc = useQueryClient();
+
+    const { data: history = [], refetch: refetchHistory, isLoading: isLoadingHistory } = useQuery({
+        queryKey: ['synastry-history', profile?.id],
+        queryFn: async () => {
+            try {
+                const result = await naosQueryFn<any[]>(`${API_BASE_URL}/api/synastry/history`);
+                return result.filter((item: any) => item.relationship_type !== 'GROUP_DYNAMICS');
+            } catch (err: any) {
+                throw new Error(err.message || t('synastry_fetch_error'));
+            }
+        },
+        enabled: activeTab === 'HISTORY' && !!profile?.id,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    const analyzeMutation = useMutation({
+        mutationFn: async (payload: any) => {
+            try {
+                return await naosQueryMutate<any>(`${API_BASE_URL}/api/synastry/analyze`, 'POST', payload);
+            } catch (err: any) {
+                throw new Error(err.message || t('synastry_fetch_error'));
+            }
+        }
+    });
+
+    const deleteHistoryMutation = useMutation({
+        mutationFn: async (id: string) => {
+            let sanitizedId = id;
+            if (id && typeof id === 'string' && id.startsWith('r_')) {
+                sanitizedId = id.substring(2);
+            }
+            try {
+                await naosQueryMutate(`${API_BASE_URL}/api/synastry/record/${sanitizedId}`, 'DELETE');
+                return { id, sanitizedId };
+            } catch (err) {
+                throw new Error(t('synastry_delete_error'));
+            }
+        },
+        onSuccess: ({ id, sanitizedId }) => {
+            qc.setQueryData(['synastry-history', profile?.id], (oldData: any[]) => {
+                if (!oldData) return [];
+                return oldData.filter(item => item.id !== id && item.id !== sanitizedId);
+            });
+        },
+        onError: () => {
+            alert(t('synastry_delete_error'));
+        }
+    });
 
     const handleCalculate = async () => {
         if (!partnerData.name || !partnerData.birthDate || !partnerData.birthCity || !partnerData.birthCountry) {
@@ -34,143 +83,78 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
         }
 
         setError(null);
-        setIsLoading(true);
+        setStep('TUNING');
 
-        try {
-            const payload = { 
-                userProfile: profile, 
-                partnerData: { ...partnerData }, 
-                relationshipType,
-                language: language || 'es'
-            };
-            setStep('TUNING');
+        const payload = { 
+            userProfile: profile, 
+            partnerData: { ...partnerData }, 
+            relationshipType,
+            language: language || 'es'
+        };
 
-            const response = await fetch(`${API_BASE_URL}/api/synastry/analyze`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message || err.error || t('synastry_fetch_error'));
+        analyzeMutation.mutate(payload, {
+            onSuccess: (result) => {
+                setTimeout(() => {
+                    setExecutionData(result.data);
+                    setStep('RESULT');
+                }, 2500);
+            },
+            onError: (err: any) => {
+                console.error("❌ Synastry Error:", err);
+                setError(err.message || t('synastry_network_error'));
+                setStep('FORM');
             }
-
-            const result = await response.json();
-
-            setTimeout(() => {
-                setExecutionData(result.data);
-                setStep('RESULT');
-                setIsLoading(false);
-            }, 2500);
-
-        } catch (err: any) {
-            console.error("❌ Synastry Error:", err);
-            setError(err.message || t('synastry_network_error'));
-            setStep('FORM');
-            setIsLoading(false);
-        }
+        });
     };
-
-    const fetchHistory = useCallback(async () => {
-        if (!profile?.id) return;
-        setIsLoading(true);
-        setError(null);
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/synastry/history`, { headers: getAuthHeaders() });
-            if (!response.ok) throw new Error(t('synastry_fetch_error'));
-            const result = await response.json();
-            // Filter to only non-group history if possible, though backend returns all
-            // We can filter by type here to ensure Dual History only shows Dual types
-            const dualHistory = result.filter((item: any) => item.relationship_type !== 'GROUP_DYNAMICS');
-            setHistory(dualHistory || []);
-        } catch (err) {
-            console.error("❌ History Error:", err);
-            setError(t('akashic_empty'));
-        } finally {
-            setIsLoading(false);
-        }
-    }, [profile?.id]);
 
     const handleTabChange = (tab: 'FORM' | 'HISTORY') => {
         setActiveTab(tab);
         if (tab === 'HISTORY') {
-            fetchHistory();
+            refetchHistory();
         } else {
             setStep('FORM');
         }
     };
 
     const handleSelectHistory = async (item: any) => {
-        // If it's already V4.1 and the language matches, we could theoretically just use it.
-        // But to ensure it gets migrated properly if it's an old version, we route it through the analysis endpoint.
-        // The backend cache logic will detect if it needs V4.1 migration and do it on the fly.
-        
         setActiveTab('FORM');
         setStep('TUNING');
-        setIsLoading(true);
         
-        try {
-            const reconstructedPartnerData = {
-                name: item.partner_name,
-                birthDate: item.partner_birth_date || '', 
-                birthTime: '12:00',
-                birthCity: item.calculated_results?.partnerInfo?.birthCity || 'Guatemala',
-                birthCountry: item.calculated_results?.partnerInfo?.birthCountry || 'Guatemala'
-            };
-            
-            setPartnerData(reconstructedPartnerData);
-            setRelationshipType(item.relationship_type);
-            
-            const payload = { 
-                userProfile: profile, 
-                partnerData: reconstructedPartnerData, 
-                relationshipType: item.relationship_type,
-                language: language || 'es'
-            };
+        const reconstructedPartnerData = {
+            name: item.partner_name,
+            birthDate: item.partner_birth_date || '', 
+            birthTime: '12:00',
+            birthCity: item.calculated_results?.partnerInfo?.birthCity || 'Guatemala',
+            birthCountry: item.calculated_results?.partnerInfo?.birthCountry || 'Guatemala'
+        };
+        
+        setPartnerData(reconstructedPartnerData);
+        setRelationshipType(item.relationship_type);
+        
+        const payload = { 
+            userProfile: profile, 
+            partnerData: reconstructedPartnerData, 
+            relationshipType: item.relationship_type,
+            language: language || 'es'
+        };
 
-            const response = await fetch(`${API_BASE_URL}/api/synastry/analyze`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message || err.error || t('synastry_fetch_error'));
+        analyzeMutation.mutate(payload, {
+            onSuccess: (result) => {
+                setExecutionData(result.data);
+                setStep('RESULT');
+            },
+            onError: (err: any) => {
+                console.error("❌ History Resync Error:", err);
+                setError(err.message || t('synastry_network_error'));
+                setStep('FORM');
             }
-
-            const result = await response.json();
-            
-            setExecutionData(result.data);
-            setStep('RESULT');
-        } catch (err: any) {
-            console.error("❌ History Resync Error:", err);
-            setError(err.message || t('synastry_network_error'));
-            setStep('FORM');
-        } finally {
-            setIsLoading(false);
-        }
+        });
     };
 
     const handleDeleteHistory = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        let sanitizedId = id;
-        if (id && typeof id === 'string' && id.startsWith('r_')) {
-            sanitizedId = id.substring(2);
-        }
         if (!window.confirm(t('synastry_delete_confirm'))) return;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/synastry/record/${sanitizedId}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders('DELETE')
-            });
-            if (!response.ok) throw new Error(t('synastry_delete_error'));
-            setHistory(prev => prev.filter(item => item.id !== id && item.id !== sanitizedId));
-        } catch (err) {
-            alert(t('synastry_delete_error'));
-        }
+        deleteHistoryMutation.mutate(id);
     };
 
     return (
@@ -217,7 +201,14 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                     </div>
                                 )}
 
-                                <div className="space-y-6">
+                                <div className="flex flex-col gap-6">
+                                    {(activeTab === 'FORM' && (analyzeMutation.isPending)) && (
+                                        <div className="text-center py-20 animate-pulse text-white/50 text-xs tracking-widest uppercase">
+                                            <div className="w-16 h-16 mx-auto mb-4 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+                                            {t('synastry_processing')}
+                                        </div>
+                                    )}
+                                    
                                     <div className="relative w-full flex justify-center pb-6 border-b border-white/10">
                                         <div className="relative">
                                             <button
@@ -329,30 +320,23 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={handleCalculate}
-                                        disabled={isLoading || !partnerData.name || !partnerData.birthDate}
-                                        className={`w-full py-5 rounded-2xl border flex items-center justify-center gap-3 transition-all ${(!partnerData.name || !partnerData.birthDate) ? 'bg-black border-white/5 text-white/20' : 'bg-purple-600/20 text-purple-300 border-purple-500/30 hover:bg-purple-600/30 hover:border-purple-500/50 cursor-pointer shadow-[0_0_20px_rgba(168,85,247,0.15)]'}`}
-                                    >
-                                        <span className="text-[11px] uppercase tracking-[0.3em] font-black">
-                                            {t('synastry_sync_codes')}
-                                        </span>
-                                        <ArrowRight size={16} className={(!partnerData.name || !partnerData.birthDate) ? 'opacity-0' : 'opacity-100'} />
-                                    </button>
+                                    <div className="flex justify-center mt-10">
+                                        <button
+                                            onClick={handleCalculate}
+                                            disabled={analyzeMutation.isPending || !partnerData.name || !partnerData.birthDate}
+                                            className={cn(
+                                                "px-10 py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-sm transition-all relative overflow-hidden group",
+                                                (!partnerData.name || !partnerData.birthDate) ? "bg-white/5 text-white/20 cursor-not-allowed" : "bg-purple-600 text-white hover:bg-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)]"
+                                            )}
+                                        >
+                                            <span className="relative z-10 flex items-center gap-3">
+                                                {analyzeMutation.isPending ? t('synastry_generating') : t('synastry_analyze')}
+                                                {analyzeMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+                                            </span>
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
-                        )}
-
-                        {step === 'TUNING' && (
-                            <div className="flex flex-col items-center justify-center pt-20">
-                                <div className="relative w-40 h-40 flex items-center justify-center mb-8">
-                                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }} className="absolute inset-0 rounded-full border border-purple-500/20 border-t-purple-500/60" />
-                                    <motion.div animate={{ rotate: -360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="absolute inset-4 rounded-full border border-pink-500/20 border-b-pink-500/60" />
-                                    <InfinityIcon className="w-12 h-12 text-purple-400/50 animate-pulse" />
-                                </div>
-                                <h3 className="tracking-[0.4em] uppercase text-purple-300 font-bold text-sm animate-pulse">{t('synastry_coding_dual')}</h3>
-                                <p className="text-[10px] text-white/30 uppercase tracking-widest mt-4 max-w-sm text-center">{t('synastry_engines_invoked')}</p>
-                            </div>
                         )}
 
                         {step === 'RESULT' && executionData && (
@@ -385,8 +369,8 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
 
                 {activeTab === 'HISTORY' && (
                     <motion.div key="history-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 shrink-0 self-start pb-20">
-                        {isLoading ? (
-                            <div className="col-span-full flex justify-center py-20"><Loader2 className="animate-spin text-white/30" /></div>
+                        {isLoadingHistory ? (
+                            <div className="col-span-full flex justify-center py-20 text-white/30 text-xs uppercase tracking-widest">{t('synastry_loading')}</div>
                         ) : history.length === 0 ? (
                             <div className="col-span-full flex justify-center py-20 text-white/30 text-xs uppercase tracking-widest">{t('synastry_no_history')}</div>
                         ) : (

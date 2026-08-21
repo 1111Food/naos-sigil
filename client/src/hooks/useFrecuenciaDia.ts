@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
+import { API_BASE_URL } from '../lib/api';
 
 export interface FrecuenciaDiaData {
     texto_principal: string;
@@ -12,48 +12,36 @@ export interface FrecuenciaDiaData {
     conversational_hook: string;
 }
 
+// Clave de localStorage para tracking de lectura (sin cambios de comportamiento)
+const getReadKey = () => `frecuencia_read_date`;
+
 export function useFrecuenciaDia() {
     const { session } = useAuth();
-    const [data, setData] = useState<FrecuenciaDiaData | null>(null);
-    const [isRead, setIsRead] = useState(true);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (!session) return;
-        fetchFrecuencia();
-    }, [session]);
+    const today = new Date().toISOString().split('T')[0];
+    const storedDate = typeof window !== 'undefined' ? localStorage.getItem(getReadKey()) : null;
 
-    const fetchFrecuencia = async () => {
-        setLoading(true);
-        try {
-            const token = session?.access_token;
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/oracle/daily?offset=0`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+    const { data, isLoading: loading } = useQuery<FrecuenciaDiaData | null>({
+        queryKey: ['frecuencia-dia', session?.user?.id, today],
+        queryFn: async () => {
+            const res = await fetch(`${API_BASE_URL}/api/oracle/daily?offset=0`, {
+                headers: { 'Authorization': `Bearer ${session!.access_token}` }
             });
             const json = await res.json();
-            if (json.status === 'ok' && json.data) {
-                setData(json.data);
-                // We don't have a specific API to check is_read easily here unless we add it,
-                // But we can check local storage or assume it's unread if it's the first time today.
-                // Let's use localStorage to track if they've seen today's Frecuencia.
-                const today = new Date().toISOString().split('T')[0];
-                const storedDate = localStorage.getItem('frecuencia_read_date');
-                if (storedDate !== today) {
-                    setIsRead(false);
-                }
-            }
-        } catch (e) {
-            console.error("Error fetching Frecuencia del Día", e);
-        } finally {
-            setLoading(false);
-        }
-    };
+            if (json.status === 'ok' && json.data) return json.data;
+            return null;
+        },
+        enabled: !!session,
+        // La frecuencia del día cambia una vez al día — cache agresivo
+        staleTime: 1000 * 60 * 30, // 30 min frescos (no cambia a cada rato)
+        gcTime: 1000 * 60 * 60,    // 1 hora en memoria
+    });
 
     const markAsRead = () => {
-        const today = new Date().toISOString().split('T')[0];
-        localStorage.setItem('frecuencia_read_date', today);
-        setIsRead(true);
+        localStorage.setItem(getReadKey(), today);
     };
 
-    return { data, isRead, markAsRead, loading };
+    const isRead = storedDate === today;
+
+    return { data: data ?? null, isRead, markAsRead, loading };
 }

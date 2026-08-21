@@ -249,6 +249,7 @@ export async function apiRoutes(app: FastifyInstance) {
                 audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined,
                 audioBase64: buffer ? buffer.toString('base64') : undefined
             };
+
         } catch (error: any) {
             console.error("🔥 SIGIL ERROR:", error);
             // Deep file logging
@@ -269,6 +270,65 @@ export async function apiRoutes(app: FastifyInstance) {
                 error: "La red estelar está inestable. Revisa tu conexión mística.",
                 details: error.message
             });
+        }
+    });
+
+
+    // 🔮 Sigil Chat DEMO / Review Mode Endpoint
+    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/demo/sigil', { 
+        config: {
+            rateLimit: {
+                max: parseInt(process.env.VITE_REVIEW_LLM_MAX_REQUESTS || '10'),
+                timeWindow: '1 hour'
+            }
+        }
+    }, async (req, reply) => {
+        if (process.env.VITE_REVIEW_MODE !== 'true') {
+            return reply.status(403).send({ error: "Review Mode no está activo en el servidor." });
+        }
+
+        const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
+        
+        // Fija la identidad de la DEMO de forma absoluta desde el backend, ignorando cualquier cosa del cliente.
+        const DEMO_USER_ID = "00000000-0000-0000-0000-000000000000";
+
+        try {
+            console.log(`🌀 INCOMING DEMO MESSAGE from IP: "${message}"`);
+            
+            // Forzamos el userId a DEMO_USER_ID y un flag de demo (isDemo = true) si processMessage lo soporta
+            // O podemos usar un generador estático para ahorrar tokens en revisión.
+            if (process.env.VITE_REVIEW_MOCK_SIGIL === 'true') {
+                return { 
+                    text: `*Respuesta de prueba (MOCK_SIGIL activo)*. Has dicho: "${message}". En modo producción, esta respuesta vendría del LLM real con el perfil demo.`,
+                    kernelAction: undefined
+                };
+            }
+
+            // Aquí pasamos isDemo=true al sigilService si tuviéramos un flag, pero por ahora usamos el ID dummy.
+            // Para evitar llenar la DB real o fallos de foreign keys, sigilService debería manejar el demo_id graciosamente.
+            // Actualmente processMessage espera que userId exista en profiles. Para la DEMO, quizás es mejor usar un LLM directo sin history persistente o confiar en que SigilService puede manejar usuarios anónimos/demos.
+            // Como no estoy seguro de si processMessage explotará con un UUID que no está en la base de datos, lo más seguro es proveer una respuesta directa con Gemini si isMockSigil no está forzado, O usar processMessage si sabemos que lo soporta.
+            // Por requerimiento del usuario "con rate-limiting estricto global por IP".
+            
+            // Llama a processMessage con el DEMO_USER_ID. Si processMessage asume que existe en Supabase y falla, entonces
+            // necesitaremos hacer bypass del history guardado, pero por el momento le pasamos DEMO_USER_ID.
+            // Se asume que el DEMO_USER_ID está creado en la DB, o SigilService es tolerante a fallos de escritura de logs.
+            
+            // Se usará una llamada básica de Gemini para aislar la Demo de la base de datos
+            const { GoogleGenerativeAI } = require('@google/generative-ai');
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `Eres NAOS Sigil, un oráculo de autoconocimiento, operando en modo DEMO. Responde con sabiduría, en el idioma ${language || 'es'}, de forma misteriosa pero útil a esto: "${message}"`;
+            const result = await model.generateContent(prompt);
+            const finalText = result.response.text();
+            
+            return { 
+                text: finalText,
+                kernelAction: undefined
+            };
+        } catch (error: any) {
+            console.error("🔥 Demo Chat Error:", error);
+            return reply.status(500).send({ error: error.message });
         }
     });
 
