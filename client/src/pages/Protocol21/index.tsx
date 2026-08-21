@@ -19,7 +19,7 @@ interface Protocol21Props {
 
 export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
     const { t, language } = useTranslation();
-    const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, startProtocol } = useProtocol21();
+    const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, startProtocol, evolveProtocol } = useProtocol21();
     const { profile } = useProfile();
     const [showDailySuccess, setShowDailySuccess] = useState(false);
     const [showRitualInfo, setShowRitualInfo] = useState(false); // New state for 'i' info button
@@ -126,6 +126,56 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
         )
     }
 
+    if (activeProtocol.status === 'awaiting_evolution') {
+        return (
+            <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                {/* Background glow */}
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-900/10 blur-[120px] rounded-full animate-pulse-slow pointer-events-none" />
+                </div>
+                
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative z-10 max-w-md w-full text-center space-y-12"
+                >
+                    <div className="space-y-4">
+                        <Shield size={64} className="mx-auto text-cyan-500/80 mb-8 stroke-[1.5]" />
+                        <h1 className="text-3xl md:text-4xl font-serif italic text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                            {activeProtocol.target_days} DAYS COMPLETE
+                        </h1>
+                        <p className="text-sm text-cyan-400/80 uppercase tracking-[0.3em] font-bold">
+                            The foundation is built
+                        </p>
+                    </div>
+                    
+                    <p className="text-white/60 text-base md:text-lg leading-relaxed font-serif italic px-6">
+                        Your frequency has stabilized. You stand at the threshold of a deeper cycle.
+                    </p>
+
+                    <div className="pt-8 space-y-6">
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await evolveProtocol();
+                                } catch (e: any) {
+                                    alert(e.message || "Error starting evolution");
+                                }
+                            }}
+                            className="px-10 py-4 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-full text-cyan-400 uppercase tracking-[0.2em] text-xs font-bold transition-all duration-500 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] w-full"
+                        >
+                            Begin Evolution
+                        </button>
+                        
+                        <button onClick={onBack} className="text-[10px] text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors">
+                            Return to Temple
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
     const currentDay = activeProtocol.current_day;
     const isDayCompletedRaw = dailyLogs.some(l => l.day_number === currentDay);
 
@@ -306,13 +356,13 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                             <div className="flex items-center justify-between mb-3">
                                 <div>
                                     <span className="text-[9px] uppercase tracking-[0.2em] text-cyan-400 font-black">{t('protocol_integration_seal')}</span>
-                                    <p className="text-[10px] text-white/30 tracking-wider">{t('protocol_resonance_freq')}</p>
+                                    <p className="text-[10px] text-white/30 tracking-wider">{t('protocol_day_label')} {activeProtocol.current_day} / {target}</p>
                                 </div>
                                 <span className={cn(
-                                    "text-lg font-black font-mono transition-all duration-1000",
+                                    "text-lg font-black transition-all duration-1000 font-serif italic",
                                     isHigh ? "text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse" : isMid ? "text-cyan-400/80" : "text-white/40"
                                 )}>
-                                    {Math.round(percentage)}%
+                                    {activeProtocol.current_day} / {target}
                                 </span>
                             </div>
                             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
