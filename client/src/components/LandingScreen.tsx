@@ -9,11 +9,13 @@ import { useDemo } from '../contexts/DemoContext';
 interface LandingScreenProps {
     onEnter: () => void;
     onTemporaryAccess: () => void;
+    onEnterDemo?: () => void;
 }
 
 export const LandingScreen: React.FC<LandingScreenProps> = ({
     onEnter,
-    onTemporaryAccess
+    onTemporaryAccess,
+    onEnterDemo
 }) => {
     const { t } = useTranslation();
     const timeMode = useTimeBasedMode();
@@ -40,7 +42,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
         setDemoActive(true);
         setIsEntering(true);
         setTimeout(() => {
-            onEnter();
+            if (onEnterDemo) {
+                onEnterDemo();
+            } else {
+                onEnter();
+            }
         }, 1200);
     };
 

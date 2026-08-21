@@ -369,6 +369,7 @@ function App() {
           <div className="relative w-full h-full">
             <LandingScreen
               onEnter={() => setActiveView('ONBOARDING')}
+              onEnterDemo={() => setActiveView('TEMPLE')}
               onTemporaryAccess={() => setActiveView('LOGIN')}
             />
           </div>
