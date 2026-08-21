@@ -246,10 +246,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
             // DEMO BYPASS
             if (user.id === DEMO_USER_ID) {
-                // Update in memory to prevent infinite loops like timezone calibration
-                const updatedDemoProfile = { ...(profile || DEMO_PROFILE), ...data } as UserProfile;
-                setProfile(updatedDemoProfile);
-                return updatedDemoProfile;
+                // Update in memory using functional state update to completely avoid closure bugs
+                setProfile(prev => {
+                    const baseProfile = prev || DEMO_PROFILE;
+                    return { ...baseProfile, ...data } as UserProfile;
+                });
+                return undefined as any; // return is not critical for timezone effect
             }
 
             const payload: any = {
@@ -293,7 +295,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } catch (err) {
             console.error("Context: Update failed", err);
             throw err;
-    }, [user, profile]);
+        }
+    }, [user]);
 
     // Auto-Calibración de Timezone para soporte global
     useEffect(() => {
