@@ -12,5 +12,10 @@
       "source": "/(.*)",
       "destination": "client/$1"
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "VITE_DEMO_MODE": "true"
+    }
+  }
 }
