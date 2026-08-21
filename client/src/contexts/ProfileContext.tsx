@@ -125,9 +125,9 @@ export const buildSubprofileCosmicData = (sub: any) => {
             ...(astrology && { astrology }),
             ...(numerology && { numerology }),
             ...(mayan && { mayan }),
-            nawal_maya: sub.nawal_maya || (mayan ? `${mayan.tone} ${mayan.kicheName}` : undefined),
-            chinese_animal: sub.chinese_animal || (chinese ? chinese.animal : undefined),
-            chinese_element: sub.chinese_element || (chinese ? chinese.element : undefined),
+            nawal_maya: (mayan ? `${mayan.tone} ${mayan.kicheName}` : sub.nawal_maya),
+            chinese_animal: (chinese ? chinese.animal : sub.chinese_animal),
+            chinese_element: (chinese ? chinese.element : sub.chinese_element),
         };
     } catch (e) {
         console.error("Error in buildSubprofileCosmicData initialization:", e);

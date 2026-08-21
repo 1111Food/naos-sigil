@@ -20,18 +20,18 @@ export const DEMO_PROFILE: UserProfile = {
     ascendant_sign: 'Libra',
 
     // Numerology
-    life_path_number: 11,
+    life_path_number: 7,
 
     // Maya
-    maya_nahual: 'BATZ',
-    maya_tone: 7,
+    maya_nahual: 'Imox',
+    maya_tone: 10,
 
     // Chinese
-    chinese_animal: 'caballo',
-    chinese_element: 'Metal',
+    chinese_animal: 'tigre',
+    chinese_element: 'Fuego',
 
     // Energy Code
-    naos_code: 'Aries · 11 · B\'atz\' · Caballo'
+    naos_code: 'Cáncer · 7 · Imox · Tigre'
 };
 
 export const DEMO_PARTNER_PROFILE: UserProfile = {
