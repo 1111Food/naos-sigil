@@ -1,0 +1,84 @@
+{
+  "screens": [
+    {
+      "id": "landing",
+      "name": "Landing",
+      "url": "/review/landing",
+      "description": "NAOS entry experience",
+      "type": "screen",
+      "available": true
+    },
+    {
+      "id": "revelation",
+      "name": "First Revelation",
+      "url": "/review/revelation",
+      "description": "Initial cosmic data reveal",
+      "type": "screen",
+      "available": true
+    },
+    {
+      "id": "temple",
+      "name": "Temple",
+      "url": "/review/temple",
+      "description": "Main hub dashboard",
+      "type": "screen",
+      "available": true
+    },
+    {
+      "id": "identity",
+      "name": "Identity Altar",
+      "url": "/review/identity",
+      "description": "Deep profile exploration",
+      "type": "screen",
+      "available": true
+    },
+    {
+      "id": "sigil",
+      "name": "Sigil",
+      "url": "/review/sigil",
+      "description": "AI conversational agent",
+      "type": "agent",
+      "available": true
+    },
+    {
+      "id": "timemap",
+      "name": "Time Map",
+      "url": "/review/timemap",
+      "description": "Cosmic transit visualization",
+      "type": "visualization",
+      "available": true
+    },
+    {
+      "id": "synastry",
+      "name": "Synastry",
+      "url": "/review/synastry",
+      "description": "Relationship compatibility",
+      "type": "tool",
+      "available": true
+    },
+    {
+      "id": "sanctuary",
+      "name": "Sanctuary",
+      "url": "/review/sanctuary",
+      "description": "Meditation and breathing rituals",
+      "type": "tool",
+      "available": true
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "url": "/review/oracle",
+      "description": "Tarot and I-Ching readings",
+      "type": "tool",
+      "available": true
+    },
+    {
+      "id": "premium",
+      "name": "Premium",
+      "url": "/review/premium",
+      "description": "Subscription upsell modal",
+      "type": "modal",
+      "available": true
+    }
+  ]
+}

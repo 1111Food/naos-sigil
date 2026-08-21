@@ -184,28 +184,6 @@ export const ReviewApp = () => {
         meta.setAttribute('content', 'noindex, nofollow');
     }, []);
 
-    // Manifest JSON Endpoint (Dynamic Interception)
-    if (path === '/review/manifest.json') {
-        const manifest = {
-            "screens": [
-                { "id": "landing", "url": "/review/landing", "name": "Landing", "description": "NAOS entry experience" },
-                { "id": "revelation", "url": "/review/revelation", "name": "First Revelation", "description": "Initial cosmic data reveal" },
-                { "id": "temple", "url": "/review/temple", "name": "Temple", "description": "Main hub dashboard" },
-                { "id": "identity", "url": "/review/identity", "name": "Identity Altar", "description": "Deep profile exploration" },
-                { "id": "sigil", "url": "/review/sigil", "name": "Sigil", "description": "AI conversational agent" },
-                { "id": "timemap", "url": "/review/timemap", "name": "Time Map", "description": "Cosmic transit visualization" },
-                { "id": "synastry", "url": "/review/synastry", "name": "Synastry", "description": "Relationship compatibility" },
-                { "id": "sanctuary", "url": "/review/sanctuary", "name": "Sanctuary", "description": "Meditation and breathing rituals" },
-                { "id": "oracle", "url": "/review/oracle", "name": "Oracle", "description": "Tarot and I-Ching readings" },
-                { "id": "premium", "url": "/review/premium", "name": "Premium", "description": "Subscription upsell modal" }
-            ]
-        };
-        // We render it as a simple pre tag, but a real JSON endpoint would be better via Vite/server.
-        // For a SPA, doing a raw document write is the closest to returning raw JSON if we can't configure the server easily.
-        document.documentElement.innerHTML = `<pre style="word-wrap: break-word; white-space: pre-wrap;">${JSON.stringify(manifest, null, 2)}</pre>`;
-        return null;
-    }
-
     // Simple Router
     const route = path.replace('/review', '') || '/';
     
