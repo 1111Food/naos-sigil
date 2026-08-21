@@ -553,12 +553,12 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.post<{ Body: { protocolId: string } }>('/api/protocols/evolve', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.post<{ Body: { protocolId: string, newIntention?: string } }>('/api/protocols/evolve', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const token = (req as any).token;
         try {
-            const { protocolId } = req.body;
-            return await ProtocolService.evolveProtocol(userId, protocolId, token);
+            const { protocolId, newIntention } = req.body;
+            return await ProtocolService.evolveProtocol(userId, protocolId, newIntention || '', token);
         } catch (e: any) {
             console.error("🔥 Protocol Evolution Error:", e);
             return reply.status(500).send({ error: e.message });

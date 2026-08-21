@@ -2,33 +2,47 @@ import { FastifyInstance } from 'fastify';
 
 export async function reviewRoutes(app: FastifyInstance) {
     app.get('/state', async (request, reply) => {
-        const query = request.query as { screen?: string };
+        const query = request.query as { screen?: string, scenario?: string };
         const screen = query.screen || 'temple';
+        const scenario = query.scenario || 'active';
 
         if (screen === 'protocol21') {
-            const dayCurrent = 1;
-            const dayTotal = 21;
+            let dayCurrent = 1;
+            let targetDays = 21;
+            let status = 'active';
+            let protocolStage = '21_DAYS';
+
+            if (scenario === 'awaiting_evolution') {
+                dayCurrent = 21;
+                status = 'awaiting_evolution';
+            } else if (scenario === '90_days') {
+                dayCurrent = 22;
+                targetDays = 90;
+                protocolStage = '90_DAYS';
+            }
             
             const getProtocol21Phase = (day: number) => {
-                if (day >= 1 && day <= 6) return 'BEGIN/BUILD';
+                if (day >= 1 && day <= 6) return 'BUILD';
                 if (day === 7) return 'REFLECT';
                 if (day >= 8 && day <= 13) return 'DEEPEN';
                 if (day === 14) return 'RECALIBRATE';
                 if (day >= 15 && day <= 20) return 'INTEGRATE';
                 if (day === 21) return 'EVOLVE';
-                return 'UNKNOWN';
+                return 'TRANSFORM';
             };
 
             return reply.status(200).send({
                 "mode": "review",
+                "scenario": scenario,
+                "is_demo": true,
                 "screen": "protocol21",
                 "title": "Protocol 21",
                 "description": "21-Day transformational habit protocol",
                 "state": {
                     "day_current": dayCurrent,
-                    "day_total": dayTotal,
-                    "progress_percent": Number(((dayCurrent / dayTotal) * 100).toFixed(2)),
-                    "phase": getProtocol21Phase(dayCurrent),
+                    "day_total": targetDays,
+                    "progress_percent": Number(((dayCurrent / targetDays) * 100).toFixed(2)),
+                    "phase": getProtocol21Phase(dayCurrent), // Note: Phases are currently VISUAL ONLY in UX.
                     "ritual_status": "available",
                     "vault_available": true,
                     "history_available": true,
@@ -38,16 +52,16 @@ export async function reviewRoutes(app: FastifyInstance) {
                         "memory_created": false
                     },
                     "protocol21": {
-                        "protocol_stage": "21_DAYS",
-                        "status": "active",
+                        "protocol_stage": protocolStage,
+                        "status": status,
                         "current_day": dayCurrent,
-                        "target_days": 21,
+                        "target_days": targetDays,
                         "completed": false
                     },
                     "protocol90": {
                         "protocol_stage": "90_DAYS",
-                        "status": "locked",
-                        "unlocked": false
+                        "status": scenario === '90_days' ? 'active' : 'locked',
+                        "unlocked": scenario === '90_days'
                     }
                 },
                 "components": [

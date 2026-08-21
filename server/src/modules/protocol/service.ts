@@ -95,12 +95,24 @@ export class ProtocolService {
     /**
      * Mueve el protocolo de la etapa de 21 días a la de 90 días.
      */
-    static async evolveProtocol(userId: string, protocolId: string, token?: string) {
+    static async evolveProtocol(userId: string, protocolId: string, newIntention: string, token?: string) {
         console.log(`✨ ProtocolService: Evolving protocol ${protocolId} to 90 days.`);
 
         const client = token
             ? createClient(config.SUPABASE_URL!, config.SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } })
             : supabase;
+
+        // Idempotency check: if already 90_DAYS, return early
+        const { data: currentProtocol } = await client
+            .from('user_protocols')
+            .select('protocol_stage, status')
+            .eq('id', protocolId)
+            .single();
+
+        if (currentProtocol?.protocol_stage === '90_DAYS') {
+            console.log("ℹ️ ProtocolService: Protocol already evolved to 90 days. Returning existing state.");
+            return { alreadyEvolved: true };
+        }
 
         const { data: updated, error } = await client
             .from('user_protocols')
@@ -119,6 +131,37 @@ export class ProtocolService {
         if (error) {
             console.error("❌ Error evolving protocol:", error);
             throw error;
+        }
+
+        // Intention History: Archive old intention and create new one
+        if (newIntention) {
+            // Find current active identity
+            const { data: oldIntent } = await client
+                .from('protocols')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (oldIntent) {
+                // Archive old
+                await client
+                    .from('protocols')
+                    .update({ status: 'evolved' })
+                    .eq('id', oldIntent.id);
+
+                // Insert new Cycle II intention
+                await client
+                    .from('protocols')
+                    .insert({
+                        user_id: userId,
+                        title: oldIntent.title, // Keep same title/theme
+                        purpose: newIntention,
+                        status: 'active'
+                    });
+            }
         }
 
         // Premio extra por evolucionar

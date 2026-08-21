@@ -179,7 +179,7 @@ export const useProtocol21 = () => {
     };
 
     const evolveMutation = useMutation({
-        mutationFn: async () => {
+        mutationFn: async (newIntention?: string) => {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             const response = await fetch(`${API_BASE_URL}/api/protocols/evolve`, {
@@ -188,7 +188,7 @@ export const useProtocol21 = () => {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify({ protocolId: activeProtocol!.id })
+                body: JSON.stringify({ protocolId: activeProtocol!.id, newIntention })
             });
 
             if (!response.ok) {
@@ -202,9 +202,9 @@ export const useProtocol21 = () => {
         }
     });
 
-    const evolveProtocol = async () => {
+    const evolveProtocol = async (newIntention?: string) => {
         if (!activeProtocol || !profile?.id) return;
-        return evolveMutation.mutateAsync();
+        return evolveMutation.mutateAsync(newIntention);
     };
 
     const archiveMutation = useMutation({

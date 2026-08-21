@@ -14,6 +14,9 @@ import { cn } from '../../lib/utils';
 import { getDailySynchronyQuote } from '../../utils/dailyOracle';
 
 const getProtocolPhase = (day: number) => {
+    // Note: These phases are currently VISUAL ONLY in UX. 
+    // They do not dictate actual backend logic or product behavior.
+    
     // Determine cycle-agnostic day number
     const cycleDay = day > 21 ? ((day - 22) % 90) + 1 : day;
     
@@ -92,7 +95,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
         return (
             <div className="min-h-screen bg-black/40 text-white pb-24 font-sans backdrop-blur-3xl pt-12">
                 <header className="sticky top-0 z-40 bg-transparent p-6 mb-8">
-                    <button onClick={onBack} className="p-2 -ml-2 text-white/40 hover:text-white transition-colors">
+                    <button onClick={onBack} className="p-2 -ml-2 text-white/40 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-cyan-500/50 rounded-full" aria-label="Go back">
                         <ArrowLeft size={20} />
                     </button>
                     <motion.div
@@ -129,7 +132,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
         return (
             <div className="min-h-screen bg-black/40 text-white pb-24 font-sans backdrop-blur-3xl pt-12">
                 <header className="sticky top-0 z-40 bg-transparent p-6 mb-8">
-                    <button onClick={() => setShowVault(false)} className="p-2 -ml-2 text-white/40 hover:text-white transition-colors">
+                    <button onClick={() => setShowVault(false)} className="p-2 -ml-2 text-white/40 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-cyan-500/50 rounded-full" aria-label="Close Vault">
                         <ArrowLeft size={20} />
                     </button>
                     <h1 className="text-xl font-serif italic text-amber-500 text-center">{t('akashic_title')}</h1>
@@ -151,7 +154,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative z-10 max-w-md w-full text-center space-y-12"
+                    className="relative z-10 max-w-md w-full text-center space-y-10"
                 >
                     <div className="space-y-4">
                         <Shield size={64} className="mx-auto text-cyan-500/80 mb-8 stroke-[1.5]" />
@@ -163,22 +166,46 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         </p>
                     </div>
                     
-                    <p className="text-white/60 text-base md:text-lg leading-relaxed font-serif italic px-6">
-                        Your frequency has stabilized. You stand at the threshold of a deeper cycle.
-                    </p>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4 text-left shadow-lg backdrop-blur-sm">
+                        <p className="text-xs uppercase tracking-widest text-white/50">Your foundation was built on:</p>
+                        <p className="text-base font-serif italic text-white/90">"{activeProtocol.purpose}"</p>
+                        
+                        <div className="pt-4 border-t border-white/10 space-y-3">
+                            <label className="text-xs uppercase tracking-widest text-cyan-400/80 font-bold block">How would you like to deepen it?</label>
+                            <textarea
+                                value={newIntention}
+                                onChange={(e) => setNewIntention(e.target.value)}
+                                placeholder="Enter your intention for Cycle II..."
+                                className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-white/90 placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 resize-none transition-colors"
+                            />
+                        </div>
+                    </div>
 
-                    <div className="pt-8 space-y-6">
+                    <div className="pt-4 space-y-6">
                         <button
+                            disabled={isEvolving || !newIntention.trim()}
                             onClick={async () => {
+                                setIsEvolving(true);
                                 try {
-                                    await evolveProtocol();
+                                    await evolveProtocol(newIntention);
                                 } catch (e: any) {
-                                    alert(e.message || "Error starting evolution");
+                                    // Separar errores técnicos de lógicos (e.g., fetch failed = red)
+                                    const msg = e.message?.toLowerCase().includes("fetch") 
+                                        ? "Network offline. Please check your connection."
+                                        : e.message || "Error starting evolution";
+                                    alert(msg);
+                                } finally {
+                                    setIsEvolving(false);
                                 }
                             }}
-                            className="px-10 py-4 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-full text-cyan-400 uppercase tracking-[0.2em] text-xs font-bold transition-all duration-500 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] w-full"
+                            className={cn(
+                                "px-10 py-4 border rounded-full uppercase tracking-[0.2em] text-xs font-bold transition-all duration-500 w-full",
+                                isEvolving || !newIntention.trim()
+                                    ? "bg-white/5 border-white/10 text-white/30 cursor-not-allowed"
+                                    : "bg-cyan-500/10 hover:bg-cyan-500/20 border-cyan-500/30 text-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]"
+                            )}
                         >
-                            Begin Evolution
+                            {isEvolving ? "Evolving..." : "Begin Evolution"}
                         </button>
                         
                         <button onClick={onBack} className="text-[10px] text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors">
@@ -229,7 +256,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                                     <BookOpen className="text-cyan-500" />
                                     {t('protocol_log_title')}
                                 </h2>
-                                <button onClick={() => setShowHistory(false)} className="p-2 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all">
+                                <button onClick={() => setShowHistory(false)} className="p-2 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-cyan-500/50" aria-label="Close History">
                                     <X size={20} />
                                 </button>
                             </div>

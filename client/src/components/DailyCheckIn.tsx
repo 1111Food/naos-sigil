@@ -168,7 +168,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                         </div>
                         <button
                             onClick={() => window.location.href = `/review/sigil?protocol=true&day=${currentDay}`}
-                            className="text-[10px] uppercase tracking-[0.2em] px-6 py-3 border border-fuchsia-500/30 text-fuchsia-400 bg-fuchsia-500/10 rounded-full hover:bg-fuchsia-500/20 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] transition-all duration-300 flex items-center gap-3 font-bold"
+                            className="text-[10px] uppercase tracking-[0.2em] px-6 py-3 min-h-[44px] border border-fuchsia-500/30 text-fuchsia-400 bg-fuchsia-500/10 rounded-full hover:bg-fuchsia-500/20 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] transition-all duration-300 flex items-center gap-3 font-bold focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50"
                         >
                             <Brain size={14} />
                             Reflect with Sigil
@@ -214,11 +214,12 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                                                         setActiveInfo(activeInfo === pillar.id ? null : pillar.id);
                                                     }}
                                                     className={cn(
-                                                        "p-2 rounded-xl border transition-all duration-300",
+                                                        "min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2",
                                                         activeInfo === pillar.id
-                                                            ? `bg-${pillar.color}-500/20 text-${pillar.color}-400 border-${pillar.color}-500/40 shadow-[0_0_15px_currentColor]`
-                                                            : "bg-white/[0.03] text-white/20 border-white/5 hover:text-white/50 hover:bg-white/10"
+                                                            ? `bg-${pillar.color}-500/20 text-${pillar.color}-400 border-${pillar.color}-500/40 shadow-[0_0_15px_currentColor] focus:ring-${pillar.color}-500/50`
+                                                            : "bg-white/[0.03] text-white/20 border-white/5 hover:text-white/50 hover:bg-white/10 focus:ring-white/20"
                                                     )}
+                                                    aria-label={`Toggle info for ${t(pillar.titleKey as any)}`}
                                                     title="Arquitectura del Hábito"
                                                 >
                                                     {activeInfo === pillar.id ? <X size={14} strokeWidth={3} /> : <Info size={14} strokeWidth={2.5} />}
