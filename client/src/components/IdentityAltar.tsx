@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { User, Hexagon, Sparkles } from 'lucide-react';
 import { DeepIdentityView } from './DeepIdentityView';
-import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
 import { WisdomOverlay } from './WisdomOverlay';
+import { useQuery } from '@tanstack/react-query';
+import { naosQueryFn } from '../lib/queryClient';
 import { getZodiacImage } from '../utils/zodiacMapper';
 import { getChineseZodiacImage } from '../utils/chineseMapper';
 import { getNahualImage } from '../utils/nahualMapper';
@@ -49,10 +51,10 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
     const synthesis = getSynthesis();
 
     // 1. Essence Number (Life Path Number)
-    const essence = profile?.numerology?.lifePathNumber || "?";
+    const essence = profile?.numerology?.lifePathNumber || profile?.life_path_number || "?";
 
     // 2. Astrology Sign
-    const sunSign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || profile?.zodiac_sign || t('unknown');
+    const sunSign = profile?.astrology?.planets?.find((p: any) => p.name === 'Sun')?.sign || profile?.zodiac_sign || profile?.sun_sign || t('unknown');
 
     // 3. Chinese Horoscope
     const animal = profile?.chinese_animal || profile?.astrology?.chineseSign || (language === 'en' ? "Dragon" : "Dragón");
@@ -62,38 +64,26 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
 
     // 4. Mayan Energy
     const getNahuatlTranslation = () => {
-        const parts = profile?.nawal_maya?.split(' ') || [];
-        if (parts.length < 2) return t('unknown');
+        const mayaStr = profile?.nawal_maya || profile?.maya_nahual || "";
+        const parts = mayaStr.split(' ');
+        if (parts.length < 2) return mayaStr || t('unknown');
         return parts[1]; // The name part
     };
     const nahuatl = getNahuatlTranslation();
-    const nahualId = profile?.nawal_maya?.toLowerCase().split(' ')[1]?.replace(/'/g, '') || "";
+    const mayaStrForId = profile?.nawal_maya || profile?.maya_nahual || "";
+    const nahualId = mayaStrForId.toLowerCase().split(' ').pop()?.replace(/'/g, '') || "";
 
     const [showDeepView, setShowDeepView] = React.useState(false);
-    const [rank, setRank] = React.useState(t('initiated'));
 
-    // Dynamic Rank Sync
-    React.useEffect(() => {
-        const fetchRank = async () => {
-            try {
-                const headers = await getAsyncAuthHeaders();
-                const response = await fetch(`${API_BASE_URL}/api/ranking`, {
-                    headers: headers as HeadersInit
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (profile?.plan_type === 'admin') {
-                        setRank(t('architect'));
-                    } else {
-                        setRank(data.personal?.tier || t('initiated'));
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to sync rank to altar:", err);
-            }
-        };
-        if (profile?.id) fetchRank();
-    }, [profile?.id, profile?.plan_type, t]);
+    const { data: rankData } = useQuery({
+        queryKey: ['ranking', profile?.id],
+        queryFn: () => naosQueryFn<any>(`${API_BASE_URL}/api/ranking`),
+        enabled: !!profile?.id,
+    });
+
+    const rank = profile?.plan_type === 'admin' 
+        ? t('architect') 
+        : (rankData?.personal?.tier || t('initiated'));
 
     // Archetype resolution for English translations
     const archName = synthesis?.arquetipo?.nombre || t('the_custodian');

@@ -85,31 +85,52 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 /**
  * Utility to compute cosmic profile attributes (astrology, numerology, mayan, chinese) on the fly
  */
-const buildSubprofileCosmicData = (sub: any) => {
+export const buildSubprofileCosmicData = (sub: any) => {
     if (!sub || !sub.birthDate) return sub;
+
+    let astrology, numerology, mayan, chinese;
 
     try {
         const cleanTime = sub.birthTime ? sub.birthTime.substring(0, 5) : '12:00';
         const birthDateTime = new Date(`${sub.birthDate}T${cleanTime}:00`);
+        
+        try {
+            astrology = sub.astrology || AstrologyEngine.calculateNatalChart(birthDateTime, 14.6349, -90.5069);
+        } catch (e) {
+            console.error("Error building astrology:", e);
+        }
 
-        const astrology = sub.astrology || AstrologyEngine.calculateNatalChart(birthDateTime, 14.6349, -90.5069);
-        const { lifePathNumber, pinaculo } = sub.numerology || NumerologyEngine.calculateFullChart(sub.birthDate);
-        const nameNumber = NumerologyEngine.calculateNameNumerology(sub.name || '');
-        const numerology = sub.numerology || { lifePathNumber, pinaculo, nameNumber };
-        const mayan = sub.mayan || MayanEngine.calculateNawal(sub.birthDate);
-        const chinese = calculateChineseZodiac(birthDateTime.toISOString());
+        try {
+            const { lifePathNumber, pinaculo } = sub.numerology || NumerologyEngine.calculateFullChart(sub.birthDate);
+            const nameNumber = NumerologyEngine.calculateNameNumerology(sub.name || '');
+            numerology = sub.numerology || { lifePathNumber, pinaculo, nameNumber };
+        } catch (e) {
+            console.error("Error building numerology:", e);
+        }
+
+        try {
+            mayan = sub.mayan || MayanEngine.calculateNawal(sub.birthDate);
+        } catch (e) {
+            console.error("Error building mayan:", e);
+        }
+
+        try {
+            chinese = calculateChineseZodiac(birthDateTime.toISOString());
+        } catch (e) {
+            console.error("Error building chinese:", e);
+        }
 
         return {
             ...sub,
-            astrology,
-            numerology,
-            mayan,
+            ...(astrology && { astrology }),
+            ...(numerology && { numerology }),
+            ...(mayan && { mayan }),
             nawal_maya: sub.nawal_maya || (mayan ? `${mayan.tone} ${mayan.kicheName}` : undefined),
-            chinese_animal: sub.chinese_animal || chinese.animal,
-            chinese_element: sub.chinese_element || chinese.element,
+            chinese_animal: sub.chinese_animal || (chinese ? chinese.animal : undefined),
+            chinese_element: sub.chinese_element || (chinese ? chinese.element : undefined),
         };
     } catch (e) {
-        console.error("Error building cosmic data for subprofile:", e);
+        console.error("Error in buildSubprofileCosmicData initialization:", e);
         return sub;
     }
 };
