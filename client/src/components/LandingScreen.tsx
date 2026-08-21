@@ -4,6 +4,7 @@ import { SlideToEnter } from './SlideToEnter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LegalView } from './LegalView';
 import { useTranslation } from '../i18n';
+import { useDemo } from '../contexts/DemoContext';
 
 interface LandingScreenProps {
     onEnter: () => void;
@@ -16,6 +17,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 }) => {
     const { t } = useTranslation();
     const timeMode = useTimeBasedMode();
+    const { setDemoActive } = useDemo();
     const [isEntering, setIsEntering] = useState(false);
     
     // ⚖️ Legal States
@@ -32,6 +34,14 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
         setTimeout(() => {
             onEnter();
         }, 1200); // Match animation duration
+    };
+
+    const handleEnterDemo = () => {
+        setDemoActive(true);
+        setIsEntering(true);
+        setTimeout(() => {
+            onEnter();
+        }, 1200);
     };
 
     return (
@@ -85,6 +95,15 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
                 <div className="flex flex-col gap-6 w-full max-w-sm mt-4">
                     <SlideToEnter onUnlock={handleUnlock} />
+
+                    {import.meta.env.VITE_DEMO_MODE === 'true' && (
+                        <button
+                            onClick={handleEnterDemo}
+                            className="w-full py-4 rounded-full border border-cyan-500/30 bg-cyan-900/20 text-cyan-400 uppercase tracking-widest text-xs font-bold hover:bg-cyan-500/10 hover:border-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.1)]"
+                        >
+                            ENTER DEMO
+                        </button>
+                    )}
 
                     <button
                         onClick={onTemporaryAccess}

@@ -18,7 +18,7 @@ interface Protocol21Props {
 }
 
 export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, startProtocol } = useProtocol21();
     const { profile } = useProfile();
     const [showDailySuccess, setShowDailySuccess] = useState(false);

@@ -12,8 +12,20 @@ interface PlanSelectionViewProps {
 export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) => {
     const { profile } = useProfile();
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+    
+    let isDemoActive = false;
+    try {
+        const { useDemo } = require('../contexts/DemoContext');
+        const demoCtx = useDemo();
+        isDemoActive = demoCtx.isDemoActive;
+    } catch(e) {}
 
     const handleStripeCheckout = async (priceId: string, endpoint: string = 'create-session') => {
+        if (isDemoActive) {
+            alert('Demo Mode — Payments Disabled');
+            return;
+        }
+
         // Guard: env variable must be configured — fail explicitly, not silently
         if (!priceId || priceId.trim() === '') {
             alert('Error de configuración: No se ha configurado el plan de pago. Contacta soporte.');

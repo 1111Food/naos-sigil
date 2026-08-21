@@ -57,33 +57,63 @@ export function useSigil(userName?: string, energyContext?: any) {
         }
 
         try {
-            const response = await fetch(endpoints.chat, {
-                method: 'POST',
-                headers: getAuthHeaders() as HeadersInit,
-                body: JSON.stringify({
-                    message: text,
-                    localTimestamp: new Date().toISOString(),
-                    oracleState,
-                    energyContext,
-                    role,
-                    language
-                })
-            });
+            let apiUrl = endpoints.chat;
+            let finalResponseText = '';
+            let finalAudioUrl = undefined;
+            let finalAudioBase64 = undefined;
+            let finalKernelAction = undefined;
 
-            if (!response.ok) {
-                if (response.status === 429 && retryCount < 1) {
-                    setMessages(prev => [...prev, { id: `local-s-timeout-${now}`, role: 'model', text: `${t('network_saturated')}` }]);
-                    setTimeout(() => sendMessage(text, role, retryCount + 1), 2000);
-                    return;
+            let isDemoActive = false;
+            let isMockSigil = false;
+            try {
+                const { useDemo } = require('../contexts/DemoContext');
+                const demoCtx = useDemo();
+                isDemoActive = demoCtx.isDemoActive;
+                isMockSigil = demoCtx.isMockSigil;
+            } catch(e) {}
+
+            if (isDemoActive) {
+                if (isMockSigil) {
+                    const { SigilDemoService } = require('../services/SigilDemoService');
+                    finalResponseText = await SigilDemoService.generateMockResponse(text);
+                } else {
+                    apiUrl = `${API_BASE_URL}/api/demo/sigil`;
                 }
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
             }
 
-            const data = await response.json();
+            if (!isDemoActive || (isDemoActive && !isMockSigil)) {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: isDemoActive ? { 'Content-Type': 'application/json' } : getAuthHeaders() as HeadersInit,
+                    body: JSON.stringify({
+                        message: text,
+                        localTimestamp: new Date().toISOString(),
+                        oracleState,
+                        energyContext,
+                        role,
+                        language
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 429 && retryCount < 1) {
+                        setMessages(prev => [...prev, { id: `local-s-timeout-${now}`, role: 'model', text: `${t('network_saturated')}` }]);
+                        setTimeout(() => sendMessage(text, role, retryCount + 1), 2000);
+                        return;
+                    }
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
+                }
+
+                const data = await response.json();
+                finalResponseText = data.text || '';
+                finalAudioUrl = data.audioUrl;
+                finalAudioBase64 = data.audioBase64;
+                finalKernelAction = data.kernelAction;
+            }
 
             // Sanitización inmediata frontend
-            const sanitizedData = (data.text || '')
+            const sanitizedData = (finalResponseText || '')
                 .replace(/\bhla\b/gi, 'Saludos')
                 .replace(/hla,/gi, 'Saludos,')
                 .replace(/conooimiento/gi, 'conocimiento');
@@ -97,18 +127,18 @@ export function useSigil(userName?: string, energyContext?: any) {
                 id: `s-${Date.now()}`, 
                 text: sanitizedData, 
                 sender: 'sigil',
-                audioUrl: data.audioUrl,
-                audioBase64: data.audioBase64,
-                kernelAction: data.kernelAction
+                audioUrl: finalAudioUrl,
+                audioBase64: finalAudioBase64,
+                kernelAction: finalKernelAction
             });
 
             // Dispatch global event for Action Engine
-            if (data.kernelAction && data.kernelAction.payload) {
+            if (finalKernelAction && finalKernelAction.payload) {
                 // SUGGEST actions wait for the user to click the button in the UI.
                 // OPEN, FOCUS, and BACKGROUND are executed immediately.
-                if (data.kernelAction.payload.mode !== 'SUGGEST') {
+                if (finalKernelAction.payload.mode !== 'SUGGEST') {
                     window.dispatchEvent(new CustomEvent('naos-system-action', { 
-                        detail: data.kernelAction 
+                        detail: finalKernelAction 
                     }));
                 }
             }

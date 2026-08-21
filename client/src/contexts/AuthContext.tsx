@@ -94,8 +94,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 };
 
+import { useDemo } from './DemoContext';
+import { DEMO_USER_ID } from '../constants/demoProfile';
+
 export const useAuth = () => {
     const context = useContext(AuthContext);
+    
+    let isDemoActive = false;
+    try {
+        const demoCtx = useDemo();
+        isDemoActive = demoCtx.isDemoActive;
+    } catch(e) {}
+
+    if (isDemoActive) {
+        return {
+            user: { id: DEMO_USER_ID, email: 'demo@naosos.app' } as User,
+            session: { access_token: 'demo-token', user: { id: DEMO_USER_ID } } as Session,
+            loading: false,
+            signInAnonymously: async () => ({ data: {}, error: null }),
+            signInWithPassword: async () => ({ data: {}, error: null }),
+            signUp: async () => ({ data: {}, error: null }),
+            signOut: async () => { 
+                // Permite salir de la demo haciendo clean de la sesión local
+                const { setDemoActive } = useDemo();
+                setDemoActive(false);
+                return { error: null };
+            },
+            resetPasswordForEmail: async () => ({ data: {}, error: null }),
+            updatePassword: async () => ({ data: {}, error: null }),
+            isRecoveringPassword: false
+        };
+    }
+
     if (!context) {
         throw new Error('useAuth debe usarse dentro de un AuthProvider');
     }
