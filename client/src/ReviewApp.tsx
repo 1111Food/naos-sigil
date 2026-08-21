@@ -18,6 +18,7 @@ import { OracleSoulsView as SynastryHub } from './pages/OracleSoulsView';
 import { OnboardingInitiation as FirstRevelation } from './components/OnboardingInitiation';
 import { UpgradeModal as PremiumModal } from './components/UpgradeModal';
 import { Sanctuary } from './pages/Sanctuary';
+import { Protocol21 } from './pages/Protocol21';
 import { GuardianProvider } from './contexts/GuardianContext';
 import { UpgradeProvider } from './contexts/UpgradeContext';
 import { WisdomProvider } from './contexts/WisdomContext';
@@ -241,6 +242,7 @@ export const ReviewApp = () => {
     else if (route === '/sanctuary') content = <Sanctuary onBack={() => {}} />;
     else if (route === '/oracle') content = <OracleInterface onBack={() => {}} />;
     else if (route === '/premium') content = <PremiumModal isOpen={true} onClose={() => {}} feature="sigil" />;
+    else if (route === '/protocol21') content = <Protocol21 onBack={() => {}} />;
 
     return (
         <LanguageProvider>

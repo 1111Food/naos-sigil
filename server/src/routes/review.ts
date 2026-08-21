@@ -36,6 +36,11 @@ export async function reviewRoutes(app: FastifyInstance) {
                     "url": "/review/sanctuary"
                 },
                 {
+                    "id": "open_protocol21",
+                    "label": "Open Protocol 21",
+                    "url": "/review/protocol21"
+                },
+                {
                     "id": "open_oracle",
                     "label": "Open Oracle",
                     "url": "/review/oracle"

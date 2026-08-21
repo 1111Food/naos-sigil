@@ -65,6 +65,14 @@
       "available": true
     },
     {
+      "id": "protocol21",
+      "name": "Protocol 21",
+      "url": "/review/protocol21",
+      "description": "21-Day transformational habit protocol",
+      "type": "tool",
+      "available": true
+    },
+    {
       "id": "oracle",
       "name": "Oracle",
       "url": "/review/oracle",
