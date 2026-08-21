@@ -1,7 +1,7 @@
 import type { UserProfile } from '../contexts/ProfileContext';
 
-export const DEMO_USER_ID = 'demo-user-1234-abcd';
-export const DEMO_PARTNER_ID = 'demo-partner-5678-efgh';
+export const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000';
+export const DEMO_PARTNER_ID = '11111111-1111-1111-1111-111111111111';
 
 export const DEMO_PROFILE: UserProfile = {
     id: DEMO_USER_ID,

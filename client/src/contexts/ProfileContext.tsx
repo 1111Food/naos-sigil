@@ -246,8 +246,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
             // DEMO BYPASS
             if (user.id === DEMO_USER_ID) {
-                // Ignore updates in Demo Mode or return mocked update
-                return DEMO_PROFILE;
+                // Update in memory to prevent infinite loops like timezone calibration
+                const updatedDemoProfile = { ...(profile || DEMO_PROFILE), ...data } as UserProfile;
+                setProfile(updatedDemoProfile);
+                return updatedDemoProfile;
             }
 
             const payload: any = {
