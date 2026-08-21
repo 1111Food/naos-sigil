@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/review/manifest.json",
+      "destination": "/review/manifest.json"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
