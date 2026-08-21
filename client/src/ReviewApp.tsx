@@ -5,7 +5,8 @@ import { LanguageProvider } from './i18n';
 import { CoherenceProvider } from './context/CoherenceContext';
 import { DemoProvider } from './contexts/DemoContext';
 import { DEMO_PROFILE } from './constants/demoProfile';
-import { buildSubprofileCosmicData, UserProfile, ProfileContext } from './contexts/ProfileContext';
+import { buildSubprofileCosmicData, ProfileContext } from './contexts/ProfileContext';
+import type { UserProfile } from './contexts/ProfileContext';
 import { AuthContext } from './contexts/AuthContext';
 import { LandingScreen } from './components/LandingScreen';
 import { Home as TempleDashboard } from './pages/Home';
@@ -114,6 +115,8 @@ const ReviewIndex = () => {
                             <a 
                                 key={route.path}
                                 href={`/review/${route.path}`} 
+                                data-review-action={`OPEN_${route.path.toUpperCase()}`}
+                                data-review-component="ReviewIndex"
                                 className="p-3 border border-white/5 bg-transparent rounded hover:bg-white/5 hover:border-white/20 transition-all text-white/50 hover:text-amber-100 text-xs tracking-[0.2em] uppercase flex items-center gap-3"
                             >
                                 <span className="w-1 h-1 rounded-full bg-amber-500/30" />
@@ -142,9 +145,22 @@ const ReviewFullExperience = () => {
     const currentStep = steps[currentStepIndex];
 
     return (
-        <div className="relative w-full h-screen overflow-hidden">
+        <main 
+            data-review-screen={currentStep}
+            data-review-step={currentStepIndex}
+            className="relative w-full h-screen overflow-hidden"
+        >
+            <script type="application/json" id="naos-current-state">
+                {JSON.stringify({
+                    mode: "review",
+                    screen: currentStep,
+                    step: currentStepIndex,
+                    available_actions: ["PREV", "NEXT", "RESTART", "EXIT"]
+                })}
+            </script>
+
             {/* View Layer */}
-            <div className="w-full h-full relative z-10">
+            <section aria-label={`Current screen: ${currentStep}`} className="w-full h-full relative z-10">
                 {currentStep === 'landing' && <LandingScreen onEnter={handleNext} onTemporaryAccess={handleNext} onEnterDemo={handleNext} />}
                 {currentStep === 'revelation' && <FirstRevelation onComplete={handleNext} />}
                 {currentStep === 'temple' && <TempleDashboard onSelectFeature={() => {}} />}
@@ -152,21 +168,46 @@ const ReviewFullExperience = () => {
                 {currentStep === 'sigil' && <SigilRoom onNavigate={() => {}} />}
                 {currentStep === 'timemap' && <div className="p-8 pt-24"><TimeMapView /></div>}
                 {currentStep === 'premium' && <PremiumModal isOpen={true} onClose={handlePrev} feature="sigil" />}
-            </div>
+            </section>
 
             {/* Navigation Overlay */}
-            <div className="fixed bottom-0 left-0 w-full p-4 flex items-center justify-between z-[9999] bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+            <nav aria-label="Review Navigation" className="fixed bottom-0 left-0 w-full p-4 flex items-center justify-between z-[9999] bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
                 <div className="flex gap-2 pointer-events-auto">
-                    <button onClick={handlePrev} disabled={currentStepIndex === 0} className="px-3 py-1.5 bg-black/50 border border-white/10 text-white/50 text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/10 disabled:opacity-30 backdrop-blur-md rounded transition-colors">Prev</button>
-                    <button onClick={handleNext} disabled={currentStepIndex === steps.length - 1} className="px-3 py-1.5 bg-black/50 border border-white/10 text-white/50 text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/10 disabled:opacity-30 backdrop-blur-md rounded transition-colors">Next</button>
+                    <button 
+                        onClick={handlePrev} disabled={currentStepIndex === 0} 
+                        data-review-action="PREVIOUS" data-review-component="ReviewNav"
+                        aria-label="Previous step"
+                        className="px-3 py-1.5 bg-black/50 border border-white/10 text-white/50 text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/10 disabled:opacity-30 backdrop-blur-md rounded transition-colors"
+                    >Prev</button>
+                    <button 
+                        onClick={handleNext} disabled={currentStepIndex === steps.length - 1} 
+                        data-review-action="NEXT" data-review-component="ReviewNav"
+                        aria-label="Next step"
+                        className="px-3 py-1.5 bg-black/50 border border-white/10 text-white/50 text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/10 disabled:opacity-30 backdrop-blur-md rounded transition-colors"
+                    >Next</button>
                 </div>
                 <div className="flex gap-2 pointer-events-auto">
-                    <button onClick={handleRestart} className="hidden sm:block px-3 py-1.5 bg-black/50 border border-amber-500/30 text-amber-500/70 text-[10px] uppercase tracking-widest hover:text-amber-400 hover:bg-amber-500/10 backdrop-blur-md rounded transition-colors">Restart Experience</button>
-                    <button onClick={handleResetDemo} className="hidden sm:block px-3 py-1.5 bg-black/50 border border-red-500/30 text-red-500/70 text-[10px] uppercase tracking-widest hover:text-red-400 hover:bg-red-500/10 backdrop-blur-md rounded transition-colors">Reset Demo</button>
-                    <a href="/review" className="px-3 py-1.5 bg-black/50 border border-white/10 text-white/50 text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/10 backdrop-blur-md rounded transition-colors">Exit Review</a>
+                    <button 
+                        onClick={handleRestart} 
+                        data-review-action="RESTART" data-review-component="ReviewNav"
+                        aria-label="Restart experience"
+                        className="hidden sm:block px-3 py-1.5 bg-black/50 border border-amber-500/30 text-amber-500/70 text-[10px] uppercase tracking-widest hover:text-amber-400 hover:bg-amber-500/10 backdrop-blur-md rounded transition-colors"
+                    >Restart Experience</button>
+                    <button 
+                        onClick={handleResetDemo} 
+                        data-review-action="RESET_DEMO" data-review-component="ReviewNav"
+                        aria-label="Reset demo data"
+                        className="hidden sm:block px-3 py-1.5 bg-black/50 border border-red-500/30 text-red-500/70 text-[10px] uppercase tracking-widest hover:text-red-400 hover:bg-red-500/10 backdrop-blur-md rounded transition-colors"
+                    >Reset Demo</button>
+                    <a 
+                        href="/review" 
+                        data-review-action="EXIT" data-review-component="ReviewNav"
+                        aria-label="Exit to Review Index"
+                        className="px-3 py-1.5 bg-black/50 border border-white/10 text-white/50 text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/10 backdrop-blur-md rounded transition-colors"
+                    >Exit Review</a>
                 </div>
-            </div>
-        </div>
+            </nav>
+        </main>
     );
 };
 

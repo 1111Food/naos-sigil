@@ -13,6 +13,11 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:3002',
         changeOrigin: true,
+      },
+      '/review/state': {
+        target: 'http://127.0.0.1:3002/api/review/state',
+        changeOrigin: true,
+        rewrite: () => '',
       }
     }
   }

@@ -5,6 +5,10 @@
       "destination": "/review/manifest.json"
     },
     {
+      "source": "/review/state",
+      "destination": "https://naos-backend.onrender.com/api/review/state"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

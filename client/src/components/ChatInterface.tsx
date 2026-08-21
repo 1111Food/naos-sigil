@@ -13,9 +13,10 @@ import { useTranslation } from '../i18n';
 
 interface ChatInterfaceProps {
     onNavigate?: (view: 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR') => void;
+    initialPrompt?: string;
 }
 
-export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
+export function ChatInterface({ onNavigate, initialPrompt }: ChatInterfaceProps) {
     const { t } = useTranslation();
     const { profile } = useProfile();
     const { dynamicScore, regulationBoost } = useEnergy();
@@ -51,6 +52,13 @@ export function ChatInterface({ onNavigate }: ChatInterfaceProps) {
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    useEffect(() => {
+        if (initialPrompt) {
+            // Give the interface a tiny delay to render properly before sending
+            setTimeout(() => sendMessage(initialPrompt), 500);
+        }
+    }, [initialPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Sigil Auto-Speak Trigger
     useEffect(() => {

@@ -60,6 +60,7 @@ export interface UserProfile {
     last_meditation?: { type: string; date: string } | null;
     dominant_intent?: 'fitness' | 'consciousness' | 'productivity' | 'creativity' | 'none';
     onboarding_completed?: boolean;
+    first_revelation_seen?: boolean;
     subscription: {
         plan: 'FREE' | 'PREMIUM';
         features: string[];

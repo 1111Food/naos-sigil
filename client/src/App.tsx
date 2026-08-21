@@ -51,10 +51,11 @@ const MissionYear          = lazy(() => import('./pages/MissionYear').then(m => 
 const IdentityAltar        = lazy(() => import('./components/IdentityAltar').then(m => ({ default: m.IdentityAltar })));
 const OnboardingInitiation = lazy(() => import('./components/OnboardingInitiation').then(m => ({ default: m.OnboardingInitiation })));
 const UpdatePasswordView   = lazy(() => import('./components/UpdatePasswordView').then(m => ({ default: m.UpdatePasswordView })));
+const FirstRevelation        = lazy(() => import('./components/FirstRevelation').then(m => ({ default: m.FirstRevelation })));
 
 // Global Wisdom Wrapper to access context safely
 // --- TYPES (v9.12) ---
-type ViewState = 'LANDING' | 'ONBOARDING' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR' | 'ADMIN' | 'TIME_MAP_NEXUS' | 'TIME_MAP_LIFELINE' | 'TIME_MAP_CURRENT' | 'TIME_MAP_ANNUAL';
+type ViewState = 'LANDING' | 'ONBOARDING' | 'FIRST_REVELATION' | 'TEMPLE' | 'SYNASTRY' | 'CHAT' | 'LOGIN' | 'SANCTUARY' | 'WELCOME_BACK' | 'RANKING' | 'PROFILE' | 'EVOLUTION' | 'MANUALS' | 'TAROT' | 'PROTOCOL21' | 'ELEMENTAL_LAB' | 'ASTRO' | 'NUMERO' | 'FENGSHUI' | 'MAYA' | 'TRANSITS' | 'ORIENTAL' | 'INTENTION' | 'ENERGY_CODE' | 'ORACLE_SOULS' | 'IDENTITY_NEXUS' | 'DECISION_ENGINE' | 'MISSION_YEAR' | 'ADMIN' | 'TIME_MAP_NEXUS' | 'TIME_MAP_LIFELINE' | 'TIME_MAP_CURRENT' | 'TIME_MAP_ANNUAL';
 
 // Global Wisdom Wrapper to access context safely
 const WisdomManager = () => {
@@ -77,7 +78,7 @@ function App() {
   const { t } = useTranslation();
   const { energy } = useEnergy();
   const { user, signOut, isRecoveringPassword } = useAuth();
-  const { profile, appReady: profileReady, refreshProfile } = useProfile();
+  const { profile, appReady: profileReady, refreshProfile, updateProfile } = useProfile();
   useSubscription(); // Mantiene el contexto de suscripción activo (estado gestionado internamente)
 
   const [activeView, setActiveView] = useState<ViewState>('LANDING');
@@ -175,7 +176,11 @@ function App() {
     // Only auto-redirect to TEMPLE if we are currently at LANDING 
     // and have a confirmed session + profile.
     if (activeView === 'LANDING' && user && profile?.onboarding_completed) {
-      setActiveView('TEMPLE');
+      if ((profile as any).first_revelation_seen === false) {
+        setActiveView('FIRST_REVELATION');
+      } else {
+        setActiveView('TEMPLE');
+      }
     }
   }, [user, profile?.onboarding_completed, isAppFullyReady, activeView]);
 
@@ -321,6 +326,16 @@ function App() {
     setActiveView('TEMPLE');
   };
 
+  const handleFirstRevelationComplete = async (sigilPrompt?: string) => {
+    if (profile) {
+      await updateProfile({ first_revelation_seen: true });
+    }
+    if (sigilPrompt) {
+      navigateWithRitual('CHAT', { pendingSigilPrompt: sigilPrompt });
+    } else {
+      setActiveView('TEMPLE');
+    }
+  };
 
   const navigateWithRitual = (view: ViewState, payload?: any) => {
     if (payload?.type && (payload.type === 'BREATH' || payload.type === 'MEDITATION')) {
@@ -382,6 +397,8 @@ function App() {
         );
       case 'ONBOARDING':
         return <OnboardingInitiation onComplete={() => handleOnboardingComplete()} />;
+      case 'FIRST_REVELATION':
+        return <FirstRevelation onComplete={handleFirstRevelationComplete} />;
       case 'TEMPLE':
         return (
           <>
@@ -395,7 +412,7 @@ function App() {
       case 'TAROT':
         return <Tarot onBack={() => setActiveView('TEMPLE')} />;
       case 'CHAT':
-        return <ChatInterface onNavigate={setActiveView} />;
+        return <ChatInterface onNavigate={setActiveView} initialPrompt={viewPayload?.pendingSigilPrompt} />;
       case 'SANCTUARY':
         return <Sanctuary onBack={() => setActiveView('TEMPLE')} initialRitual={activeRitual} />;
       case 'PROFILE':
