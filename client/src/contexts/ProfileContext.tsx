@@ -191,9 +191,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         // DEMO BYPASS
         if (user.id === DEMO_USER_ID) {
-            setProfile(DEMO_PROFILE);
+            const fullDemoProfile = buildSubprofileCosmicData(DEMO_PROFILE);
+            setProfile(fullDemoProfile);
             setProfileLoading(false);
-            return DEMO_PROFILE;
+            return fullDemoProfile;
         }
 
         try {
