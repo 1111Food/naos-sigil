@@ -18,7 +18,7 @@ interface Protocol21Props {
 }
 
 export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
-    const { t, i18n } = useTranslation();
+    const { t, language } = useTranslation();
     const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, startProtocol } = useProtocol21();
     const { profile } = useProfile();
     const [showDailySuccess, setShowDailySuccess] = useState(false);
@@ -89,7 +89,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         className="text-center mt-6 px-4"
                     >
                         <p className="font-serif italic text-white/50 text-sm md:text-base tracking-wide drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-                            "{getDailySynchronyQuote(i18n.language as any)}"
+                            "{getDailySynchronyQuote(language as any)}"
                         </p>
                     </motion.div>
                 </header>
@@ -272,7 +272,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                 className="max-w-2xl mx-auto px-6 pt-8 pb-2 text-center"
             >
                 <p className="font-serif italic text-white/50 text-sm md:text-base tracking-wide drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                    "{getDailySynchronyQuote(i18n.language as any)}"
+                    "{getDailySynchronyQuote(language as any)}"
                 </p>
             </motion.div>
 
