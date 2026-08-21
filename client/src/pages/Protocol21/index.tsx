@@ -13,6 +13,19 @@ import { useTranslation } from '../../i18n';
 import { cn } from '../../lib/utils';
 import { getDailySynchronyQuote } from '../../utils/dailyOracle';
 
+const getProtocolPhase = (day: number) => {
+    // Determine cycle-agnostic day number
+    const cycleDay = day > 21 ? ((day - 22) % 90) + 1 : day;
+    
+    if (cycleDay >= 1 && cycleDay <= 6) return { name: 'BUILD', color: 'text-cyan-400' };
+    if (cycleDay === 7) return { name: 'REFLECT', color: 'text-amber-400' };
+    if (cycleDay >= 8 && cycleDay <= 13) return { name: 'DEEPEN', color: 'text-emerald-400' };
+    if (cycleDay === 14) return { name: 'RECALIBRATE', color: 'text-purple-400' };
+    if (cycleDay >= 15 && cycleDay <= 20) return { name: 'INTEGRATE', color: 'text-blue-400' };
+    if (cycleDay === 21) return { name: 'EVOLVE', color: 'text-fuchsia-400' };
+    return { name: 'TRANSFORM', color: 'text-cyan-400' }; // Fallback
+};
+
 interface Protocol21Props {
     onBack: () => void;
 }
@@ -179,6 +192,13 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
     const currentDay = activeProtocol.current_day;
     const isDayCompletedRaw = dailyLogs.some(l => l.day_number === currentDay);
 
+    const isCycleII = activeProtocol.target_days === 90;
+    const displayTarget = isCycleII ? 69 : 21;
+    const displayDay = isCycleII && currentDay > 21 ? currentDay - 21 : currentDay;
+    const cycleLabel = isCycleII ? "CYCLE II" : "CYCLE I";
+    
+    const currentPhase = getProtocolPhase(currentDay);
+
     return (
         <div className="min-h-screen bg-black/40 text-white pb-24 font-sans backdrop-blur-3xl">
             <AnimatePresence>
@@ -277,7 +297,9 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                             <ArrowLeft size={20} />
                         </button>
                         <h1 className="text-xl font-serif italic">{t('protocols')}</h1>
-                        <span className="text-[10px] uppercase tracking-widest text-cyan-400">{t('protocol_day_label')} {currentDay} / 21</span>
+                        <span className="text-[10px] uppercase tracking-widest text-cyan-400">
+                            {cycleLabel} · {t('protocol_day_label')} {displayDay} / {displayTarget}
+                        </span>
                     </div>
                     <div className="flex items-center gap-4">
                         {/* Modified Info Button calling ProtocolRitual instead of WisdomOverlay */}
@@ -329,8 +351,7 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
             <main className="max-w-2xl mx-auto px-6 py-6 space-y-8">
                 {/* Dynamic Progress Indicator */}
                 {(() => {
-                    const target = activeProtocol.target_days || 21;
-                    const percentage = (activeProtocol.current_day / target) * 100;
+                    const percentage = (displayDay / displayTarget) * 100;
                     const isHigh = percentage >= 70;
                     const isMid = percentage >= 30 && percentage < 70;
 
@@ -355,14 +376,16 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         >
                             <div className="flex items-center justify-between mb-3">
                                 <div>
-                                    <span className="text-[9px] uppercase tracking-[0.2em] text-cyan-400 font-black">{t('protocol_integration_seal')}</span>
-                                    <p className="text-[10px] text-white/30 tracking-wider">{t('protocol_day_label')} {activeProtocol.current_day} / {target}</p>
+                                    <span className={cn("text-[9px] uppercase tracking-[0.2em] font-black", currentPhase.color)}>
+                                        {cycleLabel} · PHASE: {currentPhase.name}
+                                    </span>
+                                    <p className="text-[10px] text-white/30 tracking-wider mt-0.5">{t('protocol_day_label')} {displayDay} / {displayTarget}</p>
                                 </div>
                                 <span className={cn(
                                     "text-lg font-black transition-all duration-1000 font-serif italic",
                                     isHigh ? "text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse" : isMid ? "text-cyan-400/80" : "text-white/40"
                                 )}>
-                                    {activeProtocol.current_day} / {target}
+                                    {displayDay} / {displayTarget}
                                 </span>
                             </div>
                             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
@@ -381,15 +404,16 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                     );
                 })()}
 
-                {/* 21-Day Progress Grid */}
+                {/* Progress Grid */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between px-2">
                         <span className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-serif">{t('protocol_alignment_seal')}</span>
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-amber-500/70 font-black">{t('protocol_day_label')} {activeProtocol.current_day} / {activeProtocol.target_days || 21}</span>
+                        <span className="text-[10px] uppercase tracking-[0.3em] text-amber-500/70 font-black">{cycleLabel} · {displayDay} / {displayTarget}</span>
                     </div>
                     <div className="grid grid-cols-7 gap-3">
-                        {Array.from({ length: activeProtocol.target_days || 21 }).map((_, i) => {
-                            const dayNum = i + 1;
+                        {Array.from({ length: displayTarget }).map((_, i) => {
+                            const gridIndex = i + 1;
+                            const dayNum = isCycleII ? gridIndex + 21 : gridIndex;
                             const isCompleted = dailyLogs.some(log => log.day_number === dayNum && log.is_completed);
                             const isCurrent = dayNum === activeProtocol.current_day;
 

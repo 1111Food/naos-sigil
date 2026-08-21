@@ -162,8 +162,17 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                 <h3 className="text-[10px] uppercase tracking-widest text-white/50 mb-6 px-2 text-center">{t('protocol_closing_ritual')} - {t('protocol_day_label')} {currentDay}</h3>
 
                 {isCompletedToday ? (
-                    <div className="p-6 text-center text-cyan-500/80 italic text-sm">
-                        {t('protocol_day_completed', { day: currentDay })}. {t('protocol_rest_architect') || 'Descansa, Arquitecto.'}
+                    <div className="p-6 flex flex-col items-center gap-6">
+                        <div className="text-center text-cyan-500/80 italic text-sm">
+                            {t('protocol_day_completed', { day: currentDay })}. {t('protocol_rest_architect') || 'Descansa, Arquitecto.'}
+                        </div>
+                        <button
+                            onClick={() => window.location.href = `/review/sigil?protocol=true&day=${currentDay}`}
+                            className="text-[10px] uppercase tracking-[0.2em] px-6 py-3 border border-fuchsia-500/30 text-fuchsia-400 bg-fuchsia-500/10 rounded-full hover:bg-fuchsia-500/20 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] transition-all duration-300 flex items-center gap-3 font-bold"
+                        >
+                            <Brain size={14} />
+                            Reflect with Sigil
+                        </button>
                     </div>
                 ) : (
                     <div className="space-y-8">
