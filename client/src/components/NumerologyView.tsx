@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Hash, ChevronRight, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PINNACLE_INTERPRETATIONS, PINNACLE_POSITIONS } from '../data/pinnacleData';
@@ -11,7 +12,8 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useUpgrade } from '../contexts/UpgradeContext';
 import { NeonNumber } from './NeonNumber';
 import { getNumberText } from '../utils/numberMapper';
-import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { API_BASE_URL } from '../lib/api';
+import { naosQueryMutate } from '../lib/queryClient';
 import { AiInterpretationCards } from './AiInterpretationCards';
 import { DeepInterpretationModal } from './DeepInterpretationModal';
 
@@ -28,41 +30,37 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
     const [aiInterpretations, setAiInterpretations] = useState<Record<string, string>>({});
     const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
 
-    const fetchAiInterpretation = async (numValue: number | string, positionKey: string) => {
+    const interpretationMutation = useMutation({
+        mutationFn: (body: any) => naosQueryMutate(`${API_BASE_URL}/api/energy-code/interpret`, 'POST', body)
+    });
+
+    const fetchAiInterpretation = (numValue: number | string, positionKey: string) => {
         const cacheKey = `${numValue}-${positionKey}`;
         if (aiInterpretations[cacheKey]) return;
 
         setAiLoading(prev => ({ ...prev, [cacheKey]: true }));
-        try {
-            const authHeaders = await getAsyncAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/api/energy-code/interpret`, {
-                method: 'POST',
-                headers: {
-                    ...authHeaders,
-                    'Content-Type': 'application/json'
-                } as HeadersInit,
-                body: JSON.stringify({
-                    school: 'NUMERO',
-                    number: numValue,
-                    house: positionKey,
-                    language: language
-                })
-            });
-
-            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
-            const data = await res.json();
-            setAiInterpretations(prev => ({ ...prev, [cacheKey]: data.interpretation }));
-        } catch (err) {
-            console.error("🔥 Error fetching AI interpretation:", err);
-            setAiInterpretations(prev => ({ 
-                ...prev, 
-                [cacheKey]: language === 'en' 
-                    ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
-                    : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
-            }));
-        } finally {
-            setAiLoading(prev => ({ ...prev, [cacheKey]: false }));
-        }
+        interpretationMutation.mutate({
+            school: 'NUMERO',
+            number: numValue,
+            house: positionKey,
+            language: language
+        }, {
+            onSuccess: (data: any) => {
+                setAiInterpretations(prev => ({ ...prev, [cacheKey]: data.interpretation }));
+            },
+            onError: (err) => {
+                console.error("🔥 Error fetching AI interpretation:", err);
+                setAiInterpretations(prev => ({ 
+                    ...prev, 
+                    [cacheKey]: language === 'en' 
+                        ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
+                        : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+                }));
+            },
+            onSettled: () => {
+                setAiLoading(prev => ({ ...prev, [cacheKey]: false }));
+            }
+        });
     };
 
     const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -101,11 +99,11 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
     }, [isPremium, profile]);
 
     // Obtener datos de numerología del perfil
-    const data = profile?.numerology;
+    const data = profile?.numerology || {};
 
     if (loading) return <div className="text-white text-center p-8">{t('loading_frequencies')}</div>;
 
-    if (!profile || (!profile.birthDate && !data)) {
+    if (!profile || (!profile.birthDate && !data.lifePathNumber)) {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center text-white/50">
                 <p className="mb-4">{t('incomplete_essence')}</p>

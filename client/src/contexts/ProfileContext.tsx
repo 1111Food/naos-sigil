@@ -293,8 +293,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } catch (err) {
             console.error("Context: Update failed", err);
             throw err;
-        }
-    }, [user]);
+    }, [user, profile]);
 
     // Auto-Calibración de Timezone para soporte global
     useEffect(() => {
