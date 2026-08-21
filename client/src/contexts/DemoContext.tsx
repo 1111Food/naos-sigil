@@ -9,8 +9,8 @@ interface DemoContextType {
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const isDemoModeAvailable = import.meta.env.VITE_DEMO_MODE === 'true';
-    const isMockSigil = import.meta.env.VITE_DEMO_MOCK_SIGIL === 'true';
+    const isDemoModeAvailable = true;
+    const isMockSigil = true;
 
     const [isDemoActive, setIsDemoActive] = useState(false);
 

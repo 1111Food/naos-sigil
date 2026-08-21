@@ -114,19 +114,17 @@ export const WelcomeBackView: React.FC<WelcomeBackViewProps> = ({ nickname, onCo
                                 <span className="absolute inset-0 rounded-full border border-amber-500/30 animate-ping opacity-20" />
                             </motion.button>
 
-                            {import.meta.env.VITE_DEMO_MODE === 'true' && (
-                                <motion.button
-                                    onClick={handleEnterDemo}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.9 }}
-                                    className="w-full py-4 rounded-full border border-cyan-500/30 bg-cyan-900/20 text-cyan-400 uppercase tracking-widest text-xs font-bold hover:bg-cyan-500/10 hover:border-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.1)]"
-                                >
-                                    ENTER DEMO
-                                </motion.button>
-                            )}
+                            <motion.button
+                                onClick={handleEnterDemo}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.9 }}
+                                className="w-full py-4 rounded-full border border-cyan-500/30 bg-cyan-900/20 text-cyan-400 uppercase tracking-widest text-xs font-bold hover:bg-cyan-500/10 hover:border-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.1)]"
+                            >
+                                ENTER DEMO
+                            </motion.button>
                         </>
                     )}
 
