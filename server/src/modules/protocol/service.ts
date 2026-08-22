@@ -2,6 +2,7 @@ import { supabase } from '../../lib/supabase';
 import { CoherenceService } from '../coherence/service';
 import { createClient } from '@supabase/supabase-js';
 import { config } from '../../config/env';
+import { memoryService } from '../memory/MemoryService';
 
 export class ProtocolService {
     /**
@@ -28,6 +29,20 @@ export class ProtocolService {
         if (logError) {
             console.error("❌ Error logging day:", logError);
             throw logError;
+        }
+
+        // 1.5. Guardar en memoria si hay reflexión significativa
+        if (notes && notes.trim().length > 10) {
+            try {
+                await memoryService.remember({
+                    user_id: userId,
+                    content: `[Protocol Day ${dayNumber} Reflection]: ${notes.trim()}`,
+                    memory_type: 'evidence',
+                    module_source: 'protocol'
+                });
+            } catch (memErr) {
+                console.warn("⚠️ Protocol Memory tracking failed silently:", memErr);
+            }
         }
 
         // 2. Obtener estado actual para decidir el siguiente paso
@@ -147,10 +162,20 @@ export class ProtocolService {
 
             if (oldIntent) {
                 // Archive old
-                await client
+                const { data: archivedIntent, error: archiveError } = await client
                     .from('protocols')
                     .update({ status: 'evolved' })
-                    .eq('id', oldIntent.id);
+                    .eq('id', oldIntent.id)
+                    .select('id, status')
+                    .single();
+
+                if (archiveError) {
+                    throw new Error(`Failed to archive previous intention: ${archiveError.message}`);
+                }
+
+                if (!archivedIntent || archivedIntent.status !== 'evolved') {
+                    throw new Error('Previous intention was not archived correctly');
+                }
 
                 // Insert new Cycle II intention
                 await client

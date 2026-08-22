@@ -12,6 +12,7 @@ import { config } from '../../config/env';
 import { supabase } from '../../lib/supabase';
 import { UserProfile } from '../../types';
 import { memoryService } from '../memory/MemoryService';
+import { ContextBuilder } from '../context/service';
 
 export interface SigilState {
     userId: string;
@@ -74,7 +75,10 @@ export class SigilService {
             await CoherenceService.applyInactivityDecay(userId);
 
             // 0. FETCH CONTEXT DATA IN PARALLEL (SCALING OPTIMIZATION)
-            console.log(`⏳ SigilService: Orchestrating parallel data fetch for ${userId}...`);
+            console.log(`🌀 SigilService: Orchestrating parallel data fetch for ${userId}...`);
+            
+            // --- NAOS CONTEXT INTEGRATION (V1.1) ---
+            const naosContext = await ContextBuilder.build(userId, localTimestamp);
             
             const [
                 userProfile,
@@ -194,6 +198,7 @@ export class SigilService {
 
 
             // 5. Build Unified System Instruction (SIGIL 6.0 - TOTAL LOCK)
+            const naosUnifiedContextJSON = `[NAOS CONTEXT JSON]: ${JSON.stringify(naosContext)}`;
             const userEnergyContext = `USER ENERGY JSON: ${JSON.stringify(energeticBible)}`;
             const dailyEnergyContext = `ENERGY OF THE DAY JSON: ${JSON.stringify(energy)}`;
 
