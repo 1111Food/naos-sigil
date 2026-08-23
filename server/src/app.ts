@@ -23,6 +23,27 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         ignoreTrailingSlash: true
     });
 
+    // --- AI REVIEW MODE KILL SWITCH (BACKEND AUTHORITY) ---
+    app.addHook('onRequest', async (request, reply) => {
+        const path = request.url;
+        // Si la ruta pertenece a los módulos de Review/Demo, verifica el estado en memoria
+        if (path.startsWith('/api/review') || path.startsWith('/api/demo')) {
+            const isDemoEnabled = (global as any).isAiReviewModeActive === true;
+            if (!isDemoEnabled) {
+                // Kill switch is ACTIVE (Review mode is OFF). Deny strictly.
+                return reply.status(403).send({ 
+                    error: "Forbidden", 
+                    message: "NAOS Review Mode is currently locked by the Architect (Kill Switch Active). Real-time endpoints denied." 
+                });
+            }
+        }
+    });
+
+    // Public endpoint for the client to check if the route is open
+    app.get('/api/system/demo-mode', async (request, reply) => {
+        return { enabled: (global as any).isAiReviewModeActive === true };
+    });
+
     // Required for Stripe Webhook signature verification
     await app.register(fastifyRawBody, {
         field: 'rawBody',

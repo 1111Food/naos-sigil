@@ -52,7 +52,7 @@ export async function adminRoutes(app: FastifyInstance) {
         }
     });
 
-    app.delete<{ Params: { id: string } }>('/api/admin/users/:id', { preHandler: [requireAdmin] }, async (req, reply) => {
+    app.delete<{ Params: { id: string } }>('/users/:id', { preHandler: [requireAdmin] }, async (req, reply) => {
         const { id } = req.params;
         try {
             if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -67,5 +67,13 @@ export async function adminRoutes(app: FastifyInstance) {
         } catch (err: any) {
             return reply.status(500).send({ error: err.message });
         }
+    });
+
+    // --- AI REVIEW MODE KILL SWITCH (IN-MEMORY) ---
+    // Defaults to false on server restart. Only an architect can turn it on.
+    app.post<{ Body: { enabled: boolean } }>('/demo-mode', { preHandler: [requireAdmin] }, async (req, reply) => {
+        const { enabled } = req.body;
+        (global as any).isAiReviewModeActive = enabled;
+        return { success: true, enabled: (global as any).isAiReviewModeActive };
     });
 }

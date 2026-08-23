@@ -566,20 +566,19 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                 },
                 {
                         name: "execute_kernel_action",
-                        description: "Executes a system-level action in the NAOS Intelligence Kernel. Use this when the user wants to navigate, open a module, or when you strongly suggest they do so.",
+                        description: "Executes a system-level action in the NAOS Intelligence Kernel. Use this when the user wants to navigate, open a module, or when you strongly suggest they do so based on their Context (e.g. Pattern, Protocol).",
                         parameters: {
                             type: "OBJECT",
                             properties: {
-                                action_type: { type: "STRING", enum: ["NAVIGATE", "FOCUS", "BACKGROUND", "EXECUTE"] },
+                                action_type: { type: "STRING", enum: ["OPEN", "FOCUS"] },
                                 intent: { type: "STRING", description: "Brief description of the goal" },
                                 payload: { 
                                     type: "OBJECT",
                                     properties: {
-                                        target: { type: "STRING", description: "e.g. laboratory, synastry, timeline, tarot" },
-                                        mode: { type: "STRING", enum: ["OPEN", "SUGGEST"] },
+                                        target: { type: "STRING", description: "e.g. protocol_21, laboratory, synastry, timeline, tarot" },
                                         focus_element: { type: "STRING" }
                                     },
-                                    required: ["target", "mode"]
+                                    required: ["target"]
                                 }
                             },
                             required: ["action_type", "intent", "payload"]

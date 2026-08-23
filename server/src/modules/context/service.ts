@@ -4,6 +4,10 @@ import { memoryService } from '../memory/MemoryService';
 import { EnergyService } from '../energy/service';
 import { ProfileConsolidator } from '../user/profileConsolidator';
 import { ArchetypeEngine } from '../user/archetypeEngine';
+import { EphemerisService } from '../ephemeris/service';
+import { TimeMapEngine } from '../timemap/service';
+import { PatternEngine } from '../pattern/service';
+import { NaosSignal } from '../signals/types';
 
 export interface NaosContext {
     identity: {
@@ -25,9 +29,13 @@ export interface NaosContext {
     };
     timeMap: {
         current_energy: any;
+        astronomical_transits?: NaosSignal<any> | null;
     } | null;
     relationships: {
         active_synastries_count: number;
+    } | null;
+    pattern: {
+        active_candidates: any[];
     } | null;
     state: {
         local_time: string;
@@ -54,8 +62,15 @@ export class ContextBuilder {
                 .in('status', ['active', 'awaiting_evolution'])
                 .limit(1)
                 .maybeSingle(),
-            memoryService.listMemories(userId, 5).catch(() => []),
+            memoryService.listMemories(userId, 10).catch(() => []), // Traemos ms memoria para patrón
             supabase.from('user_performance_stats').select('tier_label').eq('user_id', userId).maybeSingle()
+        ]);
+
+        // 1.5. Signal Integrations (NASA/JPL & Patterns)
+        // Resolves silently without blocking to ensure stability
+        const [transitsSignal, patternSignal] = await Promise.all([
+            TimeMapEngine.calculateCurrentTransits().catch(() => null),
+            PatternEngine.evaluate(userId, memories).catch(() => null)
         ]);
 
         // 2. Format Identity
@@ -88,13 +103,14 @@ export class ContextBuilder {
                 current_day: p.current_day,
                 target_days: p.target_days,
                 status: p.status,
-                intention: intentionText || 'Sin intención registrada'
+                intention: intentionText || 'Sin intencin registrada'
             };
         }
 
-        // 4. Format Memory
+        // 4. Format Memory & Patterns
         const recentReflections = memories
             .filter(m => m.memory_type !== ('system' as any))
+            .slice(0, 5) // Mantenemos 5 para reflections, pero Pattern usa todas las extraídas
             .map(m => m.content);
 
         return {
@@ -103,8 +119,10 @@ export class ContextBuilder {
             memory: {
                 recent_reflections: recentReflections
             },
+            pattern: patternSignal ? { active_candidates: patternSignal.value as any[] } : null,
             timeMap: {
-                current_energy: energySnapshot
+                current_energy: energySnapshot,
+                astronomical_transits: transitsSignal
             },
             relationships: {
                 active_synastries_count: 0 // To be expanded in P1

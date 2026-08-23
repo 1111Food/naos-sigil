@@ -22,24 +22,35 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
     }, []);
 
     const currentState = isLoading ? t('loading') : 
+        (context?.pattern?.active_candidates?.length ? 'A PATTERN IS EMERGING' :
         (context?.protocol?.active ? `Protocol ${context.protocol.target_days} · Día ${context.protocol.current_day}` : 
-        (context?.identity?.archetype ? `Frecuencia Activa: ${context.identity.archetype}` : 'Sintonizando...'));
+        (context?.identity?.archetype ? `Frecuencia Activa: ${context.identity.archetype}` : 'Sintonizando...')));
 
     const synthesisText = isLoading ? t('syncing_akashic') :
+        (context?.pattern?.active_candidates?.length ? `He observado una recurrencia en tu comportamiento.` :
         (context?.protocol?.active ? `Tu intención de ${context.protocol.intention} está activa en el ciclo actual.` :
+        (context?.timeMap?.astronomical_transits ? `Las posiciones planetarias actuales marcan un tránsito relevante.` :
         (context?.memory?.recent_reflections?.length ? `He procesado tus últimas reflexiones. La energía está alineada.` :
-        `Descubre los códigos de tu identidad.`));
+        `Descubre los códigos de tu identidad.`))));
 
-    // Dynamic buttons based on context
+    // Dynamic buttons based on context (Max 3 actions)
     const dynamicButtons = [];
+    if (context?.pattern?.active_candidates?.length) {
+        dynamicButtons.push({ id: 'CHAT', label: 'Explorar Patrón', icon: MessageCircle });
+    }
+    
     if (context?.protocol?.active) {
         dynamicButtons.push({ id: 'PROTOCOL21', label: 'Continuar Protocolo', icon: PlayCircle });
-    } else {
+    } else if (dynamicButtons.length < 3) {
         dynamicButtons.push({ id: 'PROTOCOL21', label: 'Iniciar Protocolo', icon: PlayCircle });
     }
     
-    dynamicButtons.push({ id: 'TIME_MAP_NEXUS', label: 'Explorar Time Map', icon: Compass });
-    dynamicButtons.push({ id: 'IDENTITY_NEXUS', label: 'Ver Identidad', icon: Eye });
+    if (dynamicButtons.length < 3) {
+        dynamicButtons.push({ id: 'TIME_MAP_NEXUS', label: 'Explorar Time Map', icon: Compass });
+    }
+    if (dynamicButtons.length < 3) {
+        dynamicButtons.push({ id: 'IDENTITY_NEXUS', label: 'Ver Identidad', icon: Eye });
+    }
 
     return (
         <div

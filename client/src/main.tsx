@@ -33,19 +33,41 @@ window.fetch = async (...args) => {
 
 // --- NAOS REVIEW MODE INTERCEPTOR ---
 const isReviewModePath = window.location.pathname.startsWith('/review');
-const isReviewModeEnabled = import.meta.env.VITE_REVIEW_MODE === 'true';
 
-if (isReviewModePath && isReviewModeEnabled) {
-  console.log("🛡️ NAOS REVIEW MODE IS ACTIVE");
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary>
-          <ReviewApp />
-        </ErrorBoundary>
-      </QueryClientProvider>
-    </StrictMode>,
-  )
+async function checkReviewMode() {
+  if (import.meta.env.VITE_REVIEW_MODE === 'true') {
+    // Check global dynamic kill switch from server
+    try {
+      // Usar la ruta del endpoint que acabamos de crear (manejando posible falta de host local/prod)
+      const res = await originalFetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3002'}/api/system/demo-mode`);
+      const data = await res.json();
+      return data.enabled === true;
+    } catch (e) {
+      console.warn("NAOS Review Mode check failed:", e);
+      return false; // Fail secure
+    }
+  }
+  return false;
+}
+
+if (isReviewModePath) {
+  checkReviewMode().then((isEnabled) => {
+    if (isEnabled) {
+      console.log("Y>? NAOS REVIEW MODE IS ACTIVE");
+      createRoot(document.getElementById('root')!).render(
+        <StrictMode>
+          <QueryClientProvider client={queryClient}>
+            <ErrorBoundary>
+              <ReviewApp />
+            </ErrorBoundary>
+          </QueryClientProvider>
+        </StrictMode>,
+      );
+    } else {
+      console.error("⛔ NAOS REVIEW MODE IS DISABLED BY ARCHITECT (KILL SWITCH ACTIVE)");
+      document.body.innerHTML = "<div style='background: black; color: red; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: monospace; text-align: center; padding: 2rem;'><h1>403 FORBIDDEN</h1><p>NAOS Review Mode is currently locked.<br/>Please ask the Architect to disable the Kill Switch.</p></div>";
+    }
+  });
 } else {
   // NORMAL APP RENDER
   createRoot(document.getElementById('root')!).render(

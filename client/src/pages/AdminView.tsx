@@ -21,6 +21,15 @@ export function AdminView() {
     const [loading, setLoading] = useState<boolean>(true);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [updating, setUpdating] = useState<string | null>(null);
+    const [isDemoEnabled, setIsDemoEnabled] = useState<boolean>(false);
+
+    useEffect(() => {
+        // Fetch current demo mode status
+        fetch(`${API_BASE_URL}/system/demo-mode`)
+            .then(res => res.json())
+            .then(data => setIsDemoEnabled(data.enabled))
+            .catch(console.error);
+    }, []);
 
     const fetchUsers = async (query: string = '') => {
         setLoading(true);
@@ -29,23 +38,46 @@ export function AdminView() {
             const parsedToken = token ? JSON.parse(token) : null;
             const accessToken = parsedToken?.access_token;
 
-            const response = await fetch(`${API_BASE_URL}/api/admin/users${query ? `?email=${query}` : ''}`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
+            const url = query ? `${API_BASE_URL}/api/admin/users?email=${query}` : `${API_BASE_URL}/api/admin/users`;
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setUsers(data.users || []);
-                setStats(data.stats || { total: 0, premium: 0 });
-            } else {
-                console.error("Failed to fetch users");
-            }
-        } catch (err) {
-            console.error("Error fetching users:", err);
+            if (!res.ok) throw new Error("Acceso denegado o error del servidor");
+
+            const data = await res.json();
+            setUsers(data.users || []);
+            setStats(data.stats || { total: 0, premium: 0 });
+        } catch (err: any) {
+            console.error("Error al cargar usuarios:", err);
+            // alert("No se pudo cargar la matriz. Verifica que tienes rol 'admin' y estás logueado.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const toggleDemoMode = async () => {
+        try {
+            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+            const parsedToken = token ? JSON.parse(token) : null;
+            const accessToken = parsedToken?.access_token;
+            
+            const newState = !isDemoEnabled;
+            const res = await fetch(`${API_BASE_URL}/api/admin/demo-mode`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ enabled: newState })
+            });
+            if (res.ok) {
+                setIsDemoEnabled(newState);
+            } else {
+                alert("Error al cambiar el estado del modo Demo");
+            }
+        } catch (e) {
+            console.error(e);
         }
     };
 
@@ -144,14 +176,20 @@ export function AdminView() {
 
                 {/* Actions & Search */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                    <a 
-                        href="/review" 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="px-4 py-2 border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors rounded-xl text-xs font-bold font-sans flex items-center justify-center whitespace-nowrap"
+                    {/* Kill Switch Toggle */}
+                    <button 
+                        onClick={toggleDemoMode}
+                        className={cn(
+                            "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors flex items-center justify-center gap-2",
+                            isDemoEnabled 
+                                ? "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]" 
+                                : "bg-white/5 border-white/20 text-white/40 hover:bg-white/10"
+                        )}
                     >
-                        Ver Demo Mode
-                    </a>
+                        <Shield className="w-4 h-4" />
+                        {isDemoEnabled ? "Bloquear Review IA" : "Activar Review IA"}
+                    </button>
+
                     <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
                         <div className="flex items-center gap-2 flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2">
                             <Search className="w-4 h-4 text-white/40" />
