@@ -35,7 +35,7 @@ window.fetch = async (...args) => {
 const isReviewModePath = window.location.pathname.startsWith('/review');
 
 async function checkReviewMode() {
-  if (import.meta.env.VITE_REVIEW_MODE === 'true') {
+  if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.VITE_REVIEW_MODE === 'true') {
     // Check global dynamic kill switch from server
     try {
       // Usar la ruta del endpoint que acabamos de crear (manejando posible falta de host local/prod)

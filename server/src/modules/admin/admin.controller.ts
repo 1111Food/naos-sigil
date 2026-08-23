@@ -123,4 +123,13 @@ export class AdminController {
             return reply.status(500).send({ error: "Error en la eliminación", details: e.message });
         }
     }
+
+    /**
+     * Toggles the AI Review Mode Kill Switch (In-Memory)
+     */
+    static async demoModeToggle(request: FastifyRequest, reply: FastifyReply) {
+        const { enabled } = request.body as { enabled: boolean };
+        (global as any).isAiReviewModeActive = enabled;
+        return { success: true, enabled: (global as any).isAiReviewModeActive };
+    }
 }

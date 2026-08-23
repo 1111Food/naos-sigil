@@ -245,12 +245,12 @@ export const ReviewApp = () => {
     else if (route === '/protocol21') content = <Protocol21 onBack={() => {}} />;
 
     return (
-        <LanguageProvider>
-            <ThemeProvider>
-                <PerformanceProvider>
-                    <DemoProvider>
-                        <ReviewAuthProvider>
-                            <ReviewProfileProvider>
+        <ThemeProvider>
+            <PerformanceProvider>
+                <DemoProvider>
+                    <ReviewAuthProvider>
+                        <ReviewProfileProvider>
+                            <LanguageProvider>
                                 <CoherenceProvider>
                                     <GuardianProvider>
                                         <UpgradeProvider>
@@ -276,12 +276,12 @@ export const ReviewApp = () => {
                                         </UpgradeProvider>
                                     </GuardianProvider>
                                 </CoherenceProvider>
-                            </ReviewProfileProvider>
-                        </ReviewAuthProvider>
-                    </DemoProvider>
-                </PerformanceProvider>
-            </ThemeProvider>
-        </LanguageProvider>
+                            </LanguageProvider>
+                        </ReviewProfileProvider>
+                    </ReviewAuthProvider>
+                </DemoProvider>
+            </PerformanceProvider>
+        </ThemeProvider>
     );
 };
 

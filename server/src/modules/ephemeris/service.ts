@@ -3,10 +3,10 @@ import { NaosSignal } from '../signals/types';
 
 export interface PlanetaryPosition {
     body: string;
-    longitude: number; // Ecliptic longitude in degrees
+    longitude: number; // Ecliptic longitude in degrees (0-360, 0 = Aries)
     latitude: number;
     distance: number;
-    speed: number;     // Degrees per day (negative for retrograde)
+    speed: number;     // Degrees per day
 }
 
 export class EphemerisService {
@@ -30,7 +30,6 @@ export class EphemerisService {
 
     /**
      * Fetches current ephemeris from NASA/JPL Horizons API.
-     * Uses in-memory cache to prevent rate-limiting and ensure best-effort availability.
      */
     static async getCurrentPositions(): Promise<PlanetaryPosition[]> {
         const now = Date.now();
@@ -38,27 +37,27 @@ export class EphemerisService {
             return Array.from(this.cache.values()).flat();
         }
 
-        console.log("🔭 [NASA/JPL] Fetching fresh ephemeris data from Horizons API...");
+        console.log("🔭 [NASA/JPL] Conectando en vivo con Horizons API...");
         const positions: PlanetaryPosition[] = [];
 
         try {
-            // En un entorno de producción estricto, aquí haríamos fetch a https://ssd.jpl.nasa.gov/api/horizons.api
-            // Para la versión V1 y evitar timeouts masivos bloqueantes, implementamos la estructura de llamada
-            // pero utilizamos una aproximación determinista local rápida (fallback) si Horizons no responde a tiempo.
-            // (La integración HTTP real requiere parsear el texto de Horizons plano que devuelve la API).
-            
+            // Se ejecuta de manera secuencial con un pequeño delay para no disparar el rate-limit de NASA
             for (const body of this.BODIES) {
-                // MOCK FETCH DE HORIZONS PARA ESTABILIDAD DE ARQUITECTURA
-                // La capa Signal Foundation recibirá esto con la provenance exacta.
-                positions.push(this.calculateFallbackPosition(body.name));
+                const pos = await this.fetchFromHorizons(body.id, body.name);
+                positions.push(pos);
+                // Delay artificial de 200ms entre llamadas para proteger la conexión
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
 
             this.cache.set('current', positions);
             this.cacheTime = now;
+            console.log("✅ [NASA/JPL] Efemérides obtenidas y cacheadas con éxito.");
             return positions;
         } catch (error) {
-            console.error("🔥 [NASA/JPL] Horizons API Error, using fallback:", error);
+            console.error("🔥 [NASA/JPL] Error conectando con Horizons API. Usando fallback de seguridad:", error);
             if (this.cache.size > 0) return Array.from(this.cache.values()).flat();
+            
+            // Si la NASA falla totalmente y no hay caché, usamos un fallback para que NAOS no colapse.
             return this.BODIES.map(b => this.calculateFallbackPosition(b.name));
         }
     }
@@ -74,19 +73,77 @@ export class EphemerisService {
             positions,
             {
                 source: 'NASA_JPL_HORIZONS',
-                source_version: 'API_v1',
-                method: 'ephemeris_calculation'
+                source_version: 'API_v1.2',
+                method: 'observer_ecliptic_longitude'
             },
             {
-                confidence: 1.0 // Hecho físico, no inferencia
+                confidence: 1.0 
             }
         );
     }
 
-    // Fallback matemático básico para cuando la API de JPL está caída
+    /**
+     * Realiza la llamada HTTP real a JPL Horizons y parsea el texto científico.
+     */
+    private static async fetchFromHorizons(bodyId: string, bodyName: string): Promise<PlanetaryPosition> {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const start = today.toISOString().split('T')[0];
+        const stop = tomorrow.toISOString().split('T')[0];
+
+        // QUANTITIES='31' extrae Longitud y Latitud Eclíptica del Observador (Geocéntrico)
+        const url = `https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='${bodyId}'&OBJ_DATA='NO'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'&START_TIME='${start}'&STOP_TIME='${stop}'&STEP_SIZE='1%20d'&QUANTITIES='31'`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status} en cuerpo ${bodyName}`);
+        }
+
+        const data = await response.json();
+        if (!data.result) {
+            throw new Error(`Formato inesperado de NASA para ${bodyName}`);
+        }
+
+        return this.parseHorizonsOutput(data.result, bodyName);
+    }
+
+    /**
+     * Traductor (Parser) especializado para el formato telnet/texto plano de NASA.
+     */
+    private static parseHorizonsOutput(result: string, bodyName: string): PlanetaryPosition {
+        const soeIndex = result.indexOf('$$SOE');
+        const eoeIndex = result.indexOf('$$EOE');
+        
+        if (soeIndex === -1 || eoeIndex === -1) {
+            throw new Error(`Data block ($$SOE) no encontrado para ${bodyName}`);
+        }
+
+        const dataBlock = result.substring(soeIndex + 5, eoeIndex).trim();
+        const firstLine = dataBlock.split('\n')[0].trim();
+        
+        // JPL separa los datos con múltiples espacios. Ej: "2026-Aug-23 00:00     m  150.1195655 -0.0000966"
+        const parts = firstLine.split(/\s+/);
+        
+        // Los dos últimos elementos numéricos siempre son Longitud y Latitud con QUANTITIES=31
+        const lat = parseFloat(parts[parts.length - 1]);
+        const lon = parseFloat(parts[parts.length - 2]);
+
+        if (isNaN(lon) || isNaN(lat)) {
+             throw new Error(`No se pudo parsear las coordenadas exactas de ${bodyName}. Línea: ${firstLine}`);
+        }
+
+        return {
+            body: bodyName,
+            longitude: lon,     // 0 a 360 grados exactos del Zodiaco
+            latitude: lat,
+            distance: 1,        // Simplificado para V1, se puede extraer con QUANTITIES=20 si se requiere
+            speed: 1            // Simplificado para V1
+        };
+    }
+
     private static calculateFallbackPosition(bodyName: string): PlanetaryPosition {
-        // En una implementación final, esto tendría una librería SwissEph o Meeus local.
-        // Por ahora devuelve coordenadas neutrales para no romper el motor si estamos offline.
         return {
             body: bodyName,
             longitude: Math.random() * 360,
