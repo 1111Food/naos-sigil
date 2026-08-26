@@ -49,10 +49,17 @@ export const webhookRoutes = async (app: FastifyInstance) => {
                     const session = event.data.object as Stripe.Checkout.Session;
                     
                     // We passed user_id in client_reference_id and metadata
-                    const userId = session.client_reference_id || session.metadata?.user_id;
+                    let userId = session.client_reference_id || session.metadata?.user_id;
+                    const customerEmail = session.customer_details?.email || session.customer_email;
                     
-                    if (!userId) {
-                        console.error("❌ [WEBHOOK] Missing user_id in session metadata.");
+                    if (!userId && customerEmail) {
+                        // Fallback: If bought from public web without logging in, try to match by email
+                        const { data } = await supabaseAdmin.from('profiles').select('id').eq('email', customerEmail).single();
+                        if (data) userId = data.id;
+                    }
+
+                    if (!userId && !customerEmail) {
+                        console.error("❌ [WEBHOOK] Missing user_id and email in session metadata.");
                         return reply.status(400).send({ error: 'Metadata missing' });
                     }
 
@@ -62,27 +69,44 @@ export const webhookRoutes = async (app: FastifyInstance) => {
                     const expiresAt = new Date();
                     if (is3DayPlan) {
                         expiresAt.setTime(expiresAt.getTime() + 3 * 24 * 60 * 60 * 1000); // +72 hours
-                        console.log(`⚡ [WEBHOOK] 3-Day Plan activated for User ${userId}. Expires: ${expiresAt.toISOString()}`);
+                        console.log(`⚡ [WEBHOOK] 3-Day Plan activated for User ${userId || customerEmail}. Expires: ${expiresAt.toISOString()}`);
                     } else {
                         expiresAt.setFullYear(expiresAt.getFullYear() + 10);
-                        console.log(`💎 [WEBHOOK] Upgrading User ${userId} to PREMIUM. Strategy: checkout.session.completed`);
+                        console.log(`💎 [WEBHOOK] Upgrading User ${userId || customerEmail} to PREMIUM. Strategy: checkout.session.completed`);
                     }
 
-                    const { error } = await supabaseAdmin
-                        .from('profiles')
-                        .update({
-                            plan_type: 'premium',
-                            subscription_expires_at: expiresAt.toISOString(),
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', userId);
-
-                    if (error) {
-                        console.error("❌ [WEBHOOK] Supabase Update Error:", error.message);
-                        return reply.status(500).send({ error: 'DB update failed' });
+                    if (userId) {
+                        const { error } = await supabaseAdmin
+                            .from('profiles')
+                            .update({
+                                plan_type: 'premium',
+                                subscription_expires_at: expiresAt.toISOString(),
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', userId);
+                            
+                        if (error) {
+                            console.error("❌ [WEBHOOK] Supabase Update Error:", error.message);
+                            return reply.status(500).send({ error: 'DB update failed' });
+                        }
+                        console.log(`✅ [SUCCESS] User ${userId} is now a Premium Architect${is3DayPlan ? ' (3-Day Spark)' : ''}.`);
+                    } else if (customerEmail) {
+                        const { error } = await supabaseAdmin
+                            .from('profiles')
+                            .update({
+                                plan_type: 'premium',
+                                subscription_expires_at: expiresAt.toISOString(),
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('email', customerEmail);
+                            
+                        if (error) {
+                            console.error("❌ [WEBHOOK] Supabase Update by Email Error:", error.message);
+                            // Do not return 500, user might register later.
+                        }
+                        console.log(`✅ [SUCCESS] Email ${customerEmail} is marked as Premium (pending registration).`);
                     }
 
-                    console.log(`🚀 [SUCCESS] User ${userId} is now a Premium Architect${is3DayPlan ? ' (3-Day Spark)' : ''}.`);
                     break;
                 }
                 

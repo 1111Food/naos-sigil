@@ -25,10 +25,10 @@ export function AdminView() {
 
     useEffect(() => {
         // Fetch current demo mode status
-        fetch(`${API_BASE_URL}/system/demo-mode`)
+        fetch(`${API_BASE_URL}/api/system/demo-mode`)
             .then(res => res.json())
             .then(data => setIsDemoEnabled(data.enabled))
-            .catch(console.error);
+            .catch(err => console.error("Error fetching demo mode:", err));
     }, []);
 
     const fetchUsers = async (query: string = '') => {

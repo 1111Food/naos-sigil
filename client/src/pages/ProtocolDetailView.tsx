@@ -8,6 +8,7 @@ import { useCoherence } from '../hooks/useCoherence';
 import { useProfile } from '../contexts/ProfileContext';
 import { INTENT_CONFIGS } from '../lib/intentions';
 import { CoherenceCore } from '../components/CoherenceCore';
+import { useTranslation } from '../i18n';
 
 interface ProtocolDetailViewProps {
     onBack: () => void;
@@ -71,12 +72,14 @@ const HexagonToggle = ({ checked, onClick }: { checked: boolean, onClick: () => 
 };
 
 export const ProtocolDetailView: React.FC<ProtocolDetailViewProps> = ({ onBack }) => {
+    const { t, language } = useTranslation();
     const { activeProtocol, dailyLogs, loading, completeDay, resetProtocol } = useProtocol21();
     const { logAction } = useCoherence();
     const [completing, setCompleting] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
     const [showDailySuccess, setShowDailySuccess] = useState(false); // New daily success state
     const [activeInfoPillar, setActiveInfoPillar] = useState<string | null>(null);
+    const [reflectionText, setReflectionText] = useState("");
 
     // State for the 5 Pillars (Daily Checklist)
     // We initialize this from localStorage to prevent loss on refresh, or default to false
@@ -202,7 +205,9 @@ export const ProtocolDetailView: React.FC<ProtocolDetailViewProps> = ({ onBack }
     }, [currentIntent]);
 
     const checkedCount = Object.values(checks).filter(Boolean).length;
-    const canComplete = checkedCount >= 3;
+    // Require at least 3 checkboxes and a minimum reflection of 10 characters
+    const hasReflection = reflectionText.trim().length >= 10;
+    const canComplete = checkedCount >= 3 && hasReflection;
 
     const handleCheck = (id: string) => {
         // Prevent interaction if day is already logged/completed in DB
@@ -226,7 +231,8 @@ export const ProtocolDetailView: React.FC<ProtocolDetailViewProps> = ({ onBack }
             if (checkedCount === 3) coherenceAction = 'PROTOCOL_MAINTENANCE';
             else if (checkedCount >= 4) coherenceAction = 'PROTOCOL_EVOLUTION';
 
-            const notes = JSON.stringify(checks);
+            // Send actual reflection text to feed MemoryService longitudinally
+            const notes = reflectionText.trim();
             const result = await completeDay(activeProtocol.current_day, notes);
 
             // LOG COHERENCE SUCCESS based on Rule 3/5
@@ -542,6 +548,32 @@ export const ProtocolDetailView: React.FC<ProtocolDetailViewProps> = ({ onBack }
                         );
                     })}
                 </div>
+
+                {/* MEMORY REFLECTION INPUT */}
+                {!isDayCompletedRaw && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-8 space-y-3 relative z-20"
+                    >
+                        <label className="text-xs font-sans tracking-widest text-white/50 uppercase ml-2 flex items-center gap-2">
+                            <Brain size={14} className="text-cyan-400" />
+                            {language === 'en' ? 'Daily Reflection & Evidence' : 'Reflexión y Evidencia Diaria'}
+                        </label>
+                        <textarea
+                            value={reflectionText}
+                            onChange={(e) => setReflectionText(e.target.value)}
+                            placeholder={language === 'en' ? 'What patterns did you observe today? (Min. 10 characters)' : '¿Qué patrones observaste hoy en tu comportamiento? (Mín. 10 caracteres)'}
+                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white placeholder-white/30 font-serif text-sm focus:outline-none focus:border-cyan-500/50 transition-colors h-28 resize-none"
+                        />
+                        <div className="flex justify-between items-center text-[10px] text-white/40 px-2 uppercase tracking-wider">
+                            <span>{checkedCount} / 5 Pilares</span>
+                            <span className={cn(reflectionText.trim().length >= 10 ? "text-green-400" : "text-amber-400")}>
+                                {reflectionText.trim().length} / 10 {language === 'en' ? 'chars' : 'caracteres'}
+                            </span>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* FOOTER ACTION */}
                 <div className="pt-8 flex justify-center sticky bottom-8 z-30">

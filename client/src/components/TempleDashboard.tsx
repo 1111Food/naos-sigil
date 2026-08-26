@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../i18n';
-import { MessageCircle, Compass, PlayCircle, Eye } from 'lucide-react';
+import { MessageCircle, Compass, PlayCircle, Eye, Activity } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTimeBasedMode } from '../hooks/useTimeBasedMode';
 import { useNaosContext } from '../hooks/useNaosContext';
+import { resolveTemplePriority } from '../lib/priorityResolver';
 
 interface TempleDashboardProps {
     onSelectFeature: (feature: string) => void;
     activeFeature: string;
 }
+
+const getIconForTarget = (target: string) => {
+    if (target === 'CHAT') return MessageCircle;
+    if (target === 'PROTOCOL21') return PlayCircle;
+    if (target === 'TIME_MAP_NEXUS') return Compass;
+    if (target === 'IDENTITY_NEXUS') return Eye;
+    return Activity;
+};
 
 export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeature, activeFeature }) => {
     const { t } = useTranslation();
@@ -21,35 +30,27 @@ export const TempleDashboard: React.FC<TempleDashboardProps> = ({ onSelectFeatur
         return () => clearTimeout(timer);
     }, []);
 
-    const currentState = isLoading ? t('loading') : 
-        (context?.pattern?.active_candidates?.length ? 'A PATTERN IS EMERGING' :
-        (context?.protocol?.active ? `Protocol ${context.protocol.target_days} · Día ${context.protocol.current_day}` : 
-        (context?.identity?.archetype ? `Frecuencia Activa: ${context.identity.archetype}` : 'Sintonizando...')));
+    // TEMPLE INTELLIGENCE BRIDGE
+    const priorityData = useMemo(() => resolveTemplePriority(context), [context]);
 
-    const synthesisText = isLoading ? t('syncing_akashic') :
-        (context?.pattern?.active_candidates?.length ? `He observado una recurrencia en tu comportamiento.` :
-        (context?.protocol?.active ? `Tu intención de ${context.protocol.intention} está activa en el ciclo actual.` :
-        (context?.timeMap?.astronomical_transits ? `Las posiciones planetarias actuales marcan un tránsito relevante.` :
-        (context?.memory?.recent_reflections?.length ? `He procesado tus últimas reflexiones. La energía está alineada.` :
-        `Descubre los códigos de tu identidad.`))));
+    const currentState = isLoading ? t('loading') : priorityData.headline;
+    const synthesisText = isLoading ? t('syncing_akashic') : priorityData.reason;
 
-    // Dynamic buttons based on context (Max 3 actions)
+    // Dynamic buttons directly from the deterministic Engine
     const dynamicButtons = [];
-    if (context?.pattern?.active_candidates?.length) {
-        dynamicButtons.push({ id: 'CHAT', label: 'Explorar Patrón', icon: MessageCircle });
-    }
-    
-    if (context?.protocol?.active) {
-        dynamicButtons.push({ id: 'PROTOCOL21', label: 'Continuar Protocolo', icon: PlayCircle });
-    } else if (dynamicButtons.length < 3) {
-        dynamicButtons.push({ id: 'PROTOCOL21', label: 'Iniciar Protocolo', icon: PlayCircle });
-    }
-    
-    if (dynamicButtons.length < 3) {
-        dynamicButtons.push({ id: 'TIME_MAP_NEXUS', label: 'Explorar Time Map', icon: Compass });
-    }
-    if (dynamicButtons.length < 3) {
-        dynamicButtons.push({ id: 'IDENTITY_NEXUS', label: 'Ver Identidad', icon: Eye });
+    if (!isLoading) {
+        dynamicButtons.push({
+            id: priorityData.recommendedAction.target,
+            label: priorityData.recommendedAction.label,
+            icon: getIconForTarget(priorityData.recommendedAction.target)
+        });
+        priorityData.secondaryActions.slice(0, 2).forEach(action => {
+            dynamicButtons.push({
+                id: action.target,
+                label: action.label,
+                icon: getIconForTarget(action.target)
+            });
+        });
     }
 
     return (
