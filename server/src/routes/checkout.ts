@@ -27,6 +27,8 @@ export const checkoutRoutes = async (app: FastifyInstance) => {
                 return reply.status(401).send({ error: 'User must be authenticated (missing x-profile-id)' });
             }
 
+            const frontendUrl = config.NODE_ENV === 'production' ? 'https://naosos.com' : 'http://localhost:5173';
+
             // Create Stripe Checkout Session
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
@@ -45,8 +47,8 @@ export const checkoutRoutes = async (app: FastifyInstance) => {
                     user_id: userId
                 },
                 // Redirect back to platform upon success/cancel
-                success_url: `https://naos-sigil.vercel.app/sanctuary?upgrade=success`,
-                cancel_url: `https://naos-sigil.vercel.app/sanctuary?upgrade=canceled`,
+                success_url: `${frontendUrl}/sanctuary?upgrade=success`,
+                cancel_url: `${frontendUrl}/sanctuary?upgrade=canceled`,
             });
 
             return reply.send({ url: session.url });

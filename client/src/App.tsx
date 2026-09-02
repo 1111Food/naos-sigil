@@ -16,6 +16,7 @@ import { NaosVibrationEngine } from './components/NaosVibrationEngine';
 import { Guardian } from './components/Guardian';
 import { SigilBubble } from './components/SigilBubble';
 import { SacredDock } from './components/SacredDock';
+import { PreLaunchGate } from './components/PreLaunchGate';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalUpgradeButton } from './components/GlobalUpgradeButton';
 import { GuardianProvider } from './contexts/GuardianContext';
@@ -399,70 +400,78 @@ function App() {
         return <OnboardingInitiation onComplete={() => handleOnboardingComplete()} />;
       case 'FIRST_REVELATION':
         return <FirstRevelation onComplete={handleFirstRevelationComplete} />;
-      case 'TEMPLE':
-        return (
-          <>
-            <Home onSelectFeature={navigateWithRitual} />
-          </>
-        );
-
-      case 'RANKING':
-        return <RankingView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
-
-      case 'TAROT':
-        return <Tarot onBack={() => setActiveView('TEMPLE')} />;
-      case 'CHAT':
-        return <ChatInterface onNavigate={setActiveView} initialPrompt={viewPayload?.pendingSigilPrompt} />;
-      case 'SANCTUARY':
-        return <Sanctuary onBack={() => setActiveView('TEMPLE')} initialRitual={activeRitual} />;
-      case 'PROFILE':
-        return (
-          <IdentityAltar
-            profile={profile}
-            onEdit={() => setActiveView('ONBOARDING')}
-            onNavigate={navigateWithRitual}
-          />
-        );
-      case 'IDENTITY_NEXUS':
-        return <IdentityNexus onNavigate={setActiveView} onBack={() => setActiveView('TEMPLE')} />;
-      case 'DECISION_ENGINE':
-        return <DecisionEngine onBack={() => setActiveView('TEMPLE')} />;
-      case 'MISSION_YEAR':
-        return <MissionYear onBack={() => setActiveView('TEMPLE')} />;
-      case 'PROTOCOL21':
-        return <Protocol21 onBack={() => setActiveView('TEMPLE')} />;
-      case 'ELEMENTAL_LAB':
-        return <ElementalLaboratoryView onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} />;
-      case 'EVOLUTION':
-        return <EvolutionView onBack={() => setActiveView('TEMPLE')} />;
-      case 'MANUALS':
-        return <ManualsView onBack={() => setActiveView('TEMPLE')} initialManual={viewPayload?.initialManual} />;
-      case 'TIME_MAP_NEXUS':
-        return <TimeMapNexus onNavigate={setActiveView} onBack={() => setActiveView('IDENTITY_NEXUS')} />;
-      case 'TIME_MAP_LIFELINE':
-        return <LifelineView onBack={() => setActiveView('TIME_MAP_NEXUS')} />;
-      case 'TIME_MAP_CURRENT':
-        return <CurrentEnergyView onBack={() => setActiveView('TIME_MAP_NEXUS')} />;
-      case 'TIME_MAP_ANNUAL':
-        return (
-          <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-24 min-h-screen">
-              <button
-                  onClick={() => setActiveView('TIME_MAP_NEXUS')}
-                  className="absolute top-6 left-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-white transition-colors group z-50"
-              >
-                  <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                  Volver al Navegador
-              </button>
-              <TimeMap />
-          </div>
-        );
-      case 'ORACLE_SOULS':
-      case 'SYNASTRY':
-        return <OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
-      case 'ADMIN':
-        return <AdminView />;
-      default:
-        return <Home onSelectFeature={(feat) => setActiveView(feat as ViewState)} activeFeature={activeView} />;
+        case 'TEMPLE':
+          return (
+            <PreLaunchGate>
+              <Home onSelectFeature={navigateWithRitual} />
+            </PreLaunchGate>
+          );
+  
+        case 'RANKING':
+          return <PreLaunchGate><RankingView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} /></PreLaunchGate>;
+  
+        case 'TAROT':
+          return <PreLaunchGate><Tarot onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+        case 'CHAT':
+          return <PreLaunchGate><ChatInterface onNavigate={setActiveView} initialPrompt={viewPayload?.pendingSigilPrompt} /></PreLaunchGate>;
+        case 'SANCTUARY':
+          return <PreLaunchGate><Sanctuary onBack={() => setActiveView('TEMPLE')} initialRitual={activeRitual} /></PreLaunchGate>;
+        case 'PROFILE':
+          return (
+            <PreLaunchGate>
+              <IdentityAltar
+                profile={profile}
+                onEdit={() => setActiveView('ONBOARDING')}
+                onNavigate={navigateWithRitual}
+              />
+            </PreLaunchGate>
+          );
+        case 'IDENTITY_NEXUS':
+          return <PreLaunchGate><IdentityNexus onNavigate={setActiveView} onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+        case 'DECISION_ENGINE':
+          return <PreLaunchGate><DecisionEngine onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+        case 'MISSION_YEAR':
+          return <PreLaunchGate><MissionYear onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+        case 'PROTOCOL21':
+          return <PreLaunchGate><Protocol21 onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+        case 'ELEMENTAL_LAB':
+          return <PreLaunchGate><ElementalLaboratoryView onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} /></PreLaunchGate>;
+        case 'EVOLUTION':
+          return <PreLaunchGate><EvolutionView onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+        case 'MANUALS':
+          return <PreLaunchGate><ManualsView onBack={() => setActiveView('TEMPLE')} initialManual={viewPayload?.initialManual} /></PreLaunchGate>;
+        case 'TIME_MAP_NEXUS':
+          return <PreLaunchGate><TimeMapNexus onNavigate={setActiveView} onBack={() => setActiveView('IDENTITY_NEXUS')} /></PreLaunchGate>;
+        case 'TIME_MAP_LIFELINE':
+          return <PreLaunchGate><LifelineView onBack={() => setActiveView('TIME_MAP_NEXUS')} /></PreLaunchGate>;
+        case 'TIME_MAP_CURRENT':
+          return <PreLaunchGate><CurrentEnergyView onBack={() => setActiveView('TIME_MAP_NEXUS')} /></PreLaunchGate>;
+        case 'TIME_MAP_ANNUAL':
+          return (
+            <PreLaunchGate>
+              <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-24 min-h-screen">
+                  <button
+                      onClick={() => setActiveView('TIME_MAP_NEXUS')}
+                      className="absolute top-6 left-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-white transition-colors group z-50"
+                  >
+                      <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                      Volver al Navegador
+                  </button>
+                  <TimeMap />
+              </div>
+            </PreLaunchGate>
+          );
+        case 'ORACLE_SOULS':
+        case 'SYNASTRY':
+          return <PreLaunchGate><OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} /></PreLaunchGate>;
+        case 'ADMIN':
+          return <AdminView />;
+        default:
+          return (
+            <PreLaunchGate>
+              <Home onSelectFeature={(feat) => setActiveView(feat as ViewState)} activeFeature={activeView} />
+            </PreLaunchGate>
+          );
     }
   };
 

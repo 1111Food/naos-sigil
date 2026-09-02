@@ -8,8 +8,8 @@ const stripe = config.STRIPE_SECRET_KEY
     : null;
 
 /**
- * Stripe Webhook Integration
- * Handles 'checkout.session.completed' and 'customer.subscription.deleted' events.
+ * Stripe Webhook Integration - STRIPE GO-LIVE TEST SUITE
+ * Robust, secure, and idempotent.
  */
 export const webhookRoutes = async (app: FastifyInstance) => {
     
@@ -17,7 +17,6 @@ export const webhookRoutes = async (app: FastifyInstance) => {
         const secret = config.STRIPE_WEBHOOK_SECRET;
         const sig = request.headers['stripe-signature'] as string;
         
-        // Fastify-raw-body attaches raw body buffer to request.rawBody
         const rawBody = (request as any).rawBody;
 
         if (!secret || !stripe) {
@@ -33,7 +32,7 @@ export const webhookRoutes = async (app: FastifyInstance) => {
         let event: Stripe.Event;
 
         try {
-            // VERIFY CRYPTOGRAPHIC SIGNATURE
+            // VERIFY CRYPTOGRAPHIC SIGNATURE (Test 05: Signature validation)
             event = stripe.webhooks.constructEvent(rawBody, sig, secret);
         } catch (err: any) {
             console.error(`❌ [WEBHOOK] Error verifying Stripe signature: ${err.message}`);
@@ -43,17 +42,18 @@ export const webhookRoutes = async (app: FastifyInstance) => {
         console.log(`🔔 [WEBHOOK] Stripe Event Detected: ${event.type}`);
 
         try {
-            // Handle relevant events for subscription provisioning
             switch (event.type) {
                 case 'checkout.session.completed': {
                     const session = event.data.object as Stripe.Checkout.Session;
                     
-                    // We passed user_id in client_reference_id and metadata
+                    // Source of truth: Backend metadata or client_reference_id
                     let userId = session.client_reference_id || session.metadata?.user_id;
                     const customerEmail = session.customer_details?.email || session.customer_email;
+                    const stripeCustomerId = session.customer as string;
+                    const stripeSubscriptionId = session.subscription as string;
                     
                     if (!userId && customerEmail) {
-                        // Fallback: If bought from public web without logging in, try to match by email
+                        // Fallback by email only if ID was lost, but still bind customer ID
                         const { data } = await supabaseAdmin.from('profiles').select('id').eq('email', customerEmail).single();
                         if (data) userId = data.id;
                     }
@@ -64,46 +64,41 @@ export const webhookRoutes = async (app: FastifyInstance) => {
                     }
 
                     const is3DayPlan = session.metadata?.plan_mode === '3days';
-                    
-                    // For 3-day plan: expires 72 hours from now. For monthly: 10 years (Stripe manages rebilling).
                     const expiresAt = new Date();
+                    
                     if (is3DayPlan) {
-                        expiresAt.setTime(expiresAt.getTime() + 3 * 24 * 60 * 60 * 1000); // +72 hours
-                        console.log(`⚡ [WEBHOOK] 3-Day Plan activated for User ${userId || customerEmail}. Expires: ${expiresAt.toISOString()}`);
+                        expiresAt.setTime(expiresAt.getTime() + 3 * 24 * 60 * 60 * 1000); 
+                        console.log(`⚡ [WEBHOOK] 3-Day Plan activated. Expires: ${expiresAt.toISOString()}`);
                     } else {
-                        expiresAt.setFullYear(expiresAt.getFullYear() + 10);
-                        console.log(`💎 [WEBHOOK] Upgrading User ${userId || customerEmail} to PREMIUM. Strategy: checkout.session.completed`);
+                        expiresAt.setFullYear(expiresAt.getFullYear() + 10); 
+                        console.log(`🔥 [WEBHOOK] Upgrading to PREMIUM. Strategy: checkout.session.completed`);
                     }
+
+                    // ROBUST UPDATE (Test 06: DB Update)
+                    // We save stripe_customer_id and stripe_subscription_id for bulletproof future operations
+                    const updatePayload = {
+                        plan_type: 'premium',
+                        subscription_expires_at: expiresAt.toISOString(),
+                        stripe_customer_id: stripeCustomerId,
+                        stripe_subscription_id: stripeSubscriptionId,
+                        updated_at: new Date().toISOString()
+                    };
 
                     if (userId) {
                         const { error } = await supabaseAdmin
                             .from('profiles')
-                            .update({
-                                plan_type: 'premium',
-                                subscription_expires_at: expiresAt.toISOString(),
-                                updated_at: new Date().toISOString()
-                            })
+                            .update(updatePayload)
                             .eq('id', userId);
                             
-                        if (error) {
-                            console.error("❌ [WEBHOOK] Supabase Update Error:", error.message);
-                            return reply.status(500).send({ error: 'DB update failed' });
-                        }
-                        console.log(`✅ [SUCCESS] User ${userId} is now a Premium Architect${is3DayPlan ? ' (3-Day Spark)' : ''}.`);
+                        if (error) throw new Error(`Supabase Update Error: ${error.message}`);
+                        console.log(`✅ [SUCCESS] User ${userId} is now a Premium Architect.`);
                     } else if (customerEmail) {
                         const { error } = await supabaseAdmin
                             .from('profiles')
-                            .update({
-                                plan_type: 'premium',
-                                subscription_expires_at: expiresAt.toISOString(),
-                                updated_at: new Date().toISOString()
-                            })
+                            .update(updatePayload)
                             .eq('email', customerEmail);
                             
-                        if (error) {
-                            console.error("❌ [WEBHOOK] Supabase Update by Email Error:", error.message);
-                            // Do not return 500, user might register later.
-                        }
+                        if (error) throw new Error(`Supabase Update by Email Error: ${error.message}`);
                         console.log(`✅ [SUCCESS] Email ${customerEmail} is marked as Premium (pending registration).`);
                     }
 
@@ -113,46 +108,69 @@ export const webhookRoutes = async (app: FastifyInstance) => {
                 case 'customer.subscription.deleted': {
                     const subscription = event.data.object as Stripe.Subscription;
                     const customerId = subscription.customer as string;
+                    const subscriptionId = subscription.id;
                     
-                    try {
-                        // Fetch the customer from Stripe to get their email
-                        const customer = await stripe.customers.retrieve(customerId);
-                        if (customer && !customer.deleted) {
-                            const email = (customer as Stripe.Customer).email;
-                            if (email) {
-                                const { error } = await supabaseAdmin
+                    console.log(`⚠️ [WEBHOOK] Subscription deleted: ${subscriptionId} for customer ${customerId}`);
+
+                    // Idempotent and Secure Downgrade (Tests 09-12)
+                    // Only downgrade if the deleted subscription matches the current active subscription in DB
+                    // This prevents downgrading if the user just switched to a NEW subscription
+                    const { data: users, error: fetchErr } = await supabaseAdmin
+                        .from('profiles')
+                        .select('id, email, stripe_subscription_id')
+                        .eq('stripe_customer_id', customerId);
+
+                    if (fetchErr) throw new Error(`Error fetching user by stripe_customer_id: ${fetchErr.message}`);
+
+                    if (users && users.length > 0) {
+                        for (const user of users) {
+                            if (user.stripe_subscription_id === subscriptionId) {
+                                const { error: updateErr } = await supabaseAdmin
                                     .from('profiles')
-                                    .update({ plan_type: 'free', updated_at: new Date().toISOString() })
-                                    .eq('email', email);
+                                    .update({ 
+                                        plan_type: 'free', 
+                                        stripe_subscription_id: null,
+                                        updated_at: new Date().toISOString() 
+                                    })
+                                    .eq('id', user.id);
                                 
-                                if (error) throw error;
-                                console.log(`📉 [WEBHOOK] Subscription deleted. Degraded ${email} to free.`);
+                                if (updateErr) throw new Error(`Error degrading user ${user.id}`);
+                                console.log(`📉 [SUCCESS] User ${user.email} degraded to free. Subscription terminated.`);
+                            } else {
+                                console.log(`⏭️ [WEBHOOK] Ignoring deletion: User ${user.email} has a different active subscription.`);
                             }
                         }
-                    } catch (e) {
-                        console.error("❌ [WEBHOOK] Error degrading user on subscription deletion:", e);
+                    } else {
+                        console.log(`❓ [WEBHOOK] Customer ${customerId} not found in DB. Nothing to downgrade.`);
                     }
                     break;
                 }
 
                 case 'invoice.payment_failed': {
-                    const invoice = event.data.object as Stripe.Invoice;
-                    const email = invoice.customer_email;
+                    const invoice = event.data.object as any; // Bypass strict typing for Stripe Invoice to extract IDs safely
+                    const customerId = invoice.customer as string;
+                    const subscriptionId = invoice.subscription as string;
                     
-                    if (email) {
-                        try {
-                            const { error } = await supabaseAdmin
-                                .from('profiles')
-                                .update({ plan_type: 'free', updated_at: new Date().toISOString() })
-                                .eq('email', email);
-                            
-                            if (error) throw error;
-                            console.log(`⚠️ [WEBHOOK] Payment failed. Degraded ${email} to free.`);
-                        } catch (e) {
-                            console.error("❌ [WEBHOOK] Error degrading user on payment failure:", e);
+                    if (customerId && subscriptionId) {
+                        const { data: users, error: fetchErr } = await supabaseAdmin
+                            .from('profiles')
+                            .select('id, email, stripe_subscription_id')
+                            .eq('stripe_customer_id', customerId);
+
+                        if (!fetchErr && users) {
+                            for (const user of users) {
+                                if (user.stripe_subscription_id === subscriptionId) {
+                                    await supabaseAdmin
+                                        .from('profiles')
+                                        .update({ 
+                                            plan_type: 'free', 
+                                            updated_at: new Date().toISOString() 
+                                        })
+                                        .eq('id', user.id);
+                                    console.log(`⚠️ [WEBHOOK] Payment failed. Degraded ${user.email} to free.`);
+                                }
+                            }
                         }
-                    } else {
-                        console.warn(`⚠️ [WEBHOOK] Payment failed but no email found in invoice: ${invoice.id}`);
                     }
                     break;
                 }
@@ -163,7 +181,8 @@ export const webhookRoutes = async (app: FastifyInstance) => {
 
             return reply.status(200).send({ received: true });
         } catch (err) {
-            console.error("🔥 [WEBHOOK] Fatal error processing webhook:", err);
+            console.error("🚨 [WEBHOOK] Fatal error processing webhook:", err);
+            // We return 500 so Stripe KNOWS it failed and retries later (Recovery/Reliability)
             return reply.status(500).send({ error: 'Webhook processing failed' });
         }
     });
