@@ -21,8 +21,8 @@ export const PreLaunchGate: React.FC<PreLaunchGateProps> = ({ children }) => {
 
   const launchDate = new Date('2026-09-22T00:00:00Z').getTime();
   
-  // Use VITE_PRE_LAUNCH_MODE=true to enable this gate
-  const isPreLaunchMode = import.meta.env.VITE_PRE_LAUNCH_MODE === 'true';
+  // ACTIVADO POR DEFECTO: El candado está puesto en producción automáticamente
+  const isPreLaunchMode = true; // import.meta.env.VITE_PRE_LAUNCH_MODE === 'true';
 
   useEffect(() => {
     if (!isPreLaunchMode) return;
