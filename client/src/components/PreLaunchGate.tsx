@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from '../i18n';
 import { useProfile } from '../hooks/useProfile';
-import { Lock } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { Lock, LogOut } from 'lucide-react';
 
 interface PreLaunchGateProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface PreLaunchGateProps {
 
 export const PreLaunchGate: React.FC<PreLaunchGateProps> = ({ children }) => {
   const { profile, loading } = useProfile();
+  const { signOut } = useAuth();
   const { language } = useTranslation();
   
   const [timeLeft, setTimeLeft] = useState({
@@ -105,6 +107,15 @@ export const PreLaunchGate: React.FC<PreLaunchGateProps> = ({ children }) => {
           ))}
         </div>
 
+        <div className="mt-12 pt-8 flex justify-center">
+          <button 
+            onClick={() => signOut()}
+            className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors"
+          >
+            <LogOut size={14} />
+            {language === 'en' ? 'Sign out' : 'Cerrar sesión'}
+          </button>
+        </div>
       </motion.div>
     </div>
   );
