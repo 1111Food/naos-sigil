@@ -64,14 +64,15 @@ export const PreLaunchGate: React.FC<PreLaunchGateProps> = ({ children }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md px-6">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="max-w-2xl text-center space-y-12"
-      >
-        <div className="flex justify-center mb-8">
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md overflow-y-auto">
+      <div className="min-h-full flex flex-col items-center justify-center px-6 py-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="max-w-2xl text-center space-y-12"
+        >
+          <div className="flex justify-center mb-8">
           <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
             <Lock className="w-6 h-6 text-amber-400 opacity-80" />
           </div>
@@ -129,6 +130,7 @@ export const PreLaunchGate: React.FC<PreLaunchGateProps> = ({ children }) => {
           </button>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };
