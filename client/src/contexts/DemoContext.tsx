@@ -9,20 +9,15 @@ interface DemoContextType {
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const isDemoModeAvailable = true;
-    const isMockSigil = true;
+    const isDemoModeAvailable = false;
+    const isMockSigil = false;
 
     const [isDemoActive, setIsDemoActive] = useState(false);
 
     useEffect(() => {
-        if (!isDemoModeAvailable) {
-            setIsDemoActive(false);
-            localStorage.removeItem('naos_demo_active');
-            return;
-        }
-        const active = localStorage.getItem('naos_demo_active') === 'true';
-        if (active) setIsDemoActive(true);
-    }, [isDemoModeAvailable]);
+        setIsDemoActive(false);
+        localStorage.removeItem('naos_demo_active');
+    }, []);
 
     const setDemoActive = (active: boolean) => {
         if (!isDemoModeAvailable) return;
