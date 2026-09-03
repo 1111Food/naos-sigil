@@ -103,13 +103,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     <SlideToEnter onUnlock={handleUnlock} />
 
                     <button
-                        onClick={handleEnterDemo}
-                        className="w-full py-4 rounded-full border border-cyan-500/30 bg-cyan-900/20 text-cyan-400 uppercase tracking-widest text-xs font-bold hover:bg-cyan-500/10 hover:border-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.1)]"
-                    >
-                        ENTER DEMO
-                    </button>
-
-                    <button
                         onClick={onTemporaryAccess}
                         className="mt-6 text-[10px] uppercase tracking-[0.4em] text-white/50 hover:text-white transition-colors flex items-center justify-center gap-2 group font-bold"
                     >
