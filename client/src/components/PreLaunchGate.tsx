@@ -64,8 +64,8 @@ export const PreLaunchGate: React.FC<PreLaunchGateProps> = ({ children }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md overflow-y-auto">
-      <div className="min-h-full flex flex-col items-center justify-center px-6 py-12">
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md overflow-y-auto overscroll-none touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center px-6 py-16 pb-32">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

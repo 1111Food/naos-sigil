@@ -134,9 +134,18 @@ export const SigilSettingsModal: React.FC<SigilSettingsModalProps> = ({
                         </button>
                     </div>
 
-                    <div className="text-[10px] text-cyan-400/90 mb-6 bg-cyan-500/10 p-3 rounded-xl border border-cyan-500/20 flex items-center gap-2">
-                         <span>✨ <span className="font-bold">{t('sigil_voice_active_msg')}:</span> {t('sigil_voice_active_desc')}</span>
-                    </div>
+                    <AnimatePresence>
+                        {isVoiceEnabled && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="text-[10px] text-cyan-400/90 mb-6 bg-cyan-500/10 p-3 rounded-xl border border-cyan-500/20 flex items-center gap-2 overflow-hidden"
+                            >
+                                <span>✨ <span className="font-bold">{t('sigil_voice_active_msg')}:</span> {t('sigil_voice_active_desc')}</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     <div className="space-y-6">
                         {/* Section 1: Horario */}
