@@ -61,14 +61,20 @@ export function ChatInterface({ onNavigate, initialPrompt }: ChatInterfaceProps)
     }, [initialPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Sigil Auto-Speak Trigger
+    const lastPlayedIdRef = React.useRef<string | null>(null);
+
     useEffect(() => {
         if (!messages.length) return;
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && lastMessage.role === 'model' && (lastMessage.audioUrl || lastMessage.audioBase64) && !lastMessage.isHistory) {
             
+            // Prevent playing the same message if component remounts
+            if (lastPlayedIdRef.current === lastMessage.id) return;
+            lastPlayedIdRef.current = lastMessage.id || 'unknown';
+
             const playAudio = () => {
                 const preference = localStorage.getItem('naos_sigil_voice_enabled');
-                const isVoiceEnabled = preference === null || preference === 'true'; // Default true
+                const isVoiceEnabled = preference === 'true'; // Default FALSE to match modal
                 
                 if (isVoiceEnabled) {
                     const audio = lastMessage.audioBase64 
@@ -77,7 +83,6 @@ export function ChatInterface({ onNavigate, initialPrompt }: ChatInterfaceProps)
                     
                     audio.play().catch(err => {
                         console.warn("Audio autoplay blocked or failed:", err);
-                        // Fallback: If blocked, we might need a "Play Voice" button on the message
                     });
                 }
             };
