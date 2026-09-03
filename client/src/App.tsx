@@ -401,9 +401,7 @@ function App() {
         );
       case 'LOGIN':
         return (
-           <div className="flex items-center justify-center min-h-[80vh] relative z-10 p-4">
-              <LoginView onSuccess={(view) => setActiveView(view as ViewState)} onCancel={() => setActiveView('LANDING')} />
-           </div>
+          <LoginView onSuccess={(view) => setActiveView(view as ViewState)} onCancel={() => setActiveView('LANDING')} />
         );
       case 'ONBOARDING':
         return <OnboardingInitiation onComplete={() => handleOnboardingComplete()} />;
