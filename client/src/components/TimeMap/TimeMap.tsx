@@ -60,9 +60,14 @@ export const TimeMap: React.FC = () => {
             });
             const data = await res.json();
             
-            if (data.map) setTimeMap(data.map);
+            if (data.map) {
+                setTimeMap(data.map);
+            } else {
+                alert("Error de IA: NAOS no pudo generar el mapa. Por favor, actualiza tu GOOGLE_API_KEY en Vercel a la llave provista y haz un Redeploy.");
+            }
         } catch (e) {
             console.error("Error generating Time Map:", e);
+            alert("Error crítico de servidor: Vercel rechazó la conexión. Por favor, actualiza tu GOOGLE_API_KEY en Vercel y haz un Redeploy.");
         } finally {
             setGenerating(false);
             setShowIllusion(false);

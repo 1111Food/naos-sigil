@@ -59,16 +59,6 @@ export const TimeMapNexus: React.FC<TimeMapNexusProps> = ({ onNavigate, onBack }
 
     return (
         <div className="relative min-h-[60vh] flex flex-col items-center justify-center p-6 mt-12">
-            <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={() => { playSound('click'); onBack(); }}
-                className="fixed top-[calc(1rem+env(safe-area-inset-top))] left-6 flex items-center gap-2 text-white/40 hover:text-white transition-colors group z-50"
-            >
-                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="text-[10px] uppercase tracking-[0.3em] font-black">{t('identity_nexus', 'Nexo de Identidad')}</span>
-            </motion.button>
-
             <div className="flex flex-col items-center justify-center gap-4 text-center mb-16 space-y-4">
                 <h2 className="text-3xl md:text-4xl font-serif italic text-white/90 tracking-wide">
                     {t('time_map', 'Mapa Temporal')}

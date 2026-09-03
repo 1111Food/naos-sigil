@@ -82,10 +82,15 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
                 const data = await res.json();
                 if (data.energy) {
                     qc.setQueryData(['current-energy', profile?.id, language], data.energy);
+                } else {
+                    alert("Error: NAOS AI couldn't generate the map. Your Vercel GOOGLE_API_KEY is likely invalid or quota exceeded.");
                 }
+            } else {
+                alert("Error crítico de servidor: Vercel no pudo contactar con NAOS AI. Por favor, actualiza tu GOOGLE_API_KEY en Vercel y haz un Redeploy.");
             }
         } catch (e) {
             console.error("Error generating Energy:", e);
+            alert("Error de conexión: Vercel no pudo contactar con NAOS AI. Por favor, actualiza tu GOOGLE_API_KEY en Vercel y haz un Redeploy.");
         } finally {
             setGenerating(false);
             setShowIllusion(false);
@@ -95,13 +100,6 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center text-white/50">
-                <motion.button
-                    onClick={onBack}
-                    className="absolute top-6 left-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-white transition-colors group z-50"
-                >
-                    <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                    {language === 'en' ? 'Back' : 'Volver'}
-                </motion.button>
                 <p>{language === 'en' ? 'Tuning into your frequency...' : 'Sincronizando frecuencias...'}</p>
             </div>
         );
@@ -113,14 +111,6 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="relative z-10 w-full max-w-4xl mx-auto px-4 py-24 min-h-[60vh] flex flex-col items-center justify-center text-center"
             >
-                <button
-                    onClick={onBack}
-                    className="absolute top-6 left-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-white transition-colors group z-50"
-                >
-                    <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                    {language === 'en' ? 'Back' : 'Volver'}
-                </button>
-                
                 <h2 className="text-3xl font-serif italic text-white/90 mb-4">
                     {language === 'en' ? 'Current Energy' : 'Energía Actual'}
                 </h2>
@@ -146,14 +136,6 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="relative z-10 w-full max-w-4xl mx-auto px-4 py-12 pb-32"
         >
-            <button
-                onClick={onBack}
-                className="absolute top-6 left-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-white transition-colors group z-50"
-            >
-                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                {language === 'en' ? 'Back' : 'Volver'}
-            </button>
-
             <div className="text-center mb-16 mt-8">
                 <h1 className="text-4xl font-serif italic text-white/90 mb-4">{language === 'en' ? 'Current Energy' : 'Energía Actual'}</h1>
                 <p className="text-sm font-mono text-white/50 uppercase tracking-[0.2em]">{new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
