@@ -182,14 +182,19 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
 
                         {/* 4. Naos CTA */}
                         <button
-                            type="submit"
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (isReset) handleReset(e as any);
+                                else handleLogin(e as any);
+                            }}
                             disabled={gateState === 'LOADING'}
                             className="w-full relative group py-5 rounded-xl bg-[#05020a] border border-amber-600/30 overflow-hidden disabled:opacity-50 disabled:pointer-events-none mt-6 shadow-[0_0_30px_rgba(139,92,246,0.1)] hover:shadow-[0_0_40px_rgba(139,92,246,0.3)] hover:border-amber-500/60 active:scale-[0.98] transition-all cursor-pointer"
                         >
                             {/* Mystic Violet Inner Glow */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-violet-900/20 via-indigo-800/10 to-violet-900/20 group-hover:from-violet-800/40 group-hover:via-indigo-700/30 group-hover:to-violet-800/40 transition-colors" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-violet-900/20 via-indigo-800/10 to-violet-900/20 group-hover:from-violet-800/40 group-hover:via-indigo-700/30 group-hover:to-violet-800/40 transition-colors pointer-events-none" />
                             
-                            <div className="relative flex items-center justify-center gap-4 text-white font-bold uppercase tracking-[0.4em] text-[10px]">
+                            <div className="relative flex items-center justify-center gap-4 text-white font-bold uppercase tracking-[0.4em] text-[10px] pointer-events-none">
                                 {gateState === 'LOADING' ? <Loader2 className="animate-spin text-amber-500" size={14} /> : <Send size={14} className="text-amber-500/70 group-hover:text-amber-400 transition-colors" />}
                                 {gateState === 'LOADING' ? t('login_state_loading') : 
                                  isReset ? t('login_state_reset') : t('login_btn')}
