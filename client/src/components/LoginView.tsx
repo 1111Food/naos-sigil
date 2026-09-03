@@ -116,15 +116,22 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                     />
                 )}
 
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                <button
+                    type="submit"
                     disabled={loading}
-                    className="w-full py-6 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white font-bold uppercase tracking-[0.5em] text-[11px] shadow-[0_10px_40px_rgba(139,92,246,0.2)] hover:shadow-[0_15px_60px_rgba(139,92,246,0.4)] transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:pointer-events-none mt-4"
+                    onClick={(e) => {
+                        // iOS Safari fallback
+                        if (mode === 'LOGIN') {
+                            handleLogin(e);
+                        } else {
+                            handleReset(e);
+                        }
+                    }}
+                    className="w-full py-6 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white font-bold uppercase tracking-[0.5em] text-[11px] shadow-[0_10px_40px_rgba(139,92,246,0.2)] hover:shadow-[0_15px_60px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:pointer-events-none mt-4"
                 >
                     {loading ? <Loader2 className="animate-spin" /> : <Send size={16} />}
                     {loading ? t('login_processing') : mode === 'LOGIN' ? t('login_btn') : t('login_reset_btn')}
-                </motion.button>
+                </button>
             </form>
 
             <div className="pt-8 space-y-6 text-center">
