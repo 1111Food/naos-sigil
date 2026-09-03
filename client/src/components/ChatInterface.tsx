@@ -180,31 +180,73 @@ export function ChatInterface({ onNavigate, initialPrompt }: ChatInterfaceProps)
                                     {msg.role === 'user' ? (
                                         <p className="text-white/70 italic font-serif text-lg">{parsedText}</p>
                                     ) : (
-                                            <div className="text-amber-50/90 text-[15px] md:text-[17px] leading-loose font-light tracking-wide whitespace-pre-wrap">
-                                                <TypewriterText text={parsedText} skipAnimation={msg.isHistory} />
-                                                
-                                                {msg.role === 'assistant' && (parsedText.includes('ACCIÓN CONCRETA') || parsedText.includes('Acción Concreta')) && (
-                                                    <motion.button 
-                                                        initial={{ opacity: 0, y: 5 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: 1 }}
-                                                        onClick={() => {
-                                                            try {
-                                                                const tasks = JSON.parse(localStorage.getItem('sigil_tasks') || '[]');
-                                                                tasks.push({ text: parsedText.split('ACCIÓN CONCRETA')[1]?.substring(0, 100) || parsedText.substring(0, 100), date: new Date().toLocaleDateString() });
-                                                                localStorage.setItem('sigil_tasks', JSON.stringify(tasks));
-                                                                alert("Acción guardada como tarea de hoy.");
-                                                            } catch (e) {
-                                                                console.error(e);
+                                        <div className="text-amber-50/90 text-[15px] md:text-[17px] leading-loose font-light tracking-wide whitespace-pre-wrap">
+                                            <TypewriterText text={parsedText} skipAnimation={msg.isHistory} />
+                                            
+                                            {/* Botón: Guardar Tarea */}
+                                            {msg.role === 'assistant' && (/(acci.n concreta|concrete action)/i.test(parsedText)) && (
+                                                <motion.button 
+                                                    initial={{ opacity: 0, y: 5 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 1 }}
+                                                    onClick={() => {
+                                                        try {
+                                                            const actionMatch = parsedText.match(/(acci.n concreta|concrete action):[^\n]+/i);
+                                                            if (actionMatch && actionMatch[0]) {
+                                                                const intent = actionMatch[0].replace(/(acci.n concreta|concrete action):/i, '').trim();
+                                                                const today = new Date().toISOString().split('T')[0];
+                                                                const saved = JSON.parse(localStorage.getItem(`naos_p21_logs_${profile?.id}`) || '{}');
+                                                                if (!saved[today]) { saved[today] = { selectedPillars: [], reflection: '', completedTasks: [] }; }
+                                                                saved[today].completedTasks.push({ id: Date.now().toString(), text: intent, completed: false });
+                                                                localStorage.setItem(`naos_p21_logs_${profile?.id}`, JSON.stringify(saved));
                                                             }
-                                                        }}
-                                                        className="mt-4 flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 rounded-xl text-[10px] uppercase tracking-widest text-amber-400 hover:text-white transition-all font-black shadow-[0_0_20px_rgba(245,158,11,0.05)]"
-                                                    >
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                                                        Guardar como tarea de hoy
-                                                    </motion.button>
-                                                )}
-                                            </div>
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                        }
+                                                    }}
+                                                    className="mt-4 flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 rounded-xl text-[10px] uppercase tracking-widest text-amber-400 hover:text-white transition-all font-black shadow-[0_0_20px_rgba(245,158,11,0.05)]"
+                                                >
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                                    {language === 'en' ? 'Save as today\'s task' : 'Guardar como tarea de hoy'}
+                                                </motion.button>
+                                            )}
+
+                                            {/* Botones de Navegación Inteligentes */}
+                                            {msg.role === 'assistant' && (
+                                                <div className="flex flex-wrap gap-3 mt-4">
+                                                    {/(laboratorio elemental|elemental lab)/i.test(parsedText) && (
+                                                        <motion.button 
+                                                            initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}
+                                                            onClick={() => onNavigate && onNavigate('ELEMENTAL_LAB')}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 rounded-xl text-[10px] uppercase tracking-widest text-blue-400 hover:text-white transition-all font-black shadow-[0_0_20px_rgba(59,130,246,0.05)]"
+                                                        >
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                                            {language === 'en' ? 'Open Lab' : 'Abrir Laboratorio'}
+                                                        </motion.button>
+                                                    )}
+                                                    {/(protocolo 21|protocol 21)/i.test(parsedText) && (
+                                                        <motion.button 
+                                                            initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3 }}
+                                                            onClick={() => onNavigate && onNavigate('PROTOCOL21')}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 rounded-xl text-[10px] uppercase tracking-widest text-emerald-400 hover:text-white transition-all font-black shadow-[0_0_20px_rgba(16,185,129,0.05)]"
+                                                        >
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                                            {language === 'en' ? 'Open Protocol 21' : 'Abrir Protocolo 21'}
+                                                        </motion.button>
+                                                    )}
+                                                    {/(c.digo de identidad|dise.o humano|arquitectura|identity code|human design|architecture)/i.test(parsedText) && (
+                                                        <motion.button 
+                                                            initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4 }}
+                                                            onClick={() => onNavigate && onNavigate('IDENTITY_NEXUS')}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 rounded-xl text-[10px] uppercase tracking-widest text-purple-400 hover:text-white transition-all font-black shadow-[0_0_20px_rgba(168,85,247,0.05)]"
+                                                        >
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                                                            {language === 'en' ? 'View Identity Code' : 'Ver Código de Identidad'}
+                                                        </motion.button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>

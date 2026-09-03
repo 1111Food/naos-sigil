@@ -154,10 +154,15 @@ export const GuardianProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const loadHistory = async () => {
             setIsHistoryLoading(true);
             try {
+                // 72 hours cutoff
+                const cutoff = new Date();
+                cutoff.setHours(cutoff.getHours() - 72);
+
                 const { data, error } = await supabase
                     .from('interaction_logs')
                     .select('user_message, sigil_response, created_at, id')
                     .eq('user_id', user.id)
+                    .gte('created_at', cutoff.toISOString())
                     .order('created_at', { ascending: false })
                     .limit(50);
 
