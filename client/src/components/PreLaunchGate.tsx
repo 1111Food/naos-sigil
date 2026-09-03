@@ -107,12 +107,24 @@ export const PreLaunchGate: React.FC<PreLaunchGateProps> = ({ children }) => {
           ))}
         </div>
 
-        <div className="mt-12 pt-8 flex justify-center">
+        <div className="mt-12 pt-8 flex flex-col items-center justify-center gap-6">
+          <button 
+            onClick={() => {
+              // Si el usuario no está autenticado, esto lo redirigirá al componente de Login en lugar del Gate
+              // Como el Gate envuelve a todo (incluyendo App.tsx maneja las vistas), necesitamos un mecanismo para forzar el login.
+              // La mejor manera es usar un Custom Event para decirle a App.tsx que cambie la vista.
+              window.dispatchEvent(new CustomEvent('naos-force-login'));
+            }}
+            className="px-8 py-3 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-400 text-xs uppercase tracking-widest rounded-xl transition-colors font-bold shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+          >
+            {language === 'en' ? 'Admin Login' : 'Ingreso de Administrador'}
+          </button>
+
           <button 
             onClick={() => signOut()}
-            className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors"
+            className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/20 hover:text-white/70 transition-colors"
           >
-            <LogOut size={14} />
+            <LogOut size={12} />
             {language === 'en' ? 'Sign out' : 'Cerrar sesión'}
           </button>
         </div>

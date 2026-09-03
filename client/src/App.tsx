@@ -198,6 +198,15 @@ function App() {
     }
   }, [user, profile, isAppFullyReady, activeView]);
 
+  // Force Login Event Listener (triggered by PreLaunchGate)
+  useEffect(() => {
+    const handleForceLogin = () => {
+      setActiveView('LOGIN');
+    };
+    window.addEventListener('naos-force-login', handleForceLogin);
+    return () => window.removeEventListener('naos-force-login', handleForceLogin);
+  }, []);
+
   // 4. ADMIN ROUTE DETECT
   useEffect(() => {
     if (window.location.pathname === '/admin') {
