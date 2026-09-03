@@ -22,12 +22,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        let currentEmail = email;
+        let currentPassword = password;
+        
+        // iOS Safari Autofill Fallback
+        const emailEl = document.getElementById('naos-login-email') as HTMLInputElement;
+        const passEl = document.getElementById('naos-login-password') as HTMLInputElement;
+        if (emailEl?.value) currentEmail = emailEl.value;
+        if (passEl?.value) currentPassword = passEl.value;
 
         setLoading(true);
         try {
-            const cleanEmail = email.trim();
-            console.log("🚀 LoginView: Autenticando llave para", cleanEmail, "...");
-            let { data, error } = await signInWithPassword(cleanEmail, password);
+            const cleanEmail = currentEmail.trim();
+            console.log("🛠️ LoginView: Autenticando llave para", cleanEmail, "...");
+            let { data, error } = await signInWithPassword(cleanEmail, currentPassword);
 
             if (error) {
                 alert(`${t('login_error_title')}\n\n${t('login_error_fallback')}`);
@@ -37,7 +46,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
 
             const user = data?.user;
             if (user) {
-                console.log("🚀 LoginView: Portal abierto. Delegando validación de identidad al Guardián de Sesión global...");
+                console.log("🛠️ LoginView: Portal abierto. Delegando validación de identidad al Guardián de Sesión global...");
                 if (onSuccess) onSuccess('TEMPLE');
             }
         } catch (err: any) {
@@ -50,10 +59,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        let currentEmail = email;
+        const emailEl = document.getElementById('naos-login-email') as HTMLInputElement;
+        if (emailEl?.value) currentEmail = emailEl.value;
+
         setLoading(true);
         try {
-            const cleanEmail = email.trim();
-            console.log("🚀 LoginView: Solicitando nueva llave para", cleanEmail, "...");
+            const cleanEmail = currentEmail.trim();
+            console.log("🛠️ LoginView: Solicitando nueva llave para", cleanEmail, "...");
             const { error } = await resetPasswordForEmail(cleanEmail);
 
             if (error) {
@@ -98,7 +112,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
 
             <form onSubmit={mode === 'LOGIN' ? handleLogin : handleReset} className="space-y-4">
                 <input
+                    id="naos-login-email"
                     type="email"
+                    name="email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t('login_email_placeholder')}
@@ -107,7 +124,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                 />
                 {mode === 'LOGIN' && (
                     <input
+                        id="naos-login-password"
                         type="password"
+                        name="password"
+                        autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t('login_password_placeholder')}
@@ -119,15 +139,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onCancel, onSuccess }) => 
                 <button
                     type="submit"
                     disabled={loading}
-                    onClick={(e) => {
-                        // iOS Safari fallback
-                        if (mode === 'LOGIN') {
-                            handleLogin(e);
-                        } else {
-                            handleReset(e);
-                        }
-                    }}
-                    className="w-full py-6 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white font-bold uppercase tracking-[0.5em] text-[11px] shadow-[0_10px_40px_rgba(139,92,246,0.2)] hover:shadow-[0_15px_60px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:pointer-events-none mt-4"
+                    className="w-full py-6 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white font-bold uppercase tracking-[0.5em] text-[11px] shadow-[0_10px_40px_rgba(139,92,246,0.2)] hover:shadow-[0_15px_60px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:pointer-events-none mt-4 cursor-pointer"
                 >
                     {loading ? <Loader2 className="animate-spin" /> : <Send size={16} />}
                     {loading ? t('login_processing') : mode === 'LOGIN' ? t('login_btn') : t('login_reset_btn')}
