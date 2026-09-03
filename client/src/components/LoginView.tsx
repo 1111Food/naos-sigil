@@ -98,9 +98,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     transition={{ duration: 1 }}
                     className="flex flex-col items-center mb-2"
                 >
-                    <h1 className="text-4xl font-serif tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
-                        NAOS
-                    </h1>
+                    <img 
+                        src="/logo-naos.png?v=2" 
+                        alt="NAOS" 
+                        className="h-10 md:h-12 w-auto opacity-90 select-none pointer-events-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                    />
                 </motion.div>
 
                 {/* 5. Ambient Context (Lunar Phase) */}

@@ -502,7 +502,7 @@ function App() {
             <WisdomManager />
 
             {/* HEADER (Conditional) */}
-            {activeView !== 'LANDING' && activeView !== 'WELCOME_BACK' && activeView !== 'ORACLE_SOULS' && activeView !== 'IDENTITY_NEXUS' && activeView !== 'PROFILE' && (
+            {activeView !== 'LANDING' && activeView !== 'LOGIN' && activeView !== 'WELCOME_BACK' && activeView !== 'ORACLE_SOULS' && activeView !== 'IDENTITY_NEXUS' && activeView !== 'PROFILE' && (
               <header
                 className="fixed top-0 left-0 right-0 pt-[calc(1rem+env(safe-area-inset-top))] px-4 md:px-6 pb-4 flex flex-col md:flex-row justify-between items-center w-full z-50 pointer-events-none transition-opacity duration-300 pointer-events-auto"
                 style={{ opacity: headerOpacity }}
@@ -569,7 +569,7 @@ function App() {
             )}
 
             {/* MAIN CONTENT WRAPPER */}
-            <main className={`flex-1 w-full max-w-6xl mx-auto transition-all duration-1000 ${activeView !== 'WELCOME_BACK' ? 'p-4 md:p-10 md:pl-32 pb-40 md:pb-10 pt-32 md:pt-24 pb-safe' : ''}`}>
+            <main className={`flex-1 w-full max-w-6xl mx-auto transition-all duration-1000 ${activeView !== 'WELCOME_BACK' && activeView !== 'LOGIN' ? 'p-4 md:p-10 md:pl-32 pb-40 md:pb-10 pt-32 md:pt-24 pb-safe' : ''}`}>
 
               <Suspense fallback={<TempleLoading variant="fullscreen" />}>
                 {activeView === 'WELCOME_BACK' ? (
@@ -590,7 +590,7 @@ function App() {
             )}
 
             {/* FOOTER */}
-            {activeView !== 'LANDING' && activeView !== 'ONBOARDING' && activeView !== 'CHAT' && activeView !== 'WELCOME_BACK' && (
+            {activeView !== 'LANDING' && activeView !== 'LOGIN' && activeView !== 'ONBOARDING' && activeView !== 'CHAT' && activeView !== 'WELCOME_BACK' && (
               <footer className="fixed bottom-0 left-0 right-0 p-4 md:p-6 z-40 pointer-events-none md:pl-40 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6">
                 <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-8 text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-white/40 pointer-events-auto bg-black/40 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none py-3 px-6 rounded-full border border-white/5 md:border-0 shadow-2xl md:shadow-none">
                   <div className="flex items-center gap-3">
