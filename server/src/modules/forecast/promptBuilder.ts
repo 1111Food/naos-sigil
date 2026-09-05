@@ -35,6 +35,8 @@ INSTRUCCIONES DE SÍNTESIS:
 Debes cruzar el tránsito astrológico del mes, el Mes Personal Numerológico (haz mención explícita a que es el Mes Personal "X" vibrando dentro de su Año Personal "Y"), el Nahual de la fecha y el Animal Chino del año. 
 ¡IMPORTANTE!: Todo el horizonte anual debe interpretarse a través del lente de su Pináculo Actual (${pinnacles.pinnacleValue}). Menciona cómo este año específico encaja dentro de esta gran etapa de vida. Suma su comportamiento reciente para crear una única Lectura Cuántica fusionada. Jamás des interpretaciones separadas. Sé coherente con los ciclos.
 
+CRITICAL INSTRUCTION: You MUST translate all astrological planets (e.g., Sun -> Sol, Moon -> Luna), zodiac signs, and elements into ${isEs ? 'Spanish' : 'English'} in all your responses. Never mix languages.
+
 FORMATO DE RESPUESTA OBLIGATORIO:
 Debes responder ÚNICAMENTE con un JSON válido, sin Markdown (\`\`\`json), con la siguiente estructura estricta:
 

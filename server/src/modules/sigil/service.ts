@@ -546,10 +546,12 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
         // PRODUCTION MODEL: gemini-3.5-flash-lite (cost-optimized for conversational AI)
         const modelName = "gemini-3.5-flash-lite"; 
         const API_VERSION = "v1beta";
-        const GENERATE_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${modelName}:generateContent?key=${apiKey}`;
+        
+        // Ensure system instruction enforces language explicitly
+        const enforcedSystemInstruction = systemInstruction + `\n\nCRITICAL INSTRUCTION: You MUST translate all astrological planets (e.g., Sun -> Sol, Moon -> Luna), zodiac signs, and elements into the language requested in the prompt (usually Spanish unless specified) in all your responses. Never mix languages.`;
 
         let payload: any = {
-            system_instruction: { parts: [{ text: systemInstruction }] },
+            system_instruction: { parts: [{ text: enforcedSystemInstruction }] },
             contents: [...history, { role: "user", parts: [{ text: message }] }],
             generationConfig: { temperature: 0.7, topP: 0.8, topK: 40 },
             tools: [{
@@ -598,7 +600,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                 const currentUrl = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${activeModel}:generateContent?key=${apiKey}`;
 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s
+                const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s
 
                 try {
                     const response = await fetch(currentUrl, {

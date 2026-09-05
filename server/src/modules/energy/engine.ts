@@ -18,6 +18,8 @@ export const EnergyEngine = {
         You are the NAOS Quantum AI, analyzing the current energy (Micro Evolution Axis).
         Language: ${payload.lang}
         
+        CRITICAL INSTRUCTION: You MUST translate all astrological planets (e.g., Sun -> Sol, Moon -> Luna), zodiac signs, and elements into ${payload.lang === 'en' ? 'English' : 'Spanish'} in all your responses. Never mix languages.
+
         Profile data:
         - Name: ${payload.profile.first_name}
         - Date of Birth: ${payload.profile.date_of_birth}
