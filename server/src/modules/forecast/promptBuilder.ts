@@ -12,12 +12,12 @@ export class ForecastPromptBuilder {
             ? `Eres el Motor Temporal de NAOS. Tu objetivo no es predecir el futuro, sino simular el clima energético de los próximos 12 meses basándote en la interacción de 4 Intelligence Sources (Astrología, Numerología, Nahual Maya, Horóscopo Chino) y el comportamiento real del usuario en la plataforma (El Kernel de Inteligencia).
 
 DATOS DEL USUARIO:
-- Nombre: ${userData.display_name || 'Arquitecto'}
-- Nacimiento: ${userData.birth_date} (Hora: ${userData.birth_time || 'Desconocida'})
-- Astrología: Sol en ${userData.sun_sign}, Luna en ${userData.moon_sign || '?'}, Ascendente en ${userData.ascendant_sign || '?'}
-- Nahual Natal: ${userData.mayan_nawal || '?'}
-- Astrología China Natal: ${userData.chinese_sign || '?'}
-- Numerología Natal (Camino de Vida): ${userData.numerology_path || '?'}
+- Nombre: ${userData.name || userData.full_name || 'Arquitecto'}
+- Nacimiento: ${userData.birthDate || userData.birth_date} (Hora: ${userData.birthTime || userData.birth_time || 'Desconocida'})
+- Astrología: Sol en ${userData.astrology?.sunSign || userData.sun_sign}, Luna en ${userData.astrology?.moonSign || userData.moon_sign || '?'}, Ascendente en ${userData.astrology?.ascendantSign || userData.ascendant_sign || '?'}
+- Nahual Natal: ${userData.mayan?.kicheName || userData.mayan_nawal || '?'}
+- Astrología China Natal: ${userData.chinese_animal || userData.chinese_sign || '?'}
+- Numerología Natal (Camino de Vida): ${userData.numerology?.lifePath || userData.numerology_path || '?'}
 
 COMPORTAMIENTO RECIENTE (KERNEL):
 ${behaviorContext}

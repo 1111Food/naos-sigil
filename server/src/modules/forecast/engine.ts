@@ -43,7 +43,7 @@ export class ForecastEngine {
                     const errorData = await response.json().catch(() => ({}));
                     console.error(`Forecast API Error on attempt ${attempt}:`, errorData);
                     
-                    if ((response.status === 503 || response.status === 429) && attempt < maxAttempts) {
+                    if ((response.status === 404 || response.status === 503 || response.status === 429) && attempt < maxAttempts) {
                         console.log(`⚠️ Gemini API Limit/Overload (${response.status}). Retrying with fallback model in ${attempt * 1.5}s...`);
                         await new Promise(resolve => setTimeout(resolve, attempt * 1500));
                         continue;

@@ -21,9 +21,9 @@ export const EnergyEngine = {
         CRITICAL INSTRUCTION: You MUST translate all astrological planets (e.g., Sun -> Sol, Moon -> Luna), zodiac signs, and elements into ${payload.lang === 'en' ? 'English' : 'Spanish'} in all your responses. Never mix languages.
 
         Profile data:
-        - Name: ${payload.profile.first_name}
-        - Date of Birth: ${payload.profile.date_of_birth}
-        - Time of Birth: ${payload.profile.time_of_birth}
+        - Name: ${payload.profile.full_name || payload.profile.name || 'Arquitecto'}
+        - Date of Birth: ${payload.profile.birth_date}
+        - Time of Birth: ${payload.profile.birth_time || 'Desconocida'}
         
         Today's Date: ${payload.currentDate}
 
@@ -79,7 +79,7 @@ export const EnergyEngine = {
                     const errorData = await response.json().catch(() => ({}));
                     console.error(`Energy API Error on attempt ${attempt}:`, errorData);
                     
-                    if ((response.status === 503 || response.status === 429) && attempt < maxAttempts) {
+                    if ((response.status === 404 || response.status === 503 || response.status === 429) && attempt < maxAttempts) {
                         console.log(`⚠️ Gemini API Limit/Overload (${response.status}). Retrying with fallback model in ${attempt * 1.5}s...`);
                         await new Promise(resolve => setTimeout(resolve, attempt * 1500));
                         continue;
