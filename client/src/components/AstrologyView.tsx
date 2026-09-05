@@ -420,7 +420,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                 <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
                     <h4 className="text-purple-300 font-bold mb-1 text-sm uppercase tracking-wider">{t('the_scenarios')}</h4>
                     <p className="text-lg italic font-medium">
-                        "{p.archetype} ({p.name}) {h.scenario.replace('el escenario de ', '').replace('the scenario of ', '')}"
+                        "{p.archetype} ({p.name}) {(h.scenario || '').replace('el escenario de ', '').replace('the scenario of ', '')}"
                     </p>
                     <p className="text-white/70 italic text-sm mt-3 pt-3 border-t border-purple-500/10">
                         {s.essence}
@@ -717,7 +717,9 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                     <span className="text-[9px] uppercase tracking-tighter text-amber-300/50 font-bold mb-1">{t('the_costumes')}</span>
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-bold text-white leading-tight">{signInfo.name}</span>
-                                                        <span className="text-[8px] text-amber-200/40 mt-1 leading-tight uppercase font-medium">{t('style')} {signsLib[body.signName]?.style.replace('con ', '').replace('una ', '')}</span>
+                                                        <span className="text-[8px] text-amber-200/40 mt-1 leading-tight uppercase font-medium">
+                                                            {t('style')} {(signInfo.style || '').replace('con ', '').replace('una ', '')}
+                                                        </span>
                                                     </div>
                                                 </div>
 
