@@ -105,7 +105,7 @@ Classification Criteria:
       if (context?.conversation_summary) promptText += `\nConversation Summary: ${context.conversation_summary}`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${config.GOOGLE_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${config.GOOGLE_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

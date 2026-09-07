@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
-const modelName = "gemini-3.5-flash-lite";
+const modelName = "gemini-1.5-flash"; // Primary model
 
 interface EnergyPayload {
     profile: any;
@@ -56,7 +56,7 @@ export const EnergyEngine = {
         while (attempt < maxAttempts) {
             try {
                 attempt++;
-                const activeModel = attempt > 1 ? "gemini-3.5-flash-lite" : modelName;
+                const activeModel = attempt > 1 ? "gemini-1.5-flash-8b" : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`;
 
                 const controller = new AbortController();
