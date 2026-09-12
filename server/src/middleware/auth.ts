@@ -34,7 +34,7 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
             return reply.status(401).send({ error: 'Sesión expirada o inválida' });
         }
 
-        console.log(`✅ [AUTH_OK] Request ${requestId} | User: ${user.id}`);
+        console.log(`✅ [AUTH_OK] Request ${requestId} | User: `);
 
         // Inject user_id into the request for downstream use
         (request as any).user_id = user.id;
@@ -73,7 +73,8 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         let plan = (profilePlan || 'free').toLowerCase();
         
         const userEmail = (user.email || user.user_metadata?.email || '').toLowerCase();
-        console.log(`📧 [AUTH_EMAIL] Request ${requestId} | Email: ${userEmail}`);
+        // SEC-F2B.3: Avoid logging email directly, only flag presence for debugging
+        console.log(`📧 [AUTH_EMAIL] Request ${requestId} | Email provided: ${!!userEmail}`);
         
         // --- HARDENED ADMIN CHECK (Fix for 403 on Render) ---
         const isAdminEmail = 
@@ -91,7 +92,7 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
 
         if (isAdminEmail || isAdminId) {
             plan = 'admin';
-            console.log(`⭐ [AUTH_ADMIN] Request ${requestId} | Identified Admin Exception: ${userEmail || user.id}`);
+            console.log(`⭐ [AUTH_ADMIN] Request ${requestId} | Identified Admin Exception: `);
         }
 
         const userRole = plan === 'admin' ? 'admin' : (plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free');

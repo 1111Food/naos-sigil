@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2, Zap } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
-import { API_BASE_URL } from '../lib/api';
+import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
 
 interface PlanSelectionViewProps {
     onBack?: () => void;
@@ -10,8 +10,9 @@ interface PlanSelectionViewProps {
 }
 
 export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) => {
-    const { profile } = useProfile();
+    const { profile, refreshProfile } = useProfile();
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+    const [isActivating, setIsActivating] = useState(false);
     
     let isDemoActive = false;
     try {
@@ -20,145 +21,159 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
         isDemoActive = demoCtx.isDemoActive;
     } catch(e) {}
 
-    const handleStripeCheckout = async (priceId: string, endpoint: string = 'create-session') => {
-        if (isDemoActive) {
-            alert('Demo Mode — Payments Disabled');
+    const provider = import.meta.env.VITE_PAYMENT_PROVIDER || 'stripe';
+
+    // Paddle Initialization
+    useEffect(() => {
+        if (provider === 'paddle') {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js';
+            script.onload = () => {
+                if ((window as any).Paddle) {
+                    (window as any).Paddle.Environment.set(import.meta.env.VITE_PADDLE_ENVIRONMENT || 'sandbox');
+                    (window as any).Paddle.Initialize({ 
+                        token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN || 'test_token',
+                        eventCallback: function(data: any) {
+                            if (data.name === 'checkout.completed') {
+                                handleCheckoutSuccess();
+                            }
+                        }
+                    });
+                }
+            };
+            document.body.appendChild(script);
+        }
+    }, [provider]);
+
+    const handleCheckoutSuccess = async () => {
+        setIsActivating(true);
+        // Poll for 10 seconds to allow webhook to process
+        let attempts = 0;
+        const interval = setInterval(async () => {
+            attempts++;
+            await refreshProfile();
+            // check if upgraded
+            if (attempts > 5) {
+                clearInterval(interval);
+                setIsActivating(false);
+                window.location.href = '/sanctuary?upgrade=success';
+            }
+        }, 2000);
+    };
+
+    const handleCheckout = async (priceId: string, endpoint: string = 'create-session', planMode?: string) => {
+        if (isDemoActive || profile?.plan_type === 'admin') {
+            alert('Demo Mode / Admin - Payments Disabled');
             return;
         }
 
-        // Guard: env variable must be configured — fail explicitly, not silently
-        if (!priceId || priceId.trim() === '') {
-            alert('Error de configuración: No se ha configurado el plan de pago. Contacta soporte.');
+        if (!priceId) {
+            alert('Error: Plan not configured.');
             return;
         }
 
-        if (!profile?.id) {
-            console.error("❌ Checkout Error: No authenticated user found.");
+        if (provider === 'paddle' && planMode !== '3days') {
+            if ((window as any).Paddle) {
+                console.log('Opening Paddle with priceId:', priceId, 'Token:', import.meta.env.VITE_PADDLE_CLIENT_TOKEN);
+                  (window as any).Paddle.Checkout.open({
+                    items: [{ priceId, quantity: 1 }],
+                    customData: { user_id: profile?.id }
+                });
+            } else {
+                alert('Paddle not loaded');
+            }
             return;
         }
 
+        // Stripe Flow
         setIsCheckoutLoading(true);
-
         try {
-            const response = await fetch(`${API_BASE_URL}/api/checkout/${endpoint}`, {
+            const headers = await getAsyncAuthHeaders('POST');
+            const response = await fetch('/api/checkout/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-profile-id': profile.id
-                },
+                headers,
                 body: JSON.stringify({ priceId })
             });
 
             const data = await response.json();
-
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                console.error("❌ Stripe session creation failed:", data.error);
+                alert(data.error || 'Failed to start checkout');
                 setIsCheckoutLoading(false);
             }
-        } catch (err) {
-            console.error("🔥 Error connecting to checkout service:", err);
+        } catch (error) {
+            console.error(error);
+            alert('Failed to start checkout.');
             setIsCheckoutLoading(false);
         }
     };
 
+    if (isActivating) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-naos-gold mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Activando tu Modo Arquitecto...</h3>
+                <p className="text-white/60">Sintonizando tu cuenta con los nuevos accesos.</p>
+            </div>
+        );
+    }
+
+    const monthlyPrice = provider === 'paddle' ? import.meta.env.VITE_PADDLE_PRICE_MONTHLY : import.meta.env.VITE_STRIPE_PRICE_MONTHLY;
+    const yearlyPrice = provider === 'paddle' ? import.meta.env.VITE_PADDLE_PRICE_YEARLY : import.meta.env.VITE_STRIPE_PRICE_YEARLY;
+
     return (
-        <div className="flex flex-col items-center text-center gap-4 w-full animate-in fade-in duration-300">
-            <h2 className="text-base font-serif italic tracking-wide text-white/90">
-                Selecciona tu nivel de acceso
-            </h2>
-            <p className="text-xs text-white/50 px-4 leading-relaxed">
-                Desbloquea tu arquitectura completa para operar desde tu diseño original.
-            </p>
-
-            <div className="flex flex-col gap-3 w-full mt-2">
-
-                {/* 🌟 Plan Chispa: $3 / 3 días - NUEVO */}
-                <motion.div
-                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(251,191,36,0.05)' }}
-                    onClick={() => handleStripeCheckout(
-                        import.meta.env.VITE_STRIPE_PRICE_3DAYS || '',
-                        'create-session-3days'
-                    )}
-                    className={`p-4 rounded-2xl bg-amber-500/5 border border-amber-500/30 flex items-center justify-between cursor-pointer transition-all relative overflow-hidden ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                    <div className="absolute top-0 left-0 bg-amber-400 text-black text-[8px] font-black px-2 py-0.5 rounded-br-lg uppercase tracking-wider flex items-center gap-1">
-                        <Zap className="w-2.5 h-2.5" />
-                        Prueba sin compromiso
-                    </div>
-                    <div className="flex flex-col items-start mt-3">
-                        <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Plan Chispa</span>
-                        <span className="text-[10px] text-amber-300/60">Acceso completo 72 horas · Pago único</span>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 mt-3">
-                        <span className="text-sm font-black text-amber-400">$3.00 <span className="text-[10px] font-normal text-white/40">/ 3 días</span></span>
-                    </div>
-                </motion.div>
-
+        <div className="space-y-6">
+            <h2 className="text-2xl font-serif text-white text-center">Modo Arquitecto</h2>
+            <div className="grid grid-cols-1 gap-4">
                 {/* Monthly */}
-                <motion.div
-                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.03)' }}
-                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_MONTHLY ?? '')}
-                    className={`p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between cursor-pointer transition-all ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                <div 
+                    onClick={() => handleCheckout(monthlyPrice || '')}
+                    className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-naos-gold/50 cursor-pointer transition-all"
                 >
-                    <div className="flex flex-col items-start">
-                        <span className="text-xs font-bold text-white uppercase tracking-wider">Mensual</span>
-                        <span className="text-[10px] text-white/40">Acceso continuo</span>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-bold text-white">Mensual</h3>
+                        <span className="text-xl text-naos-gold">$11.11</span>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                        <span className="text-sm font-black text-cyan-400">$11.11 <span className="text-[10px] font-normal text-white/40">/ mes</span></span>
-                    </div>
-                </motion.div>
-
+                    <ul className="space-y-2 text-sm text-white/70">
+                        <li className="flex gap-2"><Check className="w-4 h-4 text-naos-gold" /> Mapa Temporal de 12 Meses</li>
+                        <li className="flex gap-2"><Check className="w-4 h-4 text-naos-gold" /> Energa Actual</li>
+                        <li className="flex gap-2"><Check className="w-4 h-4 text-naos-gold" /> Interpretaciones Profundas</li>
+                    </ul>
+                </div>
+                
                 {/* Yearly */}
-                <motion.div
-                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(6,182,212,0.05)' }}
-                    onClick={() => handleStripeCheckout(import.meta.env.VITE_STRIPE_PRICE_YEARLY ?? '')}
-                    className={`p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 flex items-center justify-between cursor-pointer transition-all relative overflow-hidden ${isCheckoutLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                <div 
+                    onClick={() => handleCheckout(yearlyPrice || '')}
+                    className="p-6 rounded-2xl bg-naos-gold/10 border border-naos-gold/50 hover:bg-naos-gold/20 cursor-pointer transition-all relative overflow-hidden"
                 >
-                    <div className="absolute top-0 right-0 bg-cyan-500 text-black text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-wider">
-                        Mejor Valor
+                    <div className="absolute top-2 right-2 bg-naos-gold text-black text-xs font-bold px-2 py-1 rounded">20% OFF</div>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-bold text-white">Anual</h3>
+                        <span className="text-xl text-naos-gold">$111.11</span>
                     </div>
-                    <div className="flex flex-col items-start">
-                        <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Anual</span>
-                        <span className="text-[10px] text-cyan-300/60">Ahorras 2 meses</span>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                        <span className="text-sm font-black text-cyan-400">$111.00 <span className="text-[10px] font-normal text-white/40">/ año</span></span>
-                    </div>
-                </motion.div>
+                    <ul className="space-y-2 text-sm text-white/70">
+                        <li className="flex gap-2"><Check className="w-4 h-4 text-naos-gold" /> Todo lo del plan mensual</li>
+                        <li className="flex gap-2"><Check className="w-4 h-4 text-naos-gold" /> Acceso a NAOS AI Avanzado</li>
+                    </ul>
+                </div>
 
-                {isCheckoutLoading && (
-                    <div className="flex items-center justify-center gap-2 text-[10px] text-cyan-400 font-bold animate-pulse">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        INICIALIZANDO PORTAL SEGURO...
+                {/* 3 Days - Stripe Only */}
+                {provider === 'stripe' && (
+                    <div 
+                        onClick={() => handleCheckout(import.meta.env.VITE_STRIPE_PRICE_3DAYS || '', 'create-session-3days', '3days')}
+                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 cursor-pointer transition-all"
+                    >
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-md font-bold text-white">Plan Chispa (3 das)</h3>
+                            <span className="text-md text-white/70">\.00</span>
+                        </div>
                     </div>
                 )}
             </div>
-
-            <div className="flex flex-col gap-1.5 text-left w-full px-2 mt-2">
-                {[
-                    "Acceso total a tu código energético",
-                    "IA Sigil con memoria",
-                    "Protocolos de transformación",
-                    "Laboratorio de evolución"
-                ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[10px] text-white/70">
-                        <Check className="w-3 h-3 text-cyan-400" />
-                        <span>{item}</span>
-                    </div>
-                ))}
-            </div>
-
-            {onBack && (
-                <button
-                    onClick={onBack}
-                    className="mt-2 text-[10px] text-white/40 hover:text-white/60 transition-colors uppercase tracking-wider font-semibold"
-                >
-                    Volver
-                </button>
-            )}
         </div>
     );
 };
+
+
+

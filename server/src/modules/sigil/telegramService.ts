@@ -239,10 +239,10 @@ export const sendProactiveMessage = async (
         } else {
             await bot.telegram.sendMessage(telegramChatId, message);
         }
-        console.log(`[TELEGRAM] 🚀 Mensaje proactivo enviado telepáticamente al ID: ${telegramChatId}`);
+        console.log(`[TELEGRAM] 🔮 Mensaje proactivo enviado telepáticamente al ID: ${telegramChatId.slice(-4)}`);
         return true;
     } catch (e) {
-        console.error(`[TELEGRAM] ❌ Error enviando mensaje a ${telegramChatId}:`, e);
+        console.error(`[TELEGRAM] 💀 Error enviando mensaje a ${telegramChatId.slice(-4)}:`, e);
         return false;
     }
 }
@@ -263,10 +263,10 @@ export const sendProactiveVoice = async (
 
     try {
         await bot.telegram.sendVoice(telegramChatId, { source: audioBuffer }, { caption: message });
-        console.log(`[TELEGRAM] 🔊 Mensaje de voz enviado al ID: ${telegramChatId}`);
+        console.log(`[TELEGRAM] 🎙️ Mensaje de voz enviado al ID: ${telegramChatId.slice(-4)}`);
         return true;
     } catch (e) {
-        console.error(`[TELEGRAM] ❌ Error enviando voz a ${telegramChatId}:`, e);
+        console.error(`[TELEGRAM] 💀 Error enviando voz a ${telegramChatId.slice(-4)}:`, e);
         return false;
     }
 }

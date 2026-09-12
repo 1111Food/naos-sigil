@@ -42,7 +42,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
 
     const { data: lifeline, isLoading: loading } = useQuery({
         queryKey: ['lifeline', profile?.id, language],
-        queryFn: () => naosQueryFn<{ map: any }>(`${API_BASE_URL}/api/lifeline?lang=${language}`).then(data => data.map || null),
+        queryFn: () => naosQueryFn<{ exists: boolean; map?: any }>(`${API_BASE_URL}/api/lifeline?lang=${language}`).then(data => data.exists ? data.map : null),
         enabled: !!profile?.id,
         staleTime: 1000 * 60 * 15, // Cache for 15 mins
     });
@@ -104,15 +104,15 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                     <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                     <span className="text-[10px] uppercase tracking-[0.3em] font-black">{t('time_map', 'Mapa Temporal')}</span>
                 </motion.button>
-                <h2 className="text-3xl font-serif italic text-white/90 mb-4">El Eje Evolutivo</h2>
+                <h2 className="text-3xl font-serif italic text-white/90 mb-4">{t('evolution_axis', 'El Eje Evolutivo')}</h2>
                 <p className="text-white/70 mb-8 max-w-lg">
-                    NAOS compilará la arquitectura profunda de tus etapas de vida, cruzando la matemática pitagórica con tu diseño astral, tu nahual y energía china para crear un modelo predictivo de tu evolución. Esta generación es permanente y única.
+                    NAOS compilarÃ¡ la arquitectura profunda de tus etapas de vida, cruzando la matemÃ¡tica pitagÃ³rica con tu diseÃ±o astral, tu nahual y energÃ­a china para crear un modelo predictivo de tu evoluciÃ³n. Esta generaciÃ³n es permanente y Ãºnica.
                 </p>
                 <button 
                     onClick={handleGenerate}
                     className="px-8 py-4 bg-naos-gold text-black font-semibold rounded-lg shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all"
                 >
-                    Iniciar Compilación de Línea de Vida
+                    Iniciar CompilaciÃ³n de LÃ­nea de Vida
                 </button>
             </div>
         );
@@ -147,9 +147,9 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                             Eje Evolutivo
                         </h2>
                         <div className="h-px w-24 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent mx-auto" />
-                        <p className="text-xs uppercase tracking-[0.5em] text-white/30 font-bold">Arquitectura de Vida</p>
+                        <p className="text-xs uppercase tracking-[0.5em] text-white/30 font-bold">{t('life_architecture', 'Arquitectura de Vida')}</p>
                         <div className="mt-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 text-xs text-white/70">
-                            Edad Actual: <span className="text-white font-bold">{currentAge} años</span>
+                            Edad Actual: <span className="text-white font-bold">{currentAge} aÃ±os</span>
                         </div>
                     </div>
 
@@ -164,7 +164,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                     : 'text-white/40 hover:text-white/70'
                                 }`}
                             >
-                                🌌 Modo Simbólico
+                                ðŸŒŒ Modo SimbÃ³lico
                             </button>
                             <button
                                 onClick={() => setViewMode('behavioral')}
@@ -174,16 +174,16 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                     : 'text-white/40 hover:text-white/70'
                                 }`}
                             >
-                                🧠 Modo Conductual
+                                ðŸ§  Modo Conductual
                             </button>
                         </div>
                     </div>
 
-                    {/* Ciclo de 9 Años */}
+                    {/* Ciclo de 9 AÃ±os */}
                     <div className="w-full max-w-3xl mb-16 relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-8 backdrop-blur-md">
                         <div className="absolute inset-0 bg-gradient-to-br from-naos-gold/5 to-transparent pointer-events-none" />
-                        <h3 className="text-2xl font-serif italic text-white/90 mb-2">{lifeline.current_cycle?.title || "Ciclo Actual (Escala 9 Años)"}</h3>
-                        <p className="text-[10px] uppercase tracking-widest text-white/40 mb-8">Año Personal {lifeline.current_cycle?.year_number || 1}</p>
+                        <h3 className="text-2xl font-serif italic text-white/90 mb-2">{lifeline.current_cycle?.title || "Ciclo Actual (Escala 9 AÃ±os)"}</h3>
+                        <p className="text-white/70 mb-6">{t('personal_year', 'Año Personal')} {lifeline.current_cycle?.year_number || 1}</p>
                         
                         {/* Barra de Progreso 1-9 */}
                         <div className="flex justify-between items-center mb-8 relative">
@@ -204,20 +204,17 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                         </div>
 
                         {(() => {
-                            const cycleReading = (viewMode === 'symbolic' ? lifeline.current_cycle?.esoteric_reading : lifeline.current_cycle?.biohacking_reading) || {
-                                objetivo_evolutivo: lifeline.current_cycle?.theme || lifeline.current_cycle?.description || "Siembra, Nuevas Oportunidades y Renovación Total",
-                                riesgo_principal: "Aferrarse a estructuras del ciclo anterior"
-                            };
+                            const cycleReading = (viewMode === 'symbolic' ? lifeline.current_cycle?.esoteric_reading : lifeline.current_cycle?.biohacking_reading) || (viewMode === 'behavioral' ? lifeline.current_cycle?.esoteric_reading : lifeline.current_cycle?.biohacking_reading) || { objetivo_evolutivo: 'Información Evolutiva Pendiente', riesgo_principal: 'Lectura no disponible' };
                             return (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                        <span className="text-[10px] uppercase tracking-widest text-white/40 block mb-2">Objetivo</span>
+                                        <span className="text-[10px] uppercase tracking-widest text-white/40 block mb-2">{t('objective', 'Objetivo')}</span>
                                         <p className="text-white/90 text-sm">
                                             {cycleReading.objetivo_evolutivo}
                                         </p>
                                     </div>
                                     <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                        <span className="text-[10px] uppercase tracking-widest text-red-400/60 block mb-2">Riesgo</span>
+                                        <span className="text-[10px] uppercase tracking-widest text-red-400/60 block mb-2">{t('risk', 'Riesgo')}</span>
                                         <p className="text-white/90 text-sm">
                                             {cycleReading.riesgo_principal}
                                         </p>
@@ -230,7 +227,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                             onClick={() => setShowCycleDeepDive(!showCycleDeepDive)}
                             className="text-xs uppercase tracking-widest text-naos-gold/70 hover:text-naos-gold flex items-center gap-2 transition-colors"
                         >
-                            {showCycleDeepDive ? 'Ocultar Profundización' : 'Profundizar'}
+                            {showCycleDeepDive ? 'Ocultar ProfundizaciÃ³n' : 'Profundizar'}
                             {showCycleDeepDive ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         </button>
                         
@@ -244,8 +241,8 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                 >
                                     <div className="pt-6 mt-6 border-t border-white/10 text-white/70 leading-relaxed text-sm">
                                         {viewMode === 'symbolic' 
-                                            ? (lifeline.current_cycle?.deep_dive_esoteric || lifeline.current_cycle?.description || "Aprovecha la inercia de este ciclo para cimentar tus metas.") 
-                                            : (lifeline.current_cycle?.deep_dive_biohacking || lifeline.current_cycle?.description || "Optimiza tu ritmo circadiano y enfoque diario para sostener el crecimiento.")}
+                                            ? (lifeline.current_cycle?.deep_dive_esoteric || "Lectura mística profunda no disponible en este momento.") 
+                                            : (lifeline.current_cycle?.deep_dive_biohacking || "Análisis conductual profundo no disponible en este momento.")}
                                     </div>
                                 </motion.div>
                             )}
@@ -254,19 +251,13 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
 
                     {/* Las 4 Grandes Etapas */}
                     <div className="w-full max-w-3xl space-y-6">
-                        <h3 className="text-2xl font-serif italic text-white/90 mb-8 text-center">La Década (Pináculos)</h3>
+                        <h3 className="text-2xl font-serif italic text-white/90 mb-8 text-center">{t('the_decade', 'La Década (Pináculos)')}</h3>
                         
                         {(lifeline.pinnacles || []).map((pin: any, idx: number) => {
                             const isExpanded = expandedPinnacle === idx;
                             const isDeepDive = showDeepDive === idx;
-                            const reading = (viewMode === 'symbolic' ? pin.esoteric_reading : pin.biohacking_reading) || {
-                                objetivo_evolutivo: pin.title || pin.archetypal_theme || "Desarrollo y Consolidación del Ser",
-                                metricas_naos: pin.integration_key || "Coherencia al 90%",
-                                riesgo_principal: pin.core_challenge || "Resistencia al cambio y dispersión de energía",
-                                virtud_desarrollar: pin.master_strategy || "Enfoque y disciplina alineada",
-                                talento_dormido: pin.integration_key || "Intuición estratégica"
-                            };
-                            const indicators = pin.indicators || { creativity: 85, leadership: 80, learning: 90, expansion: 75, relationships: 85 };
+                            const reading = (viewMode === 'symbolic' ? pin.esoteric_reading : pin.biohacking_reading) || (viewMode === 'behavioral' ? pin.esoteric_reading : pin.biohacking_reading) || { objetivo_evolutivo: pin.title || 'Lectura no disponible', metricas_naos: 'No disponible', riesgo_principal: 'No disponible', virtud_desarrollar: 'No disponible', talento_dormido: 'No disponible' };
+                            const indicators = pin.indicators;
                             
                             return (
                                 <motion.div 
@@ -288,8 +279,8 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="flex flex-col items-end">
-                                                <span className="text-[10px] uppercase tracking-widest text-white/40">Métrica Principal</span>
-                                                <span className="text-xs text-white/60">{reading.metricas_naos || "Coherencia Arquetípica"}</span>
+                                                <span className="text-[10px] uppercase tracking-widest text-white/40">{t('main_metric', 'Métrica Principal')}</span>
+                                                <span className="text-xs text-white/60">{reading.metricas_naos || "Coherencia ArquetÃ­pica"}</span>
                                             </div>
                                             <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/50">
                                                 {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -309,26 +300,32 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 mt-6">
                                                         <div className="space-y-6">
                                                             <div>
-                                                                <span className="text-[10px] uppercase tracking-widest text-red-400/60 block mb-2">Riesgo Principal</span>
+                                                                <span className="text-[10px] uppercase tracking-widest text-red-400/60 block mb-2">{t('main_risk', 'Riesgo Principal')}</span>
                                                                 <p className="text-white/80 text-sm">{reading.riesgo_principal}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-[10px] uppercase tracking-widest text-blue-400/60 block mb-2">Virtud a Desarrollar</span>
+                                                                <span className="text-[10px] uppercase tracking-widest text-blue-400/60 block mb-2">{t('virtue_to_develop', 'Virtud a Desarrollar')}</span>
                                                                 <p className="text-white/80 text-sm">{reading.virtud_desarrollar}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-[10px] uppercase tracking-widest text-purple-400/60 block mb-2">Talento Dormido</span>
+                                                                <span className="text-[10px] uppercase tracking-widest text-purple-400/60 block mb-2">{t('dormant_talent', 'Talento Dormido')}</span>
                                                                 <p className="text-white/80 text-sm">{reading.talento_dormido}</p>
                                                             </div>
                                                         </div>
                                                         
                                                         <div className="bg-black/30 p-6 rounded-2xl border border-white/5">
-                                                            <h5 className="text-[10px] uppercase tracking-widest text-white/50 mb-6 text-center">Indicadores de Energía</h5>
-                                                            <IndicatorBar label="Creatividad" value={indicators.creativity} colorClass="bg-purple-500" />
-                                                            <IndicatorBar label="Liderazgo" value={indicators.leadership} colorClass="bg-red-500" />
-                                                            <IndicatorBar label="Aprendizaje" value={indicators.learning} colorClass="bg-blue-500" />
-                                                            <IndicatorBar label="Expansión" value={indicators.expansion} colorClass="bg-green-500" />
-                                                            <IndicatorBar label="Relaciones" value={indicators.relationships} colorClass="bg-pink-500" />
+                                                            <h5 className="text-[10px] uppercase tracking-widest text-white/50 mb-6 text-center">{t('energy_indicators', 'Indicadores de Energía')}</h5>
+                                                            {indicators ? (
+                                                                <>
+                                                                    <IndicatorBar label='Creatividad' value={indicators.creativity} colorClass="bg-purple-500" />
+                                                                    <IndicatorBar label="Liderazgo" value={indicators.leadership} colorClass="bg-red-500" />
+                                                                    <IndicatorBar label="Aprendizaje" value={indicators.learning} colorClass="bg-blue-500" />
+                                                                    <IndicatorBar label="Expansión" value={indicators.expansion} colorClass="bg-green-500" />
+                                                                    <IndicatorBar label="Relaciones" value={indicators.relationships} colorClass='bg-pink-500' />
+                                                                </>
+                                                            ) : (
+                                                                <p className='text-center text-xs text-white/30 italic my-auto'>{t('calculations_unavailable', 'Cálculos no disponibles')}</p>
+                                                            )}
                                                         </div>
                                                     </div>
 
@@ -337,7 +334,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                                             onClick={(e) => { e.stopPropagation(); setShowDeepDive(isDeepDive ? null : idx); }}
                                                             className="text-xs uppercase tracking-widest text-purple-400/70 hover:text-purple-400 transition-colors py-2 px-6 rounded-full border border-purple-500/30 hover:bg-purple-900/20"
                                                         >
-                                                            {isDeepDive ? 'Ocultar Profundización' : 'Profundizar en la Fusión de las 4 Intelligence Sources'}
+                                                            {isDeepDive ? 'Ocultar ProfundizaciÃ³n' : 'Profundizar en la FusiÃ³n de las 4 Intelligence Sources'}
                                                         </button>
                                                     </div>
 
@@ -350,9 +347,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                                                 className="overflow-hidden"
                                                             >
                                                                 <div className="p-6 mt-6 rounded-xl bg-black/40 border border-white/5 text-white/70 leading-relaxed text-sm">
-                                                                    {viewMode === 'symbolic' 
-                                                                        ? (pin.deep_dive_esoteric || pin.master_strategy || "Sintonización completa de la etapa.") 
-                                                                        : (pin.deep_dive_biohacking || pin.core_challenge || "Integración conductual de la etapa.")}
+                                                                    {viewMode === 'symbolic' ? (pin.deep_dive_esoteric || 'Lectura mística de la etapa no disponible.') : (pin.deep_dive_biohacking || 'Integración conductual de la etapa no disponible.')}
                                                                 </div>
                                                             </motion.div>
                                                         )}
@@ -370,3 +365,6 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
         </div>
     );
 };
+
+
+

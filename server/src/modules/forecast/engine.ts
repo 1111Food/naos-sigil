@@ -5,7 +5,7 @@ export class ForecastEngine {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) throw new Error("Faltan credenciales de Gemini.");
 
-        const modelName = "gemini-1.5-flash"; // Deep generation model for 12-month forecasts
+        const modelName = config.GEMINI_MODEL; // Deep generation model for 12-month forecasts
         const GENERATE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
         const payload = {
@@ -19,16 +19,16 @@ export class ForecastEngine {
             }
         };
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout for heavy generation
-
         let attempt = 0;
         const maxAttempts = 3;
 
         while (attempt < maxAttempts) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout per retry
+
             try {
                 attempt++;
-                const activeModel = attempt > 1 ? "gemini-1.5-flash-8b" : modelName;
+                const activeModel = attempt > 1 ? config.GEMINI_MODEL : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`;
 
                 console.log(`⏳ ForecastEngine: Calling ${activeModel} for 12-month map (Attempt ${attempt})...`);
@@ -64,7 +64,6 @@ export class ForecastEngine {
                     if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);
 
                     const jsonResult = JSON.parse(cleanText);
-                    clearTimeout(timeoutId);
                     return jsonResult;
                 } catch (parseError) {
                     console.error("Failed to parse Forecast JSON:", textResponse);
@@ -72,9 +71,10 @@ export class ForecastEngine {
                 }
             } catch (e: any) {
                 if (attempt >= maxAttempts || e.name === 'AbortError') {
-                    clearTimeout(timeoutId);
                     throw e;
                 }
+            } finally {
+                clearTimeout(timeoutId);
             }
         }
     }

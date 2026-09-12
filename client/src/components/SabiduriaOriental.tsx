@@ -130,16 +130,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
 
     const elementDescription = chineseData?.element ? getElementWisdom(chineseData.element, language) : '';
 
-    // --- DEBUG (can be removed later) ---
-    React.useEffect(() => {
-        if (chineseData) {
-            console.log("🏮 SabiduriaOriental: Cálculo local completado");
-            console.log("   📅 Birth Date:", profile?.birthDate);
-            console.log("   🐉 Animal:", chineseData.animal);
-            console.log("   🔥 Elemento:", chineseData.element);
-            console.log("   📆 Año Chino:", chineseData.birthYear);
-        }
-    }, [chineseData, profile?.birthDate]);
+
 
     // Validación flexible (MOVED AFTER HOOKS/LOGIC)
     if (!profile || !profile.birthDate) {

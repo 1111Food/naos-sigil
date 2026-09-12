@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { validateUser } from '../middleware/auth';
+import { validateUser, validatePremium } from '../middleware/auth';
 import { UserService } from '../modules/user/service';
 import { AstrologyService } from '../modules/astrology/astroService';
 import { NumerologyService } from '../modules/numerology/service';
@@ -22,7 +22,7 @@ const interpretationCache = new Map<string, string>();
 
 export async function interpretRoutes(app: FastifyInstance) {
     app.post<{ Body: InterpretRequest }>('/interpret', { 
-        preHandler: [validateUser],
+        preHandler: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 5,
@@ -293,7 +293,7 @@ Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelect
 
             // 5. Llamar a la API de Gemini (con reintentos y logs detallados)
             const apiKey = config.GOOGLE_API_KEY;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/:generateContent?key=${apiKey}`;
 
             const systemPrompt = `You are a master psychological-astrological synthesizer and clinical-mystical analyst. 
 You write with the authority of a seasoned psychoanalyst and master of esoteric sciences.

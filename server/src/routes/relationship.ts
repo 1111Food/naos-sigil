@@ -2,10 +2,19 @@ import { FastifyInstance } from 'fastify';
 import { validateUser } from '../middleware/auth';
 import { NAOSIntelligenceKernel } from '../modules/relationship/kernel/NAOSIntelligenceKernel';
 import { ContextMatrix } from '../modules/relationship/models/ContextMatrix';
+import { RequestDeduplicator } from '../lib/deduplicator';
 
 export async function relationshipRoutes(app: FastifyInstance) {
     
-    app.post<{ Body: { targetId?: string, mode?: string, language?: 'es' | 'en' } }>('/scan', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { targetId?: string, mode?: string, language?: 'es' | 'en' } }>('/scan', { 
+        preHandler: [validateUser],
+        config: {
+            rateLimit: {
+                max: 3,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const userId = (req as any).user_id;
         const { targetId, mode = 'analysis', language = 'es' } = req.body;
         
@@ -25,7 +34,9 @@ export async function relationshipRoutes(app: FastifyInstance) {
             const entity: any = { id: `rel_${userId}_${targetId || 'mock'}` };
 
             const kernel = new NAOSIntelligenceKernel();
-            const result = await kernel.process(entity, userA, userB, context, mode as any);
+            // SEC-F2B: Deduplicate
+            const dedupKey = `rel_${userId}_${targetId}_${mode}`;
+            const result = await RequestDeduplicator.execute(dedupKey, () => kernel.process(entity, userA, userB, context, mode as any));
             
             return { status: 'ok', data: result };
         } catch (error: any) {

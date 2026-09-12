@@ -7,6 +7,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 export const config = {
     PORT: process.env.PORT || 3001,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '',
+    GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
     NODE_ENV: process.env.NODE_ENV || 'development',
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
@@ -19,7 +20,14 @@ export const config = {
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     STRIPE_PRICE_MONTHLY: process.env.STRIPE_PRICE_MONTHLY || '',
+    STRIPE_PRICE_YEARLY: process.env.STRIPE_PRICE_YEARLY || '',
     STRIPE_PRICE_3DAYS: process.env.STRIPE_PRICE_3DAYS || '',
+    
+    // Paddle Variables
+    PADDLE_API_KEY: process.env.PADDLE_API_KEY,
+    PADDLE_WEBHOOK_SECRET: process.env.PADDLE_WEBHOOK_SECRET,
+    PADDLE_PRICE_MONTHLY: process.env.PADDLE_PRICE_MONTHLY || '',
+    PADDLE_PRICE_YEARLY: process.env.PADDLE_PRICE_YEARLY || '',
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
 };
 

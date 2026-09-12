@@ -25,7 +25,7 @@ export class AstralDailyService {
     };
 
     static calculateDaily(profile: UserProfile): AstralDailyResponse {
-        console.log(`🌌 AstralDaily: Calculating for ${profile.name} (BirthDate: ${profile.birthDate}, HasAstro: ${!!profile.astrology})`);
+        console.log(`✨ AstralDaily: Calculating for profile (HasAstro: ${!!profile.astrology})`);
 
         if (!profile.birthDate || !profile.astrology) {
             console.warn("⚠️ AstralDaily: Missing requirements for ritual calculation. Returning SACRED_VOID.");

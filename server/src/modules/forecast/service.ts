@@ -1,9 +1,10 @@
-import { supabase } from '../../lib/supabase';
+﻿import { supabase } from '../../lib/supabase';
 import { UserService } from '../user/service';
 import { ForecastCalculator } from './calculator';
 import { ForecastContextInjector } from './contextInjector';
 import { ForecastPromptBuilder } from './promptBuilder';
 import { ForecastEngine } from './engine';
+import { AstroContextBuilder } from '../astrology/AstroContextBuilder';
 
 export class ForecastService {
     
@@ -20,12 +21,13 @@ export class ForecastService {
         // Return null if it doesn't exist or if it's expired
         if (!data) return null;
         if (new Date(data.valid_until) < new Date()) return null;
+        if (data.astro_context_version !== 2) return null;
 
         return data;
     }
 
     static async generateTimeMap(userId: string, language: string = 'es') {
-        console.log(`🌀 ForecastService: Generating Time Map for user ${userId} [${language}]`);
+        console.log(`ðŸŒ€ ForecastService: Generating Time Map for user ${userId} [${language}]`);
         
         // 1. Get User Data
         const profile = await UserService.getProfile(userId);
@@ -40,8 +42,17 @@ export class ForecastService {
         const cycles = ForecastCalculator.get12MonthCycles(profile.birthDate);
         const pinnacles = ForecastCalculator.getPinnacles(profile.birthDate);
 
+        // 3.5. Fetch Macro Context
+        const { data: macro } = await supabase
+            .from('user_lifelines')
+            .select('current_cycle')
+            .eq('user_id', userId)
+            .eq('language', language)
+            .maybeSingle();
+
         // 4. Build Mega-Prompt
-        const prompt = ForecastPromptBuilder.build(profile, behaviorContext, cycles, pinnacles, language);
+        const astroContext = AstroContextBuilder.normalize(profile);
+        const prompt = ForecastPromptBuilder.build(profile, astroContext, behaviorContext, cycles, pinnacles, macro?.current_cycle, language);
 
         // 5. Execute AI Engine
         const mapData = await ForecastEngine.generate(prompt);
@@ -65,10 +76,12 @@ export class ForecastService {
             .single();
 
         if (error) {
-            console.error("❌ ForecastService DB Error:", error);
-            throw new Error("Error al guardar el Mapa Temporal en los registros akáshicos.");
+            console.error("âŒ ForecastService DB Error:", error);
+            throw new Error("Error al guardar el Mapa Temporal en los registros akÃ¡shicos.");
         }
 
         return savedMap;
     }
 }
+
+

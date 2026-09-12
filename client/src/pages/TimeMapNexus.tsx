@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Clock, CalendarDays, Zap, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -16,6 +16,7 @@ export const TimeMapNexus: React.FC<TimeMapNexusProps> = ({ onNavigate, onBack }
     const { t } = useTranslation();
     const { profile } = useActiveProfile();
     const isAdmin = profile?.plan_type === 'admin';
+    const isPremium = profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' || isAdmin;
 
     React.useEffect(() => {
         window.scrollTo(0, 0);
@@ -24,19 +25,19 @@ export const TimeMapNexus: React.FC<TimeMapNexusProps> = ({ onNavigate, onBack }
     const options = [
         {
             id: 'TIME_MAP_LIFELINE',
-            title: t('lifeline_title', 'Línea de Vida (Macro)'),
-            subtitle: t('lifeline_subtitle', 'Ciclos Mayores y Pináculos'),
+            title: t('lifeline_title', 'LÃ­nea de Vida (Macro)'),
+            subtitle: t('lifeline_subtitle', 'Ciclos Mayores y PinÃ¡culos'),
             icon: Clock,
             color: "from-purple-500/20 to-magenta-500/10",
             border: "border-purple-500/30",
             glow: "shadow-[0_0_40px_-10px_rgba(139,92,246,0.4)]",
-            locked: !isAdmin,
-            status: isAdmin ? t('access', 'Acceder') : t('coming_soon', 'Próximamente')
+            locked: !isPremium,
+            status: isPremium ? t('access', 'Acceder') : t('coming_soon', 'Próximamente')
         },
         {
             id: 'TIME_MAP_ANNUAL',
             title: t('annual_horizon_title', 'Horizonte Anual (Meso)'),
-            subtitle: t('annual_horizon_subtitle', 'Simulador Cuántico de 12 Meses'),
+            subtitle: t('annual_horizon_subtitle', 'Simulador CuÃ¡ntico de 12 Meses'),
             icon: CalendarDays,
             color: "from-naos-gold/20 to-yellow-500/10",
             border: "border-naos-gold/30",
@@ -46,14 +47,14 @@ export const TimeMapNexus: React.FC<TimeMapNexusProps> = ({ onNavigate, onBack }
         },
         {
             id: 'TIME_MAP_CURRENT',
-            title: t('current_energy_title', 'Energía Actual (Micro)'),
-            subtitle: t('current_energy_subtitle', 'Tránsito Semanal y Diario'),
+            title: t('current_energy_title', 'EnergÃ­a Actual (Micro)'),
+            subtitle: t('current_energy_subtitle', 'TrÃ¡nsito Semanal y Diario'),
             icon: Zap,
             color: "from-blue-500/20 to-cyan-500/10",
             border: "border-blue-500/30",
             glow: "shadow-[0_0_40px_-10px_rgba(30,64,175,0.4)]",
-            locked: !isAdmin,
-            status: isAdmin ? t('access', 'Acceder') : t('coming_soon', 'Próximamente')
+            locked: !isPremium,
+            status: isPremium ? t('access', 'Acceder') : t('coming_soon', 'Próximamente')
         }
     ];
 
@@ -127,3 +128,5 @@ export const TimeMapNexus: React.FC<TimeMapNexusProps> = ({ onNavigate, onBack }
         </div>
     );
 };
+
+

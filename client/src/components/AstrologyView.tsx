@@ -477,7 +477,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
     // For safety in this demo, I will leave `|| true` commented out or remove it to prove the fix.
     // Actually, I'll allow `|| subscription?.plan === 'TRIAL'`.
 
-    console.log('🔍 Subscription Debug:', { subscription, isPremium });
+    console.log('🔍 Access check:', { isPremium });
 
     return (
         <div className="flex flex-col lg:flex-row h-auto lg:h-full w-full gap-8 animate-in fade-in duration-1000">

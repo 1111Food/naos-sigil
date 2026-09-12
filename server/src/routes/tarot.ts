@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { SigilService } from '../modules/sigil/service';
 import { validateUser } from '../middleware/auth';
 import { UsageGuardService } from '../modules/user/UsageGuard';
+import { RequestDeduplicator } from '../lib/deduplicator';
 
 const sigilService = new SigilService();
 
@@ -31,7 +32,15 @@ export async function tarotRoutes(app: FastifyInstance) {
         return { status: 'Tarot Oracle Online', message: 'The spirits are listening.' };
     });
 
-    app.post<{ Body: TarotRequest }>('/', { preHandler: [validateUser] }, async (request, reply) => {
+    app.post<{ Body: TarotRequest }>('/', { 
+        preHandler: [validateUser],
+        config: {
+            rateLimit: {
+                max: 5,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (request, reply) => {
         return handleAnalyze(request, reply);
     });
 
@@ -147,15 +156,19 @@ export async function tarotRoutes(app: FastifyInstance) {
             `;
 
             // Generate response using Sigil Central (processMessage)
-            console.log("Attempting to contact Gemini (Sigil Central)...");
-            const response = await sigilService.processMessage(userId, message, undefined, undefined, 'maestro', finalForceReading, undefined, language);
+            console.log("Calling Gemini via sigilService...");
+            // SEC-F2B: Deduplicate rapid duplicate clicks for the same question
+            const dedupKey = `tarot_${userId}_${Buffer.from(question || '').toString('base64').substring(0,20)}`;
+            const response = await RequestDeduplicator.execute(dedupKey, () => 
+                sigilService.processMessage(userId, message, undefined, undefined, 'maestro', finalForceReading, undefined, language)
+            );
             console.log("Gemini response received.");
 
             // Generate TTS Audio Buffer for the response
             const tts = new TTSService();
             // @ts-ignore - userGeo is injected by hook
             const region = (request as any).userGeo?.region || 'global';
-            const { hash, buffer } = await tts.generateVoice(response, region);
+            const { hash, buffer } = await tts.generateVoice(userId, response, region);
 
             await UsageGuardService.incrementUsage(userId, 'tarot');
             return {

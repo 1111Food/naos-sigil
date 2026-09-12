@@ -28,7 +28,7 @@ export async function astrologyRoutes(app: FastifyInstance) {
     app.post<{ Body: NatalChartRequest }>('/natal-chart', async (req, reply) => {
         const { birthDate, birthTime, coordinates } = req.body;
 
-        console.log("🌌 Natal Chart Request:", req.body);
+        console.log("🌌 Natal Chart Request: [REDACTED PII]");
 
         if (!coordinates || !coordinates.lat || !coordinates.lng) {
             return reply.status(400).send({ error: "Coordinates (lat, lng) are required for accurate calculation." });
@@ -67,10 +67,10 @@ export async function astrologyRoutes(app: FastifyInstance) {
     app.post<{ Body: NatalChartRequest }>('/natal-chart-temp', async (req, reply) => {
         try {
             // 1. ENTRY LOG
-            console.log("👉 [DEBUG] HIT natal-chart-temp. Body:", JSON.stringify(req.body));
+            console.log("👉 [DEBUG] HIT natal-chart-temp. Request Received.");
 
             const { birthDate, birthTime, coordinates, name, birthCity, birthCountry } = req.body;
-            console.log("🧪 Natal Chart TEMP Request:", { birthDate, birthTime, birthCity, birthCountry, coordinates });
+            console.log("🧪 Natal Chart TEMP Request: [REDACTED PII]");
 
             let lat: number;
             let lng: number;
@@ -98,7 +98,8 @@ export async function astrologyRoutes(app: FastifyInstance) {
                     if (req.body.utcOffset !== undefined) {
                         utcOffset = Number(req.body.utcOffset);
                     } else {
-                        utcOffset = await GeocodingService.getTimezoneOffset(lat, lng);
+                        const tz = GeocodingService.getTimezoneId(lat, lng);
+                        utcOffset = GeocodingService.getHistoricalUtcOffset(tz, birthDate, birthTime);
                     }
                     console.log(`📍 Geocoded: ${birthCity} -> ${lat}, ${lng} (Offset: ${utcOffset})`);
                 } catch (geoError) {

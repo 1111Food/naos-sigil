@@ -19,8 +19,26 @@ import { reviewRoutes } from './routes/review';
 import fastifyRateLimit from '@fastify/rate-limit';
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
-        logger: true,
-        ignoreTrailingSlash: true
+        logger: {
+            serializers: {
+                req(request) {
+                    // SEC-F2B.3: Redact sensitive query parameters from req.url to prevent PII/secret leaks
+                    let safeUrl = request.url;
+                    if (safeUrl.includes('?')) {
+                        safeUrl = safeUrl.replace(/([?&])(token|secret|email|password|key|ids)=([^&]+)/gi, '$1$2=[REDACTED]');
+                    }
+                    return {
+                        method: request.method,
+                        url: safeUrl,
+                        hostname: request.hostname,
+                        remoteAddress: request.ip,
+                        remotePort: request.socket?.remotePort
+                    };
+                }
+            }
+        },
+        ignoreTrailingSlash: true,
+        trustProxy: 1 // SEC-F2B.1: Trust only the first hop load balancer to prevent X-Forwarded-For spoofing
     });
 
     // --- AI REVIEW MODE KILL SWITCH (BACKEND AUTHORITY) ---
@@ -56,44 +74,72 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         global: false,
         max: 5,
         timeWindow: '1 minute',
+        hook: 'preHandler', // SEC-F2B: Ensures validateUser runs first so req.user_id exists
+        keyGenerator: (req) => {
+            return (req as any).user_id || req.ip; // Limit by user if authenticated, otherwise IP
+        },
         errorResponseBuilder: function (request, context) {
-            const err: any = new Error('Frecuencia saturada. El Sigil necesita estabilizarse. Por favor, espera un minuto antes de enviar otra consulta.');
-            err.statusCode = 429;
-            return err;
+            return {
+                statusCode: 429,
+                error: 'Too Many Requests',
+                message: {
+                    es: 'Has realizado varias solicitudes en poco tiempo. Inténtalo nuevamente en unos momentos.',
+                    en: "You've made several requests in a short period. Please try again in a moment."
+                }
+            };
         }
     });
 
+    // ── SEC-F2B.2: CORS — strict allowlist, no wildcard fallback ──────────────
+    // Webhooks (Paddle, Stripe) are server-to-server with no Origin header.
+    // They are authenticated via signature, not CORS — leave them unaffected.
+    const CORS_ALLOWLIST = new Set([
+        // Production frontends — only origins confirmed to consume the backend API
+        'https://naos-sigil.vercel.app',
+        'https://naosos.app',
+        'https://www.naosos.app'
+    ]);
+
+    // SEC-F2B.2: Local development only, excluded from production
+    if (process.env.NODE_ENV !== 'production') {
+        ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000', 'http://localhost:3001'].forEach(o => CORS_ALLOWLIST.add(o));
+    }
+
     await app.register(cors, {
         origin: (origin, cb) => {
-            // Allow requests with no origin (like mobile apps, curl, postman)
+            // Allow server-to-server requests that carry no Origin (webhooks, curl, health checks)
             if (!origin) return cb(null, true);
 
-            const allowedStatic = [
-                'https://naos-sigil.vercel.app',
-                'https://naosos.app',
-                'https://www.naosos.app',
-                'https://naos-os.com',
-                'https://www.naos-os.com',
-                'http://localhost:5173',
-                'http://localhost:5174',
-                'http://localhost:3000',
-                'http://localhost:3001'
-            ];
-
-            if (
-                allowedStatic.includes(origin) ||
-                origin.endsWith('.naosos.app') ||
-                origin.endsWith('.naos-os.com') ||
-                origin.endsWith('.vercel.app')
-            ) {
+            if (CORS_ALLOWLIST.has(origin)) {
                 return cb(null, true);
             }
 
-            cb(null, true); // Fallback allow to guarantee no user gets blocked by CORS on new domains
+            // Controlled 403 for unauthorized origins — must not produce a 500
+            const err = new Error('CORS: origin not allowed') as any;
+            err.statusCode = 403;
+            return cb(err, false);
         },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Profile-Id', 'x-profile-id', 'Accept', 'Origin'],
-        credentials: true
+        // SEC-F2B.2: credentials: false — frontend uses Authorization header (JWT), NOT cross-origin cookies.
+        // Access-Control-Allow-Credentials: true is not required and reduces CSRF attack surface.
+        credentials: false
+    });
+
+    // ── SEC-F2B.2: Security headers on every API response ────────────────────
+    app.addHook('onSend', async (request, reply) => {
+        // Prevent MIME-type sniffing attacks
+        reply.header('X-Content-Type-Options', 'nosniff');
+        // Prevent clickjacking on any HTML served directly by the API
+        reply.header('X-Frame-Options', 'DENY');
+        // Don't leak Referer to third parties from API responses
+        reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+        // HSTS for production HTTPS — 1 year, no subdomains until all are HTTPS-verified
+        if (request.protocol === 'https') {
+            reply.header('Strict-Transport-Security', 'max-age=31536000');
+        }
+        // Remove server version disclosure — Fastify sets this by default
+        reply.removeHeader('x-powered-by');
     });
 
     app.get('/health', async (request, reply) => {

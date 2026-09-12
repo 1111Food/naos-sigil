@@ -17,8 +17,8 @@ import { UsageGuardService } from '../modules/user/UsageGuard';
 import { sendProactiveMessage } from '../modules/sigil/telegramService';
 import { ForecastService } from '../modules/forecast/service';
 import { LifelineService } from '../modules/lifeline/service';
-
 import { TTSService } from '../modules/sigil/ttsService';
+import { RequestDeduplicator } from '../lib/deduplicator';
 const geoip = require('geoip-lite');
 
 function detectRegionFromIP(ip: string) {
@@ -42,20 +42,29 @@ const sigilService = new SigilService();
 
 export async function apiRoutes(app: FastifyInstance) {
 
-    // 🗺️ GeoIP Middleware
+    // Ã°Å¸â€”ÂºÃ¯Â¸Â GeoIP Middleware
     app.addHook('preHandler', async (req: any) => {
         // req.userGeo = detectRegionFromIP(req.ip);
         req.userGeo = { country: "unknown", region: "global" };
     });
 
     // Serve Cached TTS Audio file buffer
-    app.get<{ Params: { hash: string } }>('/api/sigil/audio/:hash', async (req, reply) => {
+    app.get<{ Params: { hash: string } }>('/api/sigil/audio/:hash', {
+        preHandler: [validateUser],
+        config: {
+            rateLimit: {
+                max: 15,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
+        const userId = (req as any).user_id;
         const { hash } = req.params;
         const tts = new TTSService();
-        const audioPath = tts.getAudioPath(hash);
+        const audioPath = tts.getAudioPath(userId, hash);
 
         if (!audioPath) {
-            return reply.status(404).send({ error: "Audio no encontrado" });
+            return reply.status(404).send({ error: "Audio no encontrado o no autorizado" });
         }
 
         const fs = require('fs');
@@ -63,70 +72,37 @@ export async function apiRoutes(app: FastifyInstance) {
         return reply.type('audio/mpeg').send(buffer);
     });
 
-    // 🧪 TTS Diagnostic: Test ElevenLabs & Base64 Generation
-    app.get('/api/sigil/test-tts', async (req, reply) => {
-        const tts = new TTSService();
-        const testText = "NAOS se está sincronizando. Prueba de voz activada.";
-        
-        try {
-            console.log("🧪 Diagnostic: Starting TTS Test...");
-            const { hash, buffer, error } = await tts.generateVoice(testText, 'global');
-            
-            return {
-                status: buffer ? 'ok' : 'failed',
-                hash,
-                hasBuffer: !!buffer,
-                error: error || (buffer ? undefined : "Unspecified failure"),
-                bufferSize: buffer ? buffer.length : 0,
-                base64Length: buffer ? buffer.toString('base64').length : 0,
-                apiKeyConfigured: !!config.ELEVENLABS_API_KEY,
-                voiceId: config.ELEVENLABS_VOICE_ID,
-                nodeEnv: process.env.NODE_ENV
-            };
-        } catch (e: any) {
-            console.error("🔥 TTS Test Failed:", e);
-            return reply.status(500).send({ status: 'error', message: e.message });
-        }
-    });
-
-    app.get('/api/test-supabase', async (req, reply) => {
-        console.log("🧪 Manual Test: Attempting Real Insert to Supabase...");
-        const testPayload = {
-            id: '77777777-7777-7777-7777-777777777777', // Special Test ID
-            full_name: "Test User AntiGravity",
-            birth_date: "1990-01-01",
-            birth_time: "12:00",
-            birth_location: "Audit City",
-            profile_data: { test: true, auditor: "AntiGravity" },
-            updated_at: new Date().toISOString()
-        };
-
-        try {
-            console.log("🚀 TEST PAYLOAD:", JSON.stringify(testPayload, null, 2));
-            const { data, error } = await supabase
-                .from('profiles')
-                .upsert(testPayload)
-                .select();
-
-            if (error) {
-                console.error("❌ Manual Test Failed:", JSON.stringify(error, null, 2));
-                return reply.status(500).send({ status: 'error', error });
-            }
-
-            console.log("✅ Manual Test Success. Data:", JSON.stringify(data, null, 2));
-            return { status: 'ok', message: 'Insert/Upsert Successful', data };
-        } catch (e) {
-            console.error("🔥 Manual Test Crash:", e);
-            return reply.status(500).send({ status: 'crash', error: e });
-        }
-    });
-
-
     app.get('/ping', async () => ({ status: 'vibrant', message: `Cosmos is alive on Port ${config.PORT}` }));
 
-    // 🔮 Forecast (Time Map) Endpoints
-    app.get<{ Querystring: { lang?: string } }>('/api/forecast', { preHandler: [validateUser] }, async (req, reply) => {
+    // Generate Telegram Linking Token
+    app.post('/api/telegram/link-token', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
+        const crypto = require('crypto');
+        const token = crypto.randomBytes(16).toString('hex'); // 128-bit entropy
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        const { supabaseAdmin } = require('../lib/supabase');
+        const { data: profile, error } = await supabaseAdmin.from('profiles').select('profile_data').eq('id', userId).single();
+        if (error || !profile) return reply.status(500).send({ error: 'Profile not found' });
+
+        const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes TTL
+
+        const newProfileData = {
+            ...(profile.profile_data || {}),
+            telegram_link: { token: tokenHash, expires_at }
+        };
+
+        const { error: updateError } = await supabaseAdmin.from('profiles').update({ profile_data: newProfileData }).eq('id', userId);
+        if (updateError) return reply.status(500).send({ error: 'Could not generate token' });
+
+        return reply.send({ token, expires_at });
+    });
+
+    // Ã°Å¸â€ Â® Forecast (Time Map) Endpoints
+    app.get<{ Querystring: { lang?: string } }>('/api/forecast', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        const userRole = (req as any).user?.role;
+        const isPremium = userRole === 'premium' || userRole === 'admin';
         const lang = req.query.lang || 'es';
         
         try {
@@ -134,71 +110,118 @@ export async function apiRoutes(app: FastifyInstance) {
             if (!map) {
                 return reply.status(404).send({ error: "No forecast found", needsGeneration: true });
             }
+            
+            // Server-side Premium Enforcement: Censor months > 0 for free users
+            if (!isPremium && map?.months && Array.isArray(map.months)) {
+                for (let i = 1; i < map.months.length; i++) {
+                    map.months[i].insight = lang === 'en' ? "Premium Required" : "Modo Arquitecto Requerido";
+                    map.months[i].theme = lang === 'en' ? "Premium Required" : "Modo Arquitecto Requerido";
+                    map.months[i].keywords = [];
+                }
+            }
+
             return { map };
         } catch (error: any) {
-            console.error("🔥 Error getting forecast:", error);
+            console.error("Ã°Å¸â€Â¥ Error getting forecast:", error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
-    app.post<{ Body: { lang?: string } }>('/api/forecast/generate', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { lang?: string } }>('/api/forecast/generate', { 
+        preHandler: [validateUser, validatePremium],
+        config: {
+            rateLimit: {
+                max: 3,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const userId = (req as any).user_id;
+        const userRole = (req as any).user?.role;
+        const isPremium = userRole === 'premium' || userRole === 'admin';
         const lang = req.body.lang || 'es';
         
         try {
-            const map = await ForecastService.generateTimeMap(userId, lang);
+            const map = await RequestDeduplicator.execute(`forecast_${userId}_${lang}`, () => ForecastService.generateTimeMap(userId, lang));
+            
+            // Server-side Premium Enforcement: Censor months > 0 for free users
+            if (!isPremium && map?.months && Array.isArray(map.months)) {
+                for (let i = 1; i < map.months.length; i++) {
+                    map.months[i].insight = lang === 'en' ? "Premium Required" : "Modo Arquitecto Requerido";
+                    map.months[i].theme = lang === 'en' ? "Premium Required" : "Modo Arquitecto Requerido";
+                    map.months[i].keywords = [];
+                }
+            }
+            
             return { map };
         } catch (error: any) {
-            console.error("🔥 Error generating forecast:", error);
+            console.error("Ã°Å¸â€Â¥ Error generating forecast:", error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
-    // 🧬 Lifeline (Eje Evolutivo) Endpoints
-    app.get<{ Querystring: { lang?: string } }>('/api/lifeline', { preHandler: [validateUser] }, async (req, reply) => {
+    // Ã°Å¸Â§Â¬ Lifeline (Eje Evolutivo) Endpoints
+    app.get<{ Querystring: { lang?: string } }>('/api/lifeline', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const lang = req.query.lang || 'es';
         
         try {
             const map = await LifelineService.getLifeline(userId, lang);
             if (!map) {
-                return reply.status(404).send({ error: "No lifeline found", needsGeneration: true });
+                return { exists: false, needsGeneration: true };
             }
-            return { map };
+            return { exists: true, map };
         } catch (error: any) {
-            console.error("🔥 Error getting lifeline:", error);
+            console.error("Ã°Å¸â€Â¥ Error getting lifeline:", error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
-    app.post<{ Body: { lang?: string } }>('/api/lifeline/generate', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { lang?: string } }>('/api/lifeline/generate', { 
+        preHandler: [validateUser, validatePremium],
+        config: {
+            rateLimit: {
+                max: 3,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const userId = (req as any).user_id;
         const lang = req.body.lang || 'es';
         
         try {
-            const map = await LifelineService.generateLifeline(userId, lang);
+            const map = await RequestDeduplicator.execute(`lifeline_${userId}_${lang}`, () => LifelineService.generateLifeline(userId, lang));
             return { map };
         } catch (error: any) {
-            console.error("🔥 Error generating lifeline:", error);
+            console.error("Ã°Å¸â€ Â¥ Error generating lifeline:", error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
-    // ⚡ Current Energy Endpoint
-    app.get<{ Querystring: { lang?: string } }>('/api/energy/current', { preHandler: [validateUser] }, async (req, reply) => {
+    // 🌟 Current Energy Endpoint
+    app.get<{ Querystring: { lang?: string } }>('/api/energy/current', { 
+        preHandler: [validateUser, validatePremium],
+        config: {
+            rateLimit: {
+                max: 10,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const userId = (req as any).user_id;
-        const lang = req.query.lang || 'es';
+        const langRaw = req.query.lang || 'es';
+        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es'; // SEC-F2B.1: Strict validation
         
         try {
             const energy = await EnergyService.getCurrentEnergy(userId, lang);
             return { energy };
         } catch (error: any) {
-            console.error("🔥 Error getting current energy:", error);
+            console.error("Ã°Å¸â€Â¥ Error getting current energy:", error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
-    // 🔮 Sigil Chat / Interaction Endpoint
+    // Ã°Å¸â€Â® Sigil Chat / Interaction Endpoint
     app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { 
         preHandler: [validateUser],
         config: {
@@ -211,15 +234,15 @@ export async function apiRoutes(app: FastifyInstance) {
         const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
         const userId = (req as any).user_id;
 
-        // 🛡️ UsageGuard Limit Check
-        console.log(`🛡️ Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
+        // Ã°Å¸â€ºÂ¡Ã¯Â¸Â UsageGuard Limit Check
+        console.log(`Ã°Å¸â€ºÂ¡Ã¯Â¸Â Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
         const limitCheck = await UsageGuardService.checkLimit(userId, 'sigil', (req as any).user?.role);
         if (!limitCheck.ok) {
-            return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+            return reply.status(403).send({ error: "LÃƒÂ­mite de EnergÃƒÂ­a Agotado", message: limitCheck.message });
         }
 
         try {
-            console.log(`🌀 INCOMING MESSAGE from ${userId}: "${message}"`);
+            console.log(`Ã°Å¸Å’â‚¬ INCOMING MESSAGE from ${userId}: "${message}"`);
             const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo);
 
             let finalText = res;
@@ -230,7 +253,7 @@ export async function apiRoutes(app: FastifyInstance) {
                 if (match && match[1]) {
                     try {
                         kernelAction = JSON.parse(match[1]);
-                        finalText = kernelAction.intent || (kernelAction.payload?.mode === 'SUGGEST' ? "Tengo una sugerencia para ti." : "Ejecutando acción...");
+                        finalText = kernelAction.intent || (kernelAction.payload?.mode === 'SUGGEST' ? "Tengo una sugerencia para ti." : "Ejecutando acciÃƒÂ³n...");
                     } catch (e) {
                         console.error("Error parsing KERNEL_ACTION:", e);
                     }
@@ -239,7 +262,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
             // Generate TTS Audio Buffer for the response
             const tts = new TTSService();
-            const { hash, buffer } = await tts.generateVoice(finalText, (req as any).userGeo?.region || 'global');
+            const { hash, buffer } = await tts.generateVoice(userId, finalText, (req as any).userGeo?.region || 'global');
 
             await UsageGuardService.incrementUsage(userId, 'sigil');
 
@@ -251,7 +274,7 @@ export async function apiRoutes(app: FastifyInstance) {
             };
 
         } catch (error: any) {
-            console.error("🔥 SIGIL ERROR:", error);
+            console.error("Ã°Å¸â€Â¥ SIGIL ERROR:", error);
             // Deep file logging
             try {
                 const fs = require('fs');
@@ -261,20 +284,20 @@ export async function apiRoutes(app: FastifyInstance) {
 
             if (error.message?.includes('LIMITE_CUOTA')) {
                 return reply.status(429).send({
-                    error: "El Oráculo ha alcanzado su límite de expansión hoy.",
+                    error: "El OrÃƒÂ¡culo ha alcanzado su lÃƒÂ­mite de expansiÃƒÂ³n hoy.",
                     details: "QUOTA_EXCEEDED"
                 });
             }
 
             return reply.status(500).send({
-                error: "La red estelar está inestable. Revisa tu conexión mística.",
+                error: "La red estelar estÃƒÂ¡ inestable. Revisa tu conexiÃƒÂ³n mÃƒÂ­stica.",
                 details: error.message
             });
         }
     });
 
 
-    // 🔮 Sigil Chat DEMO / Review Mode Endpoint
+    // Ã°Å¸â€Â® Sigil Chat DEMO / Review Mode Endpoint
     app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/demo/sigil', { 
         config: {
             rateLimit: {
@@ -284,7 +307,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     }, async (req, reply) => {
         if (process.env.VITE_REVIEW_MODE !== 'true') {
-            return reply.status(403).send({ error: "Review Mode no está activo en el servidor." });
+            return reply.status(403).send({ error: "Review Mode no estÃƒÂ¡ activo en el servidor." });
         }
 
         const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
@@ -293,32 +316,32 @@ export async function apiRoutes(app: FastifyInstance) {
         const DEMO_USER_ID = "00000000-0000-0000-0000-000000000000";
 
         try {
-            console.log(`🌀 INCOMING DEMO MESSAGE from IP: "${message}"`);
+            console.log(`Ã°Å¸Å’â‚¬ INCOMING DEMO MESSAGE from IP: "${message}"`);
             
             // Forzamos el userId a DEMO_USER_ID y un flag de demo (isDemo = true) si processMessage lo soporta
-            // O podemos usar un generador estático para ahorrar tokens en revisión.
+            // O podemos usar un generador estÃƒÂ¡tico para ahorrar tokens en revisiÃƒÂ³n.
             if (process.env.VITE_REVIEW_MOCK_SIGIL === 'true') {
                 return { 
-                    text: `*Respuesta de prueba (MOCK_SIGIL activo)*. Has dicho: "${message}". En modo producción, esta respuesta vendría del LLM real con el perfil demo.`,
+                    text: `*Respuesta de prueba (MOCK_SIGIL activo)*. Has dicho: "${message}". En modo producciÃƒÂ³n, esta respuesta vendrÃƒÂ­a del LLM real con el perfil demo.`,
                     kernelAction: undefined
                 };
             }
 
-            // Aquí pasamos isDemo=true al sigilService si tuviéramos un flag, pero por ahora usamos el ID dummy.
-            // Para evitar llenar la DB real o fallos de foreign keys, sigilService debería manejar el demo_id graciosamente.
-            // Actualmente processMessage espera que userId exista en profiles. Para la DEMO, quizás es mejor usar un LLM directo sin history persistente o confiar en que SigilService puede manejar usuarios anónimos/demos.
-            // Como no estoy seguro de si processMessage explotará con un UUID que no está en la base de datos, lo más seguro es proveer una respuesta directa con Gemini si isMockSigil no está forzado, O usar processMessage si sabemos que lo soporta.
+            // AquÃƒÂ­ pasamos isDemo=true al sigilService si tuviÃƒÂ©ramos un flag, pero por ahora usamos el ID dummy.
+            // Para evitar llenar la DB real o fallos de foreign keys, sigilService deberÃƒÂ­a manejar el demo_id graciosamente.
+            // Actualmente processMessage espera que userId exista en profiles. Para la DEMO, quizÃƒÂ¡s es mejor usar un LLM directo sin history persistente o confiar en que SigilService puede manejar usuarios anÃƒÂ³nimos/demos.
+            // Como no estoy seguro de si processMessage explotarÃƒÂ¡ con un UUID que no estÃƒÂ¡ en la base de datos, lo mÃƒÂ¡s seguro es proveer una respuesta directa con Gemini si isMockSigil no estÃƒÂ¡ forzado, O usar processMessage si sabemos que lo soporta.
             // Por requerimiento del usuario "con rate-limiting estricto global por IP".
             
             // Llama a processMessage con el DEMO_USER_ID. Si processMessage asume que existe en Supabase y falla, entonces
             // necesitaremos hacer bypass del history guardado, pero por el momento le pasamos DEMO_USER_ID.
-            // Se asume que el DEMO_USER_ID está creado en la DB, o SigilService es tolerante a fallos de escritura de logs.
+            // Se asume que el DEMO_USER_ID estÃƒÂ¡ creado en la DB, o SigilService es tolerante a fallos de escritura de logs.
             
-            // Se usará una llamada básica de Gemini para aislar la Demo de la base de datos
+            // Se usarÃƒÂ¡ una llamada bÃƒÂ¡sica de Gemini para aislar la Demo de la base de datos
             const { GoogleGenerativeAI } = require('@google/generative-ai');
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Eres NAOS Sigil, un oráculo de autoconocimiento, operando en modo DEMO. Responde con sabiduría, en el idioma ${language || 'es'}, de forma misteriosa pero útil a esto: "${message}"`;
+            const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
+            const prompt = `Eres NAOS Sigil, un orÃƒÂ¡culo de autoconocimiento, operando en modo DEMO. Responde con sabidurÃƒÂ­a, en el idioma ${language || 'es'}, de forma misteriosa pero ÃƒÂºtil a esto: "${message}"`;
             const result = await model.generateContent(prompt);
             const finalText = result.response.text();
             
@@ -327,14 +350,22 @@ export async function apiRoutes(app: FastifyInstance) {
                 kernelAction: undefined
             };
         } catch (error: any) {
-            console.error("🔥 Demo Chat Error:", error);
+            console.error("Ã°Å¸â€Â¥ Demo Chat Error:", error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
 
     // Prompt 5: Lab Session Trigger
-    app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { 
+        preHandler: [validateUser, validatePremium],
+        config: {
+            rateLimit: {
+                max: 5,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const { element } = req.body;
         const userId = (req as any).user_id;
 
@@ -349,13 +380,13 @@ export async function apiRoutes(app: FastifyInstance) {
                 return reply.status(400).send({ error: "Telegram no vinculado" });
             }
 
-            const promptContext = `[SESIÓN LABORATORIO]: El usuario ha iniciado una práctica de ${element}. Genera una instrucción mística de 1-2 líneas para su respiración.`;
+            const promptContext = `[SESIÃƒâ€œN LABORATORIO]: El usuario ha iniciado una prÃƒÂ¡ctica de ${element}. Genera una instrucciÃƒÂ³n mÃƒÂ­stica de 1-2 lÃƒÂ­neas para su respiraciÃƒÂ³n.`;
             const message = await sigilService.processMessage(userId, promptContext);
             
             await sendProactiveMessage(user.telegram_chat_id, message);
             return { status: 'ok', sent: true };
         } catch (e: any) {
-            console.error("🔥 LAB TRIGGER ERROR:", e);
+            console.error("Ã°Å¸â€Â¥ LAB TRIGGER ERROR:", e);
             return reply.status(500).send({ error: e.message });
         }
     });
@@ -370,13 +401,13 @@ export async function apiRoutes(app: FastifyInstance) {
             await CoherenceService.applyInactivityDecay(userId);
             const coherence = await CoherenceService.getCoherence(userId);
 
-            // 2. Reportar actividad para Disciplina (si entra es porque está activo)
+            // 2. Reportar actividad para Disciplina (si entra es porque estÃƒÂ¡ activo)
             await CoherenceService.updateScore(userId, 'discipline', 1);
             await CoherenceService.updateStreak(userId);
 
             return EnergyService.getDailySnapshot(user, coherence.global_coherence);
         } catch (e) {
-            console.error("🔥 Energy Route Error:", e);
+            console.error("Ã°Å¸â€Â¥ Energy Route Error:", e);
             return reply.status(500).send({ error: 'Internal Server Error' });
         }
     });
@@ -394,12 +425,12 @@ export async function apiRoutes(app: FastifyInstance) {
 
     app.post<{ Body: Partial<UserProfile> }>('/api/profile', { preHandler: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
-        console.log('✅ DATO RECIBIDO DEL CLIENTE:', req.body.name || 'Sin nombre', '| ID:', userId);
+        console.log('✅ PROFILE UPDATE REQUEST | ID:', userId.split('-')[0]);
         try {
             const result = await UserService.updateProfile(userId, req.body);
             return result;
         } catch (err) {
-            console.error('🔥 Error en POST /api/profile:', err);
+            console.error('Ã°Å¸â€Â¥ Error en POST /api/profile:', err);
             return reply.status(500).send({ error: 'Internal Server Error' });
         }
     });
@@ -410,10 +441,11 @@ export async function apiRoutes(app: FastifyInstance) {
         return SubscriptionService.getStatus(userId);
     });
 
-    app.post('/api/subscription/upgrade', { preHandler: [validateUser] }, async (req, reply) => {
-        const userId = (req as any).user_id;
-        return SubscriptionService.upgradePlan(userId);
-    });
+    // [DEAD] Obsolete MOCK endpoint. Real upgrade is handled by /api/checkout and webhooks.
+    // app.post('/api/subscription/upgrade', { preHandler: [validateUser] }, async (req, reply) => {
+    //     const userId = (req as any).user_id;
+    //     return SubscriptionService.upgradePlan(userId);
+    // });
 
     // Custom Tuning Deletion (RLS Bypass)
     app.delete<{ Params: { id: string } }>('/api/tunings/:id', { preHandler: [validateUser] }, async (req, reply) => {
@@ -423,7 +455,7 @@ export async function apiRoutes(app: FastifyInstance) {
             if (error) throw error;
             return { status: 'ok' };
         } catch (e: any) {
-            console.error("🔥 Error deleting tuning:", e);
+            console.error("Ã°Å¸â€Â¥ Error deleting tuning:", e);
             return reply.status(500).send({ error: e.message });
         }
     });
@@ -457,7 +489,7 @@ export async function apiRoutes(app: FastifyInstance) {
             await CoherenceService.applyInactivityDecay(userId);
             return await CoherenceService.getCoherence(userId);
         } catch (e) {
-            console.error("🔥 Coherence Route Error:", e);
+            console.error("Ã°Å¸â€Â¥ Coherence Route Error:", e);
             return reply.status(500).send({ error: 'Internal Server Error' });
         }
     });
@@ -470,15 +502,15 @@ export async function apiRoutes(app: FastifyInstance) {
         // Check Admin
         const isAdmin = (req as any).user?.role === 'admin';
 
-        // 🛡️ UsageGuard Limit Check
+        // Ã°Å¸â€ºÂ¡Ã¯Â¸Â UsageGuard Limit Check
         if (forceRefresh && !isAdmin) { 
              const limitCheck = await UsageGuardService.checkLimit(userId, 'naos_code', (req as any).user?.role);
              if (!limitCheck.ok) {
-                 return reply.status(403).send({ error: "Límite de Energía Agotado", message: limitCheck.message });
+                 return reply.status(403).send({ error: "LÃƒÂ­mite de EnergÃƒÂ­a Agotado", message: limitCheck.message });
              }
         }
 
-        console.log(`🧬 [NAOS_CODE_START] Compilación solicitada para: ${userId} | Refresh: ${forceRefresh} | Lang: ${lang}`);
+        console.log(`Ã°Å¸Â§Â¬ [NAOS_CODE_START] CompilaciÃƒÂ³n solicitada para: ${userId} | Refresh: ${forceRefresh} | Lang: ${lang}`);
         try {
 
             const res = await NaosCompilerService.compile(userId, forceRefresh, lang as any);
@@ -487,7 +519,7 @@ export async function apiRoutes(app: FastifyInstance) {
             }
             return res;
         } catch (e: any) {
-            console.error("🔥 NAOS Compiler Route Error:", e);
+            console.error("Ã°Å¸â€Â¥ NAOS Compiler Route Error:", e);
             return reply.status(500).send({ error: 'Failed to compile NAOS Identity', details: e.message });
         }
     });
@@ -495,47 +527,51 @@ export async function apiRoutes(app: FastifyInstance) {
     // Debug & Health
     app.get('/api/health-check/ai', async (req, reply) => {
         try {
-            const res = await sigilService.generateResponse("ping", "health-check-system");
-            return { status: 'ok', response: res };
-        } catch (e: any) {
-            return reply.status(500).send({ status: 'error', error: e.message });
+            // SEC-007: Removed direct sigilService.generateResponse to prevent public unauthenticated Gemini API abuse.
+            // Health check now only validates server runtime presence.
+            return { status: 'alive', message: 'Sigil system is active' };
+        } catch (error: any) {
+            return reply.status(500).send({ status: 'dead', error: error.message });
         }
     });
 
-    app.get('/api/debug/state', { preHandler: [validateUser] }, async (req, reply) => {
-        return UserService.getRawState();
-    });
-
-    // Onboarding (TEMP DEBUG: No auth)
-    app.get('/api/onboarding/cold-read', async (req, reply) => {
-        // Mocking a userId if not present for testing
-        const userId = (req as any).user_id || (req.query as any).userId || '77777777-7777-7777-7777-777777777777';
-        console.log(`📡 [API] Cold Read request for User: ${userId}`);
+    // Onboarding Cold Read (Secured)
+    app.get('/api/onboarding/cold-read', {
+        preHandler: [validateUser],
+        config: {
+            rateLimit: {
+                max: 3,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        console.log(`?o [API] Cold Read request for User: ${userId}`);
         try {
             const result = await sigilService.generateColdRead(userId);
-            console.log(`✅ [API] Cold Read generated successfully for ${userId}`);
+            console.log(`ǽ"? [API] Cold Read generated successfully for ${userId}`);
             return result;
         } catch (error: any) {
-            console.error("🔥 [API] Cold Read Error:", error.message, error.stack);
+            console.error("?? [API] Cold Read Error:", error.message, error.stack);
             return reply.status(500).send({ error: 'Failed to generate initial initiation.', details: error.message });
         }
     });
 
     app.post('/api/onboarding/complete', { preHandler: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
-        console.log(`📡 [API] Completing onboarding for User: ${userId}`);
+        console.log(`Ã°Å¸â€œÂ¡ [API] Completing onboarding for User: ${userId}`);
         try {
             const result = await UserService.updateProfile(userId, { onboarding_completed: true });
-            console.log(`✅ [API] Onboarding marked complete for ${userId}`);
+            console.log(`Ã¢Å“â€¦ [API] Onboarding marked complete for ${userId}`);
 
             // Fire-and-forget: Pre-compile NAOS Identity so it's ready when they enter the dashboard
             NaosCompilerService.compile(userId, true).then(() => {
-                console.log(`✅ [API] Background NAOS Identity compiled for ${userId}`);
-            }).catch(e => console.error("🔥 [API] Background NAOS compile failed:", e));
+                console.log(`Ã¢Å“â€¦ [API] Background NAOS Identity compiled for ${userId}`);
+            }).catch(e => console.error("Ã°Å¸â€Â¥ [API] Background NAOS compile failed:", e));
 
             return { status: 'ok', onboarding_completed: result.onboarding_completed };
         } catch (error: any) {
-            console.error("🔥 [API] Onboarding Complete Error:", error.message);
+            console.error("Ã°Å¸â€Â¥ [API] Onboarding Complete Error:", error.message);
             return reply.status(500).send({ error: 'Failed to complete onboarding.' });
         }
     });
@@ -548,19 +584,27 @@ export async function apiRoutes(app: FastifyInstance) {
             const { protocolId, dayNumber, notes } = req.body;
             return await ProtocolService.sealDay(userId, protocolId, dayNumber, notes, token);
         } catch (e: any) {
-            console.error("🔥 Protocol Seal-Day Error:", e);
+            console.error("Ã°Å¸â€Â¥ Protocol Seal-Day Error:", e);
             return reply.status(500).send({ error: e.message });
         }
     });
 
-    app.post<{ Body: { protocolId: string, newIntention?: string } }>('/api/protocols/evolve', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.post<{ Body: { protocolId: string, newIntention?: string } }>('/api/protocols/evolve', { 
+        preHandler: [validateUser, validatePremium],
+        config: {
+            rateLimit: {
+                max: 3,
+                timeWindow: '1 minute'
+            }
+        }
+    }, async (req, reply) => {
         const userId = (req as any).user_id;
         const token = (req as any).token;
         try {
             const { protocolId, newIntention } = req.body;
             return await ProtocolService.evolveProtocol(userId, protocolId, newIntention || '', token);
         } catch (e: any) {
-            console.error("🔥 Protocol Evolution Error:", e);
+            console.error("Ã°Å¸â€Â¥ Protocol Evolution Error:", e);
             return reply.status(500).send({ error: e.message });
         }
     });
@@ -594,7 +638,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
 
-    // 🔮 Pulso Cuántico (Daily Oracle)
+    // Ã°Å¸â€Â® Pulso CuÃƒÂ¡ntico (Daily Oracle)
     app.get<{ Querystring: { offset?: number, lang?: string } }>('/api/oracle/daily', { preHandler: [validateUser] }, async (req, reply) => {
         try {
             const offset = Number(req.query.offset) || 0;
@@ -620,3 +664,5 @@ export async function apiRoutes(app: FastifyInstance) {
          }
     });
 }
+
+

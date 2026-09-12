@@ -1,6 +1,7 @@
-export class LifelinePromptBuilder {
+﻿export class LifelinePromptBuilder {
     static build(
         userData: any, 
+        astroContext: any,
         pinnacles: any,
         currentPersonalYear: number,
         language: string = 'es'
@@ -12,12 +13,13 @@ export class LifelinePromptBuilder {
 Debes cruzar la matemática pitagórica de sus 4 grandes etapas de vida (Pináculos) con su carta natal astrológica, su nahual maya y su energía china.
 
 DATOS DEL USUARIO:
-- Nombre: ${userData.display_name || 'Arquitecto'}
-- Nacimiento: ${userData.birth_date}
-- Astrología: Sol en ${userData.sun_sign}, Luna en ${userData.moon_sign || '?'}, Ascendente en ${userData.ascendant_sign || '?'}
-- Nahual Natal: ${userData.mayan_nawal || '?'}
-- Astrología China Natal: ${userData.chinese_sign || '?'}
-- Numerología Natal (Camino de Vida): ${userData.numerology_path || '?'}
+- Nombre: ${userData.display_name || userData.name || 'Arquitecto'}
+- Nacimiento: ${userData.birthDate || userData.birth_date}
+- Astrología: Sol en ${astroContext?.sunSign}, Luna en ${astroContext?.moonSign}, Ascendente en ${astroContext?.ascendantSign}
+- Nahual Natal: ${userData.nawal_maya || userData.mayan_nawal || '?'}
+- Astrología China Natal: ${userData.chinese_animal || userData.chinese_sign || '?'}
+- Numerología Natal (Camino de Vida): ${userData.numerology?.lifePathNumber || userData.numerology_path || '?'}
+- Carta Natal Canónica: ${JSON.stringify(astroContext || {})}
 
 CICLOS MAYORES (PINÁCULOS DE VIDA):
 Pináculo 1: Vibración ${pinnacles.allPinnacles[0].value} (de los ${pinnacles.allPinnacles[0].startAge} a los ${pinnacles.allPinnacles[0].endAge} años)
@@ -29,64 +31,86 @@ El usuario tiene ${pinnacles.currentAge} años y actualmente cursa el Pináculo 
 CICLO ACTUAL (ESCALA 9 AÑOS):
 Actualmente el usuario está atravesando su Año Personal ${currentPersonalYear}.
 
-INSTRUCCIONES DE FUSIÓN:
-Toma el molde numérico de cada Pináculo y crúzalo con los astros, el nahual y el animal chino. 
-Todo el texto generado debe venir estrictamente en dos versiones (Jargon Toggle):
-1. esoteric_reading: Usa lenguaje místico (tránsitos, nahuales, elementos, arquetipos).
-2. biohacking_reading: Usa lenguaje conductual (enfoque, estrés, neuroplasticidad, rendimiento, hábitos, picos de energía).
+INSTRUCCIONES CRÍTICAS:
+1. No utilices Markdown (sin \`\`\`json).
+2. Devuelve estrictamente el JSON.
+3. El idioma debe ser ${language}.
 
-FORMATO OBLIGATORIO DE RESPUESTA (Solo JSON, sin Markdown \`\`\`json):
+ESTRUCTURA JSON REQUERIDA:
 {
-  "pinnacles": [
-    {
-      "index": 1, // 1 to 4
-      "esoteric_reading": {
-         "objetivo_evolutivo": "Resumen místico de 10 palabras",
-         "riesgo_principal": "Riesgo místico corto",
-         "virtud_desarrollar": "Virtud arquetípica",
-         "talento_dormido": "Talento esotérico",
-         "metricas_naos": "Qué medirá NAOS en esta etapa"
-      },
-      "biohacking_reading": {
-         "objetivo_evolutivo": "Resumen conductual de 10 palabras",
-         "riesgo_principal": "Riesgo conductual corto",
-         "virtud_desarrollar": "Virtud psicológica",
-         "talento_dormido": "Habilidad táctica",
-         "metricas_naos": "Qué medirá NAOS en esta etapa"
-      },
-      "indicators": {
-         "creativity": 80, // Entero 0-100
-         "leadership": 50,
-         "learning": 90,
-         "expansion": 60,
-         "relationships": 40
-      },
-      "deep_dive_esoteric": "Texto profundo de 3-4 líneas sintetizando las 4 Intelligence Sources en un lenguaje clínico y estratégico.",
-      "deep_dive_biohacking": "Texto profundo de 3-4 líneas en lenguaje de alto rendimiento y biohacking."
-    }
-  ], // Repetir para los 4 pináculos
-  "current_cycle": {
-    "year_number": ${currentPersonalYear},
-    "esoteric_reading": {
-       "objetivo_evolutivo": "...",
-       "riesgo_principal": "...",
-       "virtud_desarrollar": "...",
-       "talento_dormido": "...",
-       "metricas_naos": "..."
+    "current_cycle": {
+        "title": "...",
+        "description": "...",
+        "pinnacle_number": ${pinnacles.pinnacleValue},
+        "personal_year": ${currentPersonalYear},
+        "key_themes": ["...", "..."],
+        "duration": "...",
+        "karmic_lesson": "..."
     },
-    "biohacking_reading": {
-       "objetivo_evolutivo": "...",
-       "riesgo_principal": "...",
-       "virtud_desarrollar": "...",
-       "talento_dormido": "...",
-       "metricas_naos": "..."
+    "evolution_axis": {
+        "origin": "...",
+        "destination": "...",
+        "core_challenge": "..."
     },
-    "deep_dive_esoteric": "Lectura mística profunda para su Año Personal actual.",
-    "deep_dive_biohacking": "Lectura conductual profunda para su Año Personal actual."
-  }
+    "pinnacles": [
+        { "number": 1, "value": ${pinnacles.allPinnacles[0].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 1} },
+        { "number": 2, "value": ${pinnacles.allPinnacles[1].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 2} },
+        { "number": 3, "value": ${pinnacles.allPinnacles[2].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 3} },
+        { "number": 4, "value": ${pinnacles.allPinnacles[3].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 4} }
+    ]
 }`
-            : `English prompt...`;
+            : `You are the NAOS Evolutionary Engine (Macro Scale). Your objective is to generate the Architecture of the user's "Evolution Axis".
+You must cross the Pythagorean math of their 4 major life stages (Pinnacles) with their astrological natal chart, their Mayan nahual, and their Chinese energy.
 
+USER DATA:
+- Name: ${userData.display_name || userData.name || 'Architect'}
+- Birth: ${userData.birthDate || userData.birth_date}
+- Astrology: Sun in ${astroContext?.sunSign}, Moon in ${astroContext?.moonSign}, Ascendant in ${astroContext?.ascendantSign}
+- Natal Nahual: ${userData.nawal_maya || userData.mayan_nawal || '?'}
+- Chinese Astrology: ${userData.chinese_animal || userData.chinese_sign || '?'}
+- Natal Numerology (Life Path): ${userData.numerology?.lifePathNumber || userData.numerology_path || '?'}
+- Canonical Natal Chart: ${JSON.stringify(astroContext || {})}
+
+MAJOR CYCLES (LIFE PINNACLES):
+Pinnacle 1: Vibration ${pinnacles.allPinnacles[0].value} (from ${pinnacles.allPinnacles[0].startAge} to ${pinnacles.allPinnacles[0].endAge} years old)
+Pinnacle 2: Vibration ${pinnacles.allPinnacles[1].value} (from ${pinnacles.allPinnacles[1].startAge} to ${pinnacles.allPinnacles[1].endAge} years old)
+Pinnacle 3: Vibration ${pinnacles.allPinnacles[2].value} (from ${pinnacles.allPinnacles[2].startAge} to ${pinnacles.allPinnacles[2].endAge} years old)
+Pinnacle 4: Vibration ${pinnacles.allPinnacles[3].value} (from ${pinnacles.allPinnacles[3].startAge} onwards)
+The user is ${pinnacles.currentAge} years old and is currently in Pinnacle ${pinnacles.pinnacleIndex}.
+
+CURRENT CYCLE (9-YEAR SCALE):
+The user is currently navigating their Personal Year ${currentPersonalYear}.
+
+CRITICAL INSTRUCTIONS:
+1. Do not use Markdown (no \`\`\`json).
+2. Return strictly the JSON object.
+3. The language MUST be English.
+
+REQUIRED JSON STRUCTURE:
+{
+    "current_cycle": {
+        "title": "...",
+        "description": "...",
+        "pinnacle_number": ${pinnacles.pinnacleValue},
+        "personal_year": ${currentPersonalYear},
+        "key_themes": ["...", "..."],
+        "duration": "...",
+        "karmic_lesson": "..."
+    },
+    "evolution_axis": {
+        "origin": "...",
+        "destination": "...",
+        "core_challenge": "..."
+    },
+    "pinnacles": [
+        { "number": 1, "value": ${pinnacles.allPinnacles[0].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 1} },
+        { "number": 2, "value": ${pinnacles.allPinnacles[1].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 2} },
+        { "number": 3, "value": ${pinnacles.allPinnacles[2].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 3} },
+        { "number": 4, "value": ${pinnacles.allPinnacles[3].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 4} }
+    ]
+}`;
+            
         return prompt;
     }
 }
+

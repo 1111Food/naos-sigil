@@ -12,5 +12,28 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), autoplay=(self), payment=(self https://buy.paddle.com)"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' https://cdn.paddle.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://naos-backend.onrender.com https://avaikhukgugvcocwedsz.supabase.co wss://avaikhukgugvcocwedsz.supabase.co https://api.paddle.com https://prod.spline.design; worker-src 'self' blob:; img-src 'self' data: blob: https://avaikhukgugvcocwedsz.supabase.co; media-src 'self' blob:; frame-src https://buy.paddle.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; upgrade-insecure-requests"
+        }
+      ]
+    }
   ]
 }

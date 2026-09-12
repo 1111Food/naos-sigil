@@ -1,8 +1,9 @@
-import { supabase } from '../../lib/supabase';
+﻿import { supabase } from '../../lib/supabase';
 import { UserService } from '../user/service';
 import { ForecastCalculator } from '../forecast/calculator';
 import { LifelinePromptBuilder } from './promptBuilder';
 import { LifelineEngine } from './engine';
+import { AstroContextBuilder } from '../astrology/AstroContextBuilder';
 
 export class LifelineService {
     
@@ -15,11 +16,12 @@ export class LifelineService {
             .maybeSingle();
 
         if (error) throw error;
+        if (data && data.astro_context_version !== 2) return null;
         return data; // Returns null if not exists, which is perfect to trigger generation
     }
 
     static async generateLifeline(userId: string, language: string = 'es') {
-        console.log(`🌀 LifelineService: Generating Eje Evolutivo for user ${userId} [${language}]`);
+        console.log(`ðŸŒ€ LifelineService: Generating Eje Evolutivo for user ${userId} [${language}]`);
         
         // 1. Get User Data
         const profile = await UserService.getProfile(userId);
@@ -42,10 +44,12 @@ export class LifelineService {
         const personalYear = reduceToSingleDigit(reduceToSingleDigit(bDay) + reduceToSingleDigit(bMonth) + reduceToSingleDigit(currentYear));
 
         // 4. Build Mega-Prompt
-        const prompt = LifelinePromptBuilder.build(profile, pinnacles, personalYear, language);
+        const astroContext = AstroContextBuilder.normalize(profile);
+        const prompt = LifelinePromptBuilder.build(profile, astroContext, pinnacles, personalYear, language);
 
         // 5. Execute AI Engine
         const lifelineData = await LifelineEngine.generate(prompt);
+        lifelineData.astro_context_version = 2;
 
         // 6. Save to Database Permanently (with fallback for UI resilience)
         try {
@@ -65,7 +69,7 @@ export class LifelineService {
                 return savedLifeline;
             }
         } catch (dbErr) {
-            console.warn("⚠️ LifelineService DB save warning:", dbErr);
+            console.warn("âš ï¸ LifelineService DB save warning:", dbErr);
         }
 
         return {
@@ -76,3 +80,6 @@ export class LifelineService {
         };
     }
 }
+
+
+

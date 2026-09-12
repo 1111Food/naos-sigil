@@ -23,16 +23,6 @@ async function createMcpClient() {
 }
 
 async function wakeUpConsciousness(client: Client) {
-    // DIAGNÓSTICO TEMPORAL DE EMAIL
-    // Note: 'supabase' is not defined in this file. This block will cause a runtime error.
-    // Assuming 'supabase' would be imported or defined elsewhere for this diagnostic to work.
-    // For now, commenting out to maintain syntactical correctness of the provided file.
-    /*
-    try {
-        const { data: p } = await supabase.from('profiles').select('email').eq('id', '0ee073e8-2e4e-4cff-b947-c7185fb75975').single();
-        console.log("=== TARGET EMAIL DE 0ee ===", p?.email);
-    } catch (err) {}
-    */
 
     console.log(`\n👁️ [SIGIL_CONSCIOUSNESS] Waking up to scan for astral alignments...`);
 

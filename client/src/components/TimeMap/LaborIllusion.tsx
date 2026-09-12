@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '../../i18n';
 
 interface LaborIllusionProps {
     onComplete: () => void;
@@ -7,16 +8,26 @@ interface LaborIllusionProps {
 
 export const LaborIllusion: React.FC<LaborIllusionProps> = ({ onComplete }) => {
     const [step, setStep] = useState(0);
+    const { language } = useTranslation();
 
-    const steps = [
-        "☉ Calculando tránsitos astrológicos...",
-        "∑ Analizando año y mes personal...",
-        "𓂀 Interpretando energía del Nahual...",
-        "龍 Sincronizando Calendario Chino...",
-        "🧠 Integrando tu historial en NAOS...",
-        "🌀 Fusionando las 5 Intelligence Sources...",
-        "⏳ Construyendo Línea Temporal...",
-        "✨ Conectando con Sigil..."
+    const steps = language === 'en' ? [
+        "\u2728 Calculating astrological transits...",
+        "\uD83D\uDD22 Analyzing personal year and month...",
+        "\uD83C\uDF15 Interpreting Nahual energy...",
+        "\uD83D\uDC09 Synchronizing Chinese Calendar...",
+        "\uD83D\uDCBE Integrating your history in NAOS...",
+        "\uD83D\uDD2E Merging the 4 Intelligence Sources...",
+        "\u23F3 Constructing Timeline...",
+        "\u2728 Connecting with Sigil..."
+    ] : [
+        "\u2728 Calculando tránsitos astrológicos...",
+        "\uD83D\uDD22 Analizando año y mes personal...",
+        "\uD83C\uDF15 Interpretando energía del Nahual...",
+        "\uD83D\uDC09 Sincronizando Calendario Chino...",
+        "\uD83D\uDCBE Integrando tu historial en NAOS...",
+        "\uD83D\uDD2E Fusionando las 4 Intelligence Sources...",
+        "\u23F3 Construyendo Línea Temporal...",
+        "\u2728 Conectando con Sigil..."
     ];
 
     useEffect(() => {
@@ -44,7 +55,7 @@ export const LaborIllusion: React.FC<LaborIllusionProps> = ({ onComplete }) => {
                                 animate={{ opacity: idx === step ? 1 : 0.4, y: 0 }}
                                 className="mb-3 flex items-center text-sm md:text-base"
                             >
-                                <span className="mr-3">{idx < step ? '✓' : '▶'}</span>
+                                <span className="mr-3">{idx < step ? 'âœ“' : 'â–¶'}</span>
                                 {text}
                             </motion.div>
                         )
@@ -64,3 +75,4 @@ export const LaborIllusion: React.FC<LaborIllusionProps> = ({ onComplete }) => {
         </div>
     );
 };
+

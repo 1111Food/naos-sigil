@@ -9,6 +9,7 @@ import { TempleLoading } from '../components/TempleLoading';
 import { cn } from '../lib/utils';
 import { useCoherence } from '../hooks/useCoherence';
 import { RitualImpactView } from '../components/Sanctuary/RitualImpactView';
+import { WelcomeArchitectExperience } from '../components/WelcomeArchitectExperience';
 import { RITUAL_LIBRARY } from '../constants/ritualContent';
 import type { ElementRitual } from '../constants/ritualContent';
 import { useSound } from '../hooks/useSound';
@@ -79,6 +80,21 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
             if (stopFrequency) stopFrequency();
         };
     }, [stopFrequency]);
+    const [showWelcomeArchitect, setShowWelcomeArchitect] = useState(false);
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('upgrade') === 'success') {
+            setShowWelcomeArchitect(true);
+            refreshProfile(); // Forzar refresh del perfil en background
+        }
+    }, []);
+
+    const handleWelcomeComplete = () => {
+        setShowWelcomeArchitect(false);
+        // Limpiamos la URL solo cuando se cierra el modal para evitar que re-montajes de React pierdan el estado
+        window.history.replaceState({}, document.title, window.location.pathname);
+    };
 
     const [viewMode, setViewMode] = useState<'CHECKIN' | 'CONFIG' | 'BREATHWORK' | 'MEDITATION' | 'ANCHOR' | 'CLOSURE'>('CHECKIN');
     const [saving, setSaving] = useState(false);
@@ -109,7 +125,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
     // Handling direct jump from Elemental Lab (Deep Linking)
     useEffect(() => {
         if (initialRitual) {
-            console.log("🕯️ Sanctuary: Deep Link Ritual detected:", initialRitual);
+            console.log("Ã°Å¸â€¢Â¯Ã¯Â¸Â Sanctuary: Deep Link Ritual detected:", initialRitual);
 
             // Derive element from techId prefix (fire-, water-, earth-, air-)
             let detectedElement: 'WATER' | 'FIRE' | 'EARTH' | 'AIR' = (profile?.astrology?.sunSignElement?.toUpperCase() || 'WATER') as any;
@@ -358,6 +374,9 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-transparent flex flex-col overflow-hidden"
         >
+            {showWelcomeArchitect && (
+                <WelcomeArchitectExperience onComplete={handleWelcomeComplete} />
+            )}
             {/* Dynamic Background based on Element - Conditional opacity */}
             <div className={cn(
                 "absolute inset-0 transition-all duration-1000 bg-gradient-to-b",
@@ -508,7 +527,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                     {t(ELEMENT_THEMES[ritualState.element].title as any)}
                                 </h2>
                                 <p className="text-white/40 text-sm uppercase tracking-widest">
-                                    {t(ELEMENT_THEMES[ritualState.element].subtitle as any)} • {t(ritualState.need as any) || ritualState.need}
+                                    {t(ELEMENT_THEMES[ritualState.element].subtitle as any)} Ã¢â‚¬Â¢ {t(ritualState.need as any) || ritualState.need}
                                 </p>
                             </div>
 
@@ -973,3 +992,5 @@ const AirMeditationVis = () => {
         </div>
     );
 };
+
+

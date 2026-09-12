@@ -270,13 +270,17 @@ function App() {
 
   // --- HANDLERS ---
 
-  const handleWelcomeContinue = async () => {
-    if (!welcomeUser) return;
-    // console.log(`🔓 ${t('identity_invoking_msg')} ${welcomeUser.nickname}`);
-    // Force profile refresh to ensure context is hot (even if session existed)
-    await refreshProfile();
-    setActiveView('TEMPLE');
-  };
+    const handleWelcomeContinue = async () => {
+      if (!welcomeUser) return;
+      // console.log(`Y"" ${t('identity_invoking_msg')} ${welcomeUser.nickname}`);
+      // Force profile refresh to ensure context is hot (even if session existed)
+      await refreshProfile();
+      if (window.location.pathname.startsWith('/sanctuary')) {
+          setActiveView('SANCTUARY');
+      } else {
+          setActiveView('TEMPLE');
+      }
+    };
 
   const handleWelcomeReset = async () => {
     console.log("🧹 Resetting traveler...");

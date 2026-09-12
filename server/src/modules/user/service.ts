@@ -60,7 +60,7 @@ export class UserService {
             if (data && !error) {
                 const baseProfile = (data.profile_data || {}) as Partial<UserProfile>;
                 
-                // 📊 DOPAMINE ENGINE: Consciousness Points
+                // ðŸ“Š DOPAMINE ENGINE: Consciousness Points
                 let meditationCount = 0;
                 try {
                     const { count } = await supabase
@@ -85,7 +85,7 @@ export class UserService {
                     activeSub = baseProfile.sub_profiles.find(p => p.id === baseProfile.active_sub_profile_id);
                 }
 
-                // 🔑 CRITICAL FIX: Derive subscription from the authoritative plan_type SQL column.
+                // ðŸ”‘ CRITICAL FIX: Derive subscription from the authoritative plan_type SQL column.
                 // The Stripe webhook writes plan_type. We must reflect that here, NOT rely on
                 // the stale JSONB 'subscription' field which is never updated by the webhook.
                 const planType = data.plan_type || baseProfile.plan_type || 'free';
@@ -179,19 +179,54 @@ export class UserService {
         } catch (e) { }
 
         let current = await this.getProfile(userId); // still needed for returning merged state at end
-        let updated = { ...baseProfile, ...data }; // operates on raw to save correctly below
+        
+        // SEC-005 FIX: Mass Assignment Prevention
+        // ONLY extract fields that the frontend is explicitly allowed to modify.
+        const d = data as any;
+        const allowedUpdates = {
+            name: d.name,
+            full_name: d.name || d.full_name,
+            birthDate: d.birthDate,
+            birthTime: d.birthTime,
+            birthCity: d.birthCity,
+            birthState: d.birthState,
+            birthCountry: d.birthCountry,
+            coordinates: d.coordinates,
+            language: d.language,
+            push_subscriptions: d.push_subscriptions,
+            telegram_voice_enabled: d.telegram_voice_enabled
+        };
 
-        // Geography LOCK
-        const locationChanged = (data.birthCity && data.birthCity !== current.birthCity) ||
-                              (data.birthCountry && data.birthCountry !== current.birthCountry);
+        // Remove undefined fields
+        Object.keys(allowedUpdates).forEach(key => (allowedUpdates as any)[key] === undefined && delete (allowedUpdates as any)[key]);
 
-        if (locationChanged) {
+        let updated = { ...baseProfile, ...allowedUpdates }; // operates on raw to save correctly below
+
+        // Birth Data & Geography LOCK
+        const birthDataChanged = 
+            (data.birthDate && data.birthDate !== current.birthDate) ||
+            (data.birthTime && data.birthTime !== current.birthTime) ||
+            (data.birthCity && data.birthCity !== current.birthCity) ||
+            (data.birthCountry && data.birthCountry !== current.birthCountry) ||
+            (data.coordinates?.lat && data.coordinates.lat !== current.coordinates?.lat) ||
+            (data.coordinates?.lng && data.coordinates.lng !== current.coordinates?.lng);
+
+        if (birthDataChanged) {
             try {
-                const coords = await GeocodingService.getCoordinates(updated.birthCity, updated.birthState || '', updated.birthCountry);
-                updated.coordinates = { lat: coords.lat, lng: coords.lng };
-                updated.utcOffset = await GeocodingService.getTimezoneOffset(coords.lat, coords.lng);
+                const locationChanged = (data.birthCity && data.birthCity !== current.birthCity) ||
+                                        (data.birthCountry && data.birthCountry !== current.birthCountry);
+                
+                if (locationChanged || !updated.coordinates?.lat) {
+                    const coords = await GeocodingService.getCoordinates(updated.birthCity, updated.birthState || '', updated.birthCountry);
+                    updated.coordinates = { lat: coords.lat, lng: coords.lng };
+                }
+
+                const tzId = GeocodingService.getTimezoneId(updated.coordinates.lat, updated.coordinates.lng);
+                updated.utcOffset = GeocodingService.getHistoricalUtcOffset(tzId, updated.birthDate, updated.birthTime);
             } catch (e) {
-                updated.coordinates = { lat: 14.6349, lng: -90.5069 };
+                if (!updated.coordinates?.lat) {
+                    updated.coordinates = { lat: 14.6349, lng: -90.5069 };
+                }
                 updated.utcOffset = -6;
             }
         }
@@ -263,6 +298,6 @@ export class UserService {
         // subId === undefined means switch to Master Profile
         return await this.updateProfile(userId, { active_sub_profile_id: subId });
     }
-
-    static getRawState() { return this.profilesCache; }
 }
+
+

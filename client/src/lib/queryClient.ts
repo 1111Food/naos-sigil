@@ -19,9 +19,13 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5,      // 5 minutos frescos
       gcTime: 1000 * 60 * 15,        // 15 minutos en memoria
-      retry: 2,
+      retry: (failureCount, error: any) => {
+          // SEC-F2B: Prevent automatic retries on rate limits (429) or auth errors
+          if (error.status === 429 || error.status === 401 || error.status === 403) return false;
+          return failureCount < 2;
+      },
       refetchOnWindowFocus: false,   // No re-fetch al regresar del home screen
-      refetchOnReconnect: true,      // Sí re-fetch al reconectar red (importante en móvil)
+      refetchOnReconnect: true,      // S re-fetch al reconectar red (importante en mvil)
     },
     mutations: {
       retry: 0, // Mutations no se reintentan automáticamente (pueden tener efectos secundarios)

@@ -544,7 +544,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
         }
 
         // PRODUCTION MODEL: gemini-1.5-flash-8b (cost-optimized for conversational AI)
-        const modelName = "gemini-1.5-flash-8b"; 
+        const modelName = config.GEMINI_MODEL; 
         const API_VERSION = "v1beta";
         
         // Ensure system instruction enforces language explicitly
@@ -596,7 +596,7 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             // Define a helper to execute the call
             const executeCall = async (currentPayload: any, attempt = 1): Promise<any> => {
                 const maxAttempts = 3;
-                const activeModel = attempt > 1 ? "gemini-1.5-flash-8b" : modelName;
+                const activeModel = attempt > 1 ? config.GEMINI_MODEL : modelName;
                 const currentUrl = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${activeModel}:generateContent?key=${apiKey}`;
 
                 const controller = new AbortController();

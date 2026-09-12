@@ -37,7 +37,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
         
         try {
             const cleanEmail = currentEmail.trim();
-            console.log("🛠️ The Gate: Autenticando llave para", cleanEmail, "...");
+            console.log("??? The Gate: Autenticando llave...");
             let { data, error } = await signInWithPassword(cleanEmail, currentPassword);
 
             if (error) {

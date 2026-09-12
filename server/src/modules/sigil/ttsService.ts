@@ -23,9 +23,19 @@ export class TTSService {
      * Converts Sigil text message to an audio buffer using ElevenLabs,
      * caching on local filesystem to optimize quotas and loads.
      */
-    public async generateVoice(text: string, region: string = 'global'): Promise<{ buffer: Buffer | null, hash: string, error?: string }> {
+    public async generateVoice(userId: string, text: string, region: string = 'global'): Promise<{ buffer: Buffer | null, hash: string, error?: string }> {
+        // SEC-F2B.4: Limit payload size to 2500 chars to avoid expensive AI text limits
+        if (text.length > 2500) {
+            console.warn(`⚠️ [TTS] Text length ${text.length} exceeds 2500. Truncating.`);
+            text = text.substring(0, 2500) + "...";
+        }
+
         const hash = this.getHash(text, region);
-        const cachePath = path.join(CACHE_DIR, `${hash}.mp3`);
+        const userCacheDir = path.join(CACHE_DIR, userId);
+        if (!fs.existsSync(userCacheDir)) {
+            fs.mkdirSync(userCacheDir, { recursive: true });
+        }
+        const cachePath = path.join(userCacheDir, `${hash}.mp3`);
 
         // 1. Check Cache
         if (fs.existsSync(cachePath)) {
@@ -104,8 +114,22 @@ export class TTSService {
         }
     }
 
-    public getAudioPath(hash: string): string | null {
-         const cachePath = path.join(CACHE_DIR, `${hash}.mp3`);
+    public getAudioPath(userId: string, hash: string): string | null {
+         // SEC-F2B.4: Validate Hash and Path Traversal
+         if (!/^[a-fA-F0-9]{32}$/.test(hash)) {
+             console.warn(`[TTS] Invalid audio hash format requested by ${userId}`);
+             return null;
+         }
+
+         const userCacheDir = path.resolve(CACHE_DIR, userId);
+         const cachePath = path.resolve(userCacheDir, `${hash}.mp3`);
+         
+         // Path Traversal Security Verification
+         if (!cachePath.startsWith(userCacheDir)) {
+             console.warn(`[TTS] Path traversal blocked for ${userId}`);
+             return null;
+         }
+
          return fs.existsSync(cachePath) ? cachePath : null;
     }
 }
