@@ -5,7 +5,7 @@ import { MayanCalculator } from '../../modules/maya/calculator';
 import { CoherenceService } from '../coherence/service';
 import { ArchetypeEngine } from '../user/archetypeEngine';
 import { UserService } from '../user/service';
-import { EnergyService } from '../energy/service';
+
 import { ProfileConsolidator } from '../user/profileConsolidator';
 import { CodexService } from '../codex/service';
 import { config } from '../../config/env';
@@ -100,7 +100,7 @@ export class SigilService {
                 supabase.from('interaction_logs').select('user_message, sigil_response').eq('user_id', userId).order('created_at', { ascending: false }).limit(15),
                 supabase.from('intentions').select('intention_text').eq('user_id', userId).gte('created_at', today.toISOString()),
                 supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle(),
-                supabase.from('daily_readings').select('reading_text').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+                supabase.from('user_energy_snapshots').select('payload').eq('user_id', userId).order('snapshot_date', { ascending: false }).limit(1).maybeSingle(),
                 (async () => { try { return await supabase.rpc('calculate_evolution_stage', { target_user_id: userId }); } catch { return { data: 1 }; } })(),
                 (async () => { try { return await supabase.rpc('determine_preferred_tone', { target_user_id: userId }); } catch { return { data: 'MISTICO' }; } })(),
                 CoherenceService.getCoherence(userId),
@@ -111,8 +111,6 @@ export class SigilService {
 
             let evolutionStage = evolutionData?.data ?? 1;
             let preferredTone = toneData?.data ?? 'MISTICO';
-
-            const energy = EnergyService.getDailySnapshot(userProfile);
             let userTier = rankResponse.data?.tier_label || 'Fragmentado';
             let chatHistory: { role: string; parts: { text: string }[] }[] = [];
 
@@ -200,7 +198,7 @@ export class SigilService {
             // 5. Build Unified System Instruction (SIGIL 6.0 - TOTAL LOCK)
             const naosUnifiedContextJSON = `[NAOS CONTEXT JSON]: ${JSON.stringify(naosContext)}`;
             const userEnergyContext = `USER ENERGY JSON: ${JSON.stringify(energeticBible)}`;
-            const dailyEnergyContext = `ENERGY OF THE DAY JSON: ${JSON.stringify(energy)}`;
+            const dailyEnergyContext = `ENERGY OF THE DAY JSON: ${JSON.stringify((dailyReadingResponse.data as any)?.payload?.layerA || {})}`;
 
 
 
@@ -424,7 +422,7 @@ ${segments.truth_injection.waiting_desc}
     ${coherenceContextTag}
     
     [${lang === 'es' ? 'LECTURA DIARIA ACTIVA (EL ORÁCULO DIJO)' : 'ACTIVE DAILY READING (THE ORACLE SAID)'}]
-    ${dailyReadingResponse.data?.reading_text || (lang === 'es' ? 'No se ha realizado lectura hoy aún.' : 'No reading has been performed today yet.')}
+    ${(dailyReadingResponse.data as any)?.payload?.interpretation?.primarySignal?.text || (dailyReadingResponse.data as any)?.payload?.interpretation?.primarySignal?.content || (lang === 'es' ? 'No se ha realizado lectura hoy aún.' : 'No reading has been performed today yet.')}
     
     [${lang === 'es' ? 'ESTRUCTURA DE RESPUESTA OBLIGATORIA (4 CAPAS)' : 'MANDATORY RESPONSE STRUCTURE (4 LAYERS)'}]
     ${segments.structure.instruction}

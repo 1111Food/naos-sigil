@@ -178,7 +178,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     const [hh, mm] = time.trim().split(':');
                     if (!hh || !mm) continue;
 
-                    const userOffset = t.profiles?.astrology?.timezone_offset ?? -6; // Fallback para Guatemala (UTC-6)
+                    const { DateUtils } = require('../utils/DateUtils');
+                    const userOffset = DateUtils.getCurrentTimezoneOffset(t.profiles);
                     const scheduledToday = new Date(now);
                     scheduledToday.setUTCHours(parseInt(hh, 10) - userOffset, parseInt(mm, 10), 0, 0);
 

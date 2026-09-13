@@ -21,7 +21,7 @@ export class ForecastService {
         // Return null if it doesn't exist or if it's expired
         if (!data) return null;
         if (new Date(data.valid_until) < new Date()) return null;
-        if (data.astro_context_version !== 2) return null;
+        // Removed astro_context_version check as column does not exist
 
         return data;
     }
@@ -77,7 +77,7 @@ export class ForecastService {
 
         if (error) {
             console.error("âŒ ForecastService DB Error:", error);
-            throw new Error("Error al guardar el Mapa Temporal en los registros akÃ¡shicos.");
+            throw new Error("Error al guardar el Mapa Temporal en los registros akáshicos.");
         }
 
         return savedMap;

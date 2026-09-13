@@ -1,0 +1,1 @@
+const fs = require('fs'); ['CurrentEnergyView.tsx', 'LifelineView.tsx', 'TimeMap/TimeMap.tsx'].forEach(file => { let p = 'client/src/' + (file.includes('TimeMap') ? 'components/' : 'pages/') + file; let content = fs.readFileSync(p, 'utf8'); content = content.replace(/\\\\/g, '').replace(/\\\\\$/g, '$').replace(/\\\\}/g, '}'); fs.writeFileSync(p, content); }); console.log('Done');

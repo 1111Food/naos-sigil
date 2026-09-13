@@ -1,5 +1,22 @@
-
 // server/src/modules/user/archetypeEngine.ts
+
+export type ElementId = 'fuego' | 'tierra' | 'aire' | 'agua';
+
+export interface ArchetypeAssignmentV2 {
+    version: 'v2_maya_color_codominance';
+    calculatedAt: string;
+    elementScores: {
+        fuego: number;
+        tierra: number;
+        aire: number;
+        agua: number;
+    };
+    primaryElement: ElementId | null;
+    secondaryElement: ElementId | null;
+    coDominantElements: ElementId[];
+    displayElement: ElementId;
+    assignmentReason: 'SINGLE_WINNER' | 'CO_DOMINANT_LEGACY_CORE_DISPLAY';
+}
 
 export interface ArchetypeResult {
     id: string;
@@ -8,7 +25,8 @@ export interface ArchetypeResult {
     rol: string;
     descripcion: string;
     interpretacion_profunda?: string;
-    elemento_dominante: 'fuego' | 'tierra' | 'aire' | 'agua';
+    elemento_dominante: ElementId;
+    assignment_v2?: ArchetypeAssignmentV2; // Added V2 tracking
     powerLines?: any[];
     desglose?: {
         scores: Record<string, number>;
@@ -233,6 +251,7 @@ export class ArchetypeEngine {
         const isEn = language === 'en';
         try {
             const scores = { fuego: 0, tierra: 0, aire: 0, agua: 0 };
+            const legacyScores = { fuego: 0, tierra: 0, aire: 0, agua: 0 };
             const normalizeSign = (sign: string) => {
                 if (!sign) return null;
                 const mapped = this.SIGNS_TO_ELEMENT[sign];
@@ -253,10 +272,27 @@ export class ArchetypeEngine {
             const moonElem = normalizeSign(astro.moon?.sign || astro.moonSign);
             const risingElem = normalizeSign(astro.rising?.sign || astro.risingSign);
 
-            if (sunElem) { scores[sunElem] += 3; contribuciones.astrologia.push(`${isEn ? 'Sun in' : 'Sol en'} ${astro.sun?.sign || astro.sunSign} (+3 ${sunElem})`); }
-            if (moonElem) { scores[moonElem] += 2; contribuciones.astrologia.push(`${isEn ? 'Moon in' : 'Luna en'} ${astro.moon?.sign || astro.moonSign} (+2 ${moonElem})`); }
-            if (risingElem) { scores[risingElem] += 2; contribuciones.astrologia.push(`${isEn ? 'Ascendant in' : 'Ascendente en'} ${astro.rising?.sign || astro.risingSign} (+2 ${risingElem})`); }
+            if (sunElem) { 
+                scores[sunElem] += 3; legacyScores[sunElem] += 3;
+                contribuciones.astrologia.push(`${isEn ? 'Sun in' : 'Sol en'} ${astro.sun?.sign || astro.sunSign} (+3 ${sunElem})`); 
+            }
+            if (moonElem) { 
+                scores[moonElem] += 2; legacyScores[moonElem] += 2;
+                contribuciones.astrologia.push(`${isEn ? 'Moon in' : 'Luna en'} ${astro.moon?.sign || astro.moonSign} (+2 ${moonElem})`); 
+            }
+            if (risingElem) { 
+                scores[risingElem] += 2; legacyScores[risingElem] += 2;
+                contribuciones.astrologia.push(`${isEn ? 'Ascendant in' : 'Ascendente en'} ${astro.rising?.sign || astro.risingSign} (+2 ${risingElem})`); 
+            }
 
+            const chineseElement = profile.chinese?.element;
+            if (chineseElement && this.CHINESE_TO_ELEMENT[chineseElement]) {
+                const elem = this.CHINESE_TO_ELEMENT[chineseElement];
+                scores[elem] += 2; legacyScores[elem] += 2;
+                contribuciones.chino.push(`${isEn ? 'Chinese Element' : 'Elemento Chino'} ${chineseElement} (+2 ${elem})`);
+            }
+
+            // Maya Color is ONLY applied to V2 scores, not legacyScores
             const nahualColor = profile.mayan?.color; 
             if (nahualColor && this.MAYAN_COLORS_TO_ELEMENT[nahualColor]) {
                 const elem = this.MAYAN_COLORS_TO_ELEMENT[nahualColor];
@@ -264,17 +300,77 @@ export class ArchetypeEngine {
                 contribuciones.maya.push(`${isEn ? 'Nawal Color' : 'Color del Nawal'} ${nahualColor} (+3 ${elem})`);
             }
 
-            const chineseElement = profile.chinese?.element;
-            if (chineseElement && this.CHINESE_TO_ELEMENT[chineseElement]) {
-                const elem = this.CHINESE_TO_ELEMENT[chineseElement];
-                scores[elem] += 2; // Increased weight for Chinese Element to make it fully operative
-                contribuciones.chino.push(`${isEn ? 'Chinese Element' : 'Elemento Chino'} ${chineseElement} (+2 ${elem})`);
+            // -- V2 ASSIGNMENT LOGIC --
+            
+            // 1. Calculate legacyCoreElement (using exact same v1 hidden sorting)
+            let legacyCoreElement: ElementId = 'fuego';
+            let maxLegacy = -1;
+            for (const k of ['fuego', 'tierra', 'aire', 'agua'] as ElementId[]) {
+                if (legacyScores[k] > maxLegacy) {
+                    maxLegacy = legacyScores[k];
+                    legacyCoreElement = k;
+                }
+            }
+            if (maxLegacy === 0 && sunElem) legacyCoreElement = sunElem;
+
+            // 2. Calculate V2 winners
+            let maxV2 = -1;
+            let winners: ElementId[] = [];
+            for (const k of ['fuego', 'tierra', 'aire', 'agua'] as ElementId[]) {
+                if (scores[k] > maxV2) {
+                    maxV2 = scores[k];
+                    winners = [k];
+                } else if (scores[k] === maxV2) {
+                    winners.push(k);
+                }
             }
 
-            let finalElement: 'fuego' | 'tierra' | 'aire' | 'agua' = 'fuego';
-            const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-            if (sorted[0][1] > 0) finalElement = sorted[0][0] as any;
-            else if (sunElem) finalElement = sunElem;
+            let primaryElement: ElementId | null = null;
+            let secondaryElement: ElementId | null = null;
+            let coDominantElements: ElementId[] = [];
+            let displayElement: ElementId = 'fuego';
+            let assignmentReason: 'SINGLE_WINNER' | 'CO_DOMINANT_LEGACY_CORE_DISPLAY' = 'SINGLE_WINNER';
+
+            if (winners.length === 1) {
+                primaryElement = winners[0];
+                displayElement = winners[0];
+                assignmentReason = 'SINGLE_WINNER';
+                
+                // Find strict second place
+                let maxSecond = -1;
+                let secondWinners: ElementId[] = [];
+                for (const k of ['fuego', 'tierra', 'aire', 'agua'] as ElementId[]) {
+                    if (k === primaryElement) continue;
+                    if (scores[k] > maxSecond) {
+                        maxSecond = scores[k];
+                        secondWinners = [k];
+                    } else if (scores[k] === maxSecond) {
+                        secondWinners.push(k);
+                    }
+                }
+                if (secondWinners.length === 1 && maxSecond > 0) {
+                    secondaryElement = secondWinners[0];
+                }
+            } else if (winners.length > 1) {
+                // Exact tie
+                coDominantElements = winners;
+                // If there's a tie but max is 0 (empty profile), fallback to legacyCoreElement which is sunElem or 'fuego'
+                displayElement = winners.includes(legacyCoreElement) ? legacyCoreElement : winners[0];
+                assignmentReason = 'CO_DOMINANT_LEGACY_CORE_DISPLAY';
+            }
+
+            const v2Assignment: ArchetypeAssignmentV2 = {
+                version: 'v2_maya_color_codominance',
+                calculatedAt: new Date().toISOString(),
+                elementScores: { ...scores },
+                primaryElement,
+                secondaryElement,
+                coDominantElements,
+                displayElement,
+                assignmentReason
+            };
+
+            const finalElement = displayElement;
             
             const frecuenciaMap = isEn 
                 ? { fuego: 'Igneous', tierra: 'Telluric', aire: 'Ethereal', agua: 'Abyssal' }
@@ -319,6 +415,7 @@ export class ArchetypeEngine {
                 descripcion: isEn ? archetypeEntry.desc.en : archetypeEntry.desc.es,
                 interpretacion_profunda: isEn ? archetypeEntry.deepDesc?.en : archetypeEntry.deepDesc?.es,
                 elemento_dominante: finalElement,
+                assignment_v2: v2Assignment,
                 desglose: {
                     scores: { ...scores },
                     contribuciones

@@ -4,6 +4,26 @@ import { useProfile } from '../hooks/useProfile';
 
 export const translations = {
     es: {
+
+        personal_year: 'Año Personal',
+        the_decade: 'La Década (Pináculos)',
+        main_metric: 'Métrica Principal',
+        main_risk: 'Riesgo Principal',
+        virtue_to_develop: 'Virtud a Desarrollar',
+        dormant_talent: 'Talento Dormido',
+        energy_indicators: 'Indicadores de Energía',
+        calculations_unavailable: 'Cálculos no disponibles',
+        evolution_axis_current_cycle: 'Ciclo Actual (Escala 9 Años)',
+        evolution_axis_title: 'Eje Evolutivo',
+        evolution_axis_mode_symbolic: '🌌 Modo Simbólico',
+        evolution_axis_mode_behavioral: '🧠 Modo Conductual',
+        evolution_axis_deep_dive_hide: 'Ocultar Profundización',
+        evolution_axis_deep_dive_fusion: 'Profundizar en la Fusión de las 4 Intelligence Sources',
+        evolution_axis_current_age: 'Edad Actual',
+        evolution_axis_years: 'años',
+        life_architecture: 'Arquitectura de Vida',
+        syncing_frequencies: 'Sincronizando frecuencias...',
+
         language_code: "es",
         // Original Dashboard/Main
         identity: "Código de Identidad",
@@ -889,6 +909,26 @@ export const translations = {
         synastry_dissolve_link: "Disolver Ensamble",
         synastry_no_group_history: "No existen ensambles organizacionales registrados.",
         synastry_red_b2b: "Red B2B",
+        evolution_axis_creativity: "Creatividad",
+        evolution_axis_leadership: "Liderazgo",
+        evolution_axis_learning: "Aprendizaje",
+        evolution_axis_expansion: "Expansión",
+        evolution_axis_relationships: "Relaciones",
+        evolution_axis_deep_dive_show: "Profundizar",
+        relationships: "Relaciones",
+        time_navigator_title: "El Navegador Temporal",
+        time_navigator_desc: "NAOS calculará la interacción de tus energías natales (Astrología, Numerología, Nahual y Animal Chino) con los tránsitos de los próximos 12 meses para generar tu Mapa Temporal personalizado.",
+        generate_time_map: "Generar mi Mapa Temporal",
+        personal_year: "Año Personal",
+        the_decade: "La Década (Pináculos)",
+        main_metric: "Métrica Principal",
+        main_risk: "Riesgo Principal",
+        virtue_to_develop: "Virtud a Desarrollar",
+        dormant_talent: "Talento Dormido",
+        energy_indicators: "Indicadores de Energía",
+        calculations_unavailable: "Cálculos no disponibles",
+        evolution_axis_current_cycle: "Ciclo Actual (Escala 9 Años)",
+        life_architecture: "Arquitectura de Vida",
         synastry_leadership: "Liderazgo",
         synastry_execution: "Ejecución",
         synastry_creation: "Creación",
@@ -1364,6 +1404,26 @@ export const translations = {
         time_navigator: "Navegador del Tiempo"
     },
     en: {
+
+        personal_year: 'Personal Year',
+        the_decade: 'The Decade (Pinnacles)',
+        main_metric: 'Main Metric',
+        main_risk: 'Main Risk',
+        virtue_to_develop: 'Virtue to Develop',
+        dormant_talent: 'Dormant Talent',
+        energy_indicators: 'Energy Indicators',
+        calculations_unavailable: 'Calculations unavailable',
+        evolution_axis_current_cycle: 'Current Cycle (9-Year Scale)',
+        evolution_axis_title: 'Evolution Axis',
+        evolution_axis_mode_symbolic: '🌌 Symbolic Mode',
+        evolution_axis_mode_behavioral: '🧠 Behavioral Mode',
+        evolution_axis_deep_dive_hide: 'Hide Deep Dive',
+        evolution_axis_deep_dive_fusion: 'Deep Dive into the Fusion of the 4 Intelligence Sources',
+        evolution_axis_current_age: 'Current Age',
+        evolution_axis_years: 'years',
+        life_architecture: 'Life Architecture',
+        syncing_frequencies: 'Synchronizing frequencies...',
+
         language_code: "en",
         // Original Dashboard/Main
         identity: "Identity Code",
@@ -2718,7 +2778,7 @@ export type Language = 'es' | 'en';
 interface LanguageContextType {
     language: Language;
     setLanguage: (lang: Language) => void;
-    t: (key: keyof Translations, params?: Record<string, any>) => string;
+    t: (key: string, fallbackOrParams?: string | Record<string, any>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -2743,29 +2803,31 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [profile, language]);
 
-    const setLanguage = async (lang: Language) => {
-        setLanguageState(lang);
-        localStorage.setItem('naos_language', lang);
-        
-        try {
-            if (profile) {
-                await updateProfile({ language: lang } as any);
+    const setLanguage = async (newLang: Language) => {
+        setLanguageState(newLang);
+        localStorage.setItem('naos_language', newLang);
+        if (profile?.id) {
+            try {
+                await updateProfile({ language: newLang } as any);
+            } catch(e) {
+                console.warn(e);
             }
-        } catch (e) {
-            console.warn("LanguageContext: Failed to update profile language field.", e);
-        } finally {
             // Force full reload to ensure all data libraries/components refresh with new language
             window.location.reload();
         }
     };
 
-    const t = (key: keyof Translations, params?: Record<string, any>): string => {
+    const t = (key: string, fallbackOrParams?: string | Record<string, any>): string => {
         const trans = translations[language] as any;
-        let text = trans[key] || key;
+        
+        let fallback = typeof fallbackOrParams === 'string' ? fallbackOrParams : key;
+        let params = typeof fallbackOrParams === 'object' ? fallbackOrParams : undefined;
+        
+        let text = trans[key] || fallback;
         
         if (params) {
             Object.entries(params).forEach(([k, v]) => {
-                text = text.replace(`{{${k}}}`, v.toString());
+                text = text.replace(`{{${k}}}`, String(v));
             });
         }
         

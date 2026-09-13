@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { SigilService } from '../modules/sigil/service';
-import { EnergyService } from '../modules/energy/service';
+
 import { UserService } from '../modules/user/service';
 import { SubscriptionService } from '../modules/subscription/service';
 import { TarotService } from '../modules/tarot/service';
@@ -50,7 +50,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
     // Serve Cached TTS Audio file buffer
     app.get<{ Params: { hash: string } }>('/api/sigil/audio/:hash', {
-        preHandler: [validateUser],
+        preValidation: [validateUser],
         config: {
             rateLimit: {
                 max: 15,
@@ -75,7 +75,7 @@ export async function apiRoutes(app: FastifyInstance) {
     app.get('/ping', async () => ({ status: 'vibrant', message: `Cosmos is alive on Port ${config.PORT}` }));
 
     // Generate Telegram Linking Token
-    app.post('/api/telegram/link-token', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.post('/api/telegram/link-token', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const crypto = require('crypto');
         const token = crypto.randomBytes(16).toString('hex'); // 128-bit entropy
@@ -99,7 +99,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Ã°Å¸â€ Â® Forecast (Time Map) Endpoints
-    app.get<{ Querystring: { lang?: string } }>('/api/forecast', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.get<{ Querystring: { lang?: string } }>('/api/forecast', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const userRole = (req as any).user?.role;
         const isPremium = userRole === 'premium' || userRole === 'admin';
@@ -128,7 +128,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     app.post<{ Body: { lang?: string } }>('/api/forecast/generate', { 
-        preHandler: [validateUser, validatePremium],
+        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 3,
@@ -161,7 +161,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Ã°Å¸Â§Â¬ Lifeline (Eje Evolutivo) Endpoints
-    app.get<{ Querystring: { lang?: string } }>('/api/lifeline', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.get<{ Querystring: { lang?: string } }>('/api/lifeline', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const lang = req.query.lang || 'es';
         
@@ -178,7 +178,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     app.post<{ Body: { lang?: string } }>('/api/lifeline/generate', { 
-        preHandler: [validateUser, validatePremium],
+        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 3,
@@ -199,31 +199,115 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // 🌟 Current Energy Endpoint
+        // YOY Current Energy Endpoint GET (Cache Only)
     app.get<{ Querystring: { lang?: string } }>('/api/energy/current', { 
-        preHandler: [validateUser, validatePremium],
-        config: {
-            rateLimit: {
-                max: 10,
-                timeWindow: '1 minute'
-            }
-        }
+        preValidation: [validateUser],
+        config: { rateLimit: { max: 20, timeWindow: '1 minute' } }
     }, async (req, reply) => {
         const userId = (req as any).user_id;
         const langRaw = req.query.lang || 'es';
-        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es'; // SEC-F2B.1: Strict validation
+        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es'; 
         
         try {
-            const energy = await EnergyService.getCurrentEnergy(userId, lang);
+            const { supabase } = require('../lib/supabase');
+            const { data: fullProfile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            if (!fullProfile) throw new Error('User profile not found');
+            
+            const { DateUtils } = require('../utils/DateUtils');
+            const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
+            
+            const { DailyContextOrchestrator } = require('../modules/daily/DailyContextOrchestrator');
+            const v2Payload = await DailyContextOrchestrator.getDailySnapshot(userId, currentTimezoneOffset, lang);
+            
+            if (!v2Payload) return reply.status(404).send({ exists: false, needsGeneration: true });
+
+            const { interpretation } = v2Payload;
+            const energy = {
+                daily: {
+                    score: interpretation.score ?? null,
+                    title: interpretation.primarySignal.title || (lang === 'es' ? 'Se�al Diaria' : 'Daily Signal'),
+                    description: interpretation.primarySignal.text || (interpretation.primarySignal as any).content,
+                    action: interpretation.guidance || null,
+                    avoid: (interpretation as any).avoid || null
+                },
+                metrics: { focus: null, creativity: null, relationships: null },
+                interpretationStatus: interpretation.interpretationStatus,
+                rawSignals: v2Payload.layerA
+            };
+
             return { energy };
         } catch (error: any) {
-            console.error("Ã°Å¸â€Â¥ Error getting current energy:", error);
+            console.error('API Error (/api/energy/current GET):', error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
-    // Ã°Å¸â€Â® Sigil Chat / Interaction Endpoint
+    // YOY Current Energy Endpoint POST (Generate)
+    app.post<{ Body: { lang?: string } }>('/api/energy/current/generate', { 
+        preValidation: [validateUser],
+        config: {
+            rateLimit: { max: 5, timeWindow: '1 minute' }
+        }
+    }, async (req, reply) => {
+        const userId = (req as any).user_id;
+        const langRaw = req.query.lang || 'es';
+        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es'; 
+        
+        try {
+            const { supabase } = require('../lib/supabase');
+            const { data: fullProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (!fullProfile) throw new Error("User profile not found");
+            
+            const { DateUtils } = require('../utils/DateUtils');
+            const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
+
+            const { DailyContextOrchestrator } = require('../modules/daily/DailyContextOrchestrator');
+            const v2Payload = await DailyContextOrchestrator.getOrGenerate(
+                userId, 
+                fullProfile, 
+                currentTimezoneOffset, 
+                lang
+            );
+
+            // ADAPTER: Map V2 Interpretation to Legacy Energy Shape
+            const { interpretation } = v2Payload;
+
+            const energy = {
+                daily: {
+                    score: interpretation.score ?? null,  // Real score from DailyInterpreter, or null if not produced
+                    title: interpretation.primarySignal.title || (lang === 'es' ? 'Se�al Diaria' : 'Daily Signal'),
+                    description: interpretation.primarySignal.text || (interpretation.primarySignal as any).content,
+                    action: interpretation.guidance || null,
+                    avoid: (interpretation as any).avoid || null
+                },
+                metrics: {
+                    focus: null,         // Not produced by Daily V2 - shown as N/A in UI
+                    creativity: null,    // Not produced by Daily V2 - shown as N/A in UI
+                    relationships: null  // Not produced by Daily V2 - shown as N/A in UI
+                },
+                weekly: {
+                    theme: (interpretation.integratedPattern as any).title || (lang === 'es' ? 'Tema Semanal' : 'Weekly Theme'),
+                    description: interpretation.integratedPattern.text || null
+                },
+                // Expose interpretation status so frontend can degrade gracefully
+                interpretationStatus: interpretation.interpretationStatus
+            };
+
+            return { energy };
+        } catch (error: any) {
+            console.error("API Error (/api/energy/current):", error);
+            return reply.status(500).send({ error: error.message });
+        }
+    });
+
+    // Ã°Å¸â€ Â® Sigil Chat / Interaction Endpoint
     app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { 
-        preHandler: [validateUser],
+        preValidation: [validateUser],
         config: {
             rateLimit: {
                 max: 5,
@@ -358,7 +442,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
     // Prompt 5: Lab Session Trigger
     app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { 
-        preHandler: [validateUser, validatePremium],
+        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 5,
@@ -386,44 +470,23 @@ export async function apiRoutes(app: FastifyInstance) {
             await sendProactiveMessage(user.telegram_chat_id, message);
             return { status: 'ok', sent: true };
         } catch (e: any) {
-            console.error("Ã°Å¸â€Â¥ LAB TRIGGER ERROR:", e);
+            console.error("Ã°Å¸â€ Â¥ LAB TRIGGER ERROR:", e);
             return reply.status(500).send({ error: e.message });
         }
     });
 
-    // Energy
-    app.get('/api/energy', { preHandler: [validateUser] }, async (req, reply) => {
-        const userId = (req as any).user_id;
-        try {
-            const user = await UserService.getProfile(userId);
-
-            // 1. Aplicar decaimiento por inactividad y obtener estado
-            await CoherenceService.applyInactivityDecay(userId);
-            const coherence = await CoherenceService.getCoherence(userId);
-
-            // 2. Reportar actividad para Disciplina (si entra es porque estÃƒÂ¡ activo)
-            await CoherenceService.updateScore(userId, 'discipline', 1);
-            await CoherenceService.updateStreak(userId);
-
-            return EnergyService.getDailySnapshot(user, coherence.global_coherence);
-        } catch (e) {
-            console.error("Ã°Å¸â€Â¥ Energy Route Error:", e);
-            return reply.status(500).send({ error: 'Internal Server Error' });
-        }
-    });
-
     // Profile
-    app.get('/api/profile', { preHandler: [validateUser] }, async (req, reply) => {
+    app.get('/api/profile', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         return UserService.getProfile(userId);
     });
 
-    app.put<{ Body: Partial<UserProfile> }>('/api/profile', { preHandler: [validateUser] }, async (req, reply) => {
+    app.put<{ Body: Partial<UserProfile> }>('/api/profile', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         return UserService.updateProfile(userId, req.body);
     });
 
-    app.post<{ Body: Partial<UserProfile> }>('/api/profile', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: Partial<UserProfile> }>('/api/profile', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         console.log('✅ PROFILE UPDATE REQUEST | ID:', userId.split('-')[0]);
         try {
@@ -436,19 +499,19 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Subscription
-    app.get('/api/subscription', { preHandler: [validateUser] }, async (req, reply) => {
+    app.get('/api/subscription', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         return SubscriptionService.getStatus(userId);
     });
 
     // [DEAD] Obsolete MOCK endpoint. Real upgrade is handled by /api/checkout and webhooks.
-    // app.post('/api/subscription/upgrade', { preHandler: [validateUser] }, async (req, reply) => {
+    // app.post('/api/subscription/upgrade', { preValidation: [validateUser] }, async (req, reply) => {
     //     const userId = (req as any).user_id;
     //     return SubscriptionService.upgradePlan(userId);
     // });
 
     // Custom Tuning Deletion (RLS Bypass)
-    app.delete<{ Params: { id: string } }>('/api/tunings/:id', { preHandler: [validateUser] }, async (req, reply) => {
+    app.delete<{ Params: { id: string } }>('/api/tunings/:id', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         try {
             const { error } = await supabase.from('coherence_tunings').delete().eq('id', req.params.id).eq('user_id', userId);
@@ -465,7 +528,7 @@ export async function apiRoutes(app: FastifyInstance) {
         return TarotService.drawYesNo();
     });
 
-    app.get('/api/profiles/multiget', { preHandler: [validateUser] }, async (req, reply) => {
+    app.get('/api/profiles/multiget', { preValidation: [validateUser] }, async (req, reply) => {
         const ids = (req.query as any).ids?.split(',') || [];
         const profiles = await Promise.all(ids.map((id: string) => UserService.getProfile(id)));
         return profiles.map(p => ({ id: p.id, name: p.name }));
@@ -476,14 +539,14 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Numerology
-    app.get('/api/numerology', { preHandler: [validateUser] }, async (req, reply) => {
+    app.get('/api/numerology', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const user = await UserService.getProfile(userId);
         return NumerologyService.calculateProfile(user.birthDate, user.name);
     });
 
     // Coherence Index (Detailed)
-    app.get('/api/coherence', { preHandler: [validateUser] }, async (req, reply) => {
+    app.get('/api/coherence', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         try {
             await CoherenceService.applyInactivityDecay(userId);
@@ -494,7 +557,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.get('/api/naos-code', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.get('/api/naos-code', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const forceRefresh = (req.query as any).refresh === 'true';
         const lang = (req.query as any).lang || 'es';
@@ -537,7 +600,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
     // Onboarding Cold Read (Secured)
     app.get('/api/onboarding/cold-read', {
-        preHandler: [validateUser],
+        preValidation: [validateUser],
         config: {
             rateLimit: {
                 max: 3,
@@ -557,7 +620,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.post('/api/onboarding/complete', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post('/api/onboarding/complete', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         console.log(`Ã°Å¸â€œÂ¡ [API] Completing onboarding for User: ${userId}`);
         try {
@@ -577,7 +640,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // 21/90 Protocols
-    app.post<{ Body: { protocolId: string, dayNumber: number, notes?: string } }>('/api/protocols/seal-day', { preHandler: [validateUser, validatePremium] }, async (req, reply) => {
+    app.post<{ Body: { protocolId: string, dayNumber: number, notes?: string } }>('/api/protocols/seal-day', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const token = (req as any).token;
         try {
@@ -590,7 +653,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     app.post<{ Body: { protocolId: string, newIntention?: string } }>('/api/protocols/evolve', { 
-        preHandler: [validateUser, validatePremium],
+        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 3,
@@ -610,7 +673,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Multi-Profile Management
-    app.post<{ Body: any }>('/api/user/profiles', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: any }>('/api/user/profiles', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         try {
             return await UserService.addSubProfile(userId, req.body);
@@ -619,7 +682,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.put<{ Params: { id: string }, Body: any }>('/api/user/profiles/:id', { preHandler: [validateUser] }, async (req, reply) => {
+    app.put<{ Params: { id: string }, Body: any }>('/api/user/profiles/:id', { preValidation: [validateUser] }, async (req, reply) => {
          const userId = (req as any).user_id;
          try {
              return await UserService.editSubProfile(userId, req.params.id, req.body);
@@ -628,7 +691,7 @@ export async function apiRoutes(app: FastifyInstance) {
          }
     });
 
-    app.delete<{ Params: { id: string } }>('/api/user/profiles/:id', { preHandler: [validateUser] }, async (req, reply) => {
+    app.delete<{ Params: { id: string } }>('/api/user/profiles/:id', { preValidation: [validateUser] }, async (req, reply) => {
          const userId = (req as any).user_id;
          try {
              return await UserService.deleteSubProfile(userId, req.params.id);
@@ -639,23 +702,62 @@ export async function apiRoutes(app: FastifyInstance) {
 
 
     // Ã°Å¸â€Â® Pulso CuÃƒÂ¡ntico (Daily Oracle)
-    app.get<{ Querystring: { offset?: number, lang?: string } }>('/api/oracle/daily', { preHandler: [validateUser] }, async (req, reply) => {
+    app.get<{ Querystring: { offset?: number, lang?: string } }>('/api/oracle/daily', { preValidation: [validateUser] }, async (req, reply) => {
         try {
-            const offset = Number(req.query.offset) || 0;
+            // FASE 3 CUTOVER: The user's requested offset is ignored for calculation, we use current timezone.
+            // We just extract timezone offset from the JWT/profile context, but here in the route we must query it if it's not in req.user.
+            // Wait, we need fullProfile to pass to getOrGenerate!
+            const userId = (req as any).user_id;
             const lang = (req.query.lang || 'es') as 'es' | 'en';
-            const userLocal = new Date(new Date().getTime() + (offset * 3600000));
-            
-            const { DailyOracleEngine } = require('../modules/oracle/DailyOracleEngine');
-            const readingData = await DailyOracleEngine.getOrGenerateDailyReading((req as any).user_id, userLocal, offset, lang);
 
-            return { status: 'ok', data: readingData };
+            const { supabase } = require('../lib/supabase');
+            const { data: fullProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (!fullProfile) throw new Error("User profile not found");
+            
+            // FASE 3: Enforce current timezone
+            const { DateUtils } = require('../utils/DateUtils');
+            const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
+
+            const { DailyContextOrchestrator } = require('../modules/daily/DailyContextOrchestrator');
+            const v2Payload = await DailyContextOrchestrator.getOrGenerate(
+                userId, 
+                fullProfile, 
+                currentTimezoneOffset, 
+                lang
+            );
+
+            // ADAPTER: Map V2 Interpretation to Legacy Oracle Shape
+            const { interpretation } = v2Payload;
+            
+            const readingData = {
+                texto_principal: interpretation.primarySignal.text || interpretation.primarySignal.content,
+                score_energia_general: 50, // Unsupported in V2 factual core
+                riesgo: interpretation.guidance,
+                oportunidad: interpretation.integratedPattern.text || "...",
+                prioridades_dinamicas: [], // Unsupported
+                variables_astrales_utilizadas: interpretation.referencedSignalIds,
+                conversational_hook: interpretation.reflectionQuestion
+            };
+
+            // Return readingData directly so frontend FrecuenciaDiaData matches, but add localDate
+            const finalData = {
+                ...readingData,
+                localDate: v2Payload.localDate // Pass canonical date
+            };
+
+            return { status: 'ok', data: finalData };
         } catch (error: any) {
             console.error("API Error (/api/oracle/daily):", error);
             return reply.status(500).send({ error: error.message });
         }
     });
 
-    app.post<{ Body: { active_sub_profile_id?: string } }>('/api/user/profiles/switch', { preHandler: [validateUser] }, async (req, reply) => {
+    app.post<{ Body: { active_sub_profile_id?: string } }>('/api/user/profiles/switch', { preValidation: [validateUser] }, async (req, reply) => {
          const userId = (req as any).user_id;
          try {
              return await UserService.switchProfile(userId, req.body.active_sub_profile_id);

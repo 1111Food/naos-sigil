@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '../../i18n';
 
@@ -20,26 +20,29 @@ export const LaborIllusion: React.FC<LaborIllusionProps> = ({ onComplete }) => {
         "\u23F3 Constructing Timeline...",
         "\u2728 Connecting with Sigil..."
     ] : [
-        "\u2728 Calculando tránsitos astrológicos...",
-        "\uD83D\uDD22 Analizando año y mes personal...",
-        "\uD83C\uDF15 Interpretando energía del Nahual...",
-        "\uD83D\uDC09 Sincronizando Calendario Chino...",
-        "\uD83D\uDCBE Integrando tu historial en NAOS...",
-        "\uD83D\uDD2E Fusionando las 4 Intelligence Sources...",
-        "\u23F3 Construyendo Línea Temporal...",
-        "\u2728 Conectando con Sigil..."
+        "✨ Calculando tránsitos astrológicos...",
+        "🔢 Analizando año y mes personal...",
+        "🌕 Interpretando energía del Nahual...",
+        "🐉 Sincronizando Calendario Chino...",
+        "💾 Integrando tu historial en NAOS...",
+        "🔮 Fusionando las 4 Intelligence Sources...",
+        "⏳ Construyendo Línea Temporal...",
+        "✨ Conectando con Sigil..."
     ];
+
+    const hasCompleted = React.useRef(false);
 
     useEffect(() => {
         if (step < steps.length) {
             const timer = setTimeout(() => {
                 setStep(s => s + 1);
-            }, 1200 + Math.random() * 800); // Random delay between 1.2s and 2s per step
+            }, 1200 + Math.random() * 800);
             return () => clearTimeout(timer);
         } else {
-            // Give it a final second before completing
-            const timer = setTimeout(onComplete, 1000);
-            return () => clearTimeout(timer);
+            if (!hasCompleted.current) {
+                hasCompleted.current = true;
+                onComplete();
+            }
         }
     }, [step, steps.length, onComplete]);
 

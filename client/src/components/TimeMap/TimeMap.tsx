@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useActiveProfile } from '../../hooks/useActiveProfile';
 import { supabase } from '../../lib/supabase';
 import { API_BASE_URL } from '../../lib/api';
@@ -14,6 +14,7 @@ export const TimeMap: React.FC = () => {
     const [generating, setGenerating] = useState(false);
     const [showIllusion, setShowIllusion] = useState(false);
     const [viewMode, setViewMode] = useState<'symbolic' | 'behavioral'>('symbolic');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     
     // Check if user is Architect (Premium)
     const isPremium = profile?.plan_type === 'premium' || profile?.plan_type === 'admin';
@@ -32,6 +33,18 @@ export const TimeMap: React.FC = () => {
             const res = await fetch(`${API_BASE_URL}/api/forecast`, {
                 headers: { 'Authorization': `Bearer ${session.access_token}` }
             });
+            
+            // 404 = legitimate "not yet generated" state, not an error
+            if (res.status === 404) {
+                setTimeMap(null);
+                return;
+            }
+            
+            if (!res.ok) {
+                console.error("Error fetching Time Map:", res.status);
+                return;
+            }
+            
             const data = await res.json();
             
             if (data.map) setTimeMap(data.map);
@@ -58,23 +71,24 @@ export const TimeMap: React.FC = () => {
                     'Authorization': `Bearer ${session.access_token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ lang: language,  lang: 'es' })
+                body: JSON.stringify({ lang: language })
             });
             const data = await res.json();
             
             if (data.map) {
                 setTimeMap(data.map);
+                setErrorMsg(null);
             } else {
-                alert(t('generation_error', 'No fue posible generar el mapa en este momento. Inténtalo nuevamente en unos minutos.'));
+                setErrorMsg(data.error || t('generation_error', 'No fue posible generar el mapa en este momento. Inténtalo nuevamente en unos minutos.'));
             }
         } catch (e) {
             console.error("Error generating Time Map:", e);
-            alert(t('server_error', 'No fue posible conectar con el sistema. Inténtalo nuevamente en unos minutos.'));
+            setErrorMsg(t('server_error', 'No fue posible conectar con el sistema. Inténtalo nuevamente en unos minutos.'));
         } finally {
             setGenerating(false);
             setShowIllusion(false);
         }
-    }, []);
+    }, [language, t]);
 
     if (loading) {
         return <div className="p-8 text-center text-white/50">{t('syncing_frequencies', 'Sincronizando frecuencias...')}</div>;
@@ -83,16 +97,22 @@ export const TimeMap: React.FC = () => {
     if (!timeMap && !showIllusion) {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center">
-                <h2 className="text-3xl font-serif italic text-white/90 mb-4">{t('time_navigator_title', 'El Navegador Temporal')}</h2>
+                <h2 className="text-3xl font-serif italic text-white/90 mb-4">{t('time_navigator_title', t('time_navigator', 'El Navegador Temporal'))}</h2>
                 <p className="text-white/70 mb-8 max-w-lg">
-                    NAOS calcularÃ¡ la interacciÃ³n de tus energÃ­as natales (AstrologÃ­a, NumerologÃ­a, Nahual y Animal Chino) con los trÃ¡nsitos de los prÃ³ximos 12 meses para generar tu Mapa Temporal personalizado.
+                    {t('time_navigator_desc', 'NAOS calculará la interacción de tus energías natales (Astrología, Numerología, Nahual y Animal Chino) con los tránsitos de los próximos 12 meses para generar tu Mapa Temporal personalizado.')}
                 </p>
                 <button 
                     onClick={handleGenerate}
-                    className="px-8 py-4 bg-naos-gold text-black font-semibold rounded-lg shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all"
+                    disabled={showIllusion || generating}
+                    className={`px-8 py-4 bg-naos-gold text-black font-semibold rounded-lg shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all ${(showIllusion || generating) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                    Generar mi Mapa Temporal
+                    {t('generate_time_map', 'Generar mi Mapa Temporal')}
                 </button>
+                {errorMsg && (
+                    <div className="mt-6 text-red-400 text-sm bg-red-950/30 px-6 py-3 rounded-lg border border-red-500/20">
+                        {errorMsg}
+                    </div>
+                )}
             </div>
         );
     }
@@ -105,7 +125,7 @@ export const TimeMap: React.FC = () => {
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
                     
                     {/* Toggle de Jerga (Jargon Toggle) */}
-                    <div className="flex justify-center mb-8">
+                    <div className="flex flex-col md:flex-row items-center justify-center mb-8 gap-4">
                         <div className="flex items-center gap-1 p-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-md">
                             <button
                                 onClick={() => setViewMode('symbolic')}
@@ -115,7 +135,7 @@ export const TimeMap: React.FC = () => {
                                     : 'text-white/40 hover:text-white/70'
                                 }`}
                             >
-                                ðŸŒŒ Modo SimbÃ³lico
+                                🔮 Modo Simbólico
                             </button>
                             <button
                                 onClick={() => setViewMode('behavioral')}
@@ -125,9 +145,16 @@ export const TimeMap: React.FC = () => {
                                     : 'text-white/40 hover:text-white/70'
                                 }`}
                             >
-                                ðŸ§  Modo {t('behavioral', 'Conductual')}
+                                🧠 Modo {t('behavioral', 'Conductual')}
                             </button>
                         </div>
+                        <button 
+                            onClick={handleGenerate}
+                            disabled={showIllusion || generating}
+                            className={`px-6 py-2 rounded-full text-[10px] uppercase tracking-widest font-black transition-all duration-300 bg-white/5 text-white/50 border border-white/10 hover:bg-white/10 hover:text-white ${showIllusion ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            Recalcular de Nuevo
+                        </button>
                     </div>
 
                     {/* {t('annual_panorama', 'Panorama Anual')} */}
@@ -209,7 +236,7 @@ export const TimeMap: React.FC = () => {
                                             </div>
                                             <h3 className="text-white font-medium mb-2">{t('unlock_timeline', 'Desbloquea tu Línea Temporal')}</h3>
                                             <p className="text-xs text-white/70 mb-4">
-                                                ObtÃ©n visibilidad completa de tus prÃ³ximos 11 meses con el Nivel Arquitecto.
+                                                Obtén visibilidad completa de tus próximos 11 meses con el Nivel Arquitecto.
                                             </p>
                                             <button className="px-6 py-2 bg-naos-gold text-black text-sm font-semibold rounded-full shadow-[0_0_15px_rgba(212,175,55,0.4)]">
                                                 Subir a Arquitecto

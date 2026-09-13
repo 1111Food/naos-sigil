@@ -1,3 +1,5 @@
+import { NumerologyMathV1 } from '../../../server/src/modules/numerology/NumerologyMathV1';
+
 export interface PinaculoData {
     a: number; // Karma (Mes)
     b: number; // Personalidad (Día)
@@ -45,7 +47,7 @@ export class NumerologyEngine {
             }
         }
 
-        return this.masterReduce(sum);
+        return NumerologyMathV1.reduceNumber(sum);
     }
 
     static calculateLifePath(birthDate: string): number {
@@ -77,43 +79,42 @@ export class NumerologyEngine {
 
         // 1. BASE NODES
         // A (Karma): masterReduce(Month)
-        const A = this.masterReduce(monthVal);
+        const A = NumerologyMathV1.reduceNumber(monthVal);
 
         // B (Personalidad): masterReduce(Day)
-        const B = this.masterReduce(dayVal);
+        const B = NumerologyMathV1.reduceNumber(dayVal);
 
         // C (Legado): masterReduce(sumDigits(Year))
         // Example 1986 -> 1+9+8+6 = 24 -> 6
-        const C = this.masterReduce(sumDigits(yearVal));
+        const C = NumerologyMathV1.reduceNumber(sumDigits(yearVal));
 
         // D (Destino/LifePath): masterReduce(Day + Month + Year)
         // Standard Life Path is usually Sum(Reduce(D), Reduce(M), Reduce(Y)) or Sum(D+M+Y).
         // User Logic: "Día + Mes + Año (Suma completa... luego reduce)"
         // Let's stick to a reliable Life Path method but verify user intent.
-        // User prompt says: D (Destino): masterReduce(Día + Mes + Año)
-        const D = this.masterReduce(dayVal + monthVal + yearVal);
-
+        // D (Destino/LifePath): Canonical V1 Shared Math
+        const D = NumerologyMathV1.calculateLifePath(yearVal, monthVal, dayVal);
 
         // 2. CENTRAL TRIANGLE (Pinnacles)
         // E (P1): masterReduce(A + B)
-        const E = this.masterReduce(A + B);
+        const E = NumerologyMathV1.reduceNumber(A + B);
 
         // F (P2): masterReduce(B + C)
-        const F = this.masterReduce(B + C);
+        const F = NumerologyMathV1.reduceNumber(B + C);
 
         // G (P3): masterReduce(E + F)
-        const G = this.masterReduce(E + F);
+        const G = NumerologyMathV1.reduceNumber(E + F);
 
 
         // 3. MASTER NODES (The Esoteric Fix)
         // I (Subconsciente): masterReduce(A + B + E)
-        const I = this.masterReduce(A + B + E);
+        const I = NumerologyMathV1.reduceNumber(A + B + E);
 
         // J (Inconsciente): masterReduce(E + F + G)
-        const J = this.masterReduce(E + F + G);
+        const J = NumerologyMathV1.reduceNumber(E + F + G);
 
         // H (Cima / Pináculo Final): masterReduce(I + J)
-        const H = this.masterReduce(I + J);
+        const H = NumerologyMathV1.reduceNumber(I + J);
 
         // Shadows (Calculated traditionally as differences, usually non-master reduced?)
         // Let's keep them simply reduced for now as user didn't specify Master Shadows, 
@@ -146,22 +147,7 @@ export class NumerologyEngine {
     // 3. Sumar digitos
     // 4. Chequear si la suma es 11, 22, 33 -> Retornar
     // 5. Si no, Recurse.
-    private static masterReduce(n: number): number {
-        // 1. Check Master (Pre-reduction check)
-        if (n === 11 || n === 22 || n === 33) return n;
-
-        // 2. Single Digit
-        if (n < 10) return n;
-
-        // 3. Sum Digits
-        const sum = n.toString().split('').reduce((acc, d) => acc + parseInt(d), 0);
-
-        // 4. Check Master (Post-reduction check)
-        if (sum === 11 || sum === 22 || sum === 33) return sum;
-
-        // 5. Recurse
-        return this.masterReduce(sum);
-    }
+    
 
     // Standard reducer for Shadows (0-9 only)
     private static simpleReduce(n: number): number {

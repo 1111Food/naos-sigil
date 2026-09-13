@@ -1,0 +1,1 @@
+const fs = require('fs'); let content = fs.readFileSync('server/src/routes/api.ts', 'utf8'); content = content.replace(/Se.al Diaria/g, 'Señal Diaria'); fs.writeFileSync('server/src/routes/api.ts', content); console.log('Done');

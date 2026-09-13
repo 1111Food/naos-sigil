@@ -1,7 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import { UserService } from '../user/service';
 import { memoryService } from '../memory/MemoryService';
-import { EnergyService } from '../energy/service';
+
 import { ProfileConsolidator } from '../user/profileConsolidator';
 import { ArchetypeEngine } from '../user/archetypeEngine';
 import { EphemerisService } from '../ephemeris/service';
@@ -75,7 +75,7 @@ export class ContextBuilder {
 
         // 2. Format Identity
         let identityData: any = { archetype: 'Unknown', energy_signature: null, plan_type: 'free' };
-        let energySnapshot: any;
+        let energySnapshot: any = null;
         if (userProfile) {
             const consolidated = ProfileConsolidator.consolidate(userProfile);
             const archetype = ArchetypeEngine.calculate({
@@ -83,12 +83,12 @@ export class ContextBuilder {
                 astrology: consolidated.western,
                 numerology: consolidated.numerology
             });
+            
             identityData = {
                 archetype: archetype?.nombre || 'Unknown',
                 energy_signature: consolidated,
                 plan_type: userProfile.plan_type || 'free'
             };
-            energySnapshot = EnergyService.getDailySnapshot(userProfile);
         }
 
         // 3. Format Protocol

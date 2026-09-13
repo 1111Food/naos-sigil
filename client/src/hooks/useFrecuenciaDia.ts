@@ -10,21 +10,22 @@ export interface FrecuenciaDiaData {
     prioridades_dinamicas: { nombre: string; score: number; icono: string }[];
     variables_astrales_utilizadas: string[];
     conversational_hook: string;
+    localDate?: string; // V2 canonical date
 }
 
 // Clave de localStorage para tracking de lectura (sin cambios de comportamiento)
 const getReadKey = () => `frecuencia_read_date`;
 
 export function useFrecuenciaDia() {
-    const { session } = useAuth();
+    const { session, userProfile } = useAuth(); // If userProfile has language we could pass it, otherwise backend defaults to 'es'
 
-    const today = new Date().toISOString().split('T')[0];
     const storedDate = typeof window !== 'undefined' ? localStorage.getItem(getReadKey()) : null;
 
     const { data, isLoading: loading } = useQuery<FrecuenciaDiaData | null>({
-        queryKey: ['frecuencia-dia', session?.user?.id, today],
+        queryKey: ['frecuencia-dia', session?.user?.id], // Removed local today from cache key
         queryFn: async () => {
-            const res = await fetch(`${API_BASE_URL}/api/oracle/daily?offset=0`, {
+            const lang = userProfile?.language || 'es';
+            const res = await fetch(`${API_BASE_URL}/api/oracle/daily?lang=${lang}`, {
                 headers: { 'Authorization': `Bearer ${session!.access_token}` }
             });
             const json = await res.json();
@@ -32,16 +33,20 @@ export function useFrecuenciaDia() {
             return null;
         },
         enabled: !!session,
-        // La frecuencia del día cambia una vez al día — cache agresivo
-        staleTime: 1000 * 60 * 30, // 30 min frescos (no cambia a cada rato)
-        gcTime: 1000 * 60 * 60,    // 1 hora en memoria
+        staleTime: 1000 * 60 * 30, // 30 min
+        gcTime: 1000 * 60 * 60,    // 1 hora
     });
 
+    // Use server's canonical date for tracking read status, fallback to local date temporarily if loading
+    const activeDate = data?.localDate || new Date().toISOString().split('T')[0];
+
     const markAsRead = () => {
-        localStorage.setItem(getReadKey(), today);
+        if (data?.localDate) {
+            localStorage.setItem(getReadKey(), data.localDate);
+        }
     };
 
-    const isRead = storedDate === today;
+    const isRead = storedDate === activeDate;
 
     return { data: data ?? null, isRead, markAsRead, loading };
 }

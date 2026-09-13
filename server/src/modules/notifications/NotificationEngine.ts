@@ -4,8 +4,7 @@ import { SigilService } from '../sigil/service';
 import { CoherenceService } from '../coherence/service';
 import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS } from '../sigil/prompts';
 import { TTSService } from '../sigil/ttsService';
-import { DailyOracleEngine } from '../oracle/DailyOracleEngine';
-import { DailyOracleOracle } from '../oracle/DailyOracleOracle';
+
 import { ConsciousnessEngine, TransmissionMoment } from '../sigil/ConsciousnessEngine';
 
 export class NotificationEngine {
@@ -40,12 +39,9 @@ export class NotificationEngine {
 
         for (const user of uniqueUsers) {
             try {
-                // Timezone logic
-                const profileData = user.profile_data || {};
-                const astroData = user.astrology || {};
-                const offset = (profileData.utcOffset !== undefined) 
-                    ? profileData.utcOffset 
-                    : (astroData.timezone_offset !== undefined ? astroData.timezone_offset : -6);
+                // Timezone logic (Current timezone only, NEVER natal utcOffset)
+                const { DateUtils } = require('../../utils/DateUtils');
+                const offset = DateUtils.getCurrentTimezoneOffset(user);
                 
                 const userLocal = new Date(now.getTime() + (3600000 * offset));
                 const userHours = String(userLocal.getUTCHours()).padStart(2, '0');
@@ -130,27 +126,41 @@ export class NotificationEngine {
                     }
                 }
 
-                // --- EXECUTION 3: Daily Reading (12-Factor Oracle) ---
+                // --- EXECUTION 3: Daily Reading (V2 Context Builder) ---
                 if (isOracleDue) {
-                    console.info(`🚀 [NOTIF] Checking Frecuencia del Día (Pulso Cuántico) for ${user.email}`);
+                    console.info(`🔮 [NOTIF] Checking V2 Daily Context for ${user.email}`);
                     
                     try {
-                        const readingData = await DailyOracleEngine.getOrGenerateDailyReading(user.id, userLocal, offset, lang);
+                        const { DailyContextOrchestrator } = require('../daily/DailyContextOrchestrator');
+                        
+                        const v2Payload = await DailyContextOrchestrator.getOrGenerate(
+                            user.id, 
+                            user, 
+                            offset, 
+                            lang
+                        );
 
-                        // Format magnetic hook for Telegram
-                        const telegramMessage = `🌌 ${lang === 'en' ? 'Daily Frequency' : 'Frecuencia del Día'} — ${user.nickname || user.full_name}
+                        if (v2Payload.interpretation?.interpretationStatus === 'unavailable') {
+                            console.warn(`[NOTIF] Interpretation unavailable for ${user.email}, skipping Telegram message.`);
+                        } else {
+                            const { primarySignal, guidance, reflectionQuestion } = v2Payload.interpretation;
 
-⚡ ${lang === 'en' ? 'Energy Level' : 'Nivel de Energía'}: ${readingData.score_energia_general}%
+                            // Format magnetic hook for Telegram
+                            const telegramMessage = `⚡ ${lang === 'en' ? 'Daily Frequency' : 'Frecuencia del Día'} — ${user.nickname || user.full_name}
 
-${lang === 'en' ? 'Active Priorities:' : 'Prioridades Activas:'}
-${readingData.prioridades_dinamicas?.map((p: any) => `${p.icono} ${p.nombre}: ${p.score}`).join('\n') || ''}
+${primarySignal.title}
 
-"${readingData.conversational_hook}"`;
+${primarySignal.text || primarySignal.content}
 
-                        const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                        console.info(`📡 [NOTIF] Frecuencia del Día Result for ${user.email}: ${success}`);
+${guidance}
+
+"${reflectionQuestion}"`;
+
+                            const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                            console.info(`✅ [NOTIF] V2 Daily Context Result for ${user.email}: ${success}`);
+                        }
                     } catch (err: any) {
-                        console.error(`🔥 [NOTIF] Error processing Frecuencia del Día for ${user.email}:`, err.message);
+                        console.error(`❌ [NOTIF] Error processing V2 Daily Context for ${user.email}:`, err.message);
                     }
                 }
 

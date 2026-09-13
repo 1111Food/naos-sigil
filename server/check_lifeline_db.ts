@@ -1,0 +1,1 @@
+import { supabase } from './src/lib/supabase'; async function run() { const { data, error } = await supabase.from('user_lifelines').select('id, user_id, language').limit(3); if(error) console.log('ERROR:', JSON.stringify(error)); else console.log('DATA:', JSON.stringify(data)); } run();

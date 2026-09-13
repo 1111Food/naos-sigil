@@ -1,0 +1,1 @@
+import { supabase } from './src/lib/supabase'; async function run() { const { data, error } = await supabase.rpc('get_schema'); if(error) { const { data: d2 } = await supabase.from('user_lifelines').select('*').limit(1); console.log(d2); } } run();

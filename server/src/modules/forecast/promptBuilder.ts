@@ -1,4 +1,4 @@
-﻿export class ForecastPromptBuilder {
+export class ForecastPromptBuilder {
     static build(
         userData: any, 
         astroContext: any,
@@ -46,6 +46,20 @@ INSTRUCCIONES CRÍTICAS:
 
 ESTRUCTURA JSON REQUERIDA:
 {
+    "annual_view": {
+        "theme": "...",
+        "challenge": "...",
+        "gift": "...",
+        "learning": "...",
+        "dominant_element": "..."
+    },
+    "quarters": [
+        {
+            "quarter": "Q1",
+            "focus": "...",
+            "description": "..."
+        }
+    ],
     "months": [
         {
             "month": "YYYY-MM",
@@ -92,6 +106,20 @@ CRITICAL INSTRUCTIONS:
 
 REQUIRED JSON STRUCTURE:
 {
+    "annual_view": {
+        "theme": "...",
+        "challenge": "...",
+        "gift": "...",
+        "learning": "...",
+        "dominant_element": "..."
+    },
+    "quarters": [
+        {
+            "quarter": "Q1",
+            "focus": "...",
+            "description": "..."
+        }
+    ],
     "months": [
         {
             "month": "YYYY-MM",

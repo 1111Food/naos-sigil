@@ -1,0 +1,1 @@
+import { supabase } from './src/lib/supabase'; async function run() { const { data, error } = await supabase.from('user_time_maps').select('id, astro_context_version, valid_until, created_at').limit(3); if(error) console.log('ERROR:', error); else console.log('DATA:', JSON.stringify(data)); } run();

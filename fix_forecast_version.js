@@ -1,0 +1,1 @@
+const fs = require('fs'); let content = fs.readFileSync('server/src/modules/forecast/service.ts', 'utf8'); content = content.replace('if (data.astro_context_version !== 2) return null;', '// Removed astro_context_version check as column does not exist'); fs.writeFileSync('server/src/modules/forecast/service.ts', content); console.log('Done');

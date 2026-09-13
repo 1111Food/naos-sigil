@@ -1,0 +1,1 @@
+const fs = require('fs'); let content = fs.readFileSync('client/src/i18n/index.tsx', 'utf8'); content = content.replace('es: {\\\\n', 'es: {\\n'); content = content.replace('en: {\\\\n', 'en: {\\n'); fs.writeFileSync('client/src/i18n/index.tsx', content); console.log('Done');

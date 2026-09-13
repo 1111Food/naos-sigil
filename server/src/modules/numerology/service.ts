@@ -1,4 +1,5 @@
 import { NumerologyProfile } from '../../types';
+import { NumerologyMathV1 } from './NumerologyMathV1';
 
 export class NumerologyService {
     static calculateProfile(birthDateISO: string, name: string): NumerologyProfile {
@@ -7,25 +8,13 @@ export class NumerologyService {
         const month = date.getUTCMonth() + 1;
         const year = date.getUTCFullYear();
 
-        const lifePath = this.reduceNumber(day + month + this.sumDigits(year));
+        const lifePath = NumerologyMathV1.calculateLifePath(year, month, day);
 
         // Simple Pythagorean reductions for name
         const destiny = this.getNameNumber(name);
         const soulUrge = this.getNameNumber(name, true); // Only vowels
 
-        // The 4 Pinnacles
-        // 1st: Month + Day
-        // 2nd: Day + Year
-        // 3rd: 1st + 2nd
-        // 4th: Month + Year
-        // 1st: Month + Day
-        // 2nd: Day + Year (Reduced)
-        // 3rd: 1st + 2nd
-        // 4th: Month + Year (Reduced)
-        const p1 = this.reduceNumber(month + day);
-        const p2 = this.reduceNumber(day + this.reduceNumber(year));
-        const p3 = this.reduceNumber(p1 + p2);
-        const p4 = this.reduceNumber(month + this.reduceNumber(year));
+        const [p1, p2, p3, p4] = NumerologyMathV1.calculatePinnacles(year, month, day);
 
         // Validation log
         // console.log(`Numerology: ${day}/${month}/${year} -> LifePath ${lifePath}, Pin1 ${p1}, Pin2 ${p2}`);
@@ -130,4 +119,28 @@ export class NumerologyService {
 
         return this.reduceNumber(sum);
     }
+
+    /**
+     * Calculates the Universal and Personal daily numerology for a given local date.
+     * Respects NAOS master number policy (11, 22, 33) in all reductions.
+     * 
+     * @param localDateStr YYYY-MM-DD
+     * @param birthDay number
+     * @param birthMonth number
+     */
+    static calculateDailyNumerology(localDateStr: string, birthDay: number, birthMonth: number) {
+        const [yearStr, monthStr, dayStr] = localDateStr.split('-');
+        const currentYear = parseInt(yearStr);
+        const currentMonth = parseInt(monthStr);
+        const currentDay = parseInt(dayStr);
+
+        const uni = NumerologyMathV1.calculateUniversalCycles(currentYear, currentMonth, currentDay);
+        const per = NumerologyMathV1.calculatePersonalCycles(birthMonth, birthDay, currentYear, currentMonth, currentDay);
+
+        return {
+            ...uni,
+            ...per
+        };
+    }
 }
+

@@ -1,0 +1,1 @@
+import { ForecastService } from './server/src/modules/forecast/service'; async function run() { try { const res = await ForecastService.generateTimeMap('842fb2cd-2965-4f36-a365-b153b68079ed', 'es'); console.log('SUCCESS:', res?.id); } catch(e) { console.error('ERROR:', e); } } run();

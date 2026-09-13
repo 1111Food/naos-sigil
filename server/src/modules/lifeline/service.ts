@@ -16,7 +16,7 @@ export class LifelineService {
             .maybeSingle();
 
         if (error) throw error;
-        if (data && data.astro_context_version !== 2) return null;
+        // Removed astro_context_version check
         return data; // Returns null if not exists, which is perfect to trigger generation
     }
 

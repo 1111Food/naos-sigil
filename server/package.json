@@ -25,6 +25,7 @@
     "telegraf": "^4.16.3"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.7.5",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3"

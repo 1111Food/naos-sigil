@@ -18,13 +18,23 @@ interface ArchetypeDecodifierProps {
 }
 
 export const ArchetypeDecodifier: React.FC<ArchetypeDecodifierProps> = ({ desglose, archColor = '#06b6d4', isOpen, onClose }) => {
-    if (!desglose) return null;
+    
+    // Provide a graceful fallback if the identity was cached before V2
+    const safeDesglose = desglose || {
+        scores: {},
+        contribuciones: {
+            astrologia: ["Identidad Cósmica"],
+            maya: ["Sello Interdimensional"],
+            chino: ["Frecuencia Terrenal"],
+            numerologia: ["Código Estructural"]
+        }
+    };
 
     const schoolConfig = [
-        { id: 'astrologia', label: 'Astrología', icon: Sun, color: '#f59e0b', items: desglose.contribuciones.astrologia },
-        { id: 'numerologia', label: 'Numerología', icon: Hash, color: '#10b981', items: desglose.contribuciones.numerologia },
-        { id: 'maya', label: 'Calendario Maya', icon: Shield, color: '#6366f1', items: desglose.contribuciones.maya },
-        { id: 'chino', label: 'Horóscopo Chino', icon: Zap, color: '#f43f5e', items: desglose.contribuciones.chino },
+        { id: 'astrologia', label: 'Astrología', icon: Sun, color: '#f59e0b', items: safeDesglose.contribuciones.astrologia },
+        { id: 'numerologia', label: 'Numerología', icon: Hash, color: '#10b981', items: safeDesglose.contribuciones.numerologia },
+        { id: 'maya', label: 'Calendario Maya', icon: Shield, color: '#6366f1', items: safeDesglose.contribuciones.maya },
+        { id: 'chino', label: 'Horóscopo Chino', icon: Zap, color: '#f43f5e', items: safeDesglose.contribuciones.chino },
     ];
 
     return (

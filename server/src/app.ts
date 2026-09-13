@@ -19,6 +19,7 @@ import { reviewRoutes } from './routes/review';
 import fastifyRateLimit from '@fastify/rate-limit';
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
+        trustProxy: true,
         logger: {
             serializers: {
                 req(request) {
@@ -76,7 +77,9 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         timeWindow: '1 minute',
         hook: 'preHandler', // SEC-F2B: Ensures validateUser runs first so req.user_id exists
         keyGenerator: (req) => {
-            return (req as any).user_id || req.ip; // Limit by user if authenticated, otherwise IP
+            const u = (req as any).user_id;
+            console.log(`[RATE LIMIT KEY] user_id: ${u}, ip: ${req.ip}, path: ${req.url}`);
+            return u || req.ip; // Limit by user if authenticated, otherwise IP
         },
         errorResponseBuilder: function (request, context) {
             return {
