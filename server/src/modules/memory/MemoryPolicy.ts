@@ -104,8 +104,9 @@ Classification Criteria:
       if (context?.module_source) promptText += `\nModule Source: ${context.module_source}`;
       if (context?.conversation_summary) promptText += `\nConversation Summary: ${context.conversation_summary}`;
 
+      const modelName = config.GEMINI_MODEL || 'gemini-1.5-flash';
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${config.GOOGLE_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${config.GOOGLE_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
