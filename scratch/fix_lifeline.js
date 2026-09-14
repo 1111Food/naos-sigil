@@ -73,28 +73,16 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
         window.scrollTo(0, 0);
     }, []);
 
-        const handleGenerate = () => {
+    const executeGeneration = React.useCallback(async () => {
         setGenerating(true);
-        setShowIllusion(true);
         generateMutation.mutate();
+    }, [generateMutation]);
+
+    const handleGenerate = async () => {
+        setShowIllusion(true);
     };
 
-    
-    let viewState: 'checking' | 'not_generated' | 'generating' | 'partially_ready' | 'ready' | 'error' = 'checking';
-    
-    if (loading) viewState = 'checking';
-    else if (generating || showIllusion) viewState = 'generating';
-    else if (errorMsg) viewState = 'error';
-    else if (!lifeline) viewState = 'not_generated';
-    else {
-        // Evaluate if it's partial
-        const hasMissingReadings = !lifeline.current_cycle?.esoteric_reading || lifeline.pinnacles?.some((p: any) => !p.esoteric_reading);
-        if (hasMissingReadings) viewState = 'partially_ready';
-        else viewState = 'ready';
-    }
-
-    if (viewState === 'checking') {
-
+    if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center text-white/50">
                 <motion.button
@@ -109,7 +97,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
         );
     }
 
-    if (viewState === 'not_generated') {
+    if (!lifeline && !showIllusion) {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center min-h-[60vh]">
                 <motion.button
@@ -139,55 +127,6 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
         );
     }
 
-    
-    if (viewState === 'partially_ready') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-                <motion.button
-                    onClick={onBack}
-                    className="fixed top-[calc(1rem+env(safe-area-inset-top))] left-6 flex items-center gap-2 text-white/40 hover:text-white transition-colors group z-50"
-                >
-                    <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-[10px] uppercase tracking-[0.3em] font-black">{t('time_map', 'Mapa Temporal')}</span>
-                </motion.button>
-                <div className="p-8 rounded-2xl bg-red-900/20 border border-red-500/30 max-w-xl mx-auto">
-                    <h3 className="text-2xl font-serif italic text-red-400 mb-4">{language === 'es' ? 'Arquitectura Calculada, Lectura Pendiente' : 'Architecture Calculated, Reading Pending'}</h3>
-                    <p className="text-white/70 mb-8">{language === 'es' ? 'Tu línea de vida matemática ha sido trazada, pero la interpretación profunda experimentó un retraso.' : 'Your mathematical lifeline has been drawn, but the deep interpretation experienced a delay.'}</p>
-                    <button 
-                        onClick={handleGenerate}
-                        disabled={generating}
-                        className="px-8 py-3 bg-red-500/20 text-red-300 font-bold uppercase tracking-widest text-xs rounded-full hover:bg-red-500/30 transition-all border border-red-500/50"
-                    >
-                        {language === 'es' ? 'Reintentar Interpretación' : 'Retry Interpretation'}
-                    </button>
-                </div>
-                {showIllusion && <LaborIllusion />}
-            </div>
-        );
-    }
-    
-    // We only reach here if viewState === 'ready' (or 'generating' but already had valid lifeline)
-    if (viewState === 'generating' && !lifeline) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-                {showIllusion && <LaborIllusion />}
-            </div>
-        );
-    }
-
-    if (viewState === 'error') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center text-white">
-                <div className="mt-6 text-red-400 text-sm bg-red-950/30 px-6 py-3 rounded-lg border border-red-500/20">
-                    {errorMsg}
-                </div>
-                <button onClick={() => setErrorMsg(null)} className="mt-4 px-4 py-2 bg-white/10 rounded">Volver</button>
-            </div>
-        );
-    }
-    
-
-
     // Math calculation for the UI headers
     const bYear = profile?.birth_date ? Number(profile.birth_date.split('-')[0]) : new Date().getFullYear();
     const currentAge = new Date().getFullYear() - bYear;
@@ -198,7 +137,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
 
     return (
         <div className="relative min-h-[60vh] flex flex-col items-center justify-start p-6 mt-12 pb-24">
-            {showIllusion && <LaborIllusion />}
+            {showIllusion && <LaborIllusion onComplete={executeGeneration} />}
             
             {!showIllusion && lifeline && (
                 <>
@@ -245,7 +184,13 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                 🧠 Modo Conductual
                             </button>
                         </div>
-                        
+                        <button 
+                            onClick={handleGenerate}
+                            disabled={showIllusion || generating}
+                            className={`px-6 py-2 rounded-full text-[10px] uppercase tracking-widest font-black transition-all duration-300 bg-white/5 text-white/50 border border-white/10 hover:bg-white/10 hover:text-white ${showIllusion ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            Recalcular de Nuevo
+                        </button>
                     </div>
 
                     {/* Ciclo de 9 Años */}
@@ -325,7 +270,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                         {(lifeline.pinnacles || []).map((pin: any, idx: number) => {
                             const isExpanded = expandedPinnacle === idx;
                             const isDeepDive = showDeepDive === idx;
-                            const reading = (viewMode === 'symbolic' ? pin.esoteric_reading : pin.biohacking_reading) || (viewMode === 'behavioral' ? pin.esoteric_reading : pin.biohacking_reading) || null;
+                            const reading = (viewMode === 'symbolic' ? pin.esoteric_reading : pin.biohacking_reading) || (viewMode === 'behavioral' ? pin.esoteric_reading : pin.biohacking_reading) || { objetivo_evolutivo: pin.title || t('evolution_axis_missing_reading', 'Lectura no disponible'), metricas_naos: 'No disponible', riesgo_principal: 'No disponible', virtud_desarrollar: 'No disponible', talento_dormido: 'No disponible' };
                             const indicators = pin.indicators;
                             
                             return (
@@ -344,12 +289,12 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                     >
                                         <div className="flex-1 space-y-2">
                                             <h4 className="text-xl font-serif italic text-white">{pin.title || `${t('evolution_axis_stage', 'Etapa')} ${pin.index || idx + 1}`}</h4>
-                                            <p className="text-sm text-white/70">{reading?.objetivo_evolutivo || ""}</p>
+                                            <p className="text-sm text-white/70">{reading.objetivo_evolutivo}</p>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="flex flex-col items-end">
                                                 <span className="text-[10px] uppercase tracking-widest text-white/40">{t('main_metric', 'Métrica Principal')}</span>
-                                                <span className="text-xs text-white/60">{reading?.metricas_naos || "" || t('evolution_axis_archetypal_coherence', 'Coherencia Arquetípica')}</span>
+                                                <span className="text-xs text-white/60">{reading.metricas_naos || t('evolution_axis_archetypal_coherence', 'Coherencia Arquetípica')}</span>
                                             </div>
                                             <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/50">
                                                 {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -370,15 +315,15 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
                                                         <div className="space-y-6">
                                                             <div>
                                                                 <span className="text-[10px] uppercase tracking-widest text-red-400/60 block mb-2">{t('main_risk', 'Riesgo Principal')}</span>
-                                                                <p className="text-white/80 text-sm">{reading?.riesgo_principal || ""}</p>
+                                                                <p className="text-white/80 text-sm">{reading.riesgo_principal}</p>
                                                             </div>
                                                             <div>
                                                                 <span className="text-[10px] uppercase tracking-widest text-blue-400/60 block mb-2">{t('virtue_to_develop', 'Virtud a Desarrollar')}</span>
-                                                                <p className="text-white/80 text-sm">{reading?.virtud_desarrollar || ""}</p>
+                                                                <p className="text-white/80 text-sm">{reading.virtud_desarrollar}</p>
                                                             </div>
                                                             <div>
                                                                 <span className="text-[10px] uppercase tracking-widest text-purple-400/60 block mb-2">{t('dormant_talent', 'Talento Dormido')}</span>
-                                                                <p className="text-white/80 text-sm">{reading?.talento_dormido || ""}</p>
+                                                                <p className="text-white/80 text-sm">{reading.talento_dormido}</p>
                                                             </div>
                                                         </div>
                                                         

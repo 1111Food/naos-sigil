@@ -19,8 +19,7 @@ import { reviewRoutes } from './routes/review';
 import fastifyRateLimit from '@fastify/rate-limit';
 export const buildApp = async (): Promise<FastifyInstance> => {
     const app = fastify({
-        trustProxy: true,
-        logger: {
+                logger: {
             serializers: {
                 req(request) {
                     // SEC-F2B.3: Redact sensitive query parameters from req.url to prevent PII/secret leaks

@@ -5,7 +5,7 @@ import { DailyInterpretation, SupportedInterpretationBlock } from './interpretat
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy');
 
 export class DailyInterpreter {
-    static async interpret(layerA: DailyContextLayerA): Promise<DailyInterpretation> {
+    static async interpret(layerA: DailyContextLayerA): Promise<DailyInterpretation | null> {
         if (!process.env.GEMINI_API_KEY) return this.getFallback(layerA);
 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -148,28 +148,7 @@ Output Schema:
         return { system, user };
     }
 
-    private static getFallback(layerA: DailyContextLayerA): DailyInterpretation {
-        const lang = layerA.language;
-        return {
-            interpretationVersion: 'v1',
-            localDate: layerA.localDate,
-            language: lang,
-            interpretationStatus: 'unavailable',
-            primarySignal: {
-                title: lang === 'en' ? 'Synchronizing Systems' : 'Sincronizando Sistemas',
-                text: lang === 'en' ? 'Your cosmic signals have been calculated, but the interpretation engine is currently calibrating.' : 'Tus señales cósmicas han sido calculadas, pero el motor de interpretación está calibrando.',
-                signalIds: []
-            },
-            integratedPattern: { convergence: false, text: '', signalIds: [] },
-            systems: { 
-                astrology: { text: '', signalIds: [] }, 
-                numerology: { text: '', signalIds: [] }, 
-                maya: { text: '', signalIds: [] }, 
-                chinese: { text: '', signalIds: [] } 
-            },
-            personalResonance: '',
-            guidance: lang === 'en' ? 'Observe your surroundings today.' : 'Observa tu entorno hoy.',
-            reflectionQuestion: lang === 'en' ? 'What do you feel in the silence?' : '¿Qué sientes en el silencio?'
-        };
+    private static getFallback(layerA: DailyContextLayerA): DailyInterpretation | null {
+        return null;
     }
 }

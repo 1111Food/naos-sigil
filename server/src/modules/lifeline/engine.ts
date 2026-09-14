@@ -19,13 +19,13 @@ export class LifelineEngine {
             }
         };
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout for heavy generation
-
         let attempt = 0;
         const maxAttempts = 3;
 
         while (attempt < maxAttempts) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout for heavy generation
+
             try {
                 attempt++;
                 // Fallback to older model if 2.5 is overloaded on attempt 2+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Battery, Sparkles, Target, Zap } from 'lucide-react';
 import { useActiveProfile } from '../hooks/useActiveProfile';
@@ -86,42 +86,53 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
         window.scrollTo(0, 0);
     }, []);
 
-    const handleGenerate = async () => {
-        setShowIllusion(true);
-    };
-
-    const executeGeneration = React.useCallback(async () => {
-        try {
-            setGenerating(true);
+    
+    const generateMutation = useMutation({
+        mutationFn: async () => {
             const headers = await getAsyncAuthHeaders('POST');
             const res = await fetch(`${API_BASE_URL}/api/energy/current/generate`, { 
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ lang: language })
             });
-            
-            if (res.ok) {
-                const data = await res.json();
-                if (data.energy) {
-                    qc.setQueryData(['current-energy', profile?.id, language], data.energy);
-                    setErrorMsg(null);
-                } else {
-                    setErrorMsg(data.error || t('generation_error_energy', 'No fue posible actualizar tu Energía Actual en este momento. Inténtalo nuevamente en unos minutos.'));
-                }
-            } else {
-                const data = await res.json().catch(() => ({}));
-                setErrorMsg(data.error || t('generation_error_energy', 'No fue posible actualizar tu Energía Actual en este momento. Inténtalo nuevamente en unos minutos.'));
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Generation failed');
+            return data.energy;
+        },
+        onSuccess: (newEnergy) => {
+            if (newEnergy) {
+                qc.setQueryData(['current-energy', profile?.id, language], newEnergy);
+                setErrorMsg(null);
             }
-        } catch (e) {
-            console.error("Error generating Energy:", e);
-            setErrorMsg(t('generation_error_energy', 'No fue posible actualizar tu Energía Actual en este momento. Inténtalo nuevamente en unos minutos.'));
-        } finally {
+        },
+        onError: (err: Error) => {
+            setErrorMsg(err.message);
+        },
+        onSettled: () => {
             setGenerating(false);
             setShowIllusion(false);
         }
-    }, [profile?.id, language, t, qc]);
+    });
 
-    if (loading) {
+    const handleGenerate = () => {
+        setGenerating(true);
+        setShowIllusion(true);
+        generateMutation.mutate();
+    };
+
+
+    
+    let viewState: 'checking' | 'not_generated' | 'generating' | 'partially_ready' | 'ready' | 'error' = 'checking';
+    
+    if (loading) viewState = 'checking';
+    else if (generating || showIllusion) viewState = 'generating';
+    else if (errorMsg) viewState = 'error';
+    else if (!energy) viewState = 'not_generated';
+    else if (energy.interpretationStatus === 'unavailable') viewState = 'partially_ready';
+    else viewState = 'ready';
+
+    if (viewState === 'checking') {
+
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center text-white/50">
                 <p>{t('syncing_frequencies', 'Sincronizando frecuencias...')}</p>
@@ -129,7 +140,7 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
         );
     }
 
-    if (!energy) {
+    if (viewState === 'not_generated') {
         return (
             <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -154,10 +165,53 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
                     </div>
                 )}
                 
-                {showIllusion && <LaborIllusion onComplete={executeGeneration} />}
+                {showIllusion && <LaborIllusion />}
             </motion.div>
         );
     }
+
+    
+    if (viewState === 'partially_ready') {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="relative z-10 w-full max-w-4xl mx-auto px-4 py-12 text-center min-h-[60vh] flex flex-col justify-center"
+            >
+                <div className="mb-12 p-8 bg-red-900/20 border border-red-500/30 rounded-2xl max-w-xl mx-auto">
+                    <h3 className="text-xl font-serif italic text-red-400 mb-2">{language === 'es' ? 'Señales Listas, Interpretación Pendiente' : 'Signals Ready, Interpretation Pending'}</h3>
+                    <p className="text-sm text-white/70 mb-6 font-mono">{language === 'es' ? 'Tu configuración cósmica base ha sido mapeada, pero el motor de síntesis experimentó un retraso.' : 'Your cosmic configuration has been mapped, but the synthesis engine experienced a delay.'}</p>
+                    <button 
+                        onClick={handleGenerate}
+                        disabled={showIllusion}
+                        className={`px-6 py-2 bg-naos-gold/20 border border-naos-gold/40 rounded-full text-naos-gold text-xs font-bold uppercase tracking-widest hover:bg-naos-gold/30 transition-all ${showIllusion ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {language === 'es' ? 'Reintentar Interpretación' : 'Retry Interpretation'}
+                    </button>
+                </div>
+                {showIllusion && <LaborIllusion />}
+            </motion.div>
+        );
+    }
+
+    if (viewState === 'generating' && !energy) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+                {showIllusion && <LaborIllusion />}
+            </div>
+        );
+    }
+
+    if (viewState === 'error') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center text-white">
+                <div className="mt-6 text-red-400 text-sm bg-red-950/30 px-6 py-3 rounded-lg border border-red-500/20">
+                    {errorMsg}
+                </div>
+                <button onClick={() => setErrorMsg(null)} className="mt-4 px-4 py-2 bg-white/10 rounded">Volver</button>
+            </div>
+        );
+    }
+
 
     return (
         <motion.div 
@@ -168,19 +222,7 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
                 <h1 className="text-4xl font-serif italic text-white/90 mb-4">{t('current_energy_title', 'Energía Actual')}</h1>
                 <p className="text-sm font-mono text-white/50 uppercase tracking-[0.2em] mb-8">{new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                 
-                {energy.interpretationStatus === 'unavailable' && (
-                    <div className="mb-12 mt-4 p-6 bg-red-900/20 border border-red-500/30 rounded-2xl max-w-xl mx-auto">
-                        <h3 className="text-xl font-serif italic text-red-400 mb-2">{language === 'es' ? 'Señales Listas, Interpretación Pendiente' : 'Signals Ready, Interpretation Pending'}</h3>
-                        <p className="text-sm text-white/70 mb-6 font-mono">{language === 'es' ? 'Tu configuración cósmica base ha sido mapeada, pero el motor de síntesis experimentó un retraso.' : 'Your cosmic configuration has been mapped, but the synthesis engine experienced a delay.'}</p>
-                        <button 
-                            onClick={handleGenerate}
-                            disabled={showIllusion}
-                            className={`px-6 py-2 bg-naos-gold/20 border border-naos-gold/40 rounded-full text-naos-gold text-xs font-bold uppercase tracking-widest hover:bg-naos-gold/30 transition-all ${showIllusion ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            {language === 'es' ? 'Reintentar Interpretación' : 'Retry Interpretation'}
-                        </button>
-                    </div>
-                )}
+                
 
                 <div className="flex flex-col md:flex-row items-center justify-center mb-8 gap-4">
                     <div className="inline-flex bg-black/40 p-1.5 rounded-full border border-white/10 backdrop-blur-sm">
@@ -205,13 +247,7 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
                             Conductual
                         </button>
                     </div>
-                    <button 
-                        onClick={handleGenerate}
-                        disabled={showIllusion || generating}
-                        className={`px-6 py-2 rounded-full text-[10px] uppercase tracking-widest font-black transition-all duration-300 bg-white/5 text-white/50 border border-white/10 hover:bg-white/10 hover:text-white ${showIllusion ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        Recalcular de Nuevo
-                    </button>
+                    
                 </div>
             </div>
 
@@ -288,7 +324,7 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
                 </div>
             </div>
             
-            {showIllusion && <LaborIllusion onComplete={executeGeneration} />}
+            {showIllusion && <LaborIllusion />}
         </motion.div>
     );
 };

@@ -221,19 +221,27 @@ export async function apiRoutes(app: FastifyInstance) {
             
             if (!v2Payload) return reply.status(404).send({ exists: false, needsGeneration: true });
 
-            const { interpretation } = v2Payload;
-            const energy = {
-                daily: {
-                    score: interpretation.score ?? null,
-                    title: interpretation.primarySignal.title || (lang === 'es' ? 'Se�al Diaria' : 'Daily Signal'),
-                    description: interpretation.primarySignal.text || (interpretation.primarySignal as any).content,
-                    action: interpretation.guidance || null,
-                    avoid: (interpretation as any).avoid || null
-                },
-                metrics: { focus: null, creativity: null, relationships: null },
-                interpretationStatus: interpretation.interpretationStatus,
+            
+            let energy: any = {
+                interpretationStatus: 'unavailable',
                 rawSignals: v2Payload.layerA
             };
+
+            const interpretation = v2Payload.interpretation;
+            if (interpretation && interpretation.interpretationStatus === 'ready') {
+                energy = {
+                    daily: {
+                        score: (interpretation as any).score ?? null,
+                        title: interpretation.primarySignal?.title || (lang === 'es' ? 'Señal Diaria' : 'Daily Signal'),
+                        description: interpretation.primarySignal?.text || (interpretation.primarySignal as any)?.content,
+                        action: interpretation.guidance || null,
+                        avoid: (interpretation as any).avoid || null
+                    },
+                    metrics: { focus: null, creativity: null, relationships: null },
+                    interpretationStatus: 'ready',
+                    rawSignals: v2Payload.layerA
+                };
+            }
 
             return { energy };
         } catch (error: any) {
@@ -250,7 +258,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     }, async (req, reply) => {
         const userId = (req as any).user_id;
-        const langRaw = req.query.lang || 'es';
+        const langRaw = req.body.lang || 'es';
         const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es'; 
         
         try {

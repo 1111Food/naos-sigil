@@ -9,7 +9,7 @@ export interface V2Payload {
     contextVersion: 'v2_daily_context';
     interpretationVersion: 'v1';
     layerA: DailyContextLayerA;
-    interpretation: DailyInterpretation;
+    interpretation: DailyInterpretation | null;
 }
 
 export class DailyContextOrchestrator {

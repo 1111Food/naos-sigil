@@ -47,9 +47,33 @@ export class LifelineService {
         const astroContext = AstroContextBuilder.normalize(profile);
         const prompt = LifelinePromptBuilder.build(profile, astroContext, pinnacles, personalYear, language);
 
+        
         // 5. Execute AI Engine
         const lifelineData = await LifelineEngine.generate(prompt);
         lifelineData.astro_context_version = 2;
+
+        // Preserve deterministic architecture from existing valid snapshot if possible
+        try {
+            const { data: existing } = await supabase
+                .from('user_lifelines')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('language', language)
+                .maybeSingle();
+
+            if (existing && existing.pinnacles && Array.isArray(existing.pinnacles)) {
+                lifelineData.pinnacles.forEach((newPin: any, i: number) => {
+                    const oldPin = existing.pinnacles[i];
+                    if (oldPin) {
+                        newPin.number = oldPin.number;
+                        newPin.age_range = oldPin.age_range;
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn("Could not merge existing lifeline architecture:", e);
+        }
+
 
         // 6. Save to Database Permanently (with fallback for UI resilience)
         try {

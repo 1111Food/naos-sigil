@@ -1,4 +1,4 @@
-﻿export class LifelinePromptBuilder {
+export class LifelinePromptBuilder {
     static build(
         userData: any, 
         astroContext: any,
@@ -31,33 +31,61 @@ El usuario tiene ${pinnacles.currentAge} años y actualmente cursa el Pináculo 
 CICLO ACTUAL (ESCALA 9 AÑOS):
 Actualmente el usuario está atravesando su Año Personal ${currentPersonalYear}.
 
-INSTRUCCIONES CRÍTICAS:
-1. No utilices Markdown (sin \`\`\`json).
-2. Devuelve estrictamente el JSON.
-3. El idioma debe ser ${language}.
+INSTRUCCIONES DE FUSIÓN:
+Toma el molde numérico de cada Pináculo y crúzalo con los astros, el nahual y el animal chino. 
+Todo el texto generado debe venir estrictamente en dos versiones (Jargon Toggle):
+1. esoteric_reading: Usa lenguaje místico (tránsitos, nahuales, elementos, arquetipos).
+2. biohacking_reading: Usa lenguaje conductual (enfoque, estrés, neuroplasticidad, rendimiento, hábitos, picos de energía).
 
-ESTRUCTURA JSON REQUERIDA:
+FORMATO OBLIGATORIO DE RESPUESTA (Solo JSON, sin Markdown \`\`\`json):
 {
-    "current_cycle": {
-        "title": "...",
-        "description": "...",
-        "pinnacle_number": ${pinnacles.pinnacleValue},
-        "personal_year": ${currentPersonalYear},
-        "key_themes": ["...", "..."],
-        "duration": "...",
-        "karmic_lesson": "..."
+  "pinnacles": [
+    {
+      "index": 1,
+      "esoteric_reading": {
+         "objetivo_evolutivo": "Resumen místico de 10 palabras",
+         "riesgo_principal": "Riesgo místico corto",
+         "virtud_desarrollar": "Virtud arquetípica",
+         "talento_dormido": "Talento esotérico",
+         "metricas_naos": "Qué medirá NAOS en esta etapa"
+      },
+      "biohacking_reading": {
+         "objetivo_evolutivo": "Resumen conductual de 10 palabras",
+         "riesgo_principal": "Riesgo conductual corto",
+         "virtud_desarrollar": "Virtud psicológica",
+         "talento_dormido": "Habilidad táctica",
+         "metricas_naos": "Qué medirá NAOS en esta etapa"
+      },
+      "indicators": {
+         "creativity": 80,
+         "leadership": 50,
+         "learning": 90,
+         "expansion": 60,
+         "relationships": 40
+      },
+      "deep_dive_esoteric": "Texto profundo de 3-4 líneas sintetizando las 4 Intelligence Sources en un lenguaje clínico y estratégico.",
+      "deep_dive_biohacking": "Texto profundo de 3-4 líneas en lenguaje de alto rendimiento y biohacking."
+    }
+  ],
+  "current_cycle": {
+    "year_number": ${currentPersonalYear},
+    "esoteric_reading": {
+       "objetivo_evolutivo": "...",
+       "riesgo_principal": "...",
+       "virtud_desarrollar": "...",
+       "talento_dormido": "...",
+       "metricas_naos": "..."
     },
-    "evolution_axis": {
-        "origin": "...",
-        "destination": "...",
-        "core_challenge": "..."
+    "biohacking_reading": {
+       "objetivo_evolutivo": "...",
+       "riesgo_principal": "...",
+       "virtud_desarrollar": "...",
+       "talento_dormido": "...",
+       "metricas_naos": "..."
     },
-    "pinnacles": [
-        { "number": 1, "value": ${pinnacles.allPinnacles[0].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 1} },
-        { "number": 2, "value": ${pinnacles.allPinnacles[1].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 2} },
-        { "number": 3, "value": ${pinnacles.allPinnacles[2].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 3} },
-        { "number": 4, "value": ${pinnacles.allPinnacles[3].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 4} }
-    ]
+    "deep_dive_esoteric": "Lectura mística profunda para su Año Personal actual.",
+    "deep_dive_biohacking": "Lectura conductual profunda para su Año Personal actual."
+  }
 }`
             : `You are the NAOS Evolutionary Engine (Macro Scale). Your objective is to generate the Architecture of the user's "Evolution Axis".
 You must cross the Pythagorean math of their 4 major life stages (Pinnacles) with their astrological natal chart, their Mayan nahual, and their Chinese energy.
@@ -81,36 +109,63 @@ The user is ${pinnacles.currentAge} years old and is currently in Pinnacle ${pin
 CURRENT CYCLE (9-YEAR SCALE):
 The user is currently navigating their Personal Year ${currentPersonalYear}.
 
-CRITICAL INSTRUCTIONS:
-1. Do not use Markdown (no \`\`\`json).
-2. Return strictly the JSON object.
-3. The language MUST be English.
+FUSION INSTRUCTIONS:
+Take the numerical mold of each Pinnacle and cross it with the stars, the nahual, and the Chinese animal.
+All generated text must strictly come in two versions (Jargon Toggle):
+1. esoteric_reading: Use mystical language (transits, nahuals, elements, archetypes).
+2. biohacking_reading: Use behavioral language (focus, stress, neuroplasticity, performance, habits, energy peaks).
 
-REQUIRED JSON STRUCTURE:
+MANDATORY RESPONSE FORMAT (JSON only, no Markdown \`\`\`json):
 {
-    "current_cycle": {
-        "title": "...",
-        "description": "...",
-        "pinnacle_number": ${pinnacles.pinnacleValue},
-        "personal_year": ${currentPersonalYear},
-        "key_themes": ["...", "..."],
-        "duration": "...",
-        "karmic_lesson": "..."
+  "pinnacles": [
+    {
+      "index": 1,
+      "esoteric_reading": {
+         "objetivo_evolutivo": "10-word mystical summary",
+         "riesgo_principal": "Short mystical risk",
+         "virtud_desarrollar": "Archetypal virtue",
+         "talento_dormido": "Esoteric talent",
+         "metricas_naos": "What NAOS will measure in this stage"
+      },
+      "biohacking_reading": {
+         "objetivo_evolutivo": "10-word behavioral summary",
+         "riesgo_principal": "Short behavioral risk",
+         "virtud_desarrollar": "Psychological virtue",
+         "talento_dormido": "Tactical skill",
+         "metricas_naos": "What NAOS will measure in this stage"
+      },
+      "indicators": {
+         "creativity": 80,
+         "leadership": 50,
+         "learning": 90,
+         "expansion": 60,
+         "relationships": 40
+      },
+      "deep_dive_esoteric": "3-4 lines deep text synthesizing the 4 Intelligence Sources in clinical and strategic language.",
+      "deep_dive_biohacking": "3-4 lines deep text in high performance and biohacking language."
+    }
+  ],
+  "current_cycle": {
+    "year_number": ${currentPersonalYear},
+    "esoteric_reading": {
+       "objetivo_evolutivo": "...",
+       "riesgo_principal": "...",
+       "virtud_desarrollar": "...",
+       "talento_dormido": "...",
+       "metricas_naos": "..."
     },
-    "evolution_axis": {
-        "origin": "...",
-        "destination": "...",
-        "core_challenge": "..."
+    "biohacking_reading": {
+       "objetivo_evolutivo": "...",
+       "riesgo_principal": "...",
+       "virtud_desarrollar": "...",
+       "talento_dormido": "...",
+       "metricas_naos": "..."
     },
-    "pinnacles": [
-        { "number": 1, "value": ${pinnacles.allPinnacles[0].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 1} },
-        { "number": 2, "value": ${pinnacles.allPinnacles[1].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 2} },
-        { "number": 3, "value": ${pinnacles.allPinnacles[2].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 3} },
-        { "number": 4, "value": ${pinnacles.allPinnacles[3].value}, "theme": "...", "active": ${pinnacles.pinnacleIndex === 4} }
-    ]
+    "deep_dive_esoteric": "Deep mystical reading for their current Personal Year.",
+    "deep_dive_biohacking": "Deep behavioral reading for their current Personal Year."
+  }
 }`;
             
         return prompt;
     }
 }
-

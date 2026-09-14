@@ -33,7 +33,7 @@ export function resolveTemplePriority(context: any): TemplePriorityOutput {
             priority: 'PROTOCOL_EVOLUTION',
             confidence: 1.0,
             headline: 'Tu ciclo está completo.',
-            reason: \Has llegado al día \. Es momento de asimilar y evolucionar tu estructura.\,
+            reason: `Has llegado al día ${protocol.current_day}. Es momento de asimilar y evolucionar tu estructura.`,
             signals,
             recommendedAction: { action: 'OPEN', target: 'PROTOCOL21', label: 'Iniciar Evolución' },
             secondaryActions: [
@@ -77,8 +77,8 @@ export function resolveTemplePriority(context: any): TemplePriorityOutput {
         return {
             priority: 'CONTINUE_PROTOCOL',
             confidence: 0.95,
-            headline: \Protocolo \ · Día \\,
-            reason: \Mantén la tracción en tu intención: \.\,
+            headline: `Protocolo ${protocol.intention} · Día ${protocol.current_day}`,
+            reason: `Mantén la tracción en tu intención: ${protocol.intention}.`,
             signals,
             recommendedAction: { action: 'OPEN', target: 'PROTOCOL21', label: 'Continuar Protocolo' },
             secondaryActions: [
@@ -107,7 +107,7 @@ export function resolveTemplePriority(context: any): TemplePriorityOutput {
         return {
             priority: 'IDENTITY_REVELATION',
             confidence: 0.70,
-            headline: \Frecuencia Activa: \\,
+            headline: `Frecuencia Activa`,
             reason: 'Tu sistema está estabilizado. Usa este tiempo para fortalecer tu arquitectura base.',
             signals,
             recommendedAction: { action: 'OPEN', target: 'CHAT', label: 'Conversar' },

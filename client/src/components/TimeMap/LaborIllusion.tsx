@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '../../i18n';
 
-interface LaborIllusionProps {
-    onComplete: () => void;
-}
+interface LaborIllusionProps {}
 
-export const LaborIllusion: React.FC<LaborIllusionProps> = ({ onComplete }) => {
+export const LaborIllusion: React.FC<LaborIllusionProps> = () => {
     const [step, setStep] = useState(0);
     const { language } = useTranslation();
 
@@ -21,30 +19,23 @@ export const LaborIllusion: React.FC<LaborIllusionProps> = ({ onComplete }) => {
         "\u2728 Connecting with Sigil..."
     ] : [
         "✨ Calculando tránsitos astrológicos...",
-        "🔢 Analizando año y mes personal...",
+        "📊 Analizando año y mes personal...",
         "🌕 Interpretando energía del Nahual...",
         "🐉 Sincronizando Calendario Chino...",
-        "💾 Integrando tu historial en NAOS...",
-        "🔮 Fusionando las 4 Intelligence Sources...",
+        "🧠 Integrando tu historial en NAOS...",
+        "⚛️ Fusionando las 4 Intelligence Sources...",
         "⏳ Construyendo Línea Temporal...",
         "✨ Conectando con Sigil..."
     ];
 
-    const hasCompleted = React.useRef(false);
-
     useEffect(() => {
-        if (step < steps.length) {
+        if (step < steps.length - 1) {
             const timer = setTimeout(() => {
                 setStep(s => s + 1);
             }, 1200 + Math.random() * 800);
             return () => clearTimeout(timer);
-        } else {
-            if (!hasCompleted.current) {
-                hasCompleted.current = true;
-                onComplete();
-            }
         }
-    }, [step, steps.length, onComplete]);
+    }, [step, steps.length]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md">

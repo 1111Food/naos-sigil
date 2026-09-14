@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useActiveProfile } from '../../hooks/useActiveProfile';
 import { supabase } from '../../lib/supabase';
 import { API_BASE_URL } from '../../lib/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { naosQueryFn, naosQueryMutate } from '../../lib/queryClient';
 import { LaborIllusion } from './LaborIllusion';
 import { motion } from 'framer-motion';
 import { useTranslation } from '../../i18n';
@@ -9,8 +11,7 @@ import { useTranslation } from '../../i18n';
 export const TimeMap: React.FC = () => {
     const { profile } = useActiveProfile();
     const { t, language } = useTranslation();
-    const [timeMap, setTimeMap] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const qc = useQueryClient();
     const [generating, setGenerating] = useState(false);
     const [showIllusion, setShowIllusion] = useState(false);
     const [viewMode, setViewMode] = useState<'symbolic' | 'behavioral'>('symbolic');
@@ -19,45 +20,43 @@ export const TimeMap: React.FC = () => {
     // Check if user is Architect (Premium)
     const isPremium = profile?.plan_type === 'premium' || profile?.plan_type === 'admin';
 
-    useEffect(() => {
-        if (!profile) return;
-        fetchTimeMap();
-    }, [profile]);
+    
+    const { data: timeMap, isLoading: loading } = useQuery({
+        queryKey: ['forecast', profile?.id, language],
+        queryFn: () => naosQueryFn<{ map: any } | null>(`${API_BASE_URL}/api/forecast`).then(data => data?.map || null).catch(err => {
+            if ((err as any).status === 404) return null;
+            throw err;
+        }),
+        enabled: !!profile?.id,
+        staleTime: 1000 * 60 * 15,
+    });
 
-    const fetchTimeMap = async () => {
-        try {
-            setLoading(true);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
-            const res = await fetch(`${API_BASE_URL}/api/forecast`, {
-                headers: { 'Authorization': `Bearer ${session.access_token}` }
-            });
-            
-            // 404 = legitimate "not yet generated" state, not an error
-            if (res.status === 404) {
-                setTimeMap(null);
-                return;
+    const generateMutation = useMutation({
+        mutationFn: () => naosQueryMutate<{ map: any; error?: string }>(`${API_BASE_URL}/api/forecast/generate`, 'POST', { lang: language }).then(data => {
+            if (data.error) throw new Error(data.error);
+            return data.map;
+        }),
+        onSuccess: (newMap) => {
+            if (newMap) {
+                qc.setQueryData(['forecast', profile?.id, language], { map: newMap });
+                setErrorMsg(null);
             }
-            
-            if (!res.ok) {
-                console.error("Error fetching Time Map:", res.status);
-                return;
-            }
-            
-            const data = await res.json();
-            
-            if (data.map) setTimeMap(data.map);
-        } catch (e) {
-            console.error("Error fetching Time Map:", e);
-        } finally {
-            setLoading(false);
+        },
+        onError: (err: Error) => {
+            setErrorMsg(err.message);
+        },
+        onSettled: () => {
+            setGenerating(false);
+            setShowIllusion(false);
         }
+    });
+
+    const handleGenerate = () => {
+        setGenerating(true);
+        setShowIllusion(true);
+        generateMutation.mutate();
     };
 
-    const handleGenerate = async () => {
-        setShowIllusion(true); // Start cinematic loading
-    };
 
     const executeGeneration = React.useCallback(async () => {
         try {
@@ -90,11 +89,21 @@ export const TimeMap: React.FC = () => {
         }
     }, [language, t]);
 
-    if (loading) {
+    
+    let viewState: 'checking' | 'not_generated' | 'generating' | 'ready' | 'error' = 'checking';
+    
+    if (loading) viewState = 'checking';
+    else if (generating || showIllusion) viewState = 'generating';
+    else if (errorMsg) viewState = 'error';
+    else if (!timeMap) viewState = 'not_generated';
+    else viewState = 'ready';
+
+    if (viewState === 'checking') {
+
         return <div className="p-8 text-center text-white/50">{t('syncing_frequencies', 'Sincronizando frecuencias...')}</div>;
     }
 
-    if (!timeMap && !showIllusion) {
+    if (viewState === 'not_generated') {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center">
                 <h2 className="text-3xl font-serif italic text-white/90 mb-4">{t('time_navigator_title', t('time_navigator', 'El Navegador Temporal'))}</h2>
@@ -117,9 +126,29 @@ export const TimeMap: React.FC = () => {
         );
     }
 
+    
+    if (viewState === 'generating' && !timeMap) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+                {showIllusion && <LaborIllusion />}
+            </div>
+        );
+    }
+
+    if (viewState === 'error') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center text-white">
+                <div className="mt-6 text-red-400 text-sm bg-red-950/30 px-6 py-3 rounded-lg border border-red-500/20">
+                    {errorMsg}
+                </div>
+                <button onClick={() => setErrorMsg(null)} className="mt-4 px-4 py-2 bg-white/10 rounded">Volver</button>
+            </div>
+        );
+    }
+
     return (
         <div className="relative w-full pb-20">
-            {showIllusion && <LaborIllusion onComplete={executeGeneration} />}
+            {showIllusion && <LaborIllusion />}
             
             {timeMap && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
@@ -148,13 +177,7 @@ export const TimeMap: React.FC = () => {
                                 🧠 Modo {t('behavioral', 'Conductual')}
                             </button>
                         </div>
-                        <button 
-                            onClick={handleGenerate}
-                            disabled={showIllusion || generating}
-                            className={`px-6 py-2 rounded-full text-[10px] uppercase tracking-widest font-black transition-all duration-300 bg-white/5 text-white/50 border border-white/10 hover:bg-white/10 hover:text-white ${showIllusion ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Recalcular de Nuevo
-                        </button>
+                        
                     </div>
 
                     {/* {t('annual_panorama', 'Panorama Anual')} */}
@@ -189,10 +212,7 @@ export const TimeMap: React.FC = () => {
                                                 <span className="text-naos-gold text-xs font-bold uppercase tracking-widest">{month.month_name} {month.year}</span>
                                                 <h4 className="text-white text-lg font-serif italic">{month.frequency}</h4>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="text-white/40 text-[10px] uppercase">{t('quantum_score', 'Puntuación Cuántica')}</span>
-                                                <div className="text-2xl font-light text-white">{month.scores.energy}</div>
-                                            </div>
+                                            
                                         </div>
 
                                         <motion.div 
@@ -211,22 +231,16 @@ export const TimeMap: React.FC = () => {
                                         {/* Action Hacks */}
                                         <div className="space-y-3 mb-6">
                                             <div className="flex items-start">
-                                                <span className="text-green-400 mr-2">ðŸŸ¢</span>
+                                                <span className="text-green-400 mr-2">🌱</span>
                                                 <span className="text-xs text-white/80">{month.action_hack}</span>
                                             </div>
                                             <div className="flex items-start">
-                                                <span className="text-red-400 mr-2">ðŸ”´</span>
+                                                <span className="text-red-400 mr-2">🚫</span>
                                                 <span className="text-xs text-white/80">{month.blind_spot}</span>
                                             </div>
                                         </div>
 
-                                        {/* Progress Bars */}
-                                        <div className="space-y-2 mt-auto">
-                                            <MetricBar label="Amor" value={month.scores.love} />
-                                            <MetricBar label="Dinero" value={month.scores.money} />
-                                            <MetricBar label="Creatividad" value={month.scores.creativity} />
-                                            <MetricBar label="Riesgo" value={month.scores.risk} color="bg-red-500" />
-                                        </div>
+                                        
                                     </div>
 
                                     {isLocked && (
@@ -254,15 +268,7 @@ export const TimeMap: React.FC = () => {
     );
 };
 
-const MetricBar = ({ label, value, color = 'bg-naos-gold' }: { label: string, value: number, color?: string }) => (
-    <div className="flex items-center text-xs">
-        <span className="w-20 text-white/50">{label}</span>
-        <div className="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden mx-3">
-            <div className={`h-full ${color}`} style={{ width: `${value}%` }} />
-        </div>
-        <span className="w-6 text-right text-white/80">{value}</span>
-    </div>
-);
+
 
 
 
