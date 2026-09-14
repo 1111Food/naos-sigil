@@ -92,7 +92,7 @@ export class NotificationEngine {
                     const cleanAspects = labAspects.map(a => a.replace(/^lab_/, '').replace(/_\d+$/, ''));
                     const aspectsStr = [...new Set(cleanAspects)].join(', ');
                     const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(aspectsStr);
-                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                    const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                     const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
                     console.info(`📡 [NOTIF] Lab Result for ${user.email}: ${success}`);
                     
@@ -113,7 +113,7 @@ export class NotificationEngine {
                         console.info(`🚀 [NOTIF] Triggering Protocol: ${user.email}`);
                         const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '?').replace('{target}', '21');
                         const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${discipline}`;
-                        const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                        const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                         const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
                         console.info(`📡 [NOTIF] Protocol Result for ${user.email}: ${success}`);
                         
@@ -204,7 +204,7 @@ ${guidance}
         Instrucción: Cruza la Biblia de Datos del usuario con el Pulso del Día. 
         ${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
         const sigil = new SigilService();
-        const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+        const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
         const tts = new TTSService();
         const useVoice = user.profile_data?.telegram_voice_enabled !== false;
         await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice);
@@ -260,7 +260,7 @@ ${guidance}
                 Instrucción: Cruza la Biblia de Datos del usuario con el Pulso del Día. 
                 ${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
                 const sigil = new SigilService();
-                const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang);
+                const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                 const tts = new TTSService();
                 const useVoice = user.profile_data?.telegram_voice_enabled !== false;
                 await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice);

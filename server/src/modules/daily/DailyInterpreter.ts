@@ -158,54 +158,9 @@ Output Schema:
     private static getFallback(layerA: DailyContextLayerA): DailyInterpretation {
         return {
             interpretationVersion: 'v1',
-            interpretationStatus: 'ready',
+            interpretationStatus: 'unavailable',
             localDate: layerA.localDate,
-            language: layerA.language,
-            primarySignal: {
-                title: layerA.language === 'en' ? 'Cosmic Resonance' : 'Resonancia Cósmica',
-                text: layerA.language === 'en' 
-                    ? 'The energetic synthesis is currently anchoring. Your base configuration shows a strong emphasis on introspection.' 
-                    : 'La síntesis energética se está anclando. Tu configuración base muestra un fuerte énfasis en la introspección.',
-                behavioral_title: layerA.language === 'en' ? 'Cognitive Baseline' : 'Línea Base Cognitiva',
-                behavioral_text: layerA.language === 'en'
-                    ? 'System calibration in progress. Today favors deep work and strategic planning over reactive tasks.'
-                    : 'Calibración de sistema en progreso. El día favorece el trabajo profundo y la planificación estratégica sobre las reacciones emocionales.',
-                signalIds: layerA.provenance.length > 0 ? [layerA.provenance[0].id] : []
-            },
-            integratedPattern: {
-                convergence: true,
-                text: layerA.language === 'en'
-                    ? 'The current astrological and numerological currents are pushing you towards a period of consolidation. Take this time to reflect on your long-term goals.'
-                    : 'Las corrientes astrológicas y numerológicas actuales te empujan hacia un período de consolidación. Aprovecha este tiempo para reflexionar sobre tus metas a largo plazo.',
-                signalIds: layerA.provenance.slice(0, 2).map(p => p.id)
-            },
-            systems: {
-                astrology: { text: "Alineación estelar base.", signalIds: [] },
-                numerology: { text: "Frecuencia numérica estable.", signalIds: [] },
-                maya: { text: "Flujo del Nahual natural.", signalIds: [] },
-                chinese: { text: "Resonancia del animal del año.", signalIds: [] }
-            },
-            personalResonance: layerA.language === 'en' ? 'Grounding' : 'Enraizamiento',
-            guidance: layerA.language === 'en' 
-                ? 'Maintain focus on your immediate priorities and avoid unnecessary energetic dispersion.' 
-                : 'Mantén el enfoque en tus prioridades inmediatas y evita la dispersión energética innecesaria.',
-            avoid: layerA.language === 'en'
-                ? 'Avoid impulsive decisions and chaotic environments.'
-                : 'Evita decisiones impulsivas y entornos caóticos.',
-            behavioral_guidance: layerA.language === 'en'
-                ? 'Prioritize one major task (Eat the Frog). Use time-blocking.'
-                : 'Prioriza una tarea principal (Eat the Frog). Usa bloques de tiempo.',
-            behavioral_avoid: layerA.language === 'en'
-                ? 'Avoid context-switching and doomscrolling.'
-                : 'Evita el cambio constante de contexto y el doomscrolling.',
-            metrics: {
-                focus: 75,
-                creativity: 60,
-                relationships: 65
-            },
-            reflectionQuestion: layerA.language === 'en'
-                ? 'Where are you investing your energy without seeing a return?'
-                : '¿En qué áreas estás invirtiendo energía sin ver un retorno claro?'
+            language: layerA.language
         };
     }
 }

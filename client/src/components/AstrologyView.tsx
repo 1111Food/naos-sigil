@@ -238,7 +238,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
 
     const fetchAiInterpretation = async (planetKey: string, signKey: string, houseNum: number) => {
         const cacheKey = `${planetKey}-${signKey}-${houseNum}`;
-        if (aiInterpretations[cacheKey]) return;
+        if (aiInterpretations[cacheKey] || aiLoading[cacheKey]) return;
 
         setAiLoading(prev => ({ ...prev, [cacheKey]: true }));
         try {
@@ -262,8 +262,8 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
             setAiInterpretations(prev => ({ 
                 ...prev, 
                 [cacheKey]: language === 'en' 
-                    ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
-                    : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+                    ? "⚠️ We could not generate this interpretation at this moment. You can try again." 
+                    : "⚠️ No pudimos generar esta interpretación en este momento. Puedes intentarlo nuevamente." 
             }));
         } finally {
             setAiLoading(prev => ({ ...prev, [cacheKey]: false }));
@@ -793,6 +793,7 @@ export function AstrologyView({ onBack, overrideProfile }: { onBack?: () => void
                                                     title={`${body.key} ${language === 'en' ? 'in' : 'en'} ${body.signName} (${language === 'en' ? 'House' : 'Casa'} ${body.house})`}
                                                     text={aiInterpretations[`${body.key}-${body.signName}-${body.house}`]}
                                                     isLoading={aiLoading[`${body.key}-${body.signName}-${body.house}`]}
+                                                    onRetry={() => { setAiInterpretations(prev => { const n = {...prev}; delete n[`${body.key}-${body.signName}-${body.house}`]; return n; }); fetchAiInterpretation(body.key, body.signName, body.house); }}
                                                 />
                                             )}
                                         </motion.div>

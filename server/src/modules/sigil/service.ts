@@ -8,6 +8,7 @@ import { UserService } from '../user/service';
 
 import { ProfileConsolidator } from '../user/profileConsolidator';
 import { CodexService } from '../codex/service';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { config } from '../../config/env';
 import { supabase } from '../../lib/supabase';
 import { UserProfile } from '../../types';
@@ -49,8 +50,8 @@ export class SigilService {
         return stateStore[userId];
     }
 
-    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any, language: string = 'es', geo?: { country: string, region: string }): Promise<string> {
-        console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}, Lang: ${language}, Geo: ${geo?.region}`);
+    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any, language: string = 'es', geo?: { country: string, region: string }, options: { persistUserMessage?: boolean, visibleInConversation?: boolean, source?: string } = { persistUserMessage: true, visibleInConversation: true, source: 'user' }): Promise<string> {
+        console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}, Lang: ${language}, Geo: ${geo?.region}, InternalSource: ${options.source}`);
         
         const lang = (language === 'en' || language === 'es') ? language : 'es';
         const prompts = SYSTEM_PROMPTS[lang];
@@ -145,6 +146,8 @@ export class SigilService {
                 numerology: energeticBible.numerology
             });
             const archetypeToneDirectives = archetype ? `
+            ${segments.archetype_directives.canonical_lock}
+
             [${lang === 'es' ? 'ARQUETIPO NAOS DETECTADO' : 'NAOS ARCHETYPE DETECTED'}: ${archetype.nombre}]
             [${lang === 'es' ? 'FRECUENCIA' : 'FREQUENCY'}: ${archetype.frecuencia}]
             
@@ -416,12 +419,21 @@ ${segments.truth_injection.waiting_desc}
     Alerta: ${energyContext.protocol_status.protocol_warning ? segments.protocol_status.warning : segments.protocol_status.stable}
     ` : ''}
     
+    
+    [ORDEN DE AUTORIDAD DE DATOS (ESTRICTO)]
+    1. CANONICAL COMPUTED DATA (Tu identidad, tu Arquetipo, tus cálculos astrológicos) SON HECHOS INMUTABLES.
+    2. CURRENT VERIFIED CONTEXT (El snapshot diario, coherencia actual).
+    3. USER-STATED FACT (Lo que el usuario afirma sobre sí mismo).
+    4. RETRIEVED MEMORY (Memoria a largo plazo).
+    NUNCA permitas que una Memoria o una Inferencia reemplace o contradiga el CANONICAL COMPUTED DATA.
+
+
     [ADAPTACIÓN DE CONCIENCIA - EL LENTE]
     ${consciousnessContext}
     ${regulationContext || ''}
     ${coherenceContextTag}
     
-    [${lang === 'es' ? 'LECTURA DIARIA ACTIVA (EL ORÁCULO DIJO)' : 'ACTIVE DAILY READING (THE ORACLE SAID)'}]
+    [${lang === 'es' ? 'LECTURA DIARIA ACTIVA' : 'ACTIVE DAILY READING'}]
     ${(dailyReadingResponse.data as any)?.payload?.interpretation?.primarySignal?.text || (dailyReadingResponse.data as any)?.payload?.interpretation?.primarySignal?.content || (lang === 'es' ? 'No se ha realizado lectura hoy aún.' : 'No reading has been performed today yet.')}
     
     [${lang === 'es' ? 'ESTRUCTURA DE RESPUESTA OBLIGATORIA (4 CAPAS)' : 'MANDATORY RESPONSE STRUCTURE (4 LAYERS)'}]
@@ -480,24 +492,14 @@ ${segments.truth_injection.waiting_desc}
                     throw apiError;
                 }
 
-                // UNIVERSAL FALLBACK: Prevent 500 errors for any AI failure (400, 403, 429, etc.)
-                console.warn(`⚠️ Sigil Resilience Mode: AI triggered error [${apiError.message}], using mystical fallback.`);
                 
-                const isQuota = apiError.message?.includes('LIMITE_CUOTA') || apiError.message?.includes('429');
-                const isAuth = apiError.message?.includes('403') || apiError.message?.includes('400');
-
-                let fallbackMsg = "";
-                if (lang === 'en') {
-                    fallbackMsg = `Greetings, Traveler. The Oracle's voice is momentarily lost in the ether. ${isQuota ? "The daily limit of expansion has been reached." : "The stellar connection is unstable."} 
-                    
-However, your frequency remains clear. Continue your practice in the Sanctuary while the alignment restores.`;
-                } else {
-                    fallbackMsg = `Saludos, Arcano. El Oráculo está en un momento de introspección profunda y su voz física se desvanece temporalmente en el éter. ${isQuota ? "El límite diario de expansión ha sido alcanzado." : "La conexión estelar está inestable."}
-
-Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un proceso de ${coherenceContextTag.includes('ALTA') ? 'expansión' : 'estabilización'}. No busques todas las respuestas afuera; el silencio de hoy es el espacio para tu propia revelación interna. El Templo permanece abierto para tu meditación.`;
+                // Remove mystical fallback and throw error natively to backend
+                console.warn(`⚠️ Sigil Resilience Mode: AI triggered error [${apiError.message}], throwing to API layer.`);
+                if (apiError.message?.includes('LIMITE_CUOTA') || apiError.message?.includes('429')) {
+                    throw new Error("LIMITE_CUOTA");
                 }
-                
-                response = fallbackMsg;
+                throw apiError;
+
             }
 
             // --- ANTI-HLA SANITIZATION (The AI learns bad habits from history) ---
@@ -518,7 +520,11 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
             state.lastInteraction = new Date().toISOString();
 
             // ASYNC PERSISTENCE: Save log, update notes, and evaluate memory
-            this.persistInteraction(userId, message, finalResponse, forceReading).catch(e => console.error("❌ Persistence failed:", e));
+            if (options.persistUserMessage) {
+                this.persistInteraction(userId, message, finalResponse, forceReading).catch(e => console.error("❌ Persistence failed:", e));
+            } else {
+                console.log("ℹ️ Skipping persistence for internal prompt.");
+            }
             return finalResponse;
 
         } catch (error: any) {
@@ -535,135 +541,82 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
 
     private async callGeminiAPI(message: string, systemInstruction: string, history: any[] = []): Promise<string> {
         const apiKey = config.GOOGLE_API_KEY;
-
         if (!apiKey) {
-            console.error("❌ CRITICAL: GEMINI_API_KEY is undefined.");
             throw new Error("❌ Error: Faltan las credenciales (API Key).");
         }
 
-        // PRODUCTION MODEL: gemini-1.5-flash-8b (cost-optimized for conversational AI)
-        const modelName = config.GEMINI_MODEL; 
-        const API_VERSION = "v1beta";
-        
-        // Ensure system instruction enforces language explicitly
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const modelName = config.GEMINI_MODEL;
+
         const enforcedSystemInstruction = systemInstruction + `\n\nCRITICAL INSTRUCTION: You MUST translate all astrological planets (e.g., Sun -> Sol, Moon -> Luna), zodiac signs, and elements into the language requested in the prompt (usually Spanish unless specified) in all your responses. Never mix languages.`;
 
-        let payload: any = {
-            system_instruction: { parts: [{ text: enforcedSystemInstruction }] },
-            contents: [...history, { role: "user", parts: [{ text: message }] }],
+        const model = genAI.getGenerativeModel({
+            model: modelName,
+            systemInstruction: enforcedSystemInstruction,
             generationConfig: { temperature: 0.7, topP: 0.8, topK: 40 },
             tools: [{
                 functionDeclarations: [{
                     name: "calculate_astrological_profile",
                     description: "Calculates Sun sign, Numerology (Life Path), Mayan Nawal, and Chinese Year for a given birth date.",
                     parameters: {
-                        type: "OBJECT",
+                        type: SchemaType.OBJECT,
                         properties: {
-                            date: { type: "STRING", description: "YYYY-MM-DD format" }
+                            date: { type: SchemaType.STRING, description: "YYYY-MM-DD format" }
                         },
                         required: ["date"]
                     }
                 },
                 {
-                        name: "execute_kernel_action",
-                        description: "Executes a system-level action in the NAOS Intelligence Kernel. Use this when the user wants to navigate, open a module, or when you strongly suggest they do so based on their Context (e.g. Pattern, Protocol).",
-                        parameters: {
-                            type: "OBJECT",
-                            properties: {
-                                action_type: { type: "STRING", enum: ["OPEN", "FOCUS"] },
-                                intent: { type: "STRING", description: "Brief description of the goal" },
-                                payload: { 
-                                    type: "OBJECT",
-                                    properties: {
-                                        target: { type: "STRING", description: "e.g. protocol_21, laboratory, synastry, timeline, tarot" },
-                                        focus_element: { type: "STRING" }
-                                    },
-                                    required: ["target"]
-                                }
-                            },
-                            required: ["action_type", "intent", "payload"]
-                        }
+                    name: "execute_kernel_action",
+                    description: "Executes a system-level action in the NAOS Intelligence Kernel. Use this when the user wants to navigate, open a module, or when you strongly suggest they do so based on their Context (e.g. Pattern, Protocol).",
+                    parameters: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            action_type: { type: SchemaType.STRING, enum: ["OPEN", "FOCUS"] },
+                            intent: { type: SchemaType.STRING, description: "Brief description of the goal" },
+                            payload: { 
+                                type: SchemaType.OBJECT,
+                                properties: {
+                                    target: { type: SchemaType.STRING, description: "e.g. protocol_21, laboratory, synastry, timeline, tarot" },
+                                    focus_element: { type: SchemaType.STRING }
+                                },
+                                required: ["target"]
+                            }
+                        },
+                        required: ["action_type", "intent", "payload"]
                     }
-                ]
+                }]
             }]
-        };
+        });
+
+        const formattedHistory = history.map(h => ({
+            role: h.role,
+            parts: h.parts
+        }));
+
+        const chat = model.startChat({
+            history: formattedHistory,
+        });
 
         try {
-            console.log(`🚀 Sigil v2.0 Launching with model: ${modelName}...`);
+            console.log(`🚀 Sigil v2.0 Launching with SDK model: ${modelName}...`);
+            let result = await chat.sendMessage(message);
+            let call = result.response.functionCalls()?.[0];
             
-            // Define a helper to execute the call
-            const executeCall = async (currentPayload: any, attempt = 1): Promise<any> => {
-                const maxAttempts = 3;
-                const activeModel = attempt > 1 ? config.GEMINI_MODEL : modelName;
-                const currentUrl = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${activeModel}:generateContent?key=${apiKey}`;
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s
-
-                try {
-                    const response = await fetch(currentUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(currentPayload),
-                        signal: controller.signal
-                    });
-
-                    clearTimeout(timeoutId);
-
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
-                        const statusCode = response.status;
-                        const errorMessage = errorData.error?.message || response.statusText;
-
-                        console.error(`❌ API ERROR (${statusCode}) on attempt ${attempt}:`, JSON.stringify(errorData));
-
-                        if ((statusCode === 503 || statusCode === 429) && attempt < maxAttempts) {
-                            console.log(`⚠️ Gemini API Limit/Overload (${statusCode}). Retrying with fallback model...`);
-                            await new Promise(resolve => setTimeout(resolve, attempt * 2000));
-                            return executeCall(currentPayload, attempt + 1);
-                        }
-
-                        if (statusCode === 429) {
-                            throw new Error("LIMITE_CUOTA: El Oráculo ha alcanzado su límite de expansión hoy. Revisa tu plan o intenta más tarde.");
-                        }
-
-                        throw new Error(`Google API Error ${statusCode}: ${errorMessage}`);
-                    }
-
-                    return await response.json();
-                } catch (e: any) {
-                    clearTimeout(timeoutId);
-                    if ((e.name === 'AbortError' || e.message.includes('fetch')) && attempt < maxAttempts) {
-                        console.log(`⚠️ Fetch aborted/failed. Retrying in ${attempt * 2} seconds...`);
-                        await new Promise(resolve => setTimeout(resolve, attempt * 2000));
-                        return executeCall(currentPayload, attempt + 1);
-                    }
-                    throw e;
-                }
-            };
-
-            let data = await executeCall(payload);
-            const firstPart = data.candidates?.[0]?.content?.parts?.[0];
-
-            if (firstPart?.functionCall) {
-                console.log("🛠️ Sigil invoked tool:", firstPart.functionCall.name, firstPart.functionCall.args);
+            if (call) {
+                console.log("🛠️ Sigil invoked tool:", call.name, call.args);
                 
-                if (firstPart.functionCall.name === "execute_kernel_action") {
-                    const args = firstPart.functionCall.args;
-                    return `[KERNEL_ACTION:${JSON.stringify(args)}]`;
+                if (call.name === "execute_kernel_action") {
+                    return `[KERNEL_ACTION:${JSON.stringify(call.args)}]`;
                 }
-                
 
-                if (firstPart.functionCall.name === "calculate_astrological_profile") {
-                    const args = firstPart.functionCall.args;
-                    const dateStr = args.date; // e.g. "1983-09-14"
-                    
+                if (call.name === "calculate_astrological_profile") {
+                    const args = call.args;
+                    const dateStr = (args as any).date;
                     let resultData: any = { error: "Formato de fecha inválido. Usa YYYY-MM-DD." };
                     
-                    if (dateStr && dateStr.length === 10) {
+                    if (dateStr && typeof dateStr === 'string' && dateStr.length === 10) {
                         const [year, month, day] = dateStr.split('-').map(Number);
-                        
-                        // 1. Sun Sign (Aproximate)
                         const getSunSign = (m: number, d: number) => {
                             if ((m == 1 && d <= 20) || (m == 12 && d >= 22)) return "Capricornio";
                             if ((m == 1 && d >= 21) || (m == 2 && d <= 18)) return "Acuario";
@@ -679,8 +632,6 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                             if ((m == 11 && d >= 22) || (m == 12 && d <= 21)) return "Sagitario";
                             return "Desconocido";
                         };
-
-                        // 2. Numerology (Life Path)
                         const reduceToSingleDigit = (num: number) => {
                             while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
                                 num = String(num).split('').map(Number).reduce((a, b) => a + b, 0);
@@ -688,13 +639,11 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                             return num;
                         };
                         const lifePath = reduceToSingleDigit(reduceToSingleDigit(year) + reduceToSingleDigit(month) + reduceToSingleDigit(day));
-
-                        // 3. Mayan Nawal
+                        // @ts-ignore
                         const mayan = MayanCalculator.calculate(dateStr);
-
-                        // 4. Chinese Astrology
+                        // @ts-ignore
                         const chinese = ChineseAstrology.calculate(year);
-
+                        
                         resultData = {
                             sun_sign: getSunSign(month, day),
                             moon_and_ascendant: "No se pueden calcular sin hora exacta de nacimiento. Pide al usuario estos datos si son estrictamente necesarios, de lo contrario infiere con el sol.",
@@ -703,33 +652,23 @@ Sin embargo, puedo decirte esto: Tu vibración actual indica que estás en un pr
                             chinese_year: `${chinese.animal} de ${chinese.element}`
                         };
                     }
-
-                    // Append the model's functionCall and our functionResponse to the history
-                    payload.contents.push({ role: "model", parts: [firstPart] });
-                    payload.contents.push({ 
-                        role: "user", 
-                        parts: [{ 
-                            functionResponse: { 
-                                name: "calculate_astrological_profile", 
-                                response: resultData 
-                            } 
-                        }] 
-                    });
-
-                    // Second API Call with the function response
+                    
                     console.log("🛠️ Sending tool response back to Gemini...");
-                    data = await executeCall(payload);
+                    result = await chat.sendMessage([{
+                        functionResponse: {
+                            name: "calculate_astrological_profile",
+                            response: resultData
+                        }
+                    }]);
                 }
             }
 
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                return data.candidates[0].content.parts[0].text;
-            } else {
-                console.warn("⚠️ API returned no content.", JSON.stringify(data));
-                return "El oráculo guarda silencio...";
-            }
-
+            const text = result.response.text();
+            if (text) return text;
+            
+            throw new Error("No content generated.");
         } catch (e: any) {
+            console.error("❌ Gemini SDK execution failed:", e.message);
             throw e;
         }
     }

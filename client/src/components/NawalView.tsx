@@ -122,7 +122,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
     });
 
     const fetchAiInterpretation = (nawalName: string) => {
-        if (aiInterpretations[nawalName]) return;
+        if (aiInterpretations[nawalName] || aiLoading[nawalName]) return;
 
         setAiLoading(prev => ({ ...prev, [nawalName]: true }));
         interpretationMutation.mutate({
@@ -138,8 +138,8 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                 setAiInterpretations(prev => ({ 
                     ...prev, 
                     [nawalName]: language === 'en' 
-                        ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
-                        : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+                        ? "⚠️ We could not generate this interpretation at this moment. You can try again." 
+                        : "⚠️ No pudimos generar esta interpretación en este momento. Puedes intentarlo nuevamente." 
                 }));
             },
             onSettled: () => {
@@ -362,6 +362,7 @@ export const NawalView: React.FC<NawalViewProps> = ({ overrideProfile }) => {
                                     title={`Nawal ${nawal.kicheName}`}
                                     text={aiInterpretations[nawal.kicheName]}
                                     isLoading={aiLoading[nawal.kicheName]}
+                                        onRetry={() => { setAiInterpretations(prev => { const n = {...prev}; delete n[nawal.kicheName]; return n; }); fetchAiInterpretation(nawal.kicheName); }}
                                 />
                             )}
                             {/* Wisdom Accordions */}

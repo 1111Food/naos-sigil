@@ -59,7 +59,7 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
     const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
 
     const fetchAiInterpretation = async (animalName: string) => {
-        if (aiInterpretations[animalName]) return;
+        if (aiInterpretations[animalName] || aiLoading[animalName]) return;
 
         setAiLoading(prev => ({ ...prev, [animalName]: true }));
         try {
@@ -77,7 +77,9 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
                 })
             });
 
-            if (!res.ok) throw new Error(language === 'en' ? "Failed to contact the oracle." : "Fallo al obtener la sintonía.");
+            if (!res.ok) throw new Error(language === 'en' 
+                        ? "We could not generate this interpretation at this moment. You can try again." 
+                        : "No pudimos generar esta interpretación en este momento. Puedes intentarlo nuevamente.");
             const data = await res.json();
             setAiInterpretations(prev => ({ ...prev, [animalName]: data.interpretation }));
         } catch (err) {
@@ -85,8 +87,8 @@ export const SabiduriaOriental: React.FC<SabiduriaOrientalProps> = ({ overridePr
             setAiInterpretations(prev => ({ 
                 ...prev, 
                 [animalName]: language === 'en' 
-                    ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
-                    : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+                    ? "⚠️ We could not generate this interpretation at this moment. You can try again." 
+                    : "⚠️ No pudimos generar esta interpretación en este momento. Puedes intentarlo nuevamente." 
             }));
         } finally {
             setAiLoading(prev => ({ ...prev, [animalName]: false }));

@@ -15,36 +15,36 @@ export interface DailyInterpretation {
     language: string;
     interpretationStatus: 'ready' | 'unavailable';
 
-    primarySignal: SupportedInterpretationBlock & { 
+    primarySignal?: SupportedInterpretationBlock & { 
         title: string;
         behavioral_title?: string;
         behavioral_text?: string;
     };
-    integratedPattern: IntegratedPatternBlock;
+    integratedPattern?: IntegratedPatternBlock;
 
-    systems: {
+    systems?: {
         astrology: SupportedInterpretationBlock;
         numerology: SupportedInterpretationBlock;
         maya: SupportedInterpretationBlock;
         chinese: SupportedInterpretationBlock;
     };
 
-    personalResonance: string;
+    personalResonance?: string;
     
     // Symbolic
-    guidance: string; 
+    guidance?: string; 
     avoid?: string;
     
     // Behavioral
     behavioral_guidance?: string;
     behavioral_avoid?: string;
 
-    // Metrics for Alineación Total
+    // Metrics for Alineacin Total (DEPRECATED)
     metrics?: {
         focus: number;
         creativity: number;
         relationships: number;
     };
 
-    reflectionQuestion: string; 
+    reflectionQuestion?: string; 
 }

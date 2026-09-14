@@ -6,6 +6,7 @@ import { NumerologyService } from '../modules/numerology/service';
 import { MayanCalculator } from '../utils/mayaCalculator';
 import { ChineseAstrology } from '../utils/chineseAstrology';
 import { config } from '../config/env';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface InterpretRequest {
     school: 'ASTRO' | 'NUMERO' | 'MAYA' | 'ORIENTAL';
@@ -37,7 +38,9 @@ export async function interpretRoutes(app: FastifyInstance) {
             return reply.status(400).send({ error: "El campo 'school' es requerido." });
         }
 
-        const cacheKey = `${school}-${planet || ''}-${sign || ''}-${house || ''}-${number || ''}-${nawal || ''}-${animal || ''}-${language}-${userId}`;
+        const DEEP_INTERPRETATION_VERSION = 'v1';
+        const cacheKey = `${school}-${planet || ''}-${sign || ''}-${house || ''}-${number || ''}-${nawal || ''}-${animal || ''}-${language}-${userId}-${DEEP_INTERPRETATION_VERSION}`;
+        const legacyCacheKey = `${school}-${planet || ''}-${sign || ''}-${house || ''}-${number || ''}-${nawal || ''}-${animal || ''}-${language}-${userId}`;
         if (interpretationCache.has(cacheKey)) {
             console.log(`⚡ [INTERPRET CACHE] Hit for key: ${cacheKey}`);
             return { interpretation: interpretationCache.get(cacheKey) };
@@ -291,60 +294,35 @@ Escribe una introducción poética y profunda sobre esta firma instintiva terren
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
             }
 
-            // 5. Llamar a la API de Gemini (con reintentos y logs detallados)
-            const apiKey = config.GOOGLE_API_KEY;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/:generateContent?key=${apiKey}`;
+            // 5. Llamar a la API de Gemini via SDK
+            const genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY!);
+            const model = genAI.getGenerativeModel({ 
+                model: config.GEMINI_MODEL,
+                systemInstruction: { role: "system", parts: [{ text: `You are a master psychological-astrological synthesizer and clinical-mystical analyst.\nYou write with the authority of a seasoned psychoanalyst and master of esoteric sciences.\nAlways write your response strictly in ${language === 'es' ? 'SPANISH' : 'ENGLISH'}.` }] }
+            });
 
-            const systemPrompt = `You are a master psychological-astrological synthesizer and clinical-mystical analyst. 
-You write with the authority of a seasoned psychoanalyst and master of esoteric sciences.
-Always write your response strictly in ${language === 'es' ? 'SPANISH' : 'ENGLISH'}.`;
-
-            const payload = {
-                system_instruction: { parts: [{ text: systemPrompt }] },
-                contents: [{ 
-                    role: "user", 
-                    parts: [{ 
-                        text: `USER PROFILE DETAILS FOR SYNTHESIS:\n${userContext}\n\nTARGET FOR INTERPRETATION:\n${targetText}\n\nINSTRUCTIONS:\n${promptBlueprint}` 
-                    }] 
-                }],
-                generationConfig: { temperature: 0.35 }
-            };
-
-            let response;
-            let data;
+            let rawInterpretation;
             let retries = 2;
-
             while (retries > 0) {
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-
-                    response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                        signal: controller.signal
+                    const result = await model.generateContent({
+                        contents: [{ 
+                            role: "user", 
+                            parts: [{ 
+                                text: `USER PROFILE DETAILS FOR SYNTHESIS:\n${userContext}\n\nTARGET FOR INTERPRETATION:\n${targetText}\n\nINSTRUCTIONS:\n${promptBlueprint}` 
+                            }] 
+                        }],
+                        generationConfig: { temperature: 0.35 }
                     });
-
-                    clearTimeout(timeoutId);
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`Gemini Error (${response.status}):`, errorText);
-                        throw new Error(`Gemini API Response Error: ${response.status} - ${errorText}`);
-                    }
-
-                    data = await response.json();
-                    break; // Exito
+                    rawInterpretation = result.response.text();
+                    break;
                 } catch (err: any) {
-                    console.error(`Gemini fetch attempt failed. Retries left: ${retries - 1}. Error:`, err.message);
+                    console.error(`Gemini SDK attempt failed. Retries left: ${retries - 1}. Error:`, err.message);
                     retries--;
                     if (retries === 0) throw err;
-                    await new Promise(res => setTimeout(res, 2000)); // wait 2s before retry
+                    await new Promise(res => setTimeout(res, 2000));
                 }
             }
-
-            const rawInterpretation = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
             if (!rawInterpretation) {
                 throw new Error("No se pudo generar la interpretación dinámica.");

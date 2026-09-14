@@ -10,6 +10,7 @@ interface DeepInterpretationModalProps {
     title: string;
     text: string | null;
     isLoading: boolean;
+    onRetry?: () => void;
 }
 
 export const DeepInterpretationModal: React.FC<DeepInterpretationModalProps> = ({
@@ -17,7 +18,8 @@ export const DeepInterpretationModal: React.FC<DeepInterpretationModalProps> = (
     onClose,
     title,
     text,
-    isLoading
+    isLoading,
+    onRetry
 }) => {
     const { t } = useTranslation();
 
@@ -81,7 +83,28 @@ export const DeepInterpretationModal: React.FC<DeepInterpretationModalProps> = (
                                     </span>
                                 </div>
                             ) : text ? (
-                                <AiInterpretationCards text={text} />
+                                (() => {
+                                    const isError = text.includes("No pudimos generar") || text.includes("We could not generate");
+                                    if (isError) {
+                                        return (
+                                            <div className="flex flex-col items-center justify-center py-20 space-y-6 text-center px-4">
+                                                <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-2">
+                                                    <X className="w-8 h-8 text-red-400" />
+                                                </div>
+                                                <p className="text-white/70 text-sm max-w-md">{text}</p>
+                                                {onRetry && (
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); onRetry(); }}
+                                                        className="mt-6 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest text-white transition-all active:scale-95"
+                                                    >
+                                                        {text.includes("We could not generate") ? "RETRY INTERPRETATION" : "REINTENTAR INTERPRETACIÓN"}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+                                    return <AiInterpretationCards text={text} />
+                                })()
                             ) : (
                                 <div className="text-center text-white/50 py-20 text-sm">
                                     {t('identity_syncing_msg') || 'Error...'}

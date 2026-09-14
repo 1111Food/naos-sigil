@@ -36,7 +36,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
 
     const fetchAiInterpretation = (numValue: number | string, positionKey: string) => {
         const cacheKey = `${numValue}-${positionKey}`;
-        if (aiInterpretations[cacheKey]) return;
+        if (aiInterpretations[cacheKey] || aiLoading[cacheKey]) return;
 
         setAiLoading(prev => ({ ...prev, [cacheKey]: true }));
         interpretationMutation.mutate({
@@ -53,8 +53,8 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                 setAiInterpretations(prev => ({ 
                     ...prev, 
                     [cacheKey]: language === 'en' 
-                        ? "⚠️ Failed to sintonize with the oracle. Reopen to retry." 
-                        : "⚠️ No se pudo establecer sintonía con el oráculo. Cierra y vuelve a abrir." 
+                        ? "⚠️ We could not generate this interpretation at this moment. You can try again." 
+                        : "⚠️ No pudimos generar esta interpretación en este momento. Puedes intentarlo nuevamente." 
                 }));
             },
             onSettled: () => {
@@ -447,6 +447,7 @@ export const NumerologyView: React.FC<NumerologyViewProps> = ({ overrideProfile 
                                                         title={`${language === 'en' ? 'Number' : 'Número'} ${numValue} ${language === 'en' ? 'in' : 'en'} ${PINNACLE_POS_LIB[item.l]?.title || item.t}`}
                                                         text={aiInterpretations[`${numValue}-${item.l}`]}
                                                         isLoading={aiLoading[`${numValue}-${item.l}`]}
+                                                        onRetry={() => { setAiInterpretations(prev => { const n = {...prev}; delete n[`${numValue}-${item.l}`]; return n; }); fetchAiInterpretation(numValue, item.l); }}
                                                     />
                                                 )}
                                             </motion.div>

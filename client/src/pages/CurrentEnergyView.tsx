@@ -11,52 +11,6 @@ interface CurrentEnergyViewProps {
     onBack: () => void;
 }
 
-const MetricRing = ({ label, value, color }: { label: string, value: number | null, color: string }) => {
-    const radius = 20;
-    const circumference = 2 * Math.PI * radius;
-    
-    // If value is null, show a dashed empty ring with N/A
-    if (value === null || value === undefined) {
-        return (
-            <div className="flex flex-col items-center gap-2 opacity-40">
-                <div className="relative w-16 h-16 flex items-center justify-center">
-                    <svg className="w-16 h-16">
-                        <circle cx="32" cy="32" r={radius} className="stroke-white/20" strokeWidth="2" strokeDasharray="4 4" fill="none" />
-                    </svg>
-                    <div className="absolute text-[10px] font-medium text-white/50 tracking-widest">-</div>
-                </div>
-                <span className="text-[10px] font-medium text-white tracking-widest uppercase">{label}</span>
-            </div>
-        );
-    }
-
-    const offset = circumference - (value / 100) * circumference;
-
-    return (
-        <div className="flex flex-col items-center gap-2">
-            <div className="relative w-16 h-16 flex items-center justify-center">
-                <svg className="transform -rotate-90 w-16 h-16">
-                    <circle cx="32" cy="32" r={radius} className="stroke-white/10" strokeWidth="4" fill="none" />
-                    <motion.circle 
-                        cx="32" 
-                        cy="32" 
-                        r={radius} 
-                        className={color}
-                        strokeWidth="4" 
-                        fill="none" 
-                        strokeDasharray={circumference}
-                        initial={{ strokeDashoffset: circumference }}
-                        animate={{ strokeDashoffset: offset }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                    />
-                </svg>
-                <span className="absolute text-xs font-mono text-white/80">{value}%</span>
-            </div>
-            <span className="text-[10px] uppercase tracking-widest text-white/50">{label}</span>
-        </div>
-    );
-};
-
 export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) => {
     const { profile } = useActiveProfile();
     const { t, language } = useTranslation();
@@ -292,12 +246,6 @@ export const CurrentEnergyView: React.FC<CurrentEnergyViewProps> = ({ onBack }) 
                                 <span className="text-4xl font-serif italic text-white/40">—</span>
                             )}
                             <span className="text-[10px] uppercase tracking-widest text-white/40 block mt-2">{t('total_alignment', 'Alineación Total')}</span>
-                        </div>
-                        
-                        <div className="w-full flex justify-between px-2 gap-4">
-                            <MetricRing label={t('focus', 'Enfoque')} value={energy?.metrics?.focus ?? energy?.daily?.metrics?.focus ?? null} color="stroke-blue-400" />
-                            <MetricRing label={t('create', 'Crear')} value={energy?.metrics?.creativity ?? energy?.daily?.metrics?.creativity ?? null} color="stroke-purple-400" />
-                            <MetricRing label={t('social', 'Social')} value={energy?.metrics?.relationships ?? energy?.daily?.metrics?.relationships ?? null} color="stroke-pink-400" />
                         </div>
                     </div>
                 </div>
