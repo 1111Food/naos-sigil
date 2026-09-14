@@ -77,25 +77,14 @@ export async function apiRoutes(app: FastifyInstance) {
     // Generate Telegram Linking Token
     app.post('/api/telegram/link-token', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
-        const crypto = require('crypto');
-        const token = crypto.randomBytes(16).toString('hex'); // 128-bit entropy
-        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-        const { supabaseAdmin } = require('../lib/supabase');
-        const { data: profile, error } = await supabaseAdmin.from('profiles').select('profile_data').eq('id', userId).single();
-        if (error || !profile) return reply.status(500).send({ error: 'Profile not found' });
-
-        const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes TTL
-
-        const newProfileData = {
-            ...(profile.profile_data || {}),
-            telegram_link: { token: tokenHash, expires_at }
-        };
-
-        const { error: updateError } = await supabaseAdmin.from('profiles').update({ profile_data: newProfileData }).eq('id', userId);
-        if (updateError) return reply.status(500).send({ error: 'Could not generate token' });
-
-        return reply.send({ token, expires_at });
+        try {
+            const { TelegramLinkService } = require('../modules/sigil/telegramLinkService');
+            const token = await TelegramLinkService.generateToken(userId);
+            return reply.send({ token });
+        } catch (error) {
+            console.error('[TELEGRAM] Link Token Error:', error);
+            return reply.status(500).send({ error: 'Could not generate token' });
+        }
     });
 
     // Ã°Å¸â€ Â® Forecast (Time Map) Endpoints
@@ -784,5 +773,6 @@ export async function apiRoutes(app: FastifyInstance) {
          }
     });
 }
+
 
 

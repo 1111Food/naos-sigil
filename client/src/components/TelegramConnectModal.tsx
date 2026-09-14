@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Send, X, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { useTranslation } from '../i18n';
+import { supabase } from '../lib/supabase';
 
 interface TelegramConnectModalProps {
     isOpen: boolean;
@@ -10,6 +11,46 @@ interface TelegramConnectModalProps {
 
 export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({ isOpen, onClose }) => {
     const { t } = useTranslation();
+        const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleConnect = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.access_token) {
+                throw new Error('Not authenticated');
+            }
+            const apiHost = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            const response = await fetch(`${apiHost}/api/telegram/link-token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate token');
+            }
+
+            const data = await response.json();
+            if (data.token) {
+                // Open Telegram with the one-time link token
+                const telegramUrl = `https://t.me/Sigil_Naos_bot?start=${data.token}`;
+                window.open(telegramUrl, '_blank');
+                onClose();
+            } else {
+                throw new Error('Token not found in response');
+            }
+        } catch (err: any) {
+            setError(t('server_error') || 'Error connecting to Telegram. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -51,67 +92,47 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({ isOp
 
                         {/* Body - Instructions */}
                         <div className="p-6 md:p-8 space-y-6">
-                            <p className="text-xs text-white/60 font-light leading-relaxed">
-                                {t('telegram_instructions')}
+                            <p className="text-sm text-white/60 font-light leading-relaxed">
+                                Vincula tu cuenta de Telegram mediante un token seguro de un solo uso. No necesitas escribir tu correo, el proceso es autom�tico.
+                                <br/><br/>
+                                1. Haz click en Conectar Telegram.<br/>
+                                2. Se abrir� la aplicaci�n de Telegram con el Sigil.<br/>
+                                3. Haz click en Iniciar / Start en el bot.
                             </p>
-
-                            <div className="space-y-4">
-                                <div className="flex gap-4 items-start group">
-                                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-cyan-400 shrink-0 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all">
-                                        1
-                                    </div>
-                                    <div className="pt-1">
-                                        <h4 className="text-sm font-bold text-white mb-1">{t('telegram_step_1_title')}</h4>
-                                        <p className="text-[10px] text-white/40">{t('telegram_step_1_desc')}</p>
-                                    </div>
+                            
+                            {error && (
+                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center">
+                                    {error}
                                 </div>
-
-                                <div className="flex gap-4 items-start group">
-                                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-cyan-400 shrink-0 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all">
-                                        2
-                                    </div>
-                                    <div className="pt-1">
-                                        <h4 className="text-sm font-bold text-white mb-1">{t('telegram_step_2_title')}</h4>
-                                        <p className="text-[10px] text-white/40">{t('telegram_step_2_desc')}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4 items-start group">
-                                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-cyan-400 shrink-0 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all">
-                                        3
-                                    </div>
-                                    <div className="pt-1">
-                                        <h4 className="text-sm font-bold text-white mb-1">{t('telegram_step_3_title')}</h4>
-                                        <p className="text-[10px] text-white/40 mb-2">{t('telegram_step_3_desc')}</p>
-                                        <div className="px-3 py-2 bg-black/40 border border-cyan-500/20 rounded-lg flex items-center justify-between overflow-x-auto">
-                                            <code className="text-xs text-cyan-400 whitespace-nowrap">tu_correo@email.com</code>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Footer - Action */}
                         <div className="p-6 bg-black/40 border-t border-white/5 flex flex-col gap-4">
-                            <a
-                                href="https://t.me/Sigil_Naos_bot"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]"
-                                onClick={onClose}
+                            <button
+                                onClick={handleConnect}
+                                disabled={isLoading}
+                                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <span>{t('telegram_open_btn')}</span>
-                                <ArrowRight className="w-4 h-4" />
-                            </a>
+                                {isLoading ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <>
+                                        <span>{t('telegram_open_btn')}</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </>
+                                )}
+                            </button>
                             <div className="flex items-center justify-center gap-2 text-[10px] text-white/20">
                                 <ShieldCheck className="w-3 h-3" />
                                 <span>{t('telegram_p2p_notice')}</span>
                             </div>
                         </div>
-
                     </motion.div>
                 </div>
             )}
         </AnimatePresence>
     );
 };
+
+
