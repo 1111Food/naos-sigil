@@ -189,7 +189,7 @@ export const LifelineView: React.FC<LifelineViewProps> = ({ onBack }) => {
 
 
     // Math calculation for the UI headers
-    const bYear = profile?.birth_date ? Number(profile.birth_date.split('-')[0]) : new Date().getFullYear();
+    const bYear = profile?.birthDate ? Number(profile.birth_date.split('-')[0]) : new Date().getFullYear();
     const currentAge = new Date().getFullYear() - bYear;
     
     // Find current pinnacle based on ranges if not stored directly

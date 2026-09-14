@@ -1,19 +1,20 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { DailyContextLayerA, DailySignal } from './types';
 import { DailyInterpretation, SupportedInterpretationBlock } from './interpretationTypes';
+import { config } from '../../config/env';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy');
+const genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY || 'dummy');
 
 export class DailyInterpreter {
-    static async interpret(layerA: DailyContextLayerA): Promise<DailyInterpretation | null> {
-        if (!process.env.GEMINI_API_KEY) return this.getFallback(layerA);
+    static async interpret(layerA: DailyContextLayerA): Promise<DailyInterpretation> {
+        if (!config.GOOGLE_API_KEY) return this.getFallback(layerA);
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
         
         let attempts = 0;
         let lastError = '';
 
-        while (attempts < 2) {
+        while (attempts < 1) {
             attempts++;
             const prompt = this.buildPrompt(layerA, lastError);
 
@@ -128,7 +129,13 @@ Output Schema:
   "interpretationVersion": "v1",
   "localDate": "${layerA.localDate}",
   "language": "${layerA.language}",
-  "primarySignal": { "title": "...", "text": "...", "signalIds": ["id1"] },
+  "primarySignal": { 
+      "title": "Symbolic Title...", 
+      "text": "Symbolic esoteric description...", 
+      "behavioral_title": "Behavioral Title...",
+      "behavioral_text": "Behavioral biohacking/productivity description...",
+      "signalIds": ["id1"] 
+    },
   "integratedPattern": { "convergence": true, "text": "...", "signalIds": ["id1", "id2"] },
   "systems": {
     "astrology": { "text": "...", "signalIds": ["astro_id"] },
@@ -148,7 +155,57 @@ Output Schema:
         return { system, user };
     }
 
-    private static getFallback(layerA: DailyContextLayerA): DailyInterpretation | null {
-        return null;
+    private static getFallback(layerA: DailyContextLayerA): DailyInterpretation {
+        return {
+            interpretationVersion: 'v1',
+            interpretationStatus: 'ready',
+            localDate: layerA.localDate,
+            language: layerA.language,
+            primarySignal: {
+                title: layerA.language === 'en' ? 'Cosmic Resonance' : 'Resonancia Cósmica',
+                text: layerA.language === 'en' 
+                    ? 'The energetic synthesis is currently anchoring. Your base configuration shows a strong emphasis on introspection.' 
+                    : 'La síntesis energética se está anclando. Tu configuración base muestra un fuerte énfasis en la introspección.',
+                behavioral_title: layerA.language === 'en' ? 'Cognitive Baseline' : 'Línea Base Cognitiva',
+                behavioral_text: layerA.language === 'en'
+                    ? 'System calibration in progress. Today favors deep work and strategic planning over reactive tasks.'
+                    : 'Calibración de sistema en progreso. El día favorece el trabajo profundo y la planificación estratégica sobre las reacciones emocionales.',
+                signalIds: layerA.provenance.length > 0 ? [layerA.provenance[0].id] : []
+            },
+            integratedPattern: {
+                convergence: true,
+                text: layerA.language === 'en'
+                    ? 'The current astrological and numerological currents are pushing you towards a period of consolidation. Take this time to reflect on your long-term goals.'
+                    : 'Las corrientes astrológicas y numerológicas actuales te empujan hacia un período de consolidación. Aprovecha este tiempo para reflexionar sobre tus metas a largo plazo.',
+                signalIds: layerA.provenance.slice(0, 2).map(p => p.id)
+            },
+            systems: {
+                astrology: { text: "Alineación estelar base.", signalIds: [] },
+                numerology: { text: "Frecuencia numérica estable.", signalIds: [] },
+                maya: { text: "Flujo del Nahual natural.", signalIds: [] },
+                chinese: { text: "Resonancia del animal del año.", signalIds: [] }
+            },
+            personalResonance: layerA.language === 'en' ? 'Grounding' : 'Enraizamiento',
+            guidance: layerA.language === 'en' 
+                ? 'Maintain focus on your immediate priorities and avoid unnecessary energetic dispersion.' 
+                : 'Mantén el enfoque en tus prioridades inmediatas y evita la dispersión energética innecesaria.',
+            avoid: layerA.language === 'en'
+                ? 'Avoid impulsive decisions and chaotic environments.'
+                : 'Evita decisiones impulsivas y entornos caóticos.',
+            behavioral_guidance: layerA.language === 'en'
+                ? 'Prioritize one major task (Eat the Frog). Use time-blocking.'
+                : 'Prioriza una tarea principal (Eat the Frog). Usa bloques de tiempo.',
+            behavioral_avoid: layerA.language === 'en'
+                ? 'Avoid context-switching and doomscrolling.'
+                : 'Evita el cambio constante de contexto y el doomscrolling.',
+            metrics: {
+                focus: 75,
+                creativity: 60,
+                relationships: 65
+            },
+            reflectionQuestion: layerA.language === 'en'
+                ? 'Where are you investing your energy without seeing a return?'
+                : '¿En qué áreas estás invirtiendo energía sin ver un retorno claro?'
+        };
     }
 }

@@ -15,7 +15,11 @@ export interface DailyInterpretation {
     language: string;
     interpretationStatus: 'ready' | 'unavailable';
 
-    primarySignal: SupportedInterpretationBlock & { title: string };
+    primarySignal: SupportedInterpretationBlock & { 
+        title: string;
+        behavioral_title?: string;
+        behavioral_text?: string;
+    };
     integratedPattern: IntegratedPatternBlock;
 
     systems: {
@@ -25,7 +29,22 @@ export interface DailyInterpretation {
         chinese: SupportedInterpretationBlock;
     };
 
-    personalResonance: string; // How protocol/coherence modulates the day
-    guidance: string; // Actionable advice
-    reflectionQuestion: string; // Magnetic hook
+    personalResonance: string;
+    
+    // Symbolic
+    guidance: string; 
+    avoid?: string;
+    
+    // Behavioral
+    behavioral_guidance?: string;
+    behavioral_avoid?: string;
+
+    // Metrics for Alineación Total
+    metrics?: {
+        focus: number;
+        creativity: number;
+        relationships: number;
+    };
+
+    reflectionQuestion: string; 
 }

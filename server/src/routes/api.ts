@@ -283,29 +283,39 @@ export async function apiRoutes(app: FastifyInstance) {
             );
 
             // ADAPTER: Map V2 Interpretation to Legacy Energy Shape
-            const { interpretation } = v2Payload;
-
-            const energy = {
-                daily: {
-                    score: interpretation.score ?? null,  // Real score from DailyInterpreter, or null if not produced
-                    title: interpretation.primarySignal.title || (lang === 'es' ? 'Se�al Diaria' : 'Daily Signal'),
-                    description: interpretation.primarySignal.text || (interpretation.primarySignal as any).content,
-                    action: interpretation.guidance || null,
-                    avoid: (interpretation as any).avoid || null
-                },
-                metrics: {
-                    focus: null,         // Not produced by Daily V2 - shown as N/A in UI
-                    creativity: null,    // Not produced by Daily V2 - shown as N/A in UI
-                    relationships: null  // Not produced by Daily V2 - shown as N/A in UI
-                },
-                weekly: {
-                    theme: (interpretation.integratedPattern as any).title || (lang === 'es' ? 'Tema Semanal' : 'Weekly Theme'),
-                    description: interpretation.integratedPattern.text || null
-                },
-                // Expose interpretation status so frontend can degrade gracefully
-                interpretationStatus: interpretation.interpretationStatus
+            let energy: any = {
+                interpretationStatus: 'unavailable',
+                rawSignals: v2Payload.layerA
             };
-
+            const interpretation = v2Payload.interpretation;
+            if (interpretation && interpretation.interpretationStatus === 'ready') {
+                energy = {
+                    daily: {
+                        score: (interpretation as any).score ?? null,
+                        title: interpretation.primarySignal?.title || (lang === 'es' ? 'Señal Diaria' : 'Daily Signal'),
+                        description: interpretation.primarySignal?.text || (interpretation.primarySignal as any)?.content,
+                        action: interpretation.guidance || null,
+                        avoid: (interpretation as any).avoid || null
+                    },
+                    behavioral: {
+                        title: interpretation.primarySignal?.behavioral_title || interpretation.primarySignal?.title || '',
+                        description: interpretation.primarySignal?.behavioral_text || interpretation.primarySignal?.text || '',
+                        action: interpretation.behavioral_guidance || interpretation.guidance || '',
+                        avoid: interpretation.behavioral_avoid || (interpretation as any).avoid || ''
+                    },
+                    metrics: { 
+                        focus: interpretation.metrics?.focus ?? null, 
+                        creativity: interpretation.metrics?.creativity ?? null, 
+                        relationships: interpretation.metrics?.relationships ?? null 
+                    },
+                    weekly: {
+                        theme: (interpretation.integratedPattern as any)?.title || (lang === 'es' ? 'Tema Semanal' : 'Weekly Theme'),
+                        description: interpretation.integratedPattern?.text || null
+                    },
+                    interpretationStatus: 'ready',
+                    rawSignals: v2Payload.layerA
+                };
+            }
             return { energy };
         } catch (error: any) {
             console.error("API Error (/api/energy/current):", error);
