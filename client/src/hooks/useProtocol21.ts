@@ -135,6 +135,10 @@ export const useProtocol21 = () => {
 
             if (!response.ok) {
                 const errData = await response.json();
+                if (errData.error === 'ALREADY_CHECKED_IN_TODAY' || response.status === 409) {
+                    console.log("Already checked in today. Treating as success.");
+                    return { status: 'ok', already_checked_in: true };
+                }
                 throw new Error(errData.error || "Error al sellar el día");
             }
             return response.json();

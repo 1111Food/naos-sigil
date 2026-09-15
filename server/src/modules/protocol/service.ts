@@ -101,8 +101,15 @@ export class ProtocolService {
 
         // 3. Impacto en Coherencia
         // Incrementar disciplina por cumplimiento
-        await CoherenceService.updateScore(userId, 'discipline', 3);
-        await CoherenceService.updateStreak(userId, 'increment');
+        try {
+            await CoherenceService.updateScore(userId, 'discipline', 3);
+            await CoherenceService.updateStreak(userId, 'increment');
+        } catch (coherenceErr: any) {
+            // FIRE AND FORGET - SILENT FAIL
+            // Como dicta el Point 5 CHECKIN_ATOMICITY_CONTRACT: 
+            // Si coherence falla, el protocolo avanza lógicamente para el usuario preservando el check-in.
+            console.error("⚠️ [NON-FATAL] Coherence Update Failed during check-in:", coherenceErr);
+        }
 
         return updatedProtocol;
     }
