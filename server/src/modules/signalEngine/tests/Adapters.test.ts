@@ -58,11 +58,17 @@ describe('Signal Engine Adapters Determinism', () => {
     });
 
     it('ChineseAdapter is deterministic', () => {
-        const chineseData = { animal: 'Caballo', element: 'Fuego', birthYear: 2026 };
-        const signal1 = ChineseAdapter.adaptAnnual(chineseData, localDate, calculatedAt);
-        const signal2 = ChineseAdapter.adaptAnnual(chineseData, localDate, calculatedAt);
+        const chineseData = { animal: 'Caballo', element: 'Fuego', year: 2026 };
+        
+        const signalAnnual1 = ChineseAdapter.adaptAnnual(chineseData, localDate, calculatedAt);
+        const signalAnnual2 = ChineseAdapter.adaptAnnual(chineseData, localDate, calculatedAt);
+        expect(signalAnnual1).toEqual(signalAnnual2);
+        expect(signalAnnual1.provenance.methodologyId).toBe('CHINESE_LI_CHUN_V1');
+        expect(signalAnnual1.temporalScope).toBe('ANNUAL');
 
-        expect(signal1).toEqual(signal2);
-        expect(signal1.provenance.methodologyId).toBe('CHINESE_LI_CHUN_V1');
+        const signalNatal1 = ChineseAdapter.adaptNatal(chineseData, calculatedAt);
+        const signalNatal2 = ChineseAdapter.adaptNatal(chineseData, calculatedAt);
+        expect(signalNatal1).toEqual(signalNatal2);
+        expect(signalNatal1.temporalScope).toBe('STRUCTURAL');
     });
 });
