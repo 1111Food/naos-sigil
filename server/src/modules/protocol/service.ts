@@ -68,7 +68,11 @@ export class ProtocolService {
 
             if (rpcError) {
                 // If the RPC doesn't exist yet (Deployment Gate Pending), we fallback to the old multi-step approach
-                if (rpcError.code === '42883' || rpcError.message.includes('could not find function')) {
+                const isMissingFunction = rpcError.code === '42883' || 
+                                          rpcError.code === 'PGRST202' || 
+                                          (rpcError.message && rpcError.message.toLowerCase().includes('could not find the function'));
+                
+                if (isMissingFunction) {
                     console.log(`⚠️ ProtocolService: RPC 'seal_protocol_day' not found. Falling back to non-atomic execution.`);
                     updatedProtocol = await this.sealDayLegacyFallback(client, userId, protocolId, dayNumber, notes, protocol, is21DayMilestone, isFinalCompletion);
                 } else {
