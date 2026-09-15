@@ -152,7 +152,9 @@ export const ProtocolHabitChecklist: React.FC<{ onOpenDetail?: () => void }> = (
         if (Object.values(newChecks).every(v => v)) {
             if (activeProtocol) {
                 const notes = JSON.stringify(newChecks);
-                completeDay(activeProtocol.current_day, notes);
+                const tzOffsetMs = new Date().getTimezoneOffset() * 60000;
+                const localDate = new Date(Date.now() - tzOffsetMs).toISOString().split('T')[0];
+                completeDay(activeProtocol.current_day, notes, localDate);
                 // Note: logAction('PROTOCOL_EVOLUTION') will be needed if we want coherence from the widget
                 // However, the detail view is the "intentional" ritual space.
             }

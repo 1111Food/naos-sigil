@@ -641,20 +641,29 @@ export async function apiRoutes(app: FastifyInstance) {
 
             return { status: 'ok', onboarding_completed: result.onboarding_completed };
         } catch (error: any) {
-            console.error("Ã°Å¸â€Â¥ [API] Onboarding Complete Error:", error.message);
+            console.error("Ã°Å¸â€ Â¥ [API] Onboarding Complete Error:", error.message);
             return reply.status(500).send({ error: 'Failed to complete onboarding.' });
         }
     });
 
     // 21/90 Protocols
-    app.post<{ Body: { protocolId: string, dayNumber: number, notes?: string } }>('/api/protocols/seal-day', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
+    app.post<{ Body: { protocolId: string, dayNumber: number, notes?: string, localDate?: string } }>('/api/protocols/seal-day', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const token = (req as any).token;
         try {
             const { protocolId, dayNumber, notes } = req.body;
-            return await ProtocolService.sealDay(userId, protocolId, dayNumber, notes, token);
+            
+            // SECURITY: SERVER-AUTHORITATIVE LOCAL DATE (Ignore client bypasses)
+            const profile = await UserService.getProfile(userId);
+            const offsetMs = (profile.utcOffset || 0) * 60 * 60 * 1000;
+            const serverLocalDate = new Date(Date.now() + offsetMs).toISOString().split('T')[0];
+            
+            return await ProtocolService.sealDay(userId, protocolId, dayNumber, notes, token, serverLocalDate);
         } catch (e: any) {
-            console.error("Ã°Å¸â€Â¥ Protocol Seal-Day Error:", e);
+            console.error("🚀 Protocol Seal-Day Error:", e);
+            if (e.message && e.message.includes('ALREADY_CHECKED_IN_TODAY')) {
+                return reply.status(409).send({ error: 'ALREADY_CHECKED_IN_TODAY' });
+            }
             return reply.status(500).send({ error: e.message });
         }
     });

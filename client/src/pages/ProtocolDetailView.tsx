@@ -233,7 +233,9 @@ export const ProtocolDetailView: React.FC<ProtocolDetailViewProps> = ({ onBack }
 
             // Send actual reflection text to feed MemoryService longitudinally
             const notes = reflectionText.trim();
-            const result = await completeDay(activeProtocol.current_day, notes);
+            const tzOffsetMs = new Date().getTimezoneOffset() * 60000;
+            const localDate = new Date(Date.now() - tzOffsetMs).toISOString().split('T')[0];
+            const result = await completeDay(activeProtocol.current_day, notes, localDate);
 
             // LOG COHERENCE SUCCESS based on Rule 3/5
             await logAction(coherenceAction);

@@ -121,7 +121,7 @@ export const useProtocol21 = () => {
     };
 
     const completeMutation = useMutation({
-        mutationFn: async ({ dayNumber, notes }: { dayNumber: number, notes?: string }) => {
+        mutationFn: async ({ dayNumber, notes, localDate }: { dayNumber: number, notes?: string, localDate?: string }) => {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             const response = await fetch(`${API_BASE_URL}/api/protocols/seal-day`, {
@@ -130,7 +130,7 @@ export const useProtocol21 = () => {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify({ protocolId: activeProtocol!.id, dayNumber, notes })
+                body: JSON.stringify({ protocolId: activeProtocol!.id, dayNumber, notes, localDate })
             });
 
             if (!response.ok) {
@@ -173,9 +173,9 @@ export const useProtocol21 = () => {
         }
     });
 
-    const completeDay = async (dayNumber: number, notes?: string) => {
+    const completeDay = async (dayNumber: number, notes?: string, localDate?: string) => {
         if (!activeProtocol || !profile?.id) return;
-        return completeMutation.mutateAsync({ dayNumber, notes });
+        return completeMutation.mutateAsync({ dayNumber, notes, localDate });
     };
 
     const evolveMutation = useMutation({

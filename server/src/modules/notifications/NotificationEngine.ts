@@ -102,27 +102,39 @@ export class NotificationEngine {
 
                 // --- EXECUTION 2: Protocol 21 (with Seal Check) ---
                 if (isProtocolDue) {
-                    const { data: metrics } = await supabase
-                        .from('daily_metrics')
+                    // GATE: Ensure user actually has an active protocol
+                    const { data: activeProtocols } = await supabase
+                        .from('user_protocols')
                         .select('id')
                         .eq('user_id', user.id)
-                        .gte('created_at', `${userDateStr}T00:00:00.000Z`)
-                        .lte('created_at', `${userDateStr}T23:59:59.999Z`);
+                        .eq('status', 'active')
+                        .limit(1);
 
-                    if (!metrics || metrics.length === 0) {
-                        console.info(`🚀 [NOTIF] Triggering Protocol: ${user.email}`);
-                        const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '?').replace('{target}', '21');
-                        const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${discipline}`;
-                        const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
-                        const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                        console.info(`📡 [NOTIF] Protocol Result for ${user.email}: ${success}`);
-                        
-                        const p21Tuning = userTunings.find(t => t.aspect === 'protocol21');
-                        if (p21Tuning) {
-                            await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).eq('id', p21Tuning.id);
-                        }
+                    if (!activeProtocols || activeProtocols.length === 0) {
+                        console.info(`⏭️ [NOTIF] Skipping Protocol for ${user.email} - No active protocol (likely cancelled or completed).`);
                     } else {
-                        console.info(`⏹️ [NOTIF] Skipping Protocol for ${user.email} - Already sealed.`);
+                        const { data: metrics } = await supabase
+                            .from('daily_metrics')
+                            .select('id')
+                            .eq('user_id', user.id)
+                            .gte('created_at', `${userDateStr}T00:00:00.000Z`)
+                            .lte('created_at', `${userDateStr}T23:59:59.999Z`);
+
+                        if (!metrics || metrics.length === 0) {
+                            console.info(`🔥 [NOTIF] Triggering Protocol: ${user.email}`);
+                            const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '?').replace('{target}', '21');
+                            const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${discipline}`;
+                            const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
+                            const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                            console.info(`📨 [NOTIF] Protocol Result for ${user.email}: ${success}`);
+                            
+                            const p21Tuning = userTunings.find(t => t.aspect === 'protocol21');
+                            if (p21Tuning) {
+                                await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).eq('id', p21Tuning.id);
+                            }
+                        } else {
+                            console.info(`✅ [NOTIF] Skipping Protocol for ${user.email} - Already sealed.`);
+                        }
                     }
                 }
 

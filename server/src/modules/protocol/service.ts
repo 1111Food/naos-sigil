@@ -8,27 +8,81 @@ export class ProtocolService {
     /**
      * Sella el día actual del protocolo y evalúa la progresión o evolución.
      */
-    static async sealDay(userId: string, protocolId: string, dayNumber: number, notes?: string, token?: string) {
-        console.log(`🛡️ ProtocolService: Sealing day ${dayNumber} for protocol ${protocolId}`);
+    static async sealDay(userId: string, protocolId: string, dayNumber: number, notes?: string, token?: string, localDate?: string) {
+        console.log(`🚀 ProtocolService: Sealing day ${dayNumber} for protocol ${protocolId} on ${localDate}`);
 
         const client = token
             ? createClient(config.SUPABASE_URL!, config.SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } })
             : supabase;
 
-        // 1. Registrar el log diario
-        const { error: logError } = await client
-            .from('protocol_daily_logs')
-            .upsert({
-                protocol_id: protocolId,
-                day_number: dayNumber,
-                is_completed: true,
-                completed_at: new Date().toISOString(),
-                notes
-            }, { onConflict: 'protocol_id,day_number' });
+        // 1. Obtener estado actual
+        const { data: protocol, error: fetchError } = await client
+            .from('user_protocols')
+            .select('*')
+            .eq('id', protocolId)
+            .single();
 
-        if (logError) {
-            console.error("❌ Error logging day:", logError);
-            throw logError;
+        if (fetchError || !protocol) {
+            throw new Error("Protocol not found or error fetching state.");
+        }
+
+        if (protocol.status !== 'active') {
+            throw new Error("Protocol is not active. Cannot seal day.");
+        }
+
+        // Check for same day in JS as a fallback safeguard (optimistic lock)
+        const { data: lastLog } = await client
+            .from('protocol_daily_logs')
+            .select('completed_at, local_date')
+            .eq('protocol_id', protocolId)
+            .order('completed_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        // If localDate matches the last check-in's localDate, reject it.
+        // If localDate column isn't migrated yet, we fallback to comparing YYYY-MM-DD from completed_at UTC.
+        if (lastLog) {
+            const lastLogLocalDate = lastLog.local_date || lastLog.completed_at.split('T')[0];
+            if (lastLogLocalDate === localDate) {
+                console.warn(`⚠️ ProtocolService: Duplicate same-day check-in prevented for ${userId}`);
+                throw new Error("ALREADY_CHECKED_IN_TODAY");
+            }
+        }
+
+        const is21DayMilestone = dayNumber === 21 && protocol.target_days === 21;
+        const isFinalCompletion = dayNumber >= protocol.target_days;
+        const now = new Date().toISOString();
+
+        let updatedProtocol;
+        try {
+            // Try to use the ATOMIC RPC introduced in Point 5 migration
+            const { data: rpcData, error: rpcError } = await client.rpc('seal_protocol_day', {
+                p_protocol_id: protocolId,
+                p_day_number: dayNumber,
+                p_local_date: localDate,
+                p_notes: notes || null,
+                p_completed_at: now,
+                p_is_21_milestone: is21DayMilestone,
+                p_is_final_completion: isFinalCompletion
+            });
+
+            if (rpcError) {
+                // If the RPC doesn't exist yet (Deployment Gate Pending), we fallback to the old multi-step approach
+                if (rpcError.code === '42883' || rpcError.message.includes('could not find function')) {
+                    console.log(`⚠️ ProtocolService: RPC 'seal_protocol_day' not found. Falling back to non-atomic execution.`);
+                    updatedProtocol = await this.sealDayLegacyFallback(client, userId, protocolId, dayNumber, notes, protocol, is21DayMilestone, isFinalCompletion);
+                } else {
+                    throw rpcError;
+                }
+            } else {
+                updatedProtocol = rpcData;
+            }
+        } catch (e: any) {
+            // If the error is a unique constraint violation on protocol_daily_logs_protocol_id_local_date_key
+            if (e.code === '23505' && e.message.includes('local_date')) {
+                throw new Error("ALREADY_CHECKED_IN_TODAY");
+            }
+            throw e;
         }
 
         // 1.5. Guardar en memoria si hay reflexión significativa
@@ -45,49 +99,40 @@ export class ProtocolService {
             }
         }
 
-        // 2. Obtener estado actual para decidir el siguiente paso
-        const { data: protocol, error: fetchError } = await client
-            .from('user_protocols')
-            .select('*')
-            .eq('id', protocolId)
-            .single();
+        // 3. Impacto en Coherencia
+        // Incrementar disciplina por cumplimiento
+        await CoherenceService.updateScore(userId, 'discipline', 3);
+        await CoherenceService.updateStreak(userId, 'increment');
 
-        if (fetchError || !protocol) {
-            throw new Error("Protocol not found or error fetching state.");
-        }
+        return updatedProtocol;
+    }
+
+    /**
+     * Fallback for when the DB migration is not yet applied
+     */
+    static async sealDayLegacyFallback(client: any, userId: string, protocolId: string, dayNumber: number, notes: string | undefined, protocol: any, is21DayMilestone: boolean, isFinalCompletion: boolean) {
+        // 1. Registrar el log diario sin local_date (schema antiguo)
+        const { error: logError } = await client
+            .from('protocol_daily_logs')
+            .upsert({
+                protocol_id: protocolId,
+                day_number: dayNumber,
+                is_completed: true,
+                completed_at: new Date().toISOString(),
+                notes
+            }, { onConflict: 'protocol_id,day_number' });
+
+        if (logError) throw logError;
 
         let updates: any = {};
-        const is21DayMilestone = dayNumber === 21 && protocol.target_days === 21;
-        const isFinalCompletion = dayNumber >= protocol.target_days;
 
         if (is21DayMilestone) {
-            // UMBRAL DE EVOLUCIÓN: No archivar, esperar decisión.
-            console.log("🚀 ProtocolService: Evolution threshold reached (Day 21).");
-            updates = {
-                status: 'awaiting_evolution',
-                updated_at: new Date().toISOString()
-            };
+            updates = { status: 'awaiting_evolution', updated_at: new Date().toISOString() };
         } else if (isFinalCompletion) {
-            // CIERRE TOTAL (ej: Día 90 alcanzado)
-            console.log(`🏁 ProtocolService: Final target reached (${protocol.target_days}).`);
-            updates = {
-                status: 'completed',
-                end_date: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            };
-
-            // Marcar también la intención original como completada
-            await client
-                .from('protocols')
-                .update({ status: 'completed' })
-                .eq('user_id', userId)
-                .eq('status', 'active');
+            updates = { status: 'completed', end_date: new Date().toISOString(), updated_at: new Date().toISOString() };
+            await client.from('protocols').update({ status: 'completed' }).eq('user_id', userId).eq('status', 'active');
         } else {
-            // PROGRESIÓN NORMAL
-            updates = {
-                current_day: dayNumber + 1,
-                updated_at: new Date().toISOString()
-            };
+            updates = { current_day: dayNumber + 1, updated_at: new Date().toISOString() };
         }
 
         const { data: updated, error: updateError } = await client
@@ -98,12 +143,6 @@ export class ProtocolService {
             .single();
 
         if (updateError) throw updateError;
-
-        // 3. Impacto en Coherencia
-        // Incrementar disciplina por cumplimiento
-        await CoherenceService.updateScore(userId, 'discipline', 3);
-        await CoherenceService.updateStreak(userId, 'increment');
-
         return updated;
     }
 

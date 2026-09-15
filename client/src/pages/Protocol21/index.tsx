@@ -35,13 +35,27 @@ interface Protocol21Props {
 
 export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
     const { t, language } = useTranslation();
-    const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, startProtocol, evolveProtocol } = useProtocol21();
+    const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, cancelProtocol, startProtocol, evolveProtocol } = useProtocol21();
     const { profile } = useProfile();
     const [showDailySuccess, setShowDailySuccess] = useState(false);
     const [showRitualInfo, setShowRitualInfo] = useState(false); // New state for 'i' info button
     const [showVault, setShowVault] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [showRitual, setShowRitual] = useState(true);
+    const [newIntention, setNewIntention] = useState('');
+    const [isEvolving, setIsEvolving] = useState(false);
+
+    const handleCancel = async () => {
+        if (window.confirm("¿Estás seguro de cancelar este protocolo? Tu progreso se guardará en el historial, y dejarás de recibir recordatorios. Podrás iniciar uno nuevo después.")) {
+            await cancelProtocol();
+        }
+    };
+
+    const handleReset = async () => {
+        if (window.confirm("REINICIO DESTRUCTIVO: Esto eliminará permanentemente todo el historial de check-ins de este protocolo. ¿Deseas proceder?")) {
+            await resetProtocol();
+        }
+    };
 
     const playMysticChime = () => {
         try {
@@ -80,12 +94,6 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
             }
         } catch (e) {
             console.log('Audio/Haptics not supported');
-        }
-    };
-
-    const handleReset = async () => {
-        if (window.confirm(t('protocol_reset_confirm'))) {
-            await resetProtocol();
         }
     };
 
@@ -217,7 +225,13 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
         );
     }
     const currentDay = activeProtocol.current_day;
-    const isDayCompletedRaw = dailyLogs.some(l => l.day_number === currentDay);
+    const tzOffsetMs = new Date().getTimezoneOffset() * 60000;
+    const todayLocal = new Date(Date.now() - tzOffsetMs).toISOString().split('T')[0];
+    const isDayCompletedRaw = dailyLogs.some(l => {
+        // If local_date is available (new schema), use it. Otherwise derive from completed_at
+        const logDate = (l as any).local_date || new Date(new Date(l.completed_at).getTime() - tzOffsetMs).toISOString().split('T')[0];
+        return logDate === todayLocal;
+    });
 
     const isCycleII = activeProtocol.target_days === 90;
     const displayTarget = isCycleII ? 69 : 21;
@@ -344,8 +358,11 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                                 <span className="bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full text-[9px] font-black">{completedCount}</span>
                             </button>
                         )}
-                        <button onClick={handleReset} className="text-[10px] uppercase tracking-wider text-white/30 hover:text-red-400 flex items-center gap-1">
-                            <RotateCcw size={12} /> {t('protocol_reset_confirm').split('?')[0]}
+                        <button onClick={handleCancel} className="text-[10px] uppercase tracking-wider text-white/50 hover:text-white flex items-center gap-1 border border-white/10 px-3 py-1.5 rounded-full hover:bg-white/5 transition-all">
+                            <X size={12} /> CANCELAR PROTOCOLO
+                        </button>
+                        <button onClick={handleReset} className="text-[9px] uppercase tracking-wider text-red-500/50 hover:text-red-400 flex items-center gap-1">
+                            <RotateCcw size={10} /> REINICIAR (ELIMINAR DATOS)
                         </button>
                     </div>
                 </div>

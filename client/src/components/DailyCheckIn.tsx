@@ -100,7 +100,11 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
 
             const fullNote = `[PILLARS: ${pillarsSummary || 'NONE'}] ${note}`;
 
-            await completeDay(currentDay, fullNote);
+            // Calculate timezone-adjusted local date (YYYY-MM-DD)
+            const tzOffsetMs = new Date().getTimezoneOffset() * 60000;
+            const localDate = new Date(Date.now() - tzOffsetMs).toISOString().split('T')[0];
+
+            await completeDay(currentDay, fullNote, localDate);
             await logAction('PROTOCOL_DAY_COMPLETE');
 
             // Sync with Guardian Context
@@ -285,18 +289,29 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                             transition={{ duration: 0.4 }}
                         >
                             <button
-                                disabled={!note.trim() || completing}
+                                disabled={isCompletedToday || !note.trim() || completing}
                                 onClick={handleComplete}
                                 className={cn(
                                     "w-full py-4 rounded-full font-bold uppercase tracking-widest text-sm transition-all flex items-center justify-center gap-2 relative overflow-hidden group",
-                                    note.trim() && Object.values(checks).filter(Boolean).length >= 3
+                                    isCompletedToday 
+                                        ? "bg-cyan-900/40 text-cyan-500 border border-cyan-500/30 cursor-not-allowed"
+                                        : note.trim() && Object.values(checks).filter(Boolean).length >= 3
                                         ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]"
                                         : "bg-white/5 text-white/20 cursor-not-allowed border border-white/5"
                                 )}
                             >
-                                {note.trim() && <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />}
-                                <span className="relative z-10">{completing ? t('protocol_sealing') : t('protocol_seal_code')}</span>
+                                {!isCompletedToday && note.trim() && <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />}
+                                <span className="relative z-10">
+                                    {isCompletedToday 
+                                        ? t('protocol_day_validated' as any) || 'Validated Today'
+                                        : completing ? t('protocol_sealing') : t('protocol_seal_code')}
+                                </span>
                             </button>
+                            {isCompletedToday && (
+                                <p className="text-center text-[10px] text-cyan-500/70 uppercase tracking-widest mt-4">
+                                    {t('protocol_rest_architect' as any) || 'Come back tomorrow to continue.'}
+                                </p>
+                            )}
                         </motion.div>
 
                         {/* Floating Action Rewards */}
