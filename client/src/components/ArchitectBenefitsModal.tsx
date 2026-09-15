@@ -51,8 +51,8 @@ export const ArchitectBenefitsModal: React.FC<ArchitectBenefitsModalProps> = ({ 
             id: 'telegram_coach',
             title: language === 'en' ? 'Sigil on Telegram' : 'Sigil en Telegram',
             description: language === 'en'
-                ? 'Your Spiritual Coach available 24/7 directly on Telegram. Receive proactive alerts and guidance.'
-                : 'Tu Coach Espiritual disponible 24/7 directo en Telegram. Recibe alertas y guías proactivas.',
+                ? 'Your Personal Intelligence available 24/7 directly on Telegram. Receive proactive alerts and guidance.'
+                : 'Tu Inteligencia Personal disponible 24/7 directo en Telegram. Recibe alertas y guías proactivas.',
             icon: Send,
             color: 'text-blue-400',
             bg: 'bg-blue-500/10',
