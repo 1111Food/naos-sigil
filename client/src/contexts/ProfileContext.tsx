@@ -165,34 +165,9 @@ const mapProfileData = (data: any, userEmail?: string): UserProfile => {
         naosIdentityCode: data.naos_identity_code || data.profile_data?.naos_identity_code || undefined
     };
 
-    // If an active subprofile is selected (e.g. Vania), overlay its attributes onto profile
-    if (masterProfile.active_sub_profile_id && Array.isArray(masterProfile.sub_profiles)) {
-        const rawSub = masterProfile.sub_profiles.find((sp: any) => sp.id === masterProfile.active_sub_profile_id);
-        if (rawSub) {
-            const selectedSub = buildSubprofileCosmicData(rawSub);
-            return {
-                ...masterProfile,
-                ...selectedSub,
-                masterName: rootName,
-                name: selectedSub.name || selectedSub.full_name || masterProfile.name,
-                birthDate: selectedSub.birthDate || selectedSub.birth_date || masterProfile.birthDate,
-                birthTime: selectedSub.birthTime || selectedSub.birth_time || masterProfile.birthTime,
-                birthCity: selectedSub.birthCity || selectedSub.birth_city || masterProfile.birthCity,
-                birthCountry: selectedSub.birthCountry || selectedSub.birth_country || masterProfile.birthCountry,
-                astrology: selectedSub.astrology,
-                numerology: selectedSub.numerology,
-                mayan: selectedSub.mayan,
-                chinese_animal: selectedSub.chinese_animal,
-                chinese_element: selectedSub.chinese_element,
-                // Preserve Root Master identity keys
-                id: masterProfile.id,
-                plan_type: masterProfile.plan_type,
-                email: masterProfile.email,
-                active_sub_profile_id: masterProfile.active_sub_profile_id,
-                sub_profiles: masterProfile.sub_profiles
-            };
-        }
-    }
+    // --- MULTI-PROFILE LAUNCH FREEZE ---
+    // The active_sub_profile_id overlay has been disabled to prevent context leakage.
+    // The account owner is the only effective subject.
 
     return masterProfile;
 };

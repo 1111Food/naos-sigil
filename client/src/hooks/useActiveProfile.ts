@@ -16,27 +16,9 @@ export function useActiveProfile() {
         if (profile) {
             let currentActive: UserProfile = profile;
 
-            if (profile.active_sub_profile_id && Array.isArray(profile.sub_profiles)) {
-                const selectedSub = profile.sub_profiles.find((sp: any) => sp.id === profile.active_sub_profile_id);
-                if (selectedSub) {
-                    currentActive = {
-                        ...profile,
-                        ...selectedSub,
-                        id: profile.id, // Keep master user UUID for backend auth
-                        sub_id: selectedSub.id,
-                        name: selectedSub.name || selectedSub.full_name || profile.name,
-                        birthDate: selectedSub.birthDate || selectedSub.birth_date || profile.birthDate,
-                        birthTime: selectedSub.birthTime || selectedSub.birth_time || profile.birthTime,
-                        birthCity: selectedSub.birthCity || selectedSub.birth_city || profile.birthCity,
-                        birthCountry: selectedSub.birthCountry || selectedSub.birth_country || profile.birthCountry,
-                        astrology: selectedSub.astrology || profile.astrology,
-                        numerology: selectedSub.numerology || profile.numerology,
-                        mayan: selectedSub.mayan || profile.mayan,
-                        chinese_animal: selectedSub.chinese_animal || profile.chinese_animal,
-                        chinese_element: selectedSub.chinese_element || profile.chinese_element,
-                    };
-                }
-            }
+            // --- MULTI-PROFILE LAUNCH FREEZE ---
+            // The active_sub_profile_id overlay has been disabled to prevent context leakage.
+            // The account owner is the only effective subject.
 
             setActiveProfile(currentActive);
             setIsReady(true);

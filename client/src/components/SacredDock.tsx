@@ -77,10 +77,10 @@ export const SacredDock: React.FC<SacredDockProps> = memo(({ activeView, onNavig
             )}>
                 <div className="flex md:flex-col items-center justify-around md:justify-center gap-2 md:gap-4 py-3 md:py-0 overflow-x-auto md:overflow-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full px-2">
                     
-                    {/* Profile Selector (Desktop Only to avoid crowding bottom rail) */}
-                    <div className="hidden md:block mb-1 -translate-x-1 scale-90">
+                    {/* MULTI-PROFILE LAUNCH FREEZE: Hidden from UI */}
+                    {/* <div className="hidden md:block mb-1 -translate-x-1 scale-90">
                         <ProfileSelector />
-                    </div>
+                    </div> */}
                     <div className="hidden md:block w-8 h-px bg-white/10 my-1" />
 
                     {items.map((item) => {

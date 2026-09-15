@@ -685,41 +685,30 @@ export async function apiRoutes(app: FastifyInstance) {
             const { protocolId, newIntention } = req.body;
             return await ProtocolService.evolveProtocol(userId, protocolId, newIntention || '', token);
         } catch (e: any) {
-            console.error("Ã°Å¸â€Â¥ Protocol Evolution Error:", e);
+            console.error("Ã°Å¸â€ Â¥ Protocol Evolution Error:", e);
             return reply.status(500).send({ error: e.message });
         }
     });
 
-    // Multi-Profile Management
+    // Multi-Profile Management (FROZEN FOR LAUNCH)
     app.post<{ Body: any }>('/api/user/profiles', { preValidation: [validateUser] }, async (req, reply) => {
-        const userId = (req as any).user_id;
-        try {
-            return await UserService.addSubProfile(userId, req.body);
-        } catch (e: any) {
-            return reply.status(400).send({ error: e.message });
-        }
+        return reply.status(403).send({ error: 'FEATURE_NOT_AVAILABLE', message: 'Multi-Profile feature is currently locked.' });
     });
 
     app.put<{ Params: { id: string }, Body: any }>('/api/user/profiles/:id', { preValidation: [validateUser] }, async (req, reply) => {
-         const userId = (req as any).user_id;
-         try {
-             return await UserService.editSubProfile(userId, req.params.id, req.body);
-         } catch (e: any) {
-             return reply.status(400).send({ error: e.message });
-         }
+        return reply.status(403).send({ error: 'FEATURE_NOT_AVAILABLE', message: 'Multi-Profile feature is currently locked.' });
     });
 
     app.delete<{ Params: { id: string } }>('/api/user/profiles/:id', { preValidation: [validateUser] }, async (req, reply) => {
-         const userId = (req as any).user_id;
-         try {
-             return await UserService.deleteSubProfile(userId, req.params.id);
-         } catch (e: any) {
-             return reply.status(400).send({ error: e.message });
-         }
+        return reply.status(403).send({ error: 'FEATURE_NOT_AVAILABLE', message: 'Multi-Profile feature is currently locked.' });
+    });
+
+    app.post<{ Body: { active_sub_profile_id?: string } }>('/api/user/profiles/switch', { preValidation: [validateUser] }, async (req, reply) => {
+        return reply.status(403).send({ error: 'FEATURE_NOT_AVAILABLE', message: 'Multi-Profile feature is currently locked.' });
     });
 
 
-    // Ã°Å¸â€Â® Pulso CuÃƒÂ¡ntico (Daily Oracle)
+    // Ã°Å¸â€ Â® Pulso CuÃƒÂ¡ntico (Daily Oracle)
     app.get<{ Querystring: { offset?: number, lang?: string } }>('/api/oracle/daily', { preValidation: [validateUser] }, async (req, reply) => {
         try {
             // FASE 3 CUTOVER: The user's requested offset is ignored for calculation, we use current timezone.

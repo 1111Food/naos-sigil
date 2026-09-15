@@ -79,11 +79,12 @@ export class UserService {
                 else if (score >= 200) level = 'Practicante';
                 else if (score >= 50) level = 'Adepto';
 
-                // multi-profile resolution
+                // --- MULTI-PROFILE LAUNCH FREEZE ---
+                // Enforcing Owner as the only effective profile to prevent context leakage.
                 let activeSub: any = null;
-                if (baseProfile.sub_profiles && baseProfile.active_sub_profile_id) {
-                    activeSub = baseProfile.sub_profiles.find(p => p.id === baseProfile.active_sub_profile_id);
-                }
+                // if (baseProfile.sub_profiles && baseProfile.active_sub_profile_id) {
+                //     activeSub = baseProfile.sub_profiles.find(p => p.id === baseProfile.active_sub_profile_id);
+                // }
 
                 // ðŸ”‘ CRITICAL FIX: Derive subscription from the authoritative plan_type SQL column.
                 // The Stripe webhook writes plan_type. We must reflect that here, NOT rely on
