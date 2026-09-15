@@ -456,7 +456,7 @@ function App() {
         case 'TIME_MAP_LIFELINE':
           return <PreLaunchGate><LifelineView onBack={() => setActiveView('TIME_MAP_NEXUS')} /></PreLaunchGate>;
         case 'TIME_MAP_CURRENT':
-          return <PreLaunchGate><CurrentEnergyView onBack={() => setActiveView('TIME_MAP_NEXUS')} /></PreLaunchGate>;
+          return <PreLaunchGate><CurrentEnergyView onBack={() => setActiveView('TIME_MAP_NEXUS')} onNavigate={navigateWithRitual} /></PreLaunchGate>;
         case 'TIME_MAP_ANNUAL':
           return (
             <PreLaunchGate>
