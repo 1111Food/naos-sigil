@@ -654,9 +654,11 @@ export async function apiRoutes(app: FastifyInstance) {
             const { protocolId, dayNumber, notes } = req.body;
             
             // SECURITY: SERVER-AUTHORITATIVE LOCAL DATE (Ignore client bypasses)
-            const profile = await UserService.getProfile(userId);
-            const offsetMs = (profile.utcOffset || 0) * 60 * 60 * 1000;
-            const serverLocalDate = new Date(Date.now() + offsetMs).toISOString().split('T')[0];
+            const { data: fullProfile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            const { DateUtils } = require('../utils/DateUtils');
+            
+            const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
+            const serverLocalDate = DateUtils.getUserLocalDate(currentTimezoneOffset);
             
             return await ProtocolService.sealDay(userId, protocolId, dayNumber, notes, token, serverLocalDate);
         } catch (e: any) {
