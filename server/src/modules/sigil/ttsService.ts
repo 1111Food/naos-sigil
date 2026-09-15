@@ -102,9 +102,13 @@ export class TTSService {
             const arrayBuffer = await response.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
 
-            // Save to Cache
-            fs.writeFileSync(cachePath, buffer);
-            console.log(`🔊 [TTS] Audio cached at ${cachePath}`);
+            // Save to Cache — failure must not propagate to caller
+            try {
+                fs.writeFileSync(cachePath, buffer);
+                console.log(`🔊 [TTS] Audio cached at ${cachePath}`);
+            } catch (cacheErr: any) {
+                console.warn(`⚠️ [TTS] Cache write failed (non-fatal): ${cacheErr.message}`);
+            }
 
             return { buffer, hash };
 

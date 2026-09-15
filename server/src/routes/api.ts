@@ -313,7 +313,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Ã°Å¸â€ Â® Sigil Chat / Interaction Endpoint
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/chat', { 
+    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en', voice_enabled?: boolean } }>('/api/chat', { 
         preValidation: [validateUser],
         config: {
             rateLimit: {
@@ -322,18 +322,18 @@ export async function apiRoutes(app: FastifyInstance) {
             }
         }
     }, async (req, reply) => {
-        const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
+        const { message, localTimestamp, oracleState, role, energyContext, language, voice_enabled } = req.body;
         const userId = (req as any).user_id;
 
-        // Ã°Å¸â€ºÂ¡Ã¯Â¸Â UsageGuard Limit Check
-        console.log(`Ã°Å¸â€ºÂ¡Ã¯Â¸Â Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
+        // Ã°Å¸â€ºÂ¡Ã¯Â¸Â UsageGuard Limit Check
+        console.log(`Ã°Å¸â€ºÂ¡Ã¯Â¸Â Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
         const limitCheck = await UsageGuardService.checkLimit(userId, 'sigil', (req as any).user?.role);
         if (!limitCheck.ok) {
             return reply.status(403).send({ error: "LÃƒÂ­mite de EnergÃƒÂ­a Agotado", message: limitCheck.message });
         }
 
         try {
-            console.log(`Ã°Å¸Å’â‚¬ INCOMING MESSAGE from ${userId}: "${message}"`);
+            console.log(`Ã°Å¸Å'â‚¬ INCOMING MESSAGE from ${userId}: "${message}"`);
             const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo);
 
             let finalText = res;
@@ -351,21 +351,33 @@ export async function apiRoutes(app: FastifyInstance) {
                 }
             }
 
-            // Generate TTS Audio Buffer for the response
-            const tts = new TTSService();
-            const { hash, buffer } = await tts.generateVoice(userId, finalText, (req as any).userGeo?.region || 'global');
+            // POINT 6 — Voice Gate: only generate TTS if client explicitly requested it
+            let audioUrl: string | undefined = undefined;
+            let audioBase64: string | undefined = undefined;
+
+            if (voice_enabled === true) {
+                try {
+                    const tts = new TTSService();
+                    const { hash, buffer } = await tts.generateVoice(userId, finalText, (req as any).userGeo?.region || 'global');
+                    audioUrl = buffer ? `/api/sigil/audio/${hash}` : undefined;
+                    audioBase64 = buffer ? buffer.toString('base64') : undefined;
+                } catch (ttsError: any) {
+                    // TTS failure must never block the text response
+                    console.warn('[TTS] Voice generation failed, text response preserved:', ttsError.message);
+                }
+            }
 
             await UsageGuardService.incrementUsage(userId, 'sigil');
 
             return { 
                 text: finalText,
                 kernelAction,
-                audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined,
-                audioBase64: buffer ? buffer.toString('base64') : undefined
+                audioUrl,
+                audioBase64
             };
 
         } catch (error: any) {
-            console.error("Ã°Å¸â€Â¥ SIGIL ERROR:", error);
+            console.error("Ã°Å¸â€ Â¥ SIGIL ERROR:", error);
             // Deep file logging
             try {
                 const fs = require('fs');

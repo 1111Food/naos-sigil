@@ -107,12 +107,23 @@ export const GuardianProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // Persistence Effect
     useEffect(() => {
-        // Sync only the necessary subset to localStorage
+        // POINT 6 P0: Strip binary audio data before persisting.
+        // audioBase64 (~1-2MB each) must never go into localStorage.
+        // Keep only text/metadata for history load.
+        const stripAudio = (msg: Message) => {
+            const { audioBase64: _dropped, audioUrl, ...rest } = msg;
+            return {
+                ...rest,
+                // Also strip data URI audioUrls (they contain the binary inline)
+                audioUrl: audioUrl?.startsWith('data:audio') ? undefined : audioUrl
+            };
+        };
+
         const syncState = {
             ...oracleState,
-            ownerId: user?.id || null, // Attach user ID to the cache
-            messages: oracleState.messages.slice(-50), // Last 50 messages for quick load
-            synastryHistory: oracleState.synastryHistory.slice(-5) // Last 5 queries
+            ownerId: user?.id || null,
+            messages: oracleState.messages.slice(-50).map(stripAudio),
+            synastryHistory: oracleState.synastryHistory.slice(-5)
         };
         localStorage.setItem('guardian_oracle_state', JSON.stringify(syncState));
     }, [oracleState, user?.id]);

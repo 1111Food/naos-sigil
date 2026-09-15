@@ -60,6 +60,20 @@ export function ChatInterface({ onNavigate, initialPrompt }: ChatInterfaceProps)
         }
     }, [initialPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // POINT 6 P1: Single active audio ref — prevents simultaneous playback
+    const currentAudioRef = React.useRef<HTMLAudioElement | null>(null);
+    const [blockedAudio, setBlockedAudio] = React.useState<HTMLAudioElement | null>(null);
+
+    // Stop any playing audio on unmount
+    React.useEffect(() => {
+        return () => {
+            if (currentAudioRef.current) {
+                currentAudioRef.current.pause();
+                currentAudioRef.current = null;
+            }
+        };
+    }, []);
+
     // Sigil Auto-Speak Trigger
     const lastPlayedIdRef = React.useRef<string | null>(null);
 
@@ -68,26 +82,39 @@ export function ChatInterface({ onNavigate, initialPrompt }: ChatInterfaceProps)
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && lastMessage.role === 'model' && (lastMessage.audioUrl || lastMessage.audioBase64) && !lastMessage.isHistory) {
             
-            // Prevent playing the same message if component remounts
             if (lastPlayedIdRef.current === lastMessage.id) return;
             lastPlayedIdRef.current = lastMessage.id || 'unknown';
 
             const playAudio = () => {
                 const preference = localStorage.getItem('naos_sigil_voice_enabled');
-                const isVoiceEnabled = preference === 'true'; // Default FALSE to match modal
+                const isVoiceEnabled = preference === 'true';
                 
                 if (isVoiceEnabled) {
+                    // POINT 6 P1: Interrupt previous audio before starting new
+                    if (currentAudioRef.current) {
+                        currentAudioRef.current.pause();
+                        currentAudioRef.current = null;
+                    }
+
                     const audio = lastMessage.audioBase64 
                         ? new Audio(`data:audio/mpeg;base64,${lastMessage.audioBase64}`)
                         : new Audio(`${API_BASE_URL}${lastMessage.audioUrl}`);
                     
+                    currentAudioRef.current = audio;
+                    setBlockedAudio(null);
+
                     audio.play().catch(err => {
-                        console.warn("Audio autoplay blocked or failed:", err);
+                        // POINT 6 P1: Mobile autoplay blocked — show manual tap control instead of silent fail
+                        console.warn("Audio autoplay blocked:", err);
+                        setBlockedAudio(audio);
                     });
+
+                    audio.onended = () => {
+                        if (currentAudioRef.current === audio) currentAudioRef.current = null;
+                    };
                 }
             };
 
-            // Small delay to ensure UI transition finishes
             const t = setTimeout(playAudio, 300);
             return () => clearTimeout(t);
         }
@@ -139,6 +166,22 @@ export function ChatInterface({ onNavigate, initialPrompt }: ChatInterfaceProps)
                     className="fixed inset-0 pointer-events-none blur-[120px] z-0"
                 />
             </AnimatePresence>
+
+            {/* POINT 6 P1: Mobile autoplay blocked — Tap to hear control */}
+            {blockedAudio && (
+                <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <button
+                        onClick={() => {
+                            blockedAudio.play().catch(() => {});
+                            setBlockedAudio(null);
+                        }}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/80 border border-fuchsia-500/40 text-fuchsia-300 text-[11px] font-bold uppercase tracking-widest backdrop-blur-md shadow-lg hover:border-fuchsia-400 transition-all"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
+                        {language === 'en' ? 'Hear Sigil' : 'Escuchar a Sigil'}
+                    </button>
+                </div>
+            )}
 
             {/* Messages Area */}
             <div className="flex-1 z-20 overflow-y-auto px-4 md:px-12 py-6 space-y-12 scrollbar-hide pb-48">

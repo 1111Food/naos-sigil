@@ -24,6 +24,8 @@ interface TarotRequest {
     cards: TarotCard[];
     mode?: 'DIRECT' | 'INTERPRETATIVE';
     forceReading?: boolean;
+    bypassCoherence?: boolean;
+    voice_enabled?: boolean;
 }
 
 export async function tarotRoutes(app: FastifyInstance) {
@@ -57,7 +59,7 @@ export async function tarotRoutes(app: FastifyInstance) {
     });
 
     async function handleAnalyze(request: any, reply: any) {
-        const { question, engine, spreadType, cards, mode, forceReading, bypassCoherence } = request.body;
+        const { question, engine, spreadType, cards, mode, forceReading, bypassCoherence, voice_enabled } = request.body;
         const userId = (request as any).user_id;
 
         // 🛡️ UsageGuard Limit Check
@@ -164,17 +166,27 @@ export async function tarotRoutes(app: FastifyInstance) {
             );
             console.log("Gemini response received.");
 
-            // Generate TTS Audio Buffer for the response
-            const tts = new TTSService();
-            // @ts-ignore - userGeo is injected by hook
-            const region = (request as any).userGeo?.region || 'global';
-            const { hash, buffer } = await tts.generateVoice(userId, response, region);
+            // POINT 6 — Voice Gate: only generate TTS if client explicitly requested it
+            let audioUrl: string | undefined = undefined;
+            let audioBase64: string | undefined = undefined;
+
+            if (voice_enabled === true) {
+                try {
+                    const tts = new TTSService();
+                    const region = (request as any).userGeo?.region || 'global';
+                    const { hash, buffer } = await tts.generateVoice(userId, response, region);
+                    audioUrl = buffer ? `/api/sigil/audio/${hash}` : undefined;
+                    audioBase64 = buffer ? buffer.toString('base64') : undefined;
+                } catch (ttsError: any) {
+                    console.warn('[TTS] Tarot voice generation failed, text preserved:', ttsError.message);
+                }
+            }
 
             await UsageGuardService.incrementUsage(userId, 'tarot');
             return {
                 interpretation: response,
-                audioUrl: buffer ? `/api/sigil/audio/${hash}` : undefined,
-                audioBase64: buffer ? buffer.toString('base64') : undefined
+                audioUrl,
+                audioBase64
             };
 
         } catch (error: any) {

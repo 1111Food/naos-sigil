@@ -91,7 +91,9 @@ export function useSigil(userName?: string, energyContext?: any) {
                         oracleState,
                         energyContext,
                         role,
-                        language
+                        language,
+                        // POINT 6: Tell backend to generate TTS only when user wants voice
+                        voice_enabled: localStorage.getItem('naos_sigil_voice_enabled') === 'true'
                     })
                 });
 

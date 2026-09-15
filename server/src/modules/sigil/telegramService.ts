@@ -140,12 +140,18 @@ export const initTelegramBot = () => {
                 const isVoiceEnabled = (profile.profile_data as any)?.telegram_voice_enabled === true;
                 
                 if (isVoiceEnabled) {
-                    const tts = new TTSService();
-                    const { buffer } = await tts.generateVoice(aiResponse, profile.language === 'en' ? 'global' : 'latam');
-                    if (buffer) {
-                         const captionText = aiResponse.substring(0, 100) + '...';
-                         await ctx.replyWithVoice({ source: buffer }, { caption: captionText });
-                         return;
+                    try {
+                        const tts = new TTSService();
+                        // POINT 6 FIX: Corrected parameter order (userId, text, region)
+                        const region = profile.language === 'en' ? 'global' : 'latam';
+                        const { buffer } = await tts.generateVoice(profile.id, aiResponse, region);
+                        if (buffer) {
+                            const captionText = aiResponse.substring(0, 100) + '...';
+                            await ctx.replyWithVoice({ source: buffer }, { caption: captionText });
+                            return;
+                        }
+                    } catch (ttsErr: any) {
+                        console.warn('[TELEGRAM TTS] Voice generation failed, falling back to text:', ttsErr.message);
                     }
                 }
 
