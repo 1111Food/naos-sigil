@@ -71,11 +71,16 @@ export class ProtocolService {
                 const isMissingFunction = rpcError.code === '42883' || 
                                           rpcError.code === 'PGRST202' || 
                                           (rpcError.message && rpcError.message.toLowerCase().includes('could not find the function'));
-                
                 if (isMissingFunction) {
                     console.log(`⚠️ ProtocolService: RPC 'seal_protocol_day' not found. Falling back to non-atomic execution.`);
-                    updatedProtocol = await this.sealDayLegacyFallback(client, userId, protocolId, dayNumber, notes, protocol, is21DayMilestone, isFinalCompletion);
+                    try {
+                        updatedProtocol = await this.sealDayLegacyFallback(client, userId, protocolId, dayNumber, notes, protocol, is21DayMilestone, isFinalCompletion);
+                    } catch (fallbackErr) {
+                        console.error("🔥 FATAL ERROR IN FALLBACK:", fallbackErr);
+                        throw fallbackErr;
+                    }
                 } else {
+                    console.error("🔥 FATAL ERROR IN RPC:", rpcError);
                     throw rpcError;
                 }
             } else {
@@ -122,8 +127,10 @@ export class ProtocolService {
      * Fallback for when the DB migration is not yet applied
      */
     static async sealDayLegacyFallback(client: any, userId: string, protocolId: string, dayNumber: number, notes: string | undefined, protocol: any, is21DayMilestone: boolean, isFinalCompletion: boolean) {
+        const { supabase: serviceClient } = require('../../lib/supabase');
+        
         // 1. Registrar el log diario sin local_date (schema antiguo)
-        const { error: logError } = await client
+        const { error: logError } = await serviceClient
             .from('protocol_daily_logs')
             .upsert({
                 protocol_id: protocolId,
@@ -141,12 +148,12 @@ export class ProtocolService {
             updates = { status: 'awaiting_evolution', updated_at: new Date().toISOString() };
         } else if (isFinalCompletion) {
             updates = { status: 'completed', end_date: new Date().toISOString(), updated_at: new Date().toISOString() };
-            await client.from('protocols').update({ status: 'completed' }).eq('user_id', userId).eq('status', 'active');
+            await serviceClient.from('protocols').update({ status: 'completed' }).eq('user_id', userId).eq('status', 'active');
         } else {
             updates = { current_day: dayNumber + 1, updated_at: new Date().toISOString() };
         }
 
-        const { data: updated, error: updateError } = await client
+        const { data: updated, error: updateError } = await serviceClient
             .from('user_protocols')
             .update(updates)
             .eq('id', protocolId)
