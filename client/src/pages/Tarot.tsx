@@ -158,7 +158,8 @@ export const Tarot: React.FC<TarotProps> = ({ onBack, initialIntent }) => {
                     cards: finalCards,
                     mode: 'INTERPRETATIVE',
                     bypassCoherence: bypassedCoherence,
-                    language: t('language_code' as any) || 'es'
+                    language: t('language_code' as any) || 'es',
+                    voice_enabled: localStorage.getItem('naos_sigil_voice_enabled') === 'true'
                 })
             });
 

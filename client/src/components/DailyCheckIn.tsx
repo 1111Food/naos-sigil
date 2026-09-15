@@ -17,6 +17,7 @@ interface DailyCheckInProps {
     purpose?: string;
     isCompletedToday?: boolean;
     onSuccess?: () => void;
+    onReflectWithSigil?: (day: number) => void;
 }
 
 const PILLARS_DATA = [
@@ -32,7 +33,8 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
     title,
     purpose,
     isCompletedToday = false,
-    onSuccess
+    onSuccess,
+    onReflectWithSigil
 }) => {
     const { t } = useTranslation();
     
@@ -171,7 +173,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                             {t('protocol_day_completed', { day: currentDay })}. {t('protocol_rest_architect') || 'Descansa, Arquitecto.'}
                         </div>
                         <button
-                            onClick={() => window.location.href = `/review/sigil?protocol=true&day=${currentDay}`}
+                            onClick={() => {
+                                if (onReflectWithSigil) onReflectWithSigil(currentDay);
+                                else window.location.href = `/review/sigil?protocol=true&day=${currentDay}`;
+                            }}
                             className="text-[10px] uppercase tracking-[0.2em] px-6 py-3 min-h-[44px] border border-fuchsia-500/30 text-fuchsia-400 bg-fuchsia-500/10 rounded-full hover:bg-fuchsia-500/20 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] transition-all duration-300 flex items-center gap-3 font-bold focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50"
                         >
                             <Brain size={14} />

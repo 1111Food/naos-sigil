@@ -775,16 +775,4 @@ export async function apiRoutes(app: FastifyInstance) {
             return reply.status(500).send({ error: error.message });
         }
     });
-
-    app.post<{ Body: { active_sub_profile_id?: string } }>('/api/user/profiles/switch', { preValidation: [validateUser] }, async (req, reply) => {
-         const userId = (req as any).user_id;
-         try {
-             return await UserService.switchProfile(userId, req.body.active_sub_profile_id);
-         } catch (e: any) {
-             return reply.status(400).send({ error: e.message });
-         }
-    });
 }
-
-
-

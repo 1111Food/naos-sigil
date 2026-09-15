@@ -31,9 +31,10 @@ const getProtocolPhase = (day: number) => {
 
 interface Protocol21Props {
     onBack: () => void;
+    onNavigate?: (view: any, payload?: any) => void;
 }
 
-export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
+export const Protocol21: React.FC<Protocol21Props> = ({ onBack, onNavigate }) => {
     const { t, language } = useTranslation();
     const { activeProtocol, dailyLogs, loading, completedCount, resetProtocol, cancelProtocol, startProtocol, evolveProtocol } = useProtocol21();
     const { profile } = useProfile();
@@ -497,6 +498,11 @@ export const Protocol21: React.FC<Protocol21Props> = ({ onBack }) => {
                         playMysticChime();
                         setShowDailySuccess(true);
                         setTimeout(() => setShowDailySuccess(false), 3000);
+                    }}
+                    onReflectWithSigil={(day) => {
+                        if (onNavigate) {
+                            onNavigate('CHAT', { pendingSigilPrompt: `[PROTOCOL_REFLECTION]: Vengo de sellar el día ${day} de mi Protocolo 21/90. Ayúdame a integrar mis reflexiones.` });
+                        }
                     }}
                 />
             </main>

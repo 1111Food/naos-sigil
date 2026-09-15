@@ -444,7 +444,7 @@ function App() {
         case 'MISSION_YEAR':
           return <PreLaunchGate><MissionYear onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
         case 'PROTOCOL21':
-          return <PreLaunchGate><Protocol21 onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+          return <PreLaunchGate><Protocol21 onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} /></PreLaunchGate>;
         case 'ELEMENTAL_LAB':
           return <PreLaunchGate><ElementalLaboratoryView onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} /></PreLaunchGate>;
         case 'EVOLUTION':
