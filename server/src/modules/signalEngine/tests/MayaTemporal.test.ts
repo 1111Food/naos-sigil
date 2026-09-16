@@ -88,12 +88,11 @@ describe('Maya Temporal Engine Part 4', () => {
         expect(s1.id).toBe(s2.id); 
     });
 
-    it('LEGACY_MAYA_PARITY: Legacy output remains untouched despite off-by-one bug', () => {
-        // Legacy output for 2012-12-21 is 3 Kawoq
+    it('LEGACY_MAYA_PARITY: Legacy facade now delegates to canonical math (Ajpu 4)', () => {
+        // Legacy output for 2012-12-21 is now correctly 4 Ajpu
         const legacy = LegacyCalculator.calculate('2012-12-21');
-        expect(legacy.kicheName).toBe('Kawoq');
-        expect(legacy.tone).toBe(3);
-        // By NOT touching LegacyCalculator, we preserved exact legacy runtime behavior.
+        expect(legacy.kicheName).toBe('Ajpu');
+        expect(legacy.tone).toBe(4);
     });
 
     it('RELATION_FEATURE_MODEL_CREATED & SELF_RELATION_FIXTURE', () => {

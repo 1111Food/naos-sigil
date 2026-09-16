@@ -257,27 +257,19 @@ export const TONES = {
     ]
 };
 
+import { MayaMathV1 } from '../modules/maya/MayaMathV1';
+
 export class MayanCalculator {
     static calculate(dateString: string, lang: 'es' | 'en' = 'es') {
-        const [year, month, day] = dateString.split('-').map(Number);
-        let y = year;
-        let m = month;
-
-        if (m < 3) {
-            y -= 1;
-            m += 12;
-        }
-
-        const a = Math.floor(y / 100);
-        const b = 2 - a + Math.floor(a / 4);
-
-        const jd = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524.5;
-        const tzolkinDays = Math.floor(jd - 584283);
-
-        const nawalIdx = ((tzolkinDays + 9) % 20 + 20) % 20;
-        const tone = ((tzolkinDays + 3) % 13 + 13) % 13 + 1;
-
-        const nawalData = NAWALES[nawalIdx];
+        
+        // Use canonical math authority for all runtime consumers
+        const mathResult = MayaMathV1.calculate({ localDate: dateString });
+        const tone = mathResult.tone;
+        
+        // Map canonical key to legacy dictionary spelling if needed (I'x -> Ix)
+        const legacyKey = mathResult.canonicalNawalKey === "I'x" ? "Ix" : mathResult.canonicalNawalKey;
+        
+        const nawalData = NAWALES.find(n => n.name === legacyKey) || NAWALES[0];
         const toneData = TONES[lang][tone - 1];
 
         const meaning = nawalData.meaning[lang] || nawalData.meaning.es;
