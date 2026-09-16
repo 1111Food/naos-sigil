@@ -2,6 +2,7 @@
 import { MayaMathV1 } from '../../maya/MayaMathV1';
 import { MayaAdapter } from '../adapters/MayaAdapter';
 import { MayanCalculator as LegacyCalculator } from '../../../utils/mayaCalculator';
+import { MayaRelationModel } from '../models/MayaRelationFeatures';
 
 describe('Maya Temporal Engine Part 4', () => {
 
@@ -95,19 +96,36 @@ describe('Maya Temporal Engine Part 4', () => {
         // By NOT touching LegacyCalculator, we preserved exact legacy runtime behavior.
     });
 
-    it('RELATION_FEATURE_MODEL_CREATED: Forward modular arithmetic correctly computed', () => {
-        const natal = MayaMathV1.calculate({ localDate: '1990-05-15' }); // e.g. 5 B'atz
-        const daily = MayaMathV1.calculate({ localDate: '2026-09-15' }); // e.g. 9 Ajpu
+    it('RELATION_FEATURE_MODEL_CREATED & SELF_RELATION_FIXTURE', () => {
+        const bDate = '1990-05-15';
+        const dDate = '2026-09-15';
         
-        const forwardNawalOffset = (daily.nawalIndex - natal.nawalIndex + 20) % 20;
-        const forwardToneOffset = (daily.tone - natal.tone + 13) % 13;
+        const natal1 = MayaMathV1.calculate({ localDate: bDate });
+        const natal2 = MayaMathV1.calculate({ localDate: bDate });
+        expect(natal1).toEqual(natal2); // NATAL_SIGNAL_REPEAT_EQUAL
         
-        // Ensure they are bounded properly
-        expect(forwardNawalOffset).toBeGreaterThanOrEqual(0);
-        expect(forwardNawalOffset).toBeLessThan(20);
+        const daily1 = MayaMathV1.calculate({ localDate: dDate });
+        const daily2 = MayaMathV1.calculate({ localDate: dDate });
+        expect(daily1).toEqual(daily2); // DAILY_SIGNAL_REPEAT_EQUAL
         
-        expect(forwardToneOffset).toBeGreaterThanOrEqual(0);
-        expect(forwardToneOffset).toBeLessThan(13);
+        const rel1 = MayaRelationModel.computeFeatures(natal1, daily1);
+        const rel2 = MayaRelationModel.computeFeatures(natal2, daily2);
+        expect(rel1).toEqual(rel2); // RELATION_FEATURES_REPEAT_EQUAL
+        
+        // Ensure bounds
+        expect(rel1.forwardNawalOffset).toBeGreaterThanOrEqual(0);
+        expect(rel1.forwardNawalOffset).toBeLessThan(20);
+        expect(rel1.forwardToneOffset).toBeGreaterThanOrEqual(0);
+        expect(rel1.forwardToneOffset).toBeLessThan(13);
+        
+        // SELF_RELATION_FIXTURE (D = B)
+        const selfRel = MayaRelationModel.computeFeatures(natal1, natal1);
+        expect(selfRel.sameNawal).toBe(true);
+        expect(selfRel.sameTone).toBe(true);
+        expect(selfRel.exactPairRecurrence).toBe(true);
+        expect(selfRel.forwardNawalOffset).toBe(0);
+        expect(selfRel.forwardToneOffset).toBe(0);
+        expect(selfRel.forwardCycleOffset).toBe(0);
     });
 
 });
