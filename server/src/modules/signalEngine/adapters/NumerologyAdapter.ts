@@ -50,7 +50,16 @@ export class NumerologyAdapter {
         inputs: NumerologyTemporalInputs, 
         calculatedAt: string
     ): NaosSignal {
-        const hashInput = `NUMEROLOGY|TEMPORAL|${nature}|${period}|${value}|${inputs.localDate}`;
+        let periodAnchor = inputs.localDate;
+        const [yyyy, mm, dd] = inputs.localDate.split('-');
+        
+        if (scope === 'ANNUAL') {
+            periodAnchor = yyyy;
+        } else if (scope === 'MONTHLY') {
+            periodAnchor = `${yyyy}-${mm}`;
+        }
+
+        const hashInput = `NUMEROLOGY|TEMPORAL|${nature}|${period}|${value}|${periodAnchor}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
 
         const isPersonal = nature === 'PERSONAL';
