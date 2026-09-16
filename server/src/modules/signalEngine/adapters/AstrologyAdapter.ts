@@ -3,6 +3,7 @@ import { AspectResult } from '../../astrology/TransitEngine';
 import * as crypto from 'crypto';
 
 export type PlanetClass = 'PERSONAL' | 'OUTER';
+export type CelestialPointType = 'PLANET' | 'LUMINARY' | 'ANGLE';
 
 export class AstrologyAdapter {
     static adaptAspects(aspects: AspectResult[], localDate: string, calculatedAt: string): NaosSignal[] {
@@ -19,6 +20,9 @@ export class AstrologyAdapter {
 
             const transitClass = this.getPlanetClass(aspect.transitPlanet);
             const targetClass = this.getPlanetClass(aspect.natalTarget);
+
+            const transitType = this.getPointType(aspect.transitPlanet);
+            const targetType = this.getPointType(aspect.natalTarget);
 
             const signal: NaosSignal = {
                 id: `ASTROLOGY.TRANSIT.${idHash}`,
@@ -46,6 +50,8 @@ export class AstrologyAdapter {
                     isPriority: aspect.isPriority,
                     transitPlanetClass: transitClass,
                     natalTargetClass: targetClass,
+                    transitPointType: transitType,
+                    natalTargetPointType: targetType,
                     interpretationStatus: direction === 'NEUTRAL' && !['Conjunction', 'Trine', 'Sextile', 'Square', 'Opposition'].includes(aspect.aspectType) ? 'UNMAPPED' : 'MAPPED'
                 }
             };
@@ -76,5 +82,11 @@ export class AstrologyAdapter {
             return 'PERSONAL';
         }
         return 'OUTER';
+    }
+
+    private static getPointType(name: string): CelestialPointType {
+        if (['Sun', 'Moon'].includes(name)) return 'LUMINARY';
+        if (['Ascendant', 'Midheaven'].includes(name)) return 'ANGLE';
+        return 'PLANET';
     }
 }
