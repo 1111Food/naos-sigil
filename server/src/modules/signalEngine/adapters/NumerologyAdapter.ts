@@ -86,7 +86,7 @@ export class NumerologyAdapter {
             specificity: null,
             provenance: {
                 engine: 'NumerologyMathV1',
-                methodologyId: 'NUMEROLOGY_NAOS_MASTERS_11_22_33_V1',
+                methodologyId: 'NUMEROLOGY_TEMPORAL_V1',
                 calculatedAt,
                 inputs: provInputs
             },
