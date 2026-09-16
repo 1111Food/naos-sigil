@@ -1,3 +1,5 @@
+import { ChineseMathV1 } from '../modules/chinese/ChineseMathV1';
+
 export interface ChineseAstrologyResult {
     animal: string;
     element: string;
@@ -6,15 +8,6 @@ export interface ChineseAstrologyResult {
 }
 
 export class ChineseAstrology {
-    private static readonly ANIMALS = [
-        "Rata", "Buey", "Tigre", "Conejo", "Dragón", "Serpiente",
-        "Caballo", "Cabra", "Mono", "Gallo", "Perro", "Cerdo"
-    ];
-
-    private static readonly ELEMENTS = [
-        "Metal", "Agua", "Madera", "Fuego", "Tierra"
-    ];
-
     // Brief interpretations based on Animal + Element
     private static readonly INTERPRETATIONS: Record<string, string> = {
         "Madera": "Energía de crecimiento, expansión y vitalidad. Buscas la renovación constante y tienes una visión humanista del mundo.",
@@ -25,42 +18,18 @@ export class ChineseAstrology {
     };
 
     /**
-     * Calculates the Chinese Zodiac sign based on birth date.
+     * Calculates the Chinese Zodiac sign based on birth date (Compatibility Facade)
      * Note: Traditional Chinese New Year starts between Jan 21 and Feb 20.
-     * For simplified NAOS logic, we use a fixed approximation (Feb 4 - Lichun) to avoid external APIs.
-     */
-    /**
-     * Calculates the Chinese Zodiac sign based on birth date (Hard Fix V3.0)
+     * For simplified NAOS logic, we use a fixed approximation (Feb 4 - Lichun).
      */
     static calculate(birthDateISO: string): ChineseAstrologyResult {
-        const date = new Date(birthDateISO);
-        let year = date.getUTCFullYear();
-        const month = date.getUTCMonth() + 1;
-        const day = date.getUTCDate();
-
-        // Lichun adjustment (Feb 4)
-        if (month < 2 || (month === 2 && day < 4)) {
-            year--;
-        }
-
-        const animalIdx = (year - 1900) % 12;
-        const animal = this.ANIMALS[animalIdx];
-
-        // FIXED ELEMENT LOGIC (User Request)
-        // 0-1: Metal, 2-3: Agua, 4-5: Madera, 6-7: Fuego, 8-9: Tierra
-        const lastDigit = year % 10;
-        let element = 'Tierra'; // Default
-
-        if (lastDigit === 0 || lastDigit === 1) element = 'Metal';
-        else if (lastDigit === 2 || lastDigit === 3) element = 'Agua';
-        else if (lastDigit === 4 || lastDigit === 5) element = 'Madera';
-        else if (lastDigit === 6 || lastDigit === 7) element = 'Fuego';
+        const result = ChineseMathV1.calculate(birthDateISO);
 
         return {
-            animal,
-            element,
-            birthYear: year,
-            description: `Bajo el signo del ${animal} de ${element}. ${this.INTERPRETATIONS[element]}`
+            animal: result.animal,
+            element: result.element,
+            birthYear: result.effectiveChineseCycleYear,
+            description: `Bajo el signo del ${result.animal} de ${result.element}. ${this.INTERPRETATIONS[result.element]}`
         };
     }
 }

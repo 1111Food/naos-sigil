@@ -34,8 +34,9 @@ export const calculateChineseZodiac = (birthDateISO: string, language: string = 
 
     // Lichun (Start of Solar Spring) usually falls on Feb 4.
     // If birth is before Feb 4, use previous Chinese year.
+    let effectiveChineseCycleYear = year;
     if (month < 2 || (month === 2 && day < 4)) {
-        year--;
+        effectiveChineseCycleYear = year - 1;
     }
 
     const ANIMALS_ES = [
@@ -51,34 +52,23 @@ export const calculateChineseZodiac = (birthDateISO: string, language: string = 
     const ANIMALS = isEn ? ANIMALS_EN : ANIMALS_ES;
 
     // Animal: Cycle starts from 1900 (Metal Rat)
-    const animalIdx = (year - 1900) % 12;
+    // Safely handle negative diffs (Objective correctness bug fix)
+    const diff = effectiveChineseCycleYear - 1900;
+    const animalIdx = ((diff % 12) + 12) % 12;
     const animal = ANIMALS[animalIdx];
 
-    // Element: Use the LAST DIGIT RULE (Heavenly Stems)
-    const lastDigit = year.toString().slice(-1);
-    let element: string;
+    // Element calculation
+    const elementIdx = ((effectiveChineseCycleYear % 10) + 10) % 10;
+    const elementIndexMapped = Math.floor(elementIdx / 2);
 
-    const ELEMENTS_ES: Record<string, string> = {
-        '0': 'Metal', '1': 'Metal',
-        '2': 'Agua', '3': 'Agua',
-        '4': 'Madera', '5': 'Madera',
-        '6': 'Fuego', '7': 'Fuego',
-        '8': 'Tierra', '9': 'Tierra'
-    };
+    const ELEMENTS_ES = ["Metal", "Agua", "Madera", "Fuego", "Tierra"];
+    const ELEMENTS_EN = ["Metal", "Water", "Wood", "Fire", "Earth"];
 
-    const ELEMENTS_EN: Record<string, string> = {
-        '0': 'Metal', '1': 'Metal',
-        '2': 'Water', '3': 'Water',
-        '4': 'Wood', '5': 'Wood',
-        '6': 'Fire', '7': 'Fire',
-        '8': 'Earth', '9': 'Earth'
-    };
-
-    element = isEn ? ELEMENTS_EN[lastDigit] : ELEMENTS_ES[lastDigit];
+    const element = isEn ? ELEMENTS_EN[elementIndexMapped] : ELEMENTS_ES[elementIndexMapped];
 
     return {
         animal,
         element,
-        birthYear: year
+        birthYear: effectiveChineseCycleYear
     };
 };

@@ -67,8 +67,10 @@ describe('Signal Engine Adapters Determinism', () => {
         const signalAnnual1 = ChineseAdapter.adaptAnnual(chineseData, localDate, calculatedAt);
         const signalAnnual2 = ChineseAdapter.adaptAnnual(chineseData, localDate, calculatedAt);
         expect(signalAnnual1).toEqual(signalAnnual2);
-        expect(signalAnnual1.provenance.methodologyId).toBe('CHINESE_LI_CHUN_V1');
+        expect(signalAnnual1.provenance.methodologyId).toBe('CHINESE_LI_CHUN_FIXED_FEB4_V1');
         expect(signalAnnual1.temporalScope).toBe('ANNUAL');
+        expect(signalAnnual1.payload.periodValidity.validFrom).toBe('2026-02-04');
+        expect(signalAnnual1.payload.periodValidity.validUntil).toBe('2027-02-03');
 
         const signalNatal1 = ChineseAdapter.adaptNatal(chineseData, calculatedAt);
         const signalNatal2 = ChineseAdapter.adaptNatal(chineseData, calculatedAt);
