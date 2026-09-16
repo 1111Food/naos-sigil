@@ -43,3 +43,5 @@ server/src/isolation_test.ts
 
 # Vercel
 .vercel
+
+migration_rollback.json

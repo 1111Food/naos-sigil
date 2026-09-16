@@ -72,11 +72,20 @@ async function run() {
             if (p.profile_data && p.profile_data.naos_identity_code) {
                 const existingArchetype = p.profile_data.naos_identity_code.arquetipo?.nombre;
                 
-                const mockProfile = { ...p.profile_data, mayan: { color: newColor } };
                 try {
-                    const archNew = ArchetypeEngine.calculate(mockProfile, p.language || 'es');
-                    if (existingArchetype !== archNew.nombre) {
-                        affectedProfiles.push({ profile: p, newArchetype: archNew.nombre });
+                    const mockProfile = { ...p.profile_data, mayan: { color: newColor } };
+                    // We must use consolidateBible to get the exact matching backend archetype
+                    // Otherwise differences in astro/num engines will falsely flag as Maya affected
+                    const userProfileForCompiler = {
+                        ...p.profile_data,
+                        birthDate: p.birth_date,
+                        name: p.profile_data.name || 'Viajero'
+                    };
+                    
+                    const { archetype: trueCanonicalArchetype } = await (NaosCompilerService as any).consolidateBible(userProfileForCompiler, p.language || 'es');
+                    
+                    if (existingArchetype !== trueCanonicalArchetype.nombre) {
+                        affectedProfiles.push({ profile: p, newArchetype: trueCanonicalArchetype.nombre });
                     }
                 } catch (e) {
                 }
