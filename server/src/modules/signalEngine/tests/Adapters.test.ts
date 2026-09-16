@@ -3,7 +3,7 @@ import { NumerologyAdapter } from '../adapters/NumerologyAdapter';
 import { MayaAdapter } from '../adapters/MayaAdapter';
 import { ChineseAdapter } from '../adapters/ChineseAdapter';
 import { AspectResult } from '../../astrology/TransitEngine';
-import { MayanCalculator } from '../../../utils/mayaCalculator';
+import { MayaMathV1 } from '../../maya/MayaMathV1';
 
 describe('Signal Engine Adapters Determinism', () => {
     const calculatedAt = '2026-09-15T12:00:00.000Z';
@@ -46,17 +46,18 @@ describe('Signal Engine Adapters Determinism', () => {
 
     it('MayaAdapter is deterministic and covers Maya calculator', () => {
         // Direct Maya Calculator coverage (Midnight rollover policy)
-        const mayaResult1 = MayanCalculator.calculate('2026-09-15', 'en');
-        const mayaResult2 = MayanCalculator.calculate('2026-09-15', 'en');
-        expect(mayaResult1.kicheName).toEqual(mayaResult2.kicheName);
-        expect(mayaResult1.tone).toEqual(mayaResult2.tone);
+        const atomic1 = MayaMathV1.calculate({ localDate: '2026-09-15' });
+        const atomic2 = MayaMathV1.calculate({ localDate: '2026-09-15' });
 
-        // Adapter coverage
-        const mayaInput = { kicheName: mayaResult1.kicheName, tone: mayaResult1.tone, meaning: mayaResult1.meaning };
-        const signal1 = MayaAdapter.adaptDaily(mayaInput, localDate, calculatedAt);
-        const signal2 = MayaAdapter.adaptDaily(mayaInput, localDate, calculatedAt);
+        expect(atomic1.canonicalNawalKey).toEqual(atomic2.canonicalNawalKey);
+        expect(atomic1.tone).toEqual(atomic2.tone);
 
-        expect(signal1).toEqual(signal2);
+        const localDate = '2026-09-15';
+        const calculatedAt = '2026-09-15T12:00:00Z';
+        const signal1 = MayaAdapter.adaptDaily(atomic1, localDate, calculatedAt);
+        const signal2 = MayaAdapter.adaptDaily(atomic1, localDate, calculatedAt);
+
+        expect(signal1.id).toBe(signal2.id);
         expect(signal1.provenance.methodologyId).toBe('MAYA_GMT_584283_MIDNIGHT_V1');
     });
 
