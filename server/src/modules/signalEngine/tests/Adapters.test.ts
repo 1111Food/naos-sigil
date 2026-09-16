@@ -30,13 +30,16 @@ describe('Signal Engine Adapters Determinism', () => {
     });
 
     it('NumerologyAdapter is deterministic', () => {
-        const cycles = { personalYear: 7, personalMonth: 9, personalDay: 11 };
-        const signals1 = NumerologyAdapter.adaptDailyCycles(cycles, localDate, calculatedAt);
-        const signals2 = NumerologyAdapter.adaptDailyCycles(cycles, localDate, calculatedAt);
+        const personal = { personalYear: 7, personalMonth: 9, personalDay: 11 };
+        const universal = { universalYear: 1, universalMonth: 2, universalDay: 4 };
+        const inputs = { localDate, birthDay: 15, birthMonth: 5 };
+        
+        const signals1 = NumerologyAdapter.adaptTemporalCycles(personal, universal, inputs, calculatedAt);
+        const signals2 = NumerologyAdapter.adaptTemporalCycles(personal, universal, inputs, calculatedAt);
 
         expect(signals1).toEqual(signals2);
         
-        const daySignal = signals1.find(s => s.temporalScope === 'DAILY');
+        const daySignal = signals1.find(s => s.payload.cycleNature === 'PERSONAL' && s.temporalScope === 'DAILY');
         expect(daySignal?.payload.isMasterNumber).toBe(true);
         expect(daySignal?.payload.value).toBe(11);
     });
