@@ -47,15 +47,21 @@ export class TransitEngine {
             { name: 'Pluto', body: Astronomy.Body.Pluto }
         ];
 
-        // 1. Obliquity of Ecliptic of Date
-        const t = (time.date.getTime() / 1000 - 946728000) / (36525 * 24 * 3600);
-        const eps = 23.4392911 - (46.8150 * t) / 3600 - (0.00059 * t * t) / 3600 + (0.001813 * t * t * t) / 3600;
-        const epsRad = eps * Math.PI / 180.0;
+
 
         return bodies.map(b => {
-            const eq = Astronomy.Equator(b.body, time, observer, true, true);
-            const y_ecl = eq.vec.y * Math.cos(epsRad) + eq.vec.z * Math.sin(epsRad);
-            let lon = Math.atan2(y_ecl, eq.vec.x) * 180 / Math.PI;
+            // CRITICAL ARCHITECTURE DECISION:
+            // Planetary transits are intentionally TRUE GEOCENTRIC.
+            // Using GeoVector(body, time, true) provides pure geocentric coordinates 
+            // with light-travel and aberration corrections (Apparent Geocentric).
+            // Ecliptic() correctly applies precession and nutation to yield 
+            // True Ecliptic of Date (Tropical Zodiac).
+            // Do NOT use Equator() or add an observer, as that introduces topocentric parallax.
+            const geoVec = Astronomy.GeoVector(b.body, time, true);
+            const ecl = Astronomy.Ecliptic(geoVec);
+            
+            // Normalize longitude to [0, 360)
+            let lon = (ecl.elon + 360) % 360;
             lon = (lon + 360) % 360;
             
             const signIndex = Math.floor(lon / 30);
