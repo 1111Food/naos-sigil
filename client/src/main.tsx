@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+﻿import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
@@ -15,13 +15,13 @@ import { DemoProvider } from './contexts/DemoContext';
 
 import ReviewApp from './ReviewApp.tsx';
 
-// --- SERVICE WORKER KILL SWITCH (FORCED UNREGISTRATION) ---
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    for (const registration of registrations) {
-      console.warn("🛡️ NAOS: Unregistering stale Service Worker:", registration);
-      registration.unregister();
-    }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
+      console.log('✨ NAOS Service Worker registered with scope:', registration.scope);
+    }).catch((error) => {
+      console.error('🔥 NAOS Service Worker registration failed:', error);
+    });
   });
 }
 
@@ -64,7 +64,7 @@ if (isReviewModePath) {
         </StrictMode>,
       );
     } else {
-      console.error("⛔ NAOS REVIEW MODE IS DISABLED BY ARCHITECT (KILL SWITCH ACTIVE)");
+      console.error("â›” NAOS REVIEW MODE IS DISABLED BY ARCHITECT (KILL SWITCH ACTIVE)");
       document.body.innerHTML = "<div style='background: black; color: red; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: monospace; text-align: center; padding: 2rem;'><h1>403 FORBIDDEN</h1><p>NAOS Review Mode is currently locked.<br/>Please ask the Architect to disable the Kill Switch.</p></div>";
     }
   });
@@ -94,3 +94,5 @@ if (isReviewModePath) {
     </StrictMode>,
   )
 }
+
+

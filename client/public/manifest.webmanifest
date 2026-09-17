@@ -1,16 +1,18 @@
-{
+﻿{
   "short_name": "NAOS",
-  "name": "NAOS Platform",
+  "name": "NAOS Personal Intelligence",
   "icons": [
     {
       "src": "icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/",
@@ -18,5 +20,5 @@
   "display": "standalone",
   "scope": "/",
   "theme_color": "#000000",
-  "description": "Tu portal místico personal. Astrología, Tarot y Sigilos."
+  "description": "NAOS — Personal Intelligence System."
 }
