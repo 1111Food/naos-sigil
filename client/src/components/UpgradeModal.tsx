@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, ShieldAlert } from 'lucide-react';
 import { PlanSelectionView } from './PlanSelectionView';
@@ -11,28 +11,28 @@ interface UpgradeModalProps {
 
 const FEATURE_CONTENT = {
     sigil: {
-        title: "La integración requiere silencio",
-        body: "NAOS ha detectado que estás listo para trabajar a un nivel más profundo. El oráculo completo tiene memoria y voz continua.",
+        title: "La integraciÃ³n requiere silencio",
+        body: "NAOS ha detectado que estÃ¡s listo para trabajar a un nivel mÃ¡s profundo. El orÃ¡culo completo tiene memoria y voz continua.",
         icon: Sparkles
     },
     synastry: {
         title: "Acceso restringido al Arquitecto",
-        body: "Esta función te permite reconfigurar tu energía y comprender vínculos en su diseño original. Desbloquea la lectura avanzada.",
+        body: "Esta funciÃ³n te permite reconfigurar tu energÃ­a y comprender vÃ­nculos en su diseÃ±o original. Desbloquea la lectura avanzada.",
         icon: ShieldAlert
     },
     protocol: {
-        title: "Este portal aún no está abierto",
-        body: "Los protocolos 21 y 90 requieren calibración avanzada de arquitectura personal. Activa el modo completo para ingresar.",
+        title: "Este portal aÃºn no estÃ¡ abierto",
+        body: "Los protocolos 21 y 90 requieren calibraciÃ³n avanzada de arquitectura personal. Activa el modo completo para ingresar.",
         icon: Sparkles
     },
     evolution: {
-        title: "Tu siguiente nivel está bloqueado",
-        body: "El Laboratorio Elemental completo está disponible para quienes operan desde su diseño expandido. Oxigena tu mente.",
+        title: "Tu siguiente nivel estÃ¡ bloqueado",
+        body: "El Laboratorio Elemental completo estÃ¡ disponible para quienes operan desde su diseÃ±o expandido. Oxigena tu mente.",
         icon: Sparkles
     },
     profile: {
-        title: "Capacidad de geometría alcanzada",
-        body: "Para gestionar múltiples arquitecturas humanas simultáneamente, expande tu acceso al nivel de Arquitecto.",
+        title: "Capacidad de geometrÃ­a alcanzada",
+        body: "Para gestionar mÃºltiples arquitecturas humanas simultÃ¡neamente, expande tu acceso al nivel de Arquitecto.",
         icon: Sparkles
     }
 };
@@ -43,8 +43,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, feature, onC
     const [showPlans, setShowPlans] = useState(false);
 
     const handleSelectPlan = (plan: 'monthly' | 'yearly') => {
-        // 🧪 TODO: Pass to Payment Provider (PayPal)
-        alert(`Plan Seleccionado: Modo Arquitecto [${plan === 'monthly' ? '$11.11' : '$88'}]. Confirmar y activar.`);
+        // ðŸ§ª TODO: Pass to Payment Provider (PayPal)
+        alert(`Plan Seleccionado: Modo Arquitecto [${plan === 'monthly' ? '$11.11' : '$111.11'}]. Confirmar y activar.`);
         onClose();
     };
 
@@ -114,3 +114,5 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, feature, onC
         </AnimatePresence>
     );
 };
+
+

@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { Download, Smartphone, Share, PlusSquare, X, Monitor, ChevronRight } from 'lucide-react';
+import { trackEvent } from '../lib/analytics';
 import { useTranslation } from '../i18n';
 
 export function PWAInstallButton() {
@@ -30,12 +31,14 @@ export function PWAInstallButton() {
         const handleBeforeInstallPrompt = (e: any) => {
             e.preventDefault();
             setDeferredPrompt(e);
+            trackEvent('install_prompt_shown');
         };
 
         // 3. Listen for successful installation
         const handleAppInstalled = () => {
             setIsInstalled(true);
             setDeferredPrompt(null);
+                trackEvent('install_accepted');
             setShowModal(false);
             
         };
@@ -56,10 +59,12 @@ export function PWAInstallButton() {
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
                 setDeferredPrompt(null);
+                trackEvent('install_accepted');
             }
         } else {
             // Show manual instructions
             setShowModal(true);
+            trackEvent('install_cta_opened');
         }
     };
 
@@ -113,7 +118,7 @@ export function PWAInstallButton() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="relative w-full max-w-sm glass border border-white/10 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-300">
                         <button 
-                            onClick={() => setShowModal(false)}
+                            onClick={() => { setShowModal(false); trackEvent('install_dismissed'); }}
                             className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors"
                             aria-label={t.close}
                         >
@@ -164,7 +169,7 @@ export function PWAInstallButton() {
                         
                         <div className="mt-8">
                             <button 
-                                onClick={() => setShowModal(false)}
+                                onClick={() => { setShowModal(false); trackEvent('install_dismissed'); }}
                                 className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-colors border border-white/10"
                             >
                                 {t.close}
@@ -176,4 +181,5 @@ export function PWAInstallButton() {
         </>
     );
 }
+
 
