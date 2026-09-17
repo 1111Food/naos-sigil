@@ -12,7 +12,7 @@ This process is a pure, deterministic, and fully server-side mathematical reduct
 *   **Source Availability:** Ratio of technically healthy systems (`AvailableEligible / Eligible`).
 *   **Directional Convergence:** Alignment among strictly independent sources.
 *   **Tension:** Meaningful contradiction between independent units.
-*   **Ambiguity:** Intra-source uncertainty (e.g. MIXED records). Isolates internal source conflict from global Tension.
+*   **Ambiguity:** Intra-source mixed character (e.g. MIXED records). Isolates internal source ambiguity from global Tension.
 
 ## 3. The Independence Model
 Units are grouped uniquely by `sourceSystem:sourceId` prior to any aggregation.
