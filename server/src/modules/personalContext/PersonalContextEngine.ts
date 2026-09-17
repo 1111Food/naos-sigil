@@ -103,11 +103,16 @@ export class PersonalContextEngine {
       }
     }
 
+    const presentationMetadata = resolvedActive.filter(i => !i.reasoningEligible);
+    const reasoningContext = resolvedActive.filter(i => i.reasoningEligible);
+
     return {
       subject: this.subject,
       generatedAt: nowIso,
       activeContext: resolvedActive,
       historicalContext: historicalItems,
+      presentationMetadata,
+      reasoningContext,
       unresolvedConflicts,
       unavailableSources,
     };

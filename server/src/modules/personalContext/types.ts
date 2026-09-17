@@ -151,8 +151,23 @@ export interface PersonalContextItem {
   /** If true, this item has expired and MUST NOT represent current state */
   expired: boolean;
 
+  /**
+   * True if this item is eligible to enter reasoning engines (Part 7 Domain Projection, etc.).
+   * False for presentation-only metadata (e.g. profile.name).
+   */
+  reasoningEligible: boolean;
+
   /** Full provenance chain */
   provenance: PersonalContextProvenance;
+}
+
+// ---------------------------------------------------------------------------
+// AUTHENTICATED PRINCIPAL — cross-account isolation
+// ---------------------------------------------------------------------------
+
+export interface AuthenticatedPrincipal {
+  /** The verified account ID authenticated via auth layer */
+  readonly accountId: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -181,11 +196,23 @@ export interface PersonalContextSnapshot {
   subject: PersonalContextSubject;
   generatedAt: string;
 
-  /** Items that are current and valid */
+  /** Items that are current and valid (both reasoning and presentation) */
   activeContext: PersonalContextItem[];
 
   /** Items that are expired, superseded, or historical */
   historicalContext: PersonalContextItem[];
+
+  /**
+   * Presentation metadata items (e.g. profile.name).
+   * Excluded from reasoning by construction.
+   */
+  presentationMetadata: PersonalContextItem[];
+
+  /**
+   * Reasoning-eligible active context items.
+   * Guaranteed safe by construction for Part 7 Domain Projection.
+   */
+  reasoningContext: PersonalContextItem[];
 
   /** Conflicts that could not be deterministically resolved */
   unresolvedConflicts: PersonalContextConflict[];

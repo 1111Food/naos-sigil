@@ -68,6 +68,7 @@ function makeItem(overrides: {
   occurredAt?: string | null;
   validUntil?: string | null;
   structuredPayload?: Record<string, unknown>;
+  reasoningEligible?: boolean;
 }): PersonalContextItem {
   return buildContextItem({
     subject: SUBJECT,
@@ -80,6 +81,7 @@ function makeItem(overrides: {
     validFrom: null,
     validUntil: overrides.validUntil ?? null,
     structuredPayload: overrides.structuredPayload,
+    reasoningEligible: overrides.reasoningEligible,
     provenance: {
       sourceType: 'SYSTEM',
       moduleName: 'TestHelper',
@@ -1047,5 +1049,150 @@ describe('Phase 6.2 — PersonalContextAssembler', () => {
     const ids = snapshot.activeContext.map(i => i.id);
     const uniqueIds = new Set(ids);
     expect(ids.length).toBe(uniqueIds.size);
+  });
+
+  // ---------------------------------------------------------------------------
+  // FINAL SEALING GATE TESTS
+  // ---------------------------------------------------------------------------
+
+  it('CROSS-ACCOUNT ISOLATION: caller cannot assemble context for another account', async () => {
+    const principal = { accountId: 'authenticated-user-alice' };
+    const victimSubject = { accountId: 'victim-user-bob', subjectClass: 'ACCOUNT_OWNER' as const };
+
+    // Attacker attempts to assemble context for Bob while authenticated as Alice
+    await expect(
+      PersonalContextAssembler.assemble(victimSubject, { principal })
+    ).rejects.toThrow('unauthorized cross-account access attempt');
+
+    // Matching principal and subject succeeds
+    const aliceSubject = { accountId: 'authenticated-user-alice', subjectClass: 'ACCOUNT_OWNER' as const };
+    const readers = {
+      readProfile: async (id: string) => ({ name: 'Alice', birthDate: '1990-01-01' }),
+      readProtocol: async () => null,
+      readCoherence: async () => null,
+      readMemory: async () => ({ available: false as const, reason: 'unmigrated' }),
+    };
+    const snapshot = await PersonalContextAssembler.assemble(aliceSubject, { principal, readers });
+    expect(snapshot.subject.accountId).toBe('authenticated-user-alice');
+  });
+
+  it('PRESENTATION METADATA STRUCTURAL SAFETY: profile.name is excluded from reasoningContext by construction', async () => {
+    const readers = {
+      readProfile: async () => ({ name: 'Aria', birthDate: '1995-04-12', birthCity: 'Berlin' }),
+      readProtocol: async () => ({
+        protocolId: 'proto-safe',
+        status: 'active' as const,
+        currentDay: 7,
+        targetDays: 21,
+      }),
+      readCoherence: async () => ({ global_coherence: 80, current_streak: 5 }),
+      readMemory: async () => ({ available: false as const, reason: 'none' }),
+    };
+
+    const snapshot = await PersonalContextAssembler.assemble(SUBJECT, { readers });
+
+    // 1. activeContext contains all items
+    const allKeys = snapshot.activeContext.map(i => i.contextKey);
+    expect(allKeys).toContain('profile.name');
+    expect(allKeys).toContain('profile.birthDate');
+    expect(allKeys).toContain('protocol.status');
+    expect(allKeys).toContain('coherence.level');
+
+    // 2. profile.name is structurally marked reasoningEligible: false
+    const nameItem = snapshot.activeContext.find(i => i.contextKey === 'profile.name');
+    expect(nameItem).toBeDefined();
+    expect(nameItem?.reasoningEligible).toBe(false);
+
+    // 3. All reasoning items are reasoningEligible: true
+    const birthItem = snapshot.activeContext.find(i => i.contextKey === 'profile.birthDate');
+    const protoItem = snapshot.activeContext.find(i => i.contextKey === 'protocol.status');
+    const cohItem = snapshot.activeContext.find(i => i.contextKey === 'coherence.level');
+    expect(birthItem?.reasoningEligible).toBe(true);
+    expect(protoItem?.reasoningEligible).toBe(true);
+    expect(cohItem?.reasoningEligible).toBe(true);
+
+    // 4. presentationMetadata contains profile.name
+    const presKeys = snapshot.presentationMetadata.map(i => i.contextKey);
+    expect(presKeys).toEqual(['profile.name']);
+
+    // 5. reasoningContext NEVER contains profile.name (safe for Part 7 Domain Projection by construction)
+    const reasonKeys = snapshot.reasoningContext.map(i => i.contextKey);
+    expect(reasonKeys).not.toContain('profile.name');
+    expect(reasonKeys).toContain('profile.birthDate');
+    expect(reasonKeys).toContain('protocol.status');
+    expect(reasonKeys).toContain('coherence.level');
+    expect(snapshot.reasoningContext.every(i => i.reasoningEligible === true)).toBe(true);
+  });
+
+  it('REQUIRED / OPTIONAL SOURCE CONTRACT: optional source failure does not break snapshot, profile failure is explicit', async () => {
+    // Subcase 1: Optional sources error or absent -> Snapshot still succeeds
+    const resilientReaders = {
+      readProfile: async () => ({ name: 'Aria', birthDate: '1995-04-12' }),
+      readProtocol: async () => { throw new Error('Protocol service timeout'); },
+      readCoherence: async () => { throw new Error('Coherence DB network split'); },
+      readMemory: async () => ({ available: false as const, reason: 'Table naos_memory does not exist' }),
+    };
+
+    const snap = await PersonalContextAssembler.assemble(SUBJECT, { readers: resilientReaders });
+    expect(snap.activeContext.length).toBeGreaterThan(0);
+    expect(snap.activeContext.some(i => i.contextKey === 'profile.birthDate')).toBe(true);
+
+    // Unavailable sources explicitly track the failed optional sources
+    const unavailTypes = snap.unavailableSources.map(u => u.sourceType);
+    expect(unavailTypes).toContain('PROTOCOL');
+    expect(unavailTypes).toContain('COHERENCE');
+    expect(unavailTypes).toContain('MEMORY_STORE');
+
+    // Subcase 2: Required source (Profile) failure is recorded explicitly in unavailableSources
+    const missingProfileReaders = {
+      readProfile: async () => null,
+      readProtocol: async () => null,
+      readCoherence: async () => null,
+      readMemory: async () => ({ available: false as const, reason: 'none' }),
+    };
+    const snapNoProfile = await PersonalContextAssembler.assemble(SUBJECT, { readers: missingProfileReaders });
+    const profileUnavail = snapNoProfile.unavailableSources.find(u => u.sourceType === 'PROFILE');
+    expect(profileUnavail).toBeDefined();
+    expect(profileUnavail?.reason).toContain('Profile data not found');
+  });
+
+  it('DETERMINISM: Persisted context assembly is deterministic across multiple calls', async () => {
+    const readers = {
+      readProfile: async () => ({ name: 'Aria', birthDate: '1995-04-12', birthCity: 'Kyoto' }),
+      readProtocol: async () => ({
+        protocolId: 'proto-fixed-1',
+        status: 'active' as const,
+        currentDay: 10,
+        targetDays: 21,
+      }),
+      readCoherence: async () => ({ global_coherence: 85, current_streak: 7 }),
+      readMemory: async () => ({
+        available: true as const,
+        memories: [
+          {
+            id: 'mem-fixed-1',
+            content: 'Favorite focus time is early morning',
+            memory_type: 'memory',
+            module_source: 'sigil',
+            created_at: '2026-09-01T08:00:00Z',
+          },
+        ],
+      }),
+    };
+
+    const snap1 = await PersonalContextAssembler.assemble(SUBJECT, { readers });
+    const snap2 = await PersonalContextAssembler.assemble(SUBJECT, { readers });
+
+    // Compare active items determinism
+    expect(snap1.activeContext.length).toBe(snap2.activeContext.length);
+    for (let i = 0; i < snap1.activeContext.length; i++) {
+      const item1 = snap1.activeContext[i];
+      const item2 = snap2.activeContext[i];
+      expect(item1.id).toBe(item2.id);
+      expect(item1.contextKey).toBe(item2.contextKey);
+      expect(item1.value).toBe(item2.value);
+      expect(item1.authorityClass).toBe(item2.authorityClass);
+      expect(item1.reasoningEligible).toBe(item2.reasoningEligible);
+    }
   });
 });

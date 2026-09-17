@@ -55,6 +55,7 @@ export class UserStatedContextAdapter implements IPersonalContextAdapter {
         validFrom: fact.statedAt,
         validUntil: null,
         expired: false,
+        reasoningEligible: true,
         provenance: {
           sourceType: 'CONVERSATION_TURN' as const,
           moduleName: 'UserStatedContextAdapter',

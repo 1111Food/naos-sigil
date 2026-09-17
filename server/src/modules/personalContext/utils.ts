@@ -46,8 +46,9 @@ export function buildContextItem(params: {
   validUntil: string | null;
   provenance: PersonalContextProvenance;
   sourceRef?: string | null;
+  reasoningEligible?: boolean;
 }): PersonalContextItem {
-  const { subject, contextKey, authorityClass, value, structuredPayload, freshness, occurredAt, observedAt, validFrom, validUntil, provenance, sourceRef } = params;
+  const { subject, contextKey, authorityClass, value, structuredPayload, freshness, occurredAt, observedAt, validFrom, validUntil, provenance, sourceRef, reasoningEligible } = params;
 
   const now = new Date(observedAt);
   const expired = validUntil !== null && new Date(validUntil) < now;
@@ -72,6 +73,7 @@ export function buildContextItem(params: {
     validFrom,
     validUntil,
     expired,
+    reasoningEligible: reasoningEligible ?? true,
     provenance,
   };
 }

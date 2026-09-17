@@ -17,6 +17,7 @@
 import { supabase } from '../../lib/supabase';
 import { PersonalContextEngine } from './PersonalContextEngine';
 import {
+  AuthenticatedPrincipal,
   IPersonalContextAdapter,
   PersonalContextItem,
   PersonalContextSnapshot,
@@ -40,6 +41,12 @@ export interface SourceReaders {
 }
 
 export interface AssembleContextOptions {
+  /**
+   * Authoritative authenticated principal authorizing this context assembly.
+   * Cross-account isolation: if provided (required in production runtime),
+   * principal.accountId MUST strictly match subject.accountId.
+   */
+  principal?: AuthenticatedPrincipal;
   /** Optional explicit caller-supplied user-stated assertions for current turn (ephemeral only) */
   userStatedFacts?: UserStatedFact[];
   /** Optional custom source readers (defaults to live Supabase read-only queries) */
@@ -241,6 +248,13 @@ export class PersonalContextAssembler {
       throw new Error('PersonalContextAssembler: invalid subject. Subject must be ACCOUNT_OWNER.');
     }
 
+    // Cross-account isolation check: authoritative principal must match subject if provided
+    if (options.principal && options.principal.accountId !== subject.accountId) {
+      throw new Error(
+        `PersonalContextAssembler: unauthorized cross-account access attempt. Principal "${options.principal.accountId}" cannot assemble context for subject "${subject.accountId}".`
+      );
+    }
+
     const readers = options.readers || {};
     const readProfile = readers.readProfile || this.defaultReadProfile;
     const readProtocol = readers.readProtocol || this.defaultReadProtocol;
@@ -347,11 +361,16 @@ export class PersonalContextAssembler {
       }
     }
 
+    const presentationMetadata = deduplicatedActive.filter(i => !i.reasoningEligible);
+    const reasoningContext = deduplicatedActive.filter(i => i.reasoningEligible);
+
     return {
       subject: snapshot.subject,
       generatedAt: snapshot.generatedAt,
       activeContext: deduplicatedActive,
       historicalContext: deduplicatedHistorical,
+      presentationMetadata,
+      reasoningContext,
       unresolvedConflicts: snapshot.unresolvedConflicts,
       unavailableSources: deduplicatedUnavailable,
     };
@@ -359,10 +378,10 @@ export class PersonalContextAssembler {
 
   /**
    * Helper utility to separate presentation metadata from reasoning context items.
-   * Future reasoning engines (Domain Projection, Convergence) can filter out
-   * presentation-only items using this check.
+   * Part 7 Domain Projection consumes reasoningContext directly, guaranteeing by
+   * construction that presentation metadata (e.g. profile.name) cannot enter reasoning.
    */
   static isPresentationMetadata(item: PersonalContextItem): boolean {
-    return item.contextKey === 'profile.name';
+    return !item.reasoningEligible || item.contextKey === 'profile.name';
   }
 }

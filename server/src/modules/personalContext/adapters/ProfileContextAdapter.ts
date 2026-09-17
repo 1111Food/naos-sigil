@@ -117,6 +117,7 @@ export class ProfileContextAdapter implements IPersonalContextAdapter {
         observedAt: now,
         validFrom: null,
         validUntil: null,
+        reasoningEligible: field !== 'name', // profile.name is presentation metadata, not reasoning context
         provenance: {
           sourceType: 'PROFILE',
           moduleName: 'ProfileContextAdapter',
