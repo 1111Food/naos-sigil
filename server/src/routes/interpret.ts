@@ -3,8 +3,8 @@ import { validateUser, validatePremium } from '../middleware/auth';
 import { UserService } from '../modules/user/service';
 import { AstrologyService } from '../modules/astrology/astroService';
 import { NumerologyService } from '../modules/numerology/service';
-import { MayanCalculator } from '../utils/mayaCalculator';
-import { ChineseAstrology } from '../utils/chineseAstrology';
+import { MayaMathV1 } from '../modules/maya/MayaMathV1';
+import { ChineseMathV1 } from '../modules/chinese/ChineseMathV1';
 import { config } from '../config/env';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -20,6 +20,7 @@ interface InterpretRequest {
 }
 
 const interpretationCache = new Map<string, string>();
+const inProgressRequests = new Map<string, Promise<any>>();
 
 export async function interpretRoutes(app: FastifyInstance) {
     app.post<{ Body: InterpretRequest }>('/interpret', { 
@@ -38,15 +39,23 @@ export async function interpretRoutes(app: FastifyInstance) {
             return reply.status(400).send({ error: "El campo 'school' es requerido." });
         }
 
-        const DEEP_INTERPRETATION_VERSION = 'v1';
-        const cacheKey = `${school}-${planet || ''}-${sign || ''}-${house || ''}-${number || ''}-${nawal || ''}-${animal || ''}-${language}-${userId}-${DEEP_INTERPRETATION_VERSION}`;
-        const legacyCacheKey = `${school}-${planet || ''}-${sign || ''}-${house || ''}-${number || ''}-${nawal || ''}-${animal || ''}-${language}-${userId}`;
+        const DEEP_INTERPRETATION_VERSION = 'v2'; // Bumped for new canonical math
+        const cacheNawal = school === 'MAYA' ? 'CANONICAL_MAYA' : (nawal || '');
+        const cacheAnimal = school === 'ORIENTAL' ? 'CANONICAL_ORIENTAL' : (animal || '');
+        
+        const cacheKey = `${school}-${planet || ''}-${sign || ''}-${house || ''}-${number || ''}-${cacheNawal}-${cacheAnimal}-${language}-${userId}-${DEEP_INTERPRETATION_VERSION}`;
+        
         if (interpretationCache.has(cacheKey)) {
             console.log(`⚡ [INTERPRET CACHE] Hit for key: ${cacheKey}`);
             return { interpretation: interpretationCache.get(cacheKey) };
         }
 
-        try {
+        if (inProgressRequests.has(cacheKey)) {
+            console.log(`⏳ [INTERPRET DEDUPLICATION] Joining existing request for: ${cacheKey}`);
+            return await inProgressRequests.get(cacheKey);
+        }
+
+        const interpretationPromise = (async () => {
             console.log(`🔮 [INTERPRET START] school: ${school} | user: ${userId} | lang: ${language}`);
             
             // 1. Obtener perfil completo del viajero
@@ -68,12 +77,14 @@ export async function interpretRoutes(app: FastifyInstance) {
             // 2. Calcular datos en caliente para las 4 Intelligence Sources
             const astro = await AstrologyService.calculateProfile(birthDate, birthTime, lat, lng, offset);
             const num = NumerologyService.calculateProfile(birthDate, profile.name || 'Viajero');
-            const maya = MayanCalculator.calculate(birthDate);
-            const chinese = ChineseAstrology.calculate(birthDate);
+            const maya = MayaMathV1.calculate({ localDate: birthDate });
+            const chinese = ChineseMathV1.calculate(birthDate);
 
             // 3. Crear bloque de contexto completo del Viajero para Gemini
-            const savedNawal = (profile as any).nawal || (profile as any).maya?.nawal || (profile as any).maya?.kiche_name || (profile as any).maya?.kicheName || maya.kicheName;
-            const savedTone = (profile as any).maya?.tone || maya.tone;
+            // Use purely canonical calculations, discarding any stale profile data
+            const savedNawal = maya.canonicalNawalKey;
+            const savedTone = maya.tone;
+            
             const userContext = `
 CONTEXTO INTEGRADO DEL VIAJERO:
 - Nombre: ${profile.name || 'Viajero'}
@@ -192,10 +203,12 @@ Escribe una introducción poética y profunda sobre esta vibración numérica en
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
 
             } else if (school === 'MAYA') {
-                targetText = `Nawal Maya: ${nawal}`;
+                // Ensure we interpret their true canonical nawal, not a stale UI string
+                const targetNawal = maya.canonicalNawalKey;
+                targetText = `Nawal Maya: ${targetNawal}`;
                 promptBlueprint = isEn
                     ? `Act as an elder keeper of the sacred Mayan long count and clinical transpersonal psychologist.
-Explain the archetypal force of **Nawal ${nawal}** for the traveler.
+Explain the archetypal force of **Nawal ${targetNawal}** for the traveler.
 
 Your explanation must be highly professional, therapeutic, deep, and direct—avoid generic New Age definitions.
 
@@ -214,11 +227,11 @@ Provide a beautiful poetic header explaining this galactic signature in their Ma
 (Provide a brief poetic, philosophical summary wrapping up the lesson of this Nawal)
 ⸻
 🧬 Integration with you
-(In this section, analyze in real-time how this Nawal (${nawal}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Life Path ${num.lifePathNumber}, and Chinese Animal ${chinese.animal}. Point out internal conflicts, synergies, and how they manifest in their life.)
+(In this section, analyze in real-time how this Nawal (${targetNawal}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Life Path ${num.lifePathNumber}, and Chinese Animal ${chinese.animal}. Point out internal conflicts, synergies, and how they manifest in their life.)
 
 Use clean bold formatting, bullet points, and high contrast tone.`
                     : `Actúa como un guardián del tiempo del sincronario maya y psicólogo transpersonal clínico.
-Explica la fuerza arquetípica del **Nawal ${nawal}** para el viajero.
+Explica la fuerza arquetípica del **Nawal ${targetNawal}** para el viajero.
 
 Tu explicación debe ser sumamente profesional, terapéutica, profunda y directa, libre de clichés espirituales o explicaciones de manual básico.
 
@@ -237,15 +250,16 @@ Escribe una introducción poética y profunda sobre esta firma galáctica en su 
 (Escribe una breve conclusión filosófica y poética sobre el aprendizaje de este Nawal)
 ⸻
 🧬 Integración contigo
-(En esta sección, analiza en tiempo real cómo este Nawal (${nawal}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Sendero de Vida ${num.lifePathNumber} y su Animal Chino ${chinese.animal}. Señala tensiones internas, bloqueos y cómo este Nawal moldea su percepción diaria de la realidad.)
+(En esta sección, analiza en tiempo real cómo este Nawal (${targetNawal}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Sendero de Vida ${num.lifePathNumber} y su Animal Chino ${chinese.animal}. Señala tensiones internas, bloqueos y cómo este Nawal moldea su percepción diaria de la realidad.)
 
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
 
             } else if (school === 'ORIENTAL') {
-                targetText = `Animal Chino: ${animal}`;
+                const targetAnimal = chinese.animal;
+                targetText = `Animal Chino: ${targetAnimal}`;
                 promptBlueprint = isEn
                     ? `Act as an expert in Chinese Imperial Bazi Astrology and clinical instinctual-behavioral psychologist.
-Explain the archetypal force of **Chinese Zodiac Animal ${animal}** for the traveler.
+Explain the archetypal force of **Chinese Zodiac Animal ${targetAnimal}** for the traveler.
 
 Your explanation must be highly professional, therapeutic, deep, and direct—avoid generic New Age definitions.
 
@@ -265,11 +279,11 @@ Provide a beautiful poetic header explaining this earthly animal signature.
 (Provide a brief poetic, philosophical summary wrapping up the lesson of this earthly zodiac animal)
 ⸻
 🧬 Integration with you
-(In this section, analyze in real-time how this Chinese Animal (${animal}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Life Path ${num.lifePathNumber}, and Mayan Nawal ${savedNawal}. Point out internal conflicts, synergies, and how they manifest in their life.)
+(In this section, analyze in real-time how this Chinese Animal (${targetAnimal}) interacts, contrasts, or synchronizes with the rest of their personal context: Sol in ${astro.sunSign}, Life Path ${num.lifePathNumber}, and Mayan Nawal ${savedNawal}. Point out internal conflicts, synergies, and how they manifest in their life.)
 
 Use clean bold formatting, bullet points, and high contrast tone.`
                     : `Actúa como un experto en Astrología Imperial China BaZi y psicólogo conductual-instintivo.
-Explica la fuerza arquetípica del **Animal del Zodiaco Chino ${animal}** para el viajero.
+Explica la fuerza arquetípica del **Animal del Zodiaco Chino ${targetAnimal}** para el viajero.
 
 Tu explicación debe ser sumamente profesional, terapéutica, profunda y directa, libre de clichés espirituales o explicaciones de manual básico.
 
@@ -289,7 +303,7 @@ Escribe una introducción poética y profunda sobre esta firma instintiva terren
 (Escribe una breve conclusión filosófica y poética sobre el aprendizaje de este animal chino)
 ⸻
 🧬 Integración contigo
-(En esta sección, analiza en tiempo real cómo este Animal Chino (${animal}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Sendero de Vida ${num.lifePathNumber} y su Nawal Maya ${savedNawal}. Señala tensiones internas, bloqueos, y cómo este animal gobierna su instinto básico y forma de actuar en la realidad.)
+(En esta sección, analiza en tiempo real cómo este Animal Chino (${targetAnimal}) interactúa, choca o se potencia con el resto del mapa del viajero: su Sol en ${astro.sunSign}, su Sendero de Vida ${num.lifePathNumber} y su Nawal Maya ${savedNawal}. Señala tensiones internas, bloqueos, y cómo este animal gobierna su instinto básico y forma de actuar en la realidad.)
 
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
             }
@@ -328,21 +342,26 @@ Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelect
                 throw new Error("No se pudo generar la interpretación dinámica.");
             }
 
-            // Guardar en cache antes de enviar al cliente
+            // Guardar en cache en memoria
             interpretationCache.set(cacheKey, rawInterpretation);
             
-            // Persistir de forma permanente en la base de datos (Supabase JSONB profile_data)
-            const updatedInterpretations = (profile as any).ai_interpretations || {};
-            updatedInterpretations[cacheKey] = rawInterpretation;
-            await UserService.updateProfile(userId, { ai_interpretations: updatedInterpretations } as any);
-            
-            console.log(`✅ [INTERPRET SUCCESS] cached permanently in DB: ${cacheKey}`);
+            console.log(`✅ [INTERPRET SUCCESS] cached in memory: ${cacheKey}`);
 
             return { interpretation: rawInterpretation };
 
+        })();
+
+        inProgressRequests.set(cacheKey, interpretationPromise);
+
+        try {
+            const result = await interpretationPromise;
+            inProgressRequests.delete(cacheKey);
+            return result;
         } catch (e: any) {
+            inProgressRequests.delete(cacheKey);
             console.error("🔥 [INTERPRET ROUTE ERROR]:", e.message);
-            return reply.status(500).send({ error: "No se pudo invocar el Oráculo profundo.", details: e.message });
+            // DO NOT convert technical errors to mystical fiction.
+            return reply.status(500).send({ error: "Technical error generating interpretation.", details: e.message });
         }
     });
 }
