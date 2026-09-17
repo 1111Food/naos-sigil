@@ -72,7 +72,7 @@ export class PersonalContextEngine {
     const historicalItems: PersonalContextItem[] = [];
 
     for (const item of allItems) {
-      if (item.expired) {
+      if (item.expired || item.freshness === 'HISTORICAL') {
         historicalItems.push(item);
       } else {
         activeItems.push(item);

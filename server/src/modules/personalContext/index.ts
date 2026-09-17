@@ -5,6 +5,7 @@
 
 export * from './types';
 export { PersonalContextEngine } from './PersonalContextEngine';
+export { PersonalContextAssembler, AssembleContextOptions, SourceReaders } from './PersonalContextAssembler';
 export { resolveContextKey } from './conflictResolver';
 export { buildDeterministicId, buildEphemeralId, buildContextItem } from './utils';
 

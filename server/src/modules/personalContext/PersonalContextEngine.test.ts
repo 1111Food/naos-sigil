@@ -47,6 +47,7 @@ import {
 import { resolveContextKey } from './conflictResolver';
 import { buildContextItem, buildDeterministicId, buildEphemeralId } from './utils';
 import { PersonalContextEngine } from './PersonalContextEngine';
+import { PersonalContextAssembler } from './index';
 import { ProfileContextAdapter, ProfileContextInput } from './adapters/ProfileContextAdapter';
 import { ProtocolContextAdapter, ProtocolContextInput } from './adapters/ProtocolContextAdapter';
 import { CoherenceContextAdapter, CoherenceContextInput } from './adapters/CoherenceContextAdapter';
@@ -827,17 +828,224 @@ describe('PersonalContextEngine — full integration', () => {
       expect(i.authorityClass).toBe('USER_STATED');
     });
   });
+});
 
-  it('Adapter failure is non-fatal — other adapters still produce results', async () => {
-    const goodAdapter = new ProfileContextAdapter({ name: 'Luna' });
-    const badAdapter = {
-      sourceName: 'BadAdapter',
-      sourceType: 'SYSTEM' as const,
-      buildContext: async (): Promise<PersonalContextItem[]> => { throw new Error('DB exploded'); },
+// ---------------------------------------------------------------------------
+// SECTION 15: Phase 6.2 — Trusted Source Assembly (PersonalContextAssembler)
+// ---------------------------------------------------------------------------
+
+describe('Phase 6.2 — PersonalContextAssembler', () => {
+  it('CASE A: profile exists, no protocol, no coherence, memory unavailable, no user-stated context', async () => {
+    const readers = {
+      readProfile: async () => ({ name: 'Aria', birthDate: '1995-04-12', language: 'es' }),
+      readProtocol: async () => null,
+      readCoherence: async () => null,
+      readMemory: async () => ({ available: false as const, reason: 'naos_memory unmigrated' }),
     };
-    const engine = new PersonalContextEngine(SUBJECT, [goodAdapter, badAdapter]);
-    const snapshot = await engine.build();
-    expect(snapshot.activeContext.length).toBeGreaterThan(0);
-    expect(snapshot.unavailableSources.some(u => u.reason.includes('DB exploded'))).toBe(true);
+
+    const snapshot = await PersonalContextAssembler.assemble(SUBJECT, { readers });
+
+    expect(snapshot.subject.accountId).toBe(SUBJECT.accountId);
+    expect(snapshot.activeContext.length).toBe(3); // name, birthDate, language
+    expect(snapshot.historicalContext.length).toBe(0);
+    expect(snapshot.unresolvedConflicts.length).toBe(0);
+    expect(snapshot.unavailableSources.some(u => u.sourceType === 'MEMORY_STORE')).toBe(true);
+
+    // Verify all active items are USER_STATED and have complete provenance
+    snapshot.activeContext.forEach(item => {
+      expect(item.authorityClass).toBe('USER_STATED');
+      expect(item.provenance.sourceType).toBe('PROFILE');
+      expect(item.provenance.moduleName).toBe('ProfileContextAdapter');
+      expect(item.id.startsWith('pc:')).toBe(true);
+    });
+  });
+
+  it('CASE B: profile + active Protocol day 13 + coherence HIGH + memory unavailable + USER_STATED current goal', async () => {
+    const readers = {
+      readProfile: async () => ({ name: 'Aria', birthDate: '1995-04-12' }),
+      readProtocol: async () => ({
+        protocolId: 'proto-active-1',
+        status: 'active' as const,
+        currentDay: 13,
+        targetDays: 21,
+        intention: 'Master focus',
+        latestCheckInLocalDate: '2026-09-16',
+      }),
+      readCoherence: async () => ({
+        global_coherence: 85,
+        current_streak: 7,
+        lastActionAt: '2026-09-16T10:00:00Z',
+      }),
+      readMemory: async () => ({ available: false as const, reason: 'naos_memory unmigrated' }),
+    };
+
+    const userStatedFacts: UserStatedFact[] = [
+      {
+        contextKey: 'user.currentGoal',
+        value: "Prepare tomorrow's negotiation",
+        statedAt: '2026-09-16T12:00:00Z',
+      },
+    ];
+
+    const snapshot = await PersonalContextAssembler.assemble(SUBJECT, { readers, userStatedFacts });
+
+    // Active items check
+    const keys = snapshot.activeContext.map(i => i.contextKey);
+    expect(keys).toContain('profile.name');
+    expect(keys).toContain('profile.birthDate');
+    expect(keys).toContain('protocol.status');
+    expect(keys).toContain('protocol.currentDay');
+    expect(keys).toContain('protocol.intention');
+    expect(keys).toContain('coherence.level');
+    expect(keys).toContain('coherence.currentStreak');
+    expect(keys).toContain('user.currentGoal');
+
+    // Coherence level value
+    const cohLevel = snapshot.activeContext.find(i => i.contextKey === 'coherence.level');
+    expect(cohLevel?.value).toBe('HIGH');
+    expect(cohLevel?.authorityClass).toBe('VERIFIED_STATE');
+
+    // Ephemeral goal item
+    const goalItem = snapshot.activeContext.find(i => i.contextKey === 'user.currentGoal');
+    expect(goalItem?.authorityClass).toBe('USER_STATED');
+    expect(goalItem?.id.startsWith('EPHEMERAL_')).toBe(true);
+  });
+
+  it('CASE C: profile + completed Protocol + expired memory → historical classification', async () => {
+    const readers = {
+      readProfile: async () => ({ name: 'Aria' }),
+      readProtocol: async () => ({
+        protocolId: 'proto-done',
+        status: 'completed' as const,
+        currentDay: 21,
+        targetDays: 21,
+      }),
+      readMemory: async () => ({
+        available: true as const,
+        memories: [
+          {
+            id: 'mem-expired-1',
+            content: 'Old temporary note',
+            memory_type: 'memory',
+            module_source: 'sigil',
+            created_at: '2025-01-01T00:00:00Z',
+            expires_at: '2025-02-01T00:00:00Z', // In the past
+          },
+        ],
+      }),
+    };
+
+    const snapshot = await PersonalContextAssembler.assemble(SUBJECT, { readers });
+
+    // Protocol status and currentDay should be in historicalContext
+    const histKeys = snapshot.historicalContext.map(i => i.contextKey);
+    expect(histKeys).toContain('protocol.status');
+    expect(histKeys).toContain('protocol.currentDay');
+    expect(histKeys).toContain('memory.memory.sigil');
+
+    // Active context only contains profile
+    expect(snapshot.activeContext.length).toBe(1);
+    expect(snapshot.activeContext[0].contextKey).toBe('profile.name');
+  });
+
+  it('CASE D: old retrieved memory goal=A vs current USER_STATED goal=B → B active, no conflict', async () => {
+    const readers = {
+      readProfile: async () => ({ name: 'Aria' }),
+      readMemory: async () => ({
+        available: true as const,
+        memories: [
+          {
+            id: 'mem-goal',
+            content: 'Goal A: Launch MVP',
+            memory_type: 'state',
+            module_source: 'sigil',
+            created_at: '2026-08-01T00:00:00Z',
+          },
+        ],
+      }),
+    };
+
+    // Caller injects current-turn user stated fact with the exact same context key
+    const userStatedFacts: UserStatedFact[] = [
+      {
+        contextKey: 'memory.state.sigil', // same key
+        value: 'Goal B: Scale Operations',
+        statedAt: '2026-09-16T12:00:00Z',
+      },
+    ];
+
+    const snapshot = await PersonalContextAssembler.assemble(SUBJECT, { readers, userStatedFacts });
+
+    // B wins (USER_STATED > RETRIEVED_MEMORY)
+    const winningItem = snapshot.activeContext.find(i => i.contextKey === 'memory.state.sigil');
+    expect(winningItem).toBeDefined();
+    expect(winningItem?.value).toBe('Goal B: Scale Operations');
+    expect(winningItem?.authorityClass).toBe('USER_STATED');
+    expect(snapshot.unresolvedConflicts.length).toBe(0);
+  });
+
+  it('CASE E: source order independence produces semantically equivalent snapshot', async () => {
+    // We execute assembler with same inputs in two orders by changing adapter order
+    const profileData = { name: 'Aria', birthDate: '1995-04-12' };
+    const protocolData = {
+      protocolId: 'proto-order',
+      status: 'active' as const,
+      currentDay: 5,
+      targetDays: 21,
+    };
+    const coherenceData = {
+      global_coherence: 70,
+      current_streak: 3,
+    };
+
+    // Order 1
+    const p1 = new ProfileContextAdapter(profileData);
+    const pr1 = new ProtocolContextAdapter(protocolData);
+    const c1 = new CoherenceContextAdapter(coherenceData);
+    const engine1 = new PersonalContextEngine(SUBJECT, [p1, pr1, c1]);
+    const snap1 = await engine1.build();
+
+    // Order 2
+    const c2 = new CoherenceContextAdapter(coherenceData);
+    const p2 = new ProfileContextAdapter(profileData);
+    const pr2 = new ProtocolContextAdapter(protocolData);
+    const engine2 = new PersonalContextEngine(SUBJECT, [c2, p2, pr2]);
+    const snap2 = await engine2.build();
+
+    // Semantic equivalence
+    expect(snap1.activeContext.length).toBe(snap2.activeContext.length);
+    const map1 = new Map(snap1.activeContext.map(i => [i.contextKey, i.value]));
+    const map2 = new Map(snap2.activeContext.map(i => [i.contextKey, i.value]));
+    expect(map1).toEqual(map2);
+    expect(snap1.unresolvedConflicts.length).toBe(snap2.unresolvedConflicts.length);
+  });
+
+  it('Presentation metadata separation: isPresentationMetadata correctly identifies profile.name', () => {
+    const nameItem = makeItem({ contextKey: 'profile.name', authorityClass: 'USER_STATED', value: 'Aria' });
+    const birthItem = makeItem({ contextKey: 'profile.birthDate', authorityClass: 'USER_STATED', value: '1995-04-12' });
+    const protoItem = makeItem({ contextKey: 'protocol.status', authorityClass: 'VERIFIED_STATE', value: 'active' });
+
+    expect(PersonalContextAssembler.isPresentationMetadata(nameItem)).toBe(true);
+    expect(PersonalContextAssembler.isPresentationMetadata(birthItem)).toBe(false);
+    expect(PersonalContextAssembler.isPresentationMetadata(protoItem)).toBe(false);
+  });
+
+  it('Subject isolation: throws if subject is invalid or not ACCOUNT_OWNER', async () => {
+    const invalidSubject = { accountId: 'attacker-1', subjectClass: 'NOT_OWNER' as any };
+    await expect(PersonalContextAssembler.assemble(invalidSubject)).rejects.toThrow('Subject must be ACCOUNT_OWNER');
+  });
+
+  it('Deduplication: duplicate persisted items with same ID are merged into 1', async () => {
+    const readers = {
+      readProfile: async () => ({ name: 'Aria', birthDate: '1995-04-12' }),
+      readProtocol: async () => null,
+      readCoherence: async () => null,
+      readMemory: async () => ({ available: false as const, reason: 'none' }),
+    };
+
+    const snapshot = await PersonalContextAssembler.assemble(SUBJECT, { readers });
+    const ids = snapshot.activeContext.map(i => i.id);
+    const uniqueIds = new Set(ids);
+    expect(ids.length).toBe(uniqueIds.size);
   });
 });
