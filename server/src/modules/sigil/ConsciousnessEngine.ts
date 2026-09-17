@@ -1,8 +1,10 @@
 import { supabase } from '../../lib/supabase';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CONSCIOUSNESS_PROMPTS } from './ConsciousnessPrompts';
 import { config } from '../../config/env';
+import { DailyContextOrchestrator } from '../daily/DailyContextOrchestrator';
 
-export type TransmissionMoment = 'AURORA' | 'ZENITH' | 'VESPER';
+export type TransmissionMoment = 'MORNING' | 'EVENING';
 
 export class ConsciousnessEngine {
     private static TARGET_MODEL = config.GEMINI_MODEL;
@@ -16,7 +18,7 @@ export class ConsciousnessEngine {
         // 1. Fetch user data (basic + astrology + metrics)
         const { data: userProfile } = await supabase
             .from('profiles')
-            .select('id, full_name, nickname, profile_data, astrology')
+            .select('id, full_name, nickname, profile_data, astrology, language')
             .eq('id', userId)
             .single();
             
@@ -26,35 +28,18 @@ export class ConsciousnessEngine {
         const name = userProfile.nickname || userProfile.full_name || 'Arquitecto';
         const arch = userProfile.profile_data?.archetype || (isEn ? 'Architect' : 'Arquitecto');
 
-        // 2. Fetch Deep Context (Lifelines & Mission Year)
-        const { data: lifelineData } = await supabase
-            .from('user_lifelines')
-            .select('lifeline_data')
-            .eq('user_id', userId)
-            .eq('language', lang)
-            .maybeSingle();
-            
-        const { data: forecastData } = await supabase
-            .from('mission_year_data')
-            .select('data')
-            .eq('user_id', userId)
-            .eq('language', lang)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+        // 2. Fetch Canonical Daily Context (V2Payload)
+        const offset = 0; // Default offset
+        const v2Payload = await DailyContextOrchestrator.getOrGenerate(userId, userProfile, offset, lang);
 
-        // 3. Prepare Bible context
-        const bibleContext = `
-        User Name: ${name}
-        Archetype: ${arch}
-        Natal Astrology: Sun ${userProfile.astrology?.sun_sign}, Moon ${userProfile.astrology?.moon_sign}, Ascendant ${userProfile.astrology?.ascendant}
-        Current Life Pinnacle: ${lifelineData ? JSON.stringify(lifelineData.lifeline_data) : 'Unknown'}
-        Current Mission Year: ${forecastData ? JSON.stringify(forecastData.data) : 'Unknown'}
-        Current Date/Time: ${new Date().toLocaleString()}
-        `;
-
-        const systemPrompt = CONSCIOUSNESS_PROMPTS[lang][moment];
+        // 3. Construct System Prompt
+        const sysPromptTemplate = CONSCIOUSNESS_PROMPTS[lang][moment];
         
+        const systemPrompt = sysPromptTemplate
+            .replace('{name}', name)
+            .replace('{archetype}', arch)
+            .replace('{daily_context}', JSON.stringify(v2Payload.layerA, null, 2));
+
         // 4. Generate via Gemini
         const apiKey = config.GOOGLE_API_KEY;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.TARGET_MODEL}:generateContent?key=${apiKey}`;

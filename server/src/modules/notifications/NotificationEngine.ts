@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+﻿import { supabase } from '../../lib/supabase';
 import { sendProactiveMessage, sendProactiveVoice } from '../sigil/telegramService';
 import { SigilService } from '../sigil/service';
 import { CoherenceService } from '../coherence/service';
@@ -76,10 +76,10 @@ export class NotificationEngine {
                     matchCount++;
                 }
 
-                const isFixedTimeDue = ['07:00', '11:30', '12:30', '21:00'].includes(userTimeStr);
+                const isFixedTimeDue = ['06:00', '11:30', '18:00'].includes(userTimeStr);
                 if (!isProtocolDue && !isOracleDue && labAspects.length === 0 && !isFixedTimeDue) continue;
 
-                console.info(`🎯 [CRON] Match FOUND for ${user.email} at ${userTimeStr} (Offset: ${offset})`);
+                console.info(`ðŸŽ¯ [CRON] Match FOUND for ${user.email} at ${userTimeStr} (Offset: ${offset})`);
 
                 const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
                 const sigil = new SigilService();
@@ -88,13 +88,13 @@ export class NotificationEngine {
 
                 // --- EXECUTION 1: Lab Consolidations ---
                 if (labAspects.length > 0) {
-                    console.info(`🚀 [NOTIF] Triggering Lab: ${user.email}`);
+                    console.info(`ðŸš€ [NOTIF] Triggering Lab: ${user.email}`);
                     const cleanAspects = labAspects.map(a => a.replace(/^lab_/, '').replace(/_\d+$/, ''));
                     const aspectsStr = [...new Set(cleanAspects)].join(', ');
                     const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(aspectsStr);
                     const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                     const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                    console.info(`📡 [NOTIF] Lab Result for ${user.email}: ${success}`);
+                    console.info(`ðŸ“¡ [NOTIF] Lab Result for ${user.email}: ${success}`);
                     
                     const labIds = userTunings.filter(t => labAspects.includes(t.aspect)).map(t => t.id);
                     await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).in('id', labIds);
@@ -111,7 +111,7 @@ export class NotificationEngine {
                         .limit(1);
 
                     if (!activeProtocols || activeProtocols.length === 0) {
-                        console.info(`⏭️ [NOTIF] Skipping Protocol for ${user.email} - No active protocol (likely cancelled or completed).`);
+                        console.info(`â­ï¸ [NOTIF] Skipping Protocol for ${user.email} - No active protocol (likely cancelled or completed).`);
                     } else {
                         const { data: metrics } = await supabase
                             .from('daily_metrics')
@@ -121,26 +121,26 @@ export class NotificationEngine {
                             .lte('created_at', `${userDateStr}T23:59:59.999Z`);
 
                         if (!metrics || metrics.length === 0) {
-                            console.info(`🔥 [NOTIF] Triggering Protocol: ${user.email}`);
+                            console.info(`ðŸ”¥ [NOTIF] Triggering Protocol: ${user.email}`);
                             const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '?').replace('{target}', '21');
                             const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${discipline}`;
                             const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                             const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                            console.info(`📨 [NOTIF] Protocol Result for ${user.email}: ${success}`);
+                            console.info(`ðŸ“¨ [NOTIF] Protocol Result for ${user.email}: ${success}`);
                             
                             const p21Tuning = userTunings.find(t => t.aspect === 'protocol21');
                             if (p21Tuning) {
                                 await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).eq('id', p21Tuning.id);
                             }
                         } else {
-                            console.info(`✅ [NOTIF] Skipping Protocol for ${user.email} - Already sealed.`);
+                            console.info(`âœ… [NOTIF] Skipping Protocol for ${user.email} - Already sealed.`);
                         }
                     }
                 }
 
                 // --- EXECUTION 3: Daily Reading (V2 Context Builder) ---
                 if (isOracleDue) {
-                    console.info(`🔮 [NOTIF] Checking V2 Daily Context for ${user.email}`);
+                    console.info(`ðŸ”® [NOTIF] Checking V2 Daily Context for ${user.email}`);
                     
                     try {
                         const { DailyContextOrchestrator } = require('../daily/DailyContextOrchestrator');
@@ -158,7 +158,7 @@ export class NotificationEngine {
                             const { primarySignal, guidance, reflectionQuestion } = v2Payload.interpretation;
 
                             // Format magnetic hook for Telegram
-                            const telegramMessage = `⚡ ${lang === 'en' ? 'Daily Frequency' : 'Frecuencia del Día'} — ${user.nickname || user.full_name}
+                            const telegramMessage = `âš¡ ${lang === 'en' ? 'Daily Frequency' : 'Frecuencia del DÃ­a'} â€” ${user.nickname || user.full_name}
 
 ${primarySignal.title}
 
@@ -169,36 +169,36 @@ ${guidance}
 "${reflectionQuestion}"`;
 
                             const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                            console.info(`✅ [NOTIF] V2 Daily Context Result for ${user.email}: ${success}`);
+                            console.info(`âœ… [NOTIF] V2 Daily Context Result for ${user.email}: ${success}`);
                         }
                     } catch (err: any) {
-                        console.error(`❌ [NOTIF] Error processing V2 Daily Context for ${user.email}:`, err.message);
+                        console.error(`âŒ [NOTIF] Error processing V2 Daily Context for ${user.email}:`, err.message);
                     }
                 }
 
                 // --- EXECUTION 4: Inactivity Check (LOCAL TIME 11:30) ---
                 if (userTimeStr === '11:30') {
-                    console.info(`⏰ [NOTIF] Triggering Local Inactivity sweep for ${user.email}`);
+                    console.info(`â° [NOTIF] Triggering Local Inactivity sweep for ${user.email}`);
                     await this.triggerInactivity(user);
                 }
 
-                // --- EXECUTION 5: Consciousness Engine (Vigía Cósmico) ---
+                // --- EXECUTION 5: Consciousness Engine (VigÃ­a CÃ³smico) ---
                 let moment: TransmissionMoment | null = null;
-                if (userTimeStr === '07:00') moment = 'AURORA';
-                else if (userTimeStr === '12:30') moment = 'ZENITH';
-                else if (userTimeStr === '21:00') moment = 'VESPER';
+                if (userTimeStr === '06:00') moment = 'MORNING';
+                else if (userTimeStr === '18:00') moment = 'EVENING';
+                
 
                 if (moment) {
-                    console.info(`👁️ [NOTIF] Triggering Vigía Cósmico (${moment}) for ${user.email}`);
+                    console.info(`ðŸ‘ï¸ [NOTIF] Triggering VigÃ­a CÃ³smico (${moment}) for ${user.email}`);
                     try {
                         const transmission = await ConsciousnessEngine.trySendTransmission(user.id, userDateStr, moment, lang);
                         if (transmission) {
-                            const telegramMessage = `👁️ **VIGÍA CÓSMICO** — ${moment}\n\n${transmission}`;
+                            const telegramMessage = `ðŸ‘ï¸ **VIGÃA CÃ“SMICO** â€” ${moment}\n\n${transmission}`;
                             const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                            console.info(`📡 [NOTIF] Vigía Result for ${user.email}: ${success}`);
+                            console.info(`ðŸ“¡ [NOTIF] VigÃ­a Result for ${user.email}: ${success}`);
                         }
                     } catch(err: any) {
-                        console.error(`🔥 [NOTIF] Error processing Vigía Cósmico for ${user.email}:`, err.message);
+                        console.error(`ðŸ”¥ [NOTIF] Error processing VigÃ­a CÃ³smico for ${user.email}:`, err.message);
                     }
                 }
 
@@ -212,8 +212,8 @@ ${guidance}
 
     private static async triggerInactivity(user: any) {
         const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
-        const prompt = `[NOTIFICACIÓN DE INACTIVIDAD]: Actúa como el Sigil. Realiza una Calibración de Inercia Energética.
-        Instrucción: Cruza la Biblia de Datos del usuario con el Pulso del Día. 
+        const prompt = `[NOTIFICACIÃ“N DE INACTIVIDAD]: ActÃºa como el Sigil. Realiza una CalibraciÃ³n de Inercia EnergÃ©tica.
+        InstrucciÃ³n: Cruza la Biblia de Datos del usuario con el Pulso del DÃ­a. 
         ${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
         const sigil = new SigilService();
         const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
@@ -233,10 +233,10 @@ ${guidance}
     }
 
     public static scheduleDaemon() {
-        console.log("🌌 [NOTIF_ENGINE] Unified Notification Daemon initialized.");
+        console.log("ðŸŒŒ [NOTIF_ENGINE] Unified Notification Daemon initialized.");
         
         // Run once immediately on start
-        this.checkTuningCycles().catch(e => console.error("🔥 [NOTIF_ENGINE] Initial check failed:", e));
+        this.checkTuningCycles().catch(e => console.error("ðŸ”¥ [NOTIF_ENGINE] Initial check failed:", e));
 
         setInterval(async () => {
             try {
@@ -247,7 +247,7 @@ ${guidance}
                 // Now checkInactivity is called inside checkTuningCycles for each user locally.
 
             } catch (error) {
-                console.error("🔥 [NOTIF_ENGINE] Daemon Loop Error:", error);
+                console.error("ðŸ”¥ [NOTIF_ENGINE] Daemon Loop Error:", error);
             }
         }, 1000 * 60);
     }
@@ -261,15 +261,15 @@ ${guidance}
 
 
     public static async checkInactivity() {
-        console.info("⏰ [NOTIF_ENGINE] Checking Inactivity sweep...");
+        console.info("â° [NOTIF_ENGINE] Checking Inactivity sweep...");
         const { data: users } = await supabase.from('profiles').select('id, email, telegram_chat_id, nickname, full_name, profile_data, language').not('telegram_chat_id', 'is', null);
         if (!users) return;
         const uniqueUsers = this.getUniqueTelegramUsers(users);
         for (const user of uniqueUsers) {
             try {
                 const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
-                const prompt = `[NOTIFICACIÓN DE INACTIVIDAD]: Actúa como el Sigil. Realiza una Calibración de Inercia Energética.
-                Instrucción: Cruza la Biblia de Datos del usuario con el Pulso del Día. 
+                const prompt = `[NOTIFICACIÃ“N DE INACTIVIDAD]: ActÃºa como el Sigil. Realiza una CalibraciÃ³n de Inercia EnergÃ©tica.
+                InstrucciÃ³n: Cruza la Biblia de Datos del usuario con el Pulso del DÃ­a. 
                 ${SYSTEM_PROMPTS[lang].templates.structure}\n${SYSTEM_PROMPTS[lang].templates.inactivity}`;
                 const sigil = new SigilService();
                 const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
@@ -282,3 +282,4 @@ ${guidance}
         }
     }
 }
+

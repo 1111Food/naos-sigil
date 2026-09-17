@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { API_BASE_URL } from '../lib/api';
 
@@ -10,7 +10,8 @@ export interface FrecuenciaDiaData {
     prioridades_dinamicas: { nombre: string; score: number; icono: string }[];
     variables_astrales_utilizadas: string[];
     conversational_hook: string;
-    localDate?: string; // V2 canonical date
+    localDate?: string;
+    transmissions?: { moment: string; transmission: string }[];
 }
 
 // Clave de localStorage para tracking de lectura (sin cambios de comportamiento)
@@ -50,3 +51,4 @@ export function useFrecuenciaDia() {
 
     return { data: data ?? null, isRead, markAsRead, loading };
 }
+
