@@ -68,7 +68,7 @@ export class AstrologyProjector {
         const sourceKind: SourceKind = signal.temporalScope === 'STRUCTURAL' ? 'STRUCTURAL_BACKGROUND' : 'SYMBOLIC_SIGNAL';
         
         // Deterministic ID
-        const hashInput = `${domain}|${relevance}|${signal.id}`;
+        const hashInput = `${domain}|${relevance}|${signal.id}|${this.METHODOLOGY}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
         
         return {

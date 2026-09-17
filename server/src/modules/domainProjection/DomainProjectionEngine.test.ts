@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { DomainProjectionEngine } from './DomainProjectionEngine';
 import { NaosSignal } from '../signalEngine/models/NaosSignal';
 import { PersonalContextItem, PersonalContextSnapshot } from '../personalContext/types';
+import { AstrologyProjector } from './rules/AstrologyProjector';
 
 describe('DomainProjectionEngine (Phase 7.1)', () => {
     
@@ -206,5 +207,40 @@ describe('DomainProjectionEngine (Phase 7.1)', () => {
 
         expect(ev1[0].id).toBe(ev2[0].id);
         expect(ev1[0].id).toMatch(/^EVIDENCE\.ASTROLOGY\.[a-f0-9]{12}$/);
+    });
+
+    it('15. Methodology change alters Evidence ID (V1 vs V2 collision check)', () => {
+        const signal = makeAstroSignal('sig-v1v2', 'Venus', 'Sun');
+        
+        const originalMethodology = AstrologyProjector.METHODOLOGY;
+        
+        const evV1 = DomainProjectionEngine.project([signal]);
+        
+        // Temporarily change methodology
+        Object.defineProperty(AstrologyProjector, 'METHODOLOGY', { value: 'DOMAIN_PROJECTION_V2', writable: true });
+        const evV2 = DomainProjectionEngine.project([signal]);
+        
+        // Restore
+        Object.defineProperty(AstrologyProjector, 'METHODOLOGY', { value: originalMethodology, writable: true });
+
+        expect(evV1[0].id).not.toBe(evV2[0].id);
+    });
+
+    it('16. Unmapped inputs generate ZERO guessed domains (Strict Fallback)', () => {
+        const astroSig = makeAstroSignal('sig-u1', 'Asteroid_X', 'Unknown');
+        const numSig = makeNumSignal('sig-u2', 99, false);
+        const mayaSig: NaosSignal = {
+            id: 'sig-u3', signalType: 'MAYA', subject: 'ACCOUNT_OWNER', timestamp: '2026', temporalScope: 'DAILY',
+            direction: 'NEUTRAL', intensity: null, specificity: null, provenance: {} as any,
+            payload: { nawal: 'unknown_nawal', tone: 1 }
+        };
+        const chineseSig: NaosSignal = {
+            id: 'sig-u4', signalType: 'CHINESE', subject: 'ACCOUNT_OWNER', timestamp: '2026', temporalScope: 'ANNUAL',
+            direction: 'NEUTRAL', intensity: null, specificity: null, provenance: {} as any,
+            payload: { animal: 'alien', element: 'plasma' }
+        };
+
+        const ev = DomainProjectionEngine.project([astroSig, numSig, mayaSig, chineseSig]);
+        expect(ev.length).toBe(0); // No guessed domains allowed
     });
 });

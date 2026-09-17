@@ -71,7 +71,7 @@ export class NumerologyProjector {
     private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass): DomainEvidence {
         const sourceKind: SourceKind = signal.temporalScope === 'STRUCTURAL' ? 'STRUCTURAL_BACKGROUND' : 'SYMBOLIC_SIGNAL';
         
-        const hashInput = `${domain}|${relevance}|${signal.id}`;
+        const hashInput = `${domain}|${relevance}|${signal.id}|${this.METHODOLOGY}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
         
         return {

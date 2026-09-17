@@ -42,13 +42,13 @@ export class PersonalContextProjector {
         // E.g., user explicitly tagged "goal.business"
         if (item.contextKey.startsWith('user_stated.')) {
             // Check for explicit structured taxonomy
-            if (item.contextKey.includes('.business')) {
+            if (item.contextKey === 'user_stated.goal.business') {
                 results.push({ domain: 'BUSINESS_EXPANSION', relevance: 'PRIMARY' });
-            } else if (item.contextKey.includes('.relationship')) {
+            } else if (item.contextKey === 'user_stated.goal.relationship') {
                 results.push({ domain: 'RELATIONSHIPS_LOVE', relevance: 'PRIMARY' });
-            } else if (item.contextKey.includes('.health') || item.contextKey.includes('.body')) {
+            } else if (item.contextKey === 'user_stated.goal.health' || item.contextKey === 'user_stated.goal.body') {
                 results.push({ domain: 'BODY_REGULATION', relevance: 'PRIMARY' });
-            } else if (item.contextKey.includes('.learning')) {
+            } else if (item.contextKey === 'user_stated.goal.learning') {
                 results.push({ domain: 'COMMUNICATION_LEARNING', relevance: 'PRIMARY' });
             }
         }
@@ -59,7 +59,7 @@ export class PersonalContextProjector {
     private static createEvidence(item: PersonalContextItem, domain: CanonicalDomain, relevance: DomainRelevanceClass): DomainEvidence {
         const sourceKind: SourceKind = 'FACTUAL_CONTEXT';
         
-        const hashInput = `${domain}|${relevance}|${item.id}`;
+        const hashInput = `${domain}|${relevance}|${item.id}|${this.METHODOLOGY}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
         
         return {
