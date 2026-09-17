@@ -1,4 +1,9 @@
 ﻿export type AnalyticsEvent = 
+  | 'signup_completed'
+  | 'pricing_viewed'
+  | 'checkout_started'
+  | 'checkout_completed'
+  | 'first_revelation_completed'
   | 'install_cta_opened'
   | 'install_prompt_shown'
   | 'install_accepted'
@@ -13,3 +18,4 @@ export function trackEvent(eventName: AnalyticsEvent, properties?: Record<string
   
   if (import.meta.env.DEV) console.log(`[Analytics] ${eventName}`, properties || {});
 }
+

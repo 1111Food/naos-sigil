@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AstrologyEngine } from '../lib/astrologyEngine';
 import { NumerologyEngine } from '../lib/numerologyEngine';
@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
 import { AstralVortex } from './AstralVortex';
 import { useTranslation } from '../i18n';
 
@@ -56,7 +57,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
 
         setCompleting(true);
         try {
-            console.log("🚀 Sintonizando llave de acceso maestro...");
+            console.log("ðŸš€ Sintonizando llave de acceso maestro...");
             let currentUser = undefined;
             try { 
                 const { data } = await supabase.auth.getUser(); 
@@ -74,12 +75,12 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             }
 
             if (!currentUser) {
-                alert("No se pudo establecer el usuario de sesión.");
+                alert("No se pudo establecer el usuario de sesiÃ³n.");
                 setCompleting(false);
                 return;
             }
 
-            console.log("🔮 NAOS: Iniciando cálculo místico en cliente...");
+            console.log("ðŸ”® NAOS: Iniciando cÃ¡lculo mÃ­stico en cliente...");
             const lat = 14.6349;
             const lng = -90.5069;
             const cleanTime = formData.birthTime ? formData.birthTime.substring(0, 5) : '12:00';
@@ -126,6 +127,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                 body: JSON.stringify({}) 
             });
 
+            trackEvent('signup_completed');
             onComplete();
         } catch (err: any) {
             console.error('Failed to complete onboarding', err);
@@ -244,3 +246,4 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
         </motion.div>
     );
 };
+

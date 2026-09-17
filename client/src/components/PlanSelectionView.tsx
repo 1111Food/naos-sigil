@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Check, Loader2, Zap } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { getAsyncAuthHeaders, API_BASE_URL } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
 
 interface PlanSelectionViewProps {
     onBack?: () => void;
@@ -13,6 +14,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     const { profile, refreshProfile } = useProfile();
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
+    useEffect(() => { trackEvent('pricing_viewed'); }, []);
     
     let isDemoActive = false;
     try {
@@ -46,6 +48,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     }, [provider]);
 
     const handleCheckoutSuccess = async () => {
+        trackEvent('checkout_completed');
         setIsActivating(true);
         // Poll for 10 seconds to allow webhook to process
         let attempts = 0;
@@ -62,6 +65,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     };
 
     const handleCheckout = async (priceId: string, endpoint: string = 'create-session', planMode?: string) => {
+        trackEvent('checkout_started', { plan: planMode });
         if (isDemoActive || profile?.plan_type === 'admin') {
             alert('Demo Mode / Admin - Payments Disabled');
             return;
@@ -174,6 +178,8 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
         </div>
     );
 };
+
+
 
 
 

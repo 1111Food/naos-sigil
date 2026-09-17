@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '../contexts/ProfileContext';
 import { patternComposer, LifePathNumber } from '../constants/firstRevelationPattern';
 import { ChevronRight } from 'lucide-react';
+import { trackEvent } from '../lib/analytics';
 
 interface FirstRevelationProps {
     onComplete: (sigilPrompt?: string) => void;
@@ -17,7 +18,7 @@ export function FirstRevelation({ onComplete }: FirstRevelationProps) {
     const lifePathStr = profile?.life_path_number?.toString() || '1';
     const lifePathNum = parseInt(lifePathStr) as LifePathNumber;
     const mayanSign = profile?.mayan_nahual_es || profile?.mayan_nahual || 'B\'atz\'';
-    const chineseSign = profile?.chinese_animal_es || profile?.chinese_animal || 'Dragón';
+    const chineseSign = profile?.chinese_animal_es || profile?.chinese_animal || 'DragÃ³n';
 
     const patternData = patternComposer(lifePathNum, solarSign);
 
@@ -26,10 +27,12 @@ export function FirstRevelation({ onComplete }: FirstRevelationProps) {
     };
 
     const handleSigilPrompt = (prompt: string) => {
+        trackEvent('first_revelation_completed');
         onComplete(prompt);
     };
 
     const handleSkipToTemple = () => {
+        trackEvent('first_revelation_completed');
         onComplete();
     };
 
@@ -104,11 +107,11 @@ export function FirstRevelation({ onComplete }: FirstRevelationProps) {
                             <h2 className="text-sm uppercase tracking-[0.2em] text-white/50">Your NAOS Code</h2>
                             <div className="flex flex-wrap items-center justify-center gap-3 text-lg md:text-xl font-serif text-white/90 bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-sm">
                                 <span>{solarSign}</span>
-                                <span className="text-white/30">•</span>
+                                <span className="text-white/30">â€¢</span>
                                 <span>{lifePathNum}</span>
-                                <span className="text-white/30">•</span>
+                                <span className="text-white/30">â€¢</span>
                                 <span>{mayanSign}</span>
-                                <span className="text-white/30">•</span>
+                                <span className="text-white/30">â€¢</span>
                                 <span>{chineseSign}</span>
                             </div>
                             <p className="text-white/50 text-sm tracking-wider italic">
@@ -183,3 +186,4 @@ export function FirstRevelation({ onComplete }: FirstRevelationProps) {
         </div>
     );
 }
+
