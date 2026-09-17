@@ -185,4 +185,118 @@ describe('DomainAggregationEngine', () => {
         expect(res.tension.status).toBe('INSUFFICIENT_EVIDENCE'); // 0 pos/neg mass
         expect(res.directionalConvergence.status).toBe('INSUFFICIENT_EVIDENCE');
     });
+
+    it('same sourceId string from two different sourceSystems remains two independent units', () => {
+        const input: DomainAggregationInput = {
+            evidence: [
+                createEvidence('ASTROLOGY', 'shared-cycle-1', 'SUPPORTIVE'),
+                createEvidence('NUMEROLOGY', 'shared-cycle-1', 'SUPPORTIVE')
+            ],
+            systemAvailability: defaultAvailability
+        };
+        const res = DomainAggregationEngine.aggregate('BUSINESS_EXPANSION', input);
+        expect(res.independentSourceCount).toBe(2);
+        expect(res.representedSystemCount).toBe(2);
+        expect(res.evidenceCoverage).toBe(0.5); // 2 of 4
+    });
+
+    it('adding CHALLENGING evidence cannot reduce Strength (OPPOSING_EVIDENCE_CANCELS_STRENGTH = NO)', () => {
+        const singleSupportive: DomainAggregationInput = {
+            evidence: [createEvidence('ASTROLOGY', 't1', 'SUPPORTIVE')],
+            systemAvailability: defaultAvailability
+        };
+        const res1 = DomainAggregationEngine.aggregate('BUSINESS_EXPANSION', singleSupportive);
+
+        const supportivePlusChallenging: DomainAggregationInput = {
+            evidence: [
+                createEvidence('ASTROLOGY', 't1', 'SUPPORTIVE'),
+                createEvidence('NUMEROLOGY', 'n1', 'CHALLENGING')
+            ],
+            systemAvailability: defaultAvailability
+        };
+        const res2 = DomainAggregationEngine.aggregate('BUSINESS_EXPANSION', supportivePlusChallenging);
+
+        expect(res2.strength).toBeGreaterThanOrEqual(res1.strength);
+    });
+
+    it('all normalized numeric metrics remain strictly bounded [0.0, 1.0] under high volume', () => {
+        const massiveEvidence: DomainEvidence[] = [];
+        const systems = ['ASTROLOGY', 'MAYA', 'CHINESE', 'NUMEROLOGY'];
+        const directions = ['SUPPORTIVE', 'CHALLENGING', 'MIXED', 'NEUTRAL'];
+        for (let i = 0; i < 100; i++) {
+            massiveEvidence.push(createEvidence(
+                systems[i % systems.length],
+                `src-${i}`,
+                directions[i % directions.length],
+                'TRANSIT',
+                'PERSONALIZED',
+                'PRIMARY'
+            ));
+        }
+
+        const res = DomainAggregationEngine.aggregate('BUSINESS_EXPANSION', {
+            evidence: massiveEvidence,
+            systemAvailability: defaultAvailability
+        });
+
+        expect(res.strength).toBeGreaterThanOrEqual(0);
+        expect(res.strength).toBeLessThanOrEqual(1.0);
+        expect(res.structuralResonance).toBeGreaterThanOrEqual(0);
+        expect(res.structuralResonance).toBeLessThanOrEqual(1.0);
+        expect(res.evidenceCoverage).toBeGreaterThanOrEqual(0);
+        expect(res.evidenceCoverage).toBeLessThanOrEqual(1.0);
+        expect(res.sourceAvailability).toBeGreaterThanOrEqual(0);
+        expect(res.sourceAvailability).toBeLessThanOrEqual(1.0);
+        if (res.directionalConvergence.status === 'VALID') {
+            expect(res.directionalConvergence.value).toBeGreaterThanOrEqual(0);
+            expect(res.directionalConvergence.value).toBeLessThanOrEqual(1.0);
+        }
+        if (res.tension.status === 'VALID') {
+            expect(res.tension.value).toBeGreaterThanOrEqual(0);
+            expect(res.tension.value).toBeLessThanOrEqual(1.0);
+        }
+        if (res.ambiguity.status === 'VALID') {
+            expect(res.ambiguity.value).toBeGreaterThanOrEqual(0);
+            expect(res.ambiguity.value).toBeLessThanOrEqual(1.0);
+        }
+    });
+
+    it('aggregates identically regardless of evidence array ordering (deterministic purity)', () => {
+        const evA = createEvidence('ASTROLOGY', 't1', 'SUPPORTIVE');
+        const evB = createEvidence('NUMEROLOGY', 'n1', 'CHALLENGING');
+        const evC = createEvidence('MAYA', 'm1', 'MIXED');
+
+        const resOrder1 = DomainAggregationEngine.aggregate('BUSINESS_EXPANSION', {
+            evidence: [evA, evB, evC],
+            systemAvailability: defaultAvailability
+        });
+        const resOrder2 = DomainAggregationEngine.aggregate('BUSINESS_EXPANSION', {
+            evidence: [evC, evA, evB],
+            systemAvailability: defaultAvailability
+        });
+
+        expect(resOrder1).toEqual(resOrder2);
+    });
+
+    it('executes consistently across all 6 canonical domains', () => {
+        const domains = [
+            'ACTION_INITIATIVE',
+            'RELATIONSHIPS_LOVE',
+            'BUSINESS_EXPANSION',
+            'COMMUNICATION_LEARNING',
+            'BODY_REGULATION',
+            'INTROSPECTION_RECOVERY'
+        ] as const;
+
+        for (const dom of domains) {
+            const ev = { ...createEvidence('ASTROLOGY', 't1', 'SUPPORTIVE'), domain: dom };
+            const res = DomainAggregationEngine.aggregate(dom, {
+                evidence: [ev],
+                systemAvailability: defaultAvailability
+            });
+            expect(res.domain).toBe(dom);
+            expect(res.strength).toBeGreaterThan(0);
+            expect(res.methodology).toBe('DOMAIN_AGGREGATION_V1');
+        }
+    });
 });
