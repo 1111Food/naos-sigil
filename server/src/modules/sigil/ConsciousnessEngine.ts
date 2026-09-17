@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+﻿import { supabase } from '../../lib/supabase';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CONSCIOUSNESS_PROMPTS } from './ConsciousnessPrompts';
 import { config } from '../../config/env';
@@ -46,7 +46,7 @@ export class ConsciousnessEngine {
 
         const payload = {
             system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: "user", parts: [{ text: bibleContext }] }],
+            contents: [{ role: "user", parts: [{ text: 'Please provide my transmission based on the Daily Context provided in the system instruction.' }] }],
             generationConfig: { temperature: 0.7 }
         };
 
@@ -103,3 +103,4 @@ export class ConsciousnessEngine {
         return transmissionText;
     }
 }
+
