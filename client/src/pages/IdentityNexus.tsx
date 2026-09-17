@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Book, User, ArrowLeft, Info, Lock, Map as MapIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -54,7 +54,7 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
         {
             id: 'TIME_MAP_NEXUS',
             title: "Mapa Temporal",
-            subtitle: "Simulador Cuántico y Ciclos Mayores",
+            subtitle: "Simulador CuÃ¡ntico y Ciclos Mayores",
             icon: MapIcon,
             color: "from-naos-gold/20 to-yellow-500/10",
             border: "border-naos-gold/30",
@@ -178,3 +178,4 @@ export const IdentityNexus: React.FC<IdentityNexusProps> = ({ onNavigate, onBack
         </div>
     );
 };
+

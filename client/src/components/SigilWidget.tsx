@@ -21,9 +21,17 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
     const [showFrecModal, setShowFrecModal] = useState(false);
     const [input, setInput] = useState('');
 
-    const [messages, setMessages] = useState<{ role: 'user' | 'sigil', text: string }[]>([
-        { role: 'sigil', text: `Acceso concedido, Luis. Como Cáncer que eres, las llaves del Templo están listas. ¿A dónde deseas navegar?` }
-    ]);
+    const [messages, setMessages] = useState<any[]>([]);
+
+    React.useEffect(() => {
+        if (profile && messages.length === 0) {
+            const name = profile.nickname || profile.name || 'Viajero';
+            const sign = profile.zodiac_sign_es || profile.zodiac_sign || 'explorador del cosmos';
+            setMessages([
+                { role: 'sigil', text: `Acceso concedido, ${name}. Como ${sign} que eres, las llaves del Templo están listas. ¿A dónde deseas navegar?` }
+            ]);
+        }
+    }, [profile]);
 
     const chatRef = React.useRef<HTMLDivElement>(null);
 
@@ -54,14 +62,14 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
             onNavigate('TAROT');
         } else if (cmd.includes('carta') || cmd.includes('astral') || cmd.includes('sol') || cmd.includes('estrellas') || cmd.includes('astros') || cmd.includes('luna')) {
             onNavigate('ASTRO');
-        } else if (cmd.includes('nahual') || cmd.includes('maya') || cmd.includes('espíritu') || cmd.includes('glifo')) {
+        } else if (cmd.includes('nahual') || cmd.includes('maya') || cmd.includes('espÃ­ritu') || cmd.includes('glifo')) {
             onNavigate('MAYA');
-        } else if (cmd.includes('numer') || cmd.includes('pinnac') || cmd.includes('vibración') || cmd.includes('metas')) {
+        } else if (cmd.includes('numer') || cmd.includes('pinnac') || cmd.includes('vibraciÃ³n') || cmd.includes('metas')) {
             onNavigate('NUMERO');
-        } else if (cmd.includes('chino') || cmd.includes('oriental') || cmd.includes('buey') || cmd.includes('dragón')) {
+        } else if (cmd.includes('chino') || cmd.includes('oriental') || cmd.includes('buey') || cmd.includes('dragÃ³n')) {
             onNavigate('CHINESE');
         } else if (cmd.includes(' status')) {
-            setMessages(prev => [...prev, { role: 'sigil', text: 'Conexión cuántica activa. Identidad: Luis (Cáncer). Sincronización 100%.' }]);
+            setMessages(prev => [...prev, { role: 'sigil', text: 'ConexiÃ³n cuÃ¡ntica activa. Identidad: Luis (CÃ¡ncer). SincronizaciÃ³n 100%.' }]);
         }
 
         // Call the AI Guardian (role: 'guardian')
@@ -86,21 +94,23 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
         <div className="fixed top-[120px] right-[20px] z-[60] flex flex-col items-end pointer-events-none">
 
             {/* Chat Window */}
-            <div className={`pointer-events-auto bg-black/95 backdrop-blur-2xl border border-red-500/20 rounded-3xl w-[85vw] md:w-80 mb-4 overflow-hidden transition-all duration-300 origin-top-right shadow-[0_0_30px_rgba(255,0,0,0.2)] ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 h-0 overflow-hidden'}`}>
+            <div className={`pointer-events-auto bg-black/95 backdrop-blur-2xl border rounded-3xl w-[85vw] md:w-80 mb-4 overflow-hidden transition-all duration-300 origin-top-right
+                ${timeMode === 'DAY' ? 'border-naos-gold/30 shadow-[0_0_30px_rgba(255,184,0,0.15)]' : 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.15)]'}
+                ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 h-0 overflow-hidden'}`}>
                 <div ref={chatRef} className="p-4 h-64 overflow-y-auto flex flex-col gap-3">
                     {messages.map((m, i) => {
                         const targetLabels: Record<string, string> = {
                             'templo': 'Santuario',
                             'santuario': 'Santuario',
                             'profile': 'Mi Perfil',
-                            'astro': 'Mapa Astrológico',
-                            'numero': 'Diseño Numerológico',
+                            'astro': 'Mapa AstrolÃ³gico',
+                            'numero': 'DiseÃ±o NumerolÃ³gico',
                             'maya': 'Frecuencia Maya',
                             'elemental_lab': 'Laboratorio Elemental',
-                            'tarot': 'Arcanos Místicos',
+                            'tarot': 'Arcanos MÃ­sticos',
                             'protocol_21': 'Protocolo 21',
                             'decision_engine': 'Motor de Decisiones',
-                            'mission_year': 'Misión del Año'
+                            'mission_year': 'MisiÃ³n del AÃ±o'
                         };
                         const actionTarget = m.kernelAction?.payload?.target;
                         const label = actionTarget ? (targetLabels[actionTarget] || actionTarget.replace('_', ' ')) : '';
@@ -149,7 +159,9 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
                         setIsOpen(!isOpen);
                     }
                 }}
-                className={`pointer-events-auto w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 p-[1px] shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 group relative ${!frecIsRead && !isOpen ? 'animate-[pulse_2s_ease-in-out_infinite]' : ''}`}
+                className={`pointer-events-auto w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-tr p-[1px] hover:scale-110 active:scale-95 transition-all duration-300 group relative
+                    ${timeMode === 'DAY' ? 'from-naos-gold to-yellow-600 shadow-[0_0_20px_rgba(255,184,0,0.4)]' : 'from-purple-600 to-blue-600 shadow-[0_0_20px_rgba(168,85,247,0.4)]'}
+                    ${!frecIsRead && !isOpen ? 'animate-[pulse_2s_ease-in-out_infinite]' : ''}`}
             >
                 <div className="w-full h-full rounded-full bg-black flex items-center justify-center relative overflow-hidden backdrop-blur-xl">
                     {isOpen ? (
@@ -200,3 +212,5 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
         </div>
     );
 };
+
+

@@ -46,7 +46,7 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
         {
             id: 'oracle',
             title: t('oracle') || 'Oráculo de Almas',
-            subtitle: 'Sincronía & Resonancia',
+            subtitle: 'Dinámica de Relaciones',
             accent: 'magenta',
             icon: Eye,
             featureId: 'ORACLE_SOULS',
@@ -55,7 +55,7 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
         {
             id: 'protocols',
             title: t('protocols') || 'Protocolos 21/90',
-            subtitle: 'Motor de Coherencia',
+            subtitle: 'Práctica y Evolución',
             accent: 'emerald',
             icon: ShieldAlert,
             featureId: 'PROTOCOL21',
@@ -65,7 +65,7 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
         {
             id: 'laboratory',
             title: t('laboratory') || 'Laboratorio Elemental',
-            subtitle: 'Regulación Bio-Frecuencial',
+            subtitle: 'Regulación y Observación',
             accent: 'orange',
             icon: Sparkles,
             featureId: 'ELEMENTAL_LAB',
@@ -284,3 +284,4 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
         </div>
     );
 };
+

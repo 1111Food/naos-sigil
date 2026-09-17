@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Wind, Flame, Check, Waves, Mountain, Clock, Sparkles, RotateCcw, Brain } from 'lucide-react';
@@ -125,7 +125,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
     // Handling direct jump from Elemental Lab (Deep Linking)
     useEffect(() => {
         if (initialRitual) {
-            console.log("Ã°Å¸â€¢Â¯Ã¯Â¸Â Sanctuary: Deep Link Ritual detected:", initialRitual);
+            console.log("ÃƒÂ°Ã…Â¸Ã¢â‚¬Â¢Ã‚Â¯ÃƒÂ¯Ã‚Â¸Ã‚Â Sanctuary: Deep Link Ritual detected:", initialRitual);
 
             // Derive element from techId prefix (fire-, water-, earth-, air-)
             let detectedElement: 'WATER' | 'FIRE' | 'EARTH' | 'AIR' = (profile?.astrology?.sunSignElement?.toUpperCase() || 'WATER') as any;
@@ -527,7 +527,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                     {t(ELEMENT_THEMES[ritualState.element].title as any)}
                                 </h2>
                                 <p className="text-white/40 text-sm uppercase tracking-widest">
-                                    {t(ELEMENT_THEMES[ritualState.element].subtitle as any)} Ã¢â‚¬Â¢ {t(ritualState.need as any) || ritualState.need}
+                                    {t(ELEMENT_THEMES[ritualState.element].subtitle as any)} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {t(ritualState.need as any) || ritualState.need}
                                 </p>
                             </div>
 
@@ -679,7 +679,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                             <Clock size={14} /> {t('total_time')}: <span className="text-white">{formatTime(elapsedTime)}</span>
                         </p>
 
-                        {/* SCIENTIFIC BIOMETRIC FEEDBACK EXCLUSIVO (BILLION DOLLAR LAYOUT) */}
+                        {/* OBSERVATION FEEDBACK */}
                         {getActivePath() && (
                             <motion.div 
                                 initial={{ opacity: 0, y: 30, scale: 0.95, filter: 'blur(10px)' }} 
@@ -709,7 +709,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                                 <Brain size={18} className={ELEMENT_THEMES[ritualState.element || 'WATER'].color} />
                                             </motion.div>
                                             <div>
-                                                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/90">{t('biometric_impact')}</span>
+                                                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/90">{t('state_observation') || 'OBSERVACIÓN'}</span>
                                                 <span className="block text-[8px] text-white/40 font-mono tracking-widest mt-0.5">{t('status_complete')}</span>
                                             </div>
                                         </div>
@@ -724,7 +724,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                             className="space-y-1"
                                         >
                                             <h3 className={cn("text-[11px] font-serif italic", ELEMENT_THEMES[ritualState.element || 'WATER'].color)}>
-                                                {t('diaphragmatic_modulation')}: {t(getActivePath()?.breath.label as any)}
+                                                {t('breath_focus') || 'Foco de Respiración'}: {t(getActivePath()?.breath.label as any)}
                                             </h3>
                                             <p className="text-white/80 text-sm max-w-sm leading-relaxed font-light">
                                                 {t(getActivePath()?.breath.scientificImpact as any)}
@@ -740,7 +740,7 @@ export const Sanctuary: React.FC<SanctuaryProps> = ({ onBack, initialRitual }) =
                                             className="pt-4 border-t border-white/5 space-y-1"
                                         >
                                             <h3 className={cn("text-[11px] font-serif italic", ELEMENT_THEMES[ritualState.element || 'WATER'].color)}>
-                                                {t('neuro_cognitive_adjustment')}: {t(getActivePath()?.meditation.title as any)}
+                                                {t('state_reflection') || 'Reflexión y Estado'}: {t(getActivePath()?.meditation.title as any)}
                                             </h3>
                                             <p className="text-white/80 text-sm max-w-sm leading-relaxed font-light">
                                                 {t(getActivePath()?.meditation.scientificImpact as any)}
@@ -992,5 +992,7 @@ const AirMeditationVis = () => {
         </div>
     );
 };
+
+
 
 

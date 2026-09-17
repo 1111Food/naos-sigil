@@ -37,7 +37,7 @@ export const TimeMapNexus: React.FC<TimeMapNexusProps> = ({ onNavigate, onBack }
         {
             id: 'TIME_MAP_ANNUAL',
             title: t('annual_horizon_title', 'Horizonte Anual (Meso)'),
-            subtitle: t('annual_horizon_subtitle', 'Simulador Cuántico de 12 Meses'),
+            subtitle: t('annual_horizon_subtitle', 'Proyección de 12 Meses'),
             icon: CalendarDays,
             color: "from-naos-gold/20 to-yellow-500/10",
             border: "border-naos-gold/30",
@@ -128,5 +128,6 @@ export const TimeMapNexus: React.FC<TimeMapNexusProps> = ({ onNavigate, onBack }
         </div>
     );
 };
+
 
 
