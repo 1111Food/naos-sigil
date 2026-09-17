@@ -18,7 +18,7 @@ export class NumerologyProjector {
         const mappedDomains = this.evaluateRules(value, isPersonal);
 
         for (const mapping of mappedDomains) {
-            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance));
+            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance, isPersonal));
         }
 
         return evidence;
@@ -68,10 +68,10 @@ export class NumerologyProjector {
         return results;
     }
 
-    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass): DomainEvidence {
+    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass, isPersonalized: boolean): DomainEvidence {
         const sourceKind: SourceKind = signal.temporalScope === 'STRUCTURAL' ? 'STRUCTURAL_BACKGROUND' : 'SYMBOLIC_SIGNAL';
         
-        const hashInput = `${domain}|${relevance}|${signal.id}|${this.METHODOLOGY}`;
+        const hashInput = `${domain}|${relevance}|${signal.id}|${isPersonalized}|${this.METHODOLOGY}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
         
         return {
@@ -83,6 +83,7 @@ export class NumerologyProjector {
             sourceId: signal.id,
             direction: signal.direction,
             temporalScope: signal.temporalScope,
+            evidenceSpecificity: isPersonalized ? 'PERSONALIZED' : 'GENERIC',
             methodology: this.METHODOLOGY,
             provenance: {
                 projectionRuleId: 'NUM_V1_BASIC_VALUES'

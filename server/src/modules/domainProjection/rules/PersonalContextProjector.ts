@@ -39,17 +39,21 @@ export class PersonalContextProjector {
         }
 
         // 2. Structured Domain Tags (Explicit Context)
-        // E.g., user explicitly tagged "goal.business"
         if (item.contextKey.startsWith('user_stated.')) {
-            // Check for explicit structured taxonomy
-            if (item.contextKey === 'user_stated.goal.business') {
+            // Check for explicit canonical taxonomy
+            if (item.contextKey === 'user_stated.goal.business_expansion') {
                 results.push({ domain: 'BUSINESS_EXPANSION', relevance: 'PRIMARY' });
-            } else if (item.contextKey === 'user_stated.goal.relationship') {
+            } else if (item.contextKey === 'user_stated.goal.relationships_love') {
                 results.push({ domain: 'RELATIONSHIPS_LOVE', relevance: 'PRIMARY' });
-            } else if (item.contextKey === 'user_stated.goal.health' || item.contextKey === 'user_stated.goal.body') {
+            } else if (item.contextKey === 'user_stated.goal.body_regulation') {
+                // Non-medical alias strictly mapped to BODY_REGULATION
                 results.push({ domain: 'BODY_REGULATION', relevance: 'PRIMARY' });
-            } else if (item.contextKey === 'user_stated.goal.learning') {
+            } else if (item.contextKey === 'user_stated.goal.communication_learning') {
                 results.push({ domain: 'COMMUNICATION_LEARNING', relevance: 'PRIMARY' });
+            } else if (item.contextKey === 'user_stated.goal.action_initiative') {
+                results.push({ domain: 'ACTION_INITIATIVE', relevance: 'PRIMARY' });
+            } else if (item.contextKey === 'user_stated.goal.introspection_recovery') {
+                results.push({ domain: 'INTROSPECTION_RECOVERY', relevance: 'PRIMARY' });
             }
         }
 
@@ -59,7 +63,7 @@ export class PersonalContextProjector {
     private static createEvidence(item: PersonalContextItem, domain: CanonicalDomain, relevance: DomainRelevanceClass): DomainEvidence {
         const sourceKind: SourceKind = 'FACTUAL_CONTEXT';
         
-        const hashInput = `${domain}|${relevance}|${item.id}|${this.METHODOLOGY}`;
+        const hashInput = `${domain}|${relevance}|${item.id}|true|${this.METHODOLOGY}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
         
         return {
@@ -71,6 +75,7 @@ export class PersonalContextProjector {
             sourceId: item.id,
             direction: 'NEUTRAL', // Context facts are neutral vectors by default
             temporalScope: item.freshness === 'LONG_TERM' ? 'STRUCTURAL' : 'DAILY',
+            evidenceSpecificity: 'PERSONALIZED',
             sourceAuthority: item.authorityClass,
             sourceFreshness: item.freshness,
             methodology: this.METHODOLOGY,

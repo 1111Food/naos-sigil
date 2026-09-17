@@ -11,60 +11,84 @@ export class MayaProjector {
         const evidence: DomainEvidence[] = [];
         const payload = signal.payload as any;
         const nawal = (payload.nawal || '').toLowerCase();
+        const sameNawal = !!payload.sameNawal;
+        const sameTone = !!payload.sameTone;
         
-        // Preserve relation features (e.g., if there's a specific tone relationship or offset)
-        // For V1, we'll map the primary nawal, but structural signals are CONTEXTUAL
         const isStructural = signal.temporalScope === 'STRUCTURAL';
 
-        const mappedDomains = this.evaluateRules(nawal, isStructural);
+        const mappedDomains = this.evaluateRules(nawal, isStructural, sameNawal, sameTone);
 
         for (const mapping of mappedDomains) {
-            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance));
+            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance, mapping.isPersonalized || isStructural));
         }
 
         return evidence;
     }
 
-    private static evaluateRules(nawal: string, isStructural: boolean): { domain: CanonicalDomain; relevance: DomainRelevanceClass }[] {
-        const results: { domain: CanonicalDomain; relevance: DomainRelevanceClass }[] = [];
+    private static evaluateRules(nawal: string, isStructural: boolean, sameNawal: boolean, sameTone: boolean): { domain: CanonicalDomain; relevance: DomainRelevanceClass; isPersonalized: boolean }[] {
+        const results: { domain: CanonicalDomain; relevance: DomainRelevanceClass; isPersonalized: boolean }[] = [];
         
-        // Base relevance: temporal signals are stronger active evidence than structural background
         const topRelevance: DomainRelevanceClass = isStructural ? 'CONTEXTUAL' : 'PRIMARY';
         const subRelevance: DomainRelevanceClass = isStructural ? 'CONTEXTUAL' : 'SECONDARY';
 
-        // Example proprietary rule matrix mapping for Maya Nawales
+        // Generic rules
         switch (nawal) {
-            case 'batz': // Monkey/Weaver (Creation, Beginnings)
-                results.push({ domain: 'ACTION_INITIATIVE', relevance: topRelevance });
+            case 'batz': 
+                results.push({ domain: 'ACTION_INITIATIVE', relevance: topRelevance, isPersonalized: false });
                 break;
-            case 'e': // Path/Tooth (Journey, Business)
-                results.push({ domain: 'BUSINESS_EXPANSION', relevance: topRelevance });
-                results.push({ domain: 'ACTION_INITIATIVE', relevance: subRelevance });
+            case 'e': 
+                results.push({ domain: 'BUSINESS_EXPANSION', relevance: topRelevance, isPersonalized: false });
+                results.push({ domain: 'ACTION_INITIATIVE', relevance: subRelevance, isPersonalized: false });
                 break;
-            case 'atzqab': // Or whatever the canonical keys are, let's map some general ones
-            case 'iq': // Wind (Communication)
-                results.push({ domain: 'COMMUNICATION_LEARNING', relevance: topRelevance });
+            case 'iq': 
+                results.push({ domain: 'COMMUNICATION_LEARNING', relevance: topRelevance, isPersonalized: false });
                 break;
-            case 'tzikin': // Bird (Vision, Relationships, Wealth)
-                results.push({ domain: 'RELATIONSHIPS_LOVE', relevance: topRelevance });
-                results.push({ domain: 'BUSINESS_EXPANSION', relevance: subRelevance });
+            case 'tzikin': 
+                results.push({ domain: 'RELATIONSHIPS_LOVE', relevance: topRelevance, isPersonalized: false });
+                results.push({ domain: 'BUSINESS_EXPANSION', relevance: subRelevance, isPersonalized: false });
                 break;
-            case 'imox': // Crocodile/Water (Emotions, Introspection)
-                results.push({ domain: 'INTROSPECTION_RECOVERY', relevance: topRelevance });
+            case 'imox': 
+                results.push({ domain: 'INTROSPECTION_RECOVERY', relevance: topRelevance, isPersonalized: false });
                 break;
-            case 'kan': // Snake (Body, Energy)
-                results.push({ domain: 'BODY_REGULATION', relevance: topRelevance });
+            case 'kan': 
+                results.push({ domain: 'BODY_REGULATION', relevance: topRelevance, isPersonalized: false });
                 break;
-            // Add safe fallback for unmapped
         }
 
-        return results;
+        // Relational features add distinct personalized evidence
+        if (sameNawal) {
+            // When your birth nawal returns, it's a powerful personal reset
+            results.push({ domain: 'INTROSPECTION_RECOVERY', relevance: 'PRIMARY', isPersonalized: true });
+        }
+        
+        if (sameTone) {
+            // Tone resonance brings physical/energetic harmony
+            results.push({ domain: 'BODY_REGULATION', relevance: 'SECONDARY', isPersonalized: true });
+        }
+
+        // Deduplicate: same domain + same specificity should collapse
+        const unique = new Map<string, { relevance: DomainRelevanceClass, isPersonalized: boolean }>();
+        const rank = { 'PRIMARY': 3, 'SECONDARY': 2, 'CONTEXTUAL': 1 };
+        
+        for (const res of results) {
+            const key = `${res.domain}::${res.isPersonalized}`;
+            const existing = unique.get(key);
+            if (!existing || rank[res.relevance] > rank[existing.relevance]) {
+                unique.set(key, res);
+            }
+        }
+
+        return Array.from(unique.entries()).map(([key, val]) => {
+            const domain = key.split('::')[0] as CanonicalDomain;
+            return { domain, relevance: val.relevance, isPersonalized: val.isPersonalized };
+        });
     }
 
-    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass): DomainEvidence {
+    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass, isPersonalized: boolean): DomainEvidence {
         const sourceKind: SourceKind = signal.temporalScope === 'STRUCTURAL' ? 'STRUCTURAL_BACKGROUND' : 'SYMBOLIC_SIGNAL';
         
-        const hashInput = `${domain}|${relevance}|${signal.id}|${this.METHODOLOGY}`;
+        // Include isPersonalized in ID to prevent collision between generic and relation evidence
+        const hashInput = `${domain}|${relevance}|${signal.id}|${isPersonalized}|${this.METHODOLOGY}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
         
         return {
@@ -76,6 +100,7 @@ export class MayaProjector {
             sourceId: signal.id,
             direction: signal.direction,
             temporalScope: signal.temporalScope,
+            evidenceSpecificity: isPersonalized ? 'PERSONALIZED' : 'GENERIC',
             methodology: this.METHODOLOGY,
             provenance: {
                 projectionRuleId: 'MAYA_V1_NAWAL_MAPPING'

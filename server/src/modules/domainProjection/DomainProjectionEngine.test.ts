@@ -127,7 +127,6 @@ describe('DomainProjectionEngine (Phase 7.1)', () => {
         };
         const ev = DomainProjectionEngine.project([signal]);
         expect(ev.map(e => e.domain)).toContain('BUSINESS_EXPANSION');
-        expect(ev.map(e => e.domain)).toContain('ACTION_INITIATIVE');
     });
 
     it('11. Contextual rules (Profile, Protocol, Coherence = zero evidence)', () => {
@@ -164,7 +163,7 @@ describe('DomainProjectionEngine (Phase 7.1)', () => {
         expect(ev.length).toBe(0); // None of these project to domains
     });
 
-    it('12. Explicit Context rule (user_stated.business)', () => {
+    it('12. Explicit Context rule (user_stated.business_expansion)', () => {
         const snapshot: PersonalContextSnapshot = {
             subject: { accountId: 'acc', subjectClass: 'ACCOUNT_OWNER' },
             generatedAt: '2026-09-17',
@@ -174,7 +173,7 @@ describe('DomainProjectionEngine (Phase 7.1)', () => {
                 {
                     id: 'ctx_bus', 
                     subject: { accountId: 'acc', subjectClass: 'ACCOUNT_OWNER' },
-                    contextKey: 'user_stated.goal.business', value: 'Negotiate',
+                    contextKey: 'user_stated.goal.business_expansion', value: 'Negotiate',
                     authorityClass: 'USER_STATED', freshness: 'CURRENT', 
                     occurredAt: '2026', observedAt: '2026', validFrom: '2026', validUntil: null,
                     expired: false, provenance: {} as any, reasoningEligible: true
@@ -186,6 +185,7 @@ describe('DomainProjectionEngine (Phase 7.1)', () => {
         expect(ev.length).toBe(1);
         expect(ev[0].domain).toBe('BUSINESS_EXPANSION');
         expect(ev[0].sourceKind).toBe('FACTUAL_CONTEXT');
+        expect(ev[0].evidenceSpecificity).toBe('PERSONALIZED');
     });
 
     it('13. Locale parity (es/en)', () => {
@@ -242,5 +242,85 @@ describe('DomainProjectionEngine (Phase 7.1)', () => {
 
         const ev = DomainProjectionEngine.project([astroSig, numSig, mayaSig, chineseSig]);
         expect(ev.length).toBe(0); // No guessed domains allowed
+    });
+
+    it('17. Astrology aspectType can select rule semantics', () => {
+        const sigNormal = makeAstroSignal('ast-norm', 'Mars', 'Sun');
+        const sigSquare = makeAstroSignal('ast-sq', 'Mars', 'Sun');
+        (sigSquare.payload as any).aspectType = 'Square';
+
+        const evNormal = DomainProjectionEngine.project([sigNormal]);
+        const evSquare = DomainProjectionEngine.project([sigSquare]);
+        
+        // Normal Mars -> ACTION_INITIATIVE
+        expect(evNormal.some(e => e.domain === 'ACTION_INITIATIVE')).toBe(true);
+        expect(evNormal.some(e => e.domain === 'INTROSPECTION_RECOVERY')).toBe(false);
+        
+        // Mars Square -> Also INTROSPECTION_RECOVERY (rest)
+        expect(evSquare.some(e => e.domain === 'INTROSPECTION_RECOVERY')).toBe(true);
+    });
+
+    it('18. Maya and Chinese generic vs personalized relations', () => {
+        // Maya
+        const mayaGen: NaosSignal = {
+            id: 'm-gen', signalType: 'MAYA', subject: 'ACCOUNT_OWNER', timestamp: '2026', temporalScope: 'DAILY',
+            direction: 'NEUTRAL', intensity: null, specificity: null, provenance: {} as any,
+            payload: { nawal: 'e', tone: 1 }
+        };
+        const mayaRel: NaosSignal = {
+            id: 'm-rel', signalType: 'MAYA', subject: 'ACCOUNT_OWNER', timestamp: '2026', temporalScope: 'DAILY',
+            direction: 'NEUTRAL', intensity: null, specificity: null, provenance: {} as any,
+            payload: { nawal: 'e', tone: 1, sameNawal: true }
+        };
+
+        const evMGen = DomainProjectionEngine.project([mayaGen]);
+        const evMRel = DomainProjectionEngine.project([mayaRel]);
+
+        // Generic E generates BUSINESS_EXPANSION/ACTION_INITIATIVE
+        expect(evMGen.some(e => e.evidenceSpecificity === 'PERSONALIZED')).toBe(false);
+        
+        // Relational E generates same (generic) PLUS INTROSPECTION_RECOVERY (personalized)
+        expect(evMRel.some(e => e.evidenceSpecificity === 'PERSONALIZED' && e.domain === 'INTROSPECTION_RECOVERY')).toBe(true);
+
+        // Chinese
+        const chiGen: NaosSignal = {
+            id: 'c-gen', signalType: 'CHINESE', subject: 'ACCOUNT_OWNER', timestamp: '2026', temporalScope: 'ANNUAL',
+            direction: 'NEUTRAL', intensity: null, specificity: null, provenance: {} as any,
+            payload: { animal: 'dragon' }
+        };
+        const chiRel: NaosSignal = {
+            id: 'c-rel', signalType: 'CHINESE', subject: 'ACCOUNT_OWNER', timestamp: '2026', temporalScope: 'ANNUAL',
+            direction: 'NEUTRAL', intensity: null, specificity: null, provenance: {} as any,
+            payload: { animal: 'dragon', sameAnimal: true }
+        };
+
+        const evCGen = DomainProjectionEngine.project([chiGen]);
+        const evCRel = DomainProjectionEngine.project([chiRel]);
+
+        expect(evCGen.some(e => e.evidenceSpecificity === 'PERSONALIZED')).toBe(false);
+        expect(evCRel.some(e => e.evidenceSpecificity === 'PERSONALIZED' && e.domain === 'INTROSPECTION_RECOVERY')).toBe(true);
+    });
+
+    it('19. No duplicate output for semantically identical relation evidence', () => {
+        // If a signal maps the same domain via generic and via relation, they remain separate due to specificity diff.
+        // If multiple relational features yield the same domain/specificity, they collapse.
+        const mayaRel: NaosSignal = {
+            id: 'm-dup', signalType: 'MAYA', subject: 'ACCOUNT_OWNER', timestamp: '2026', temporalScope: 'DAILY',
+            direction: 'NEUTRAL', intensity: null, specificity: null, provenance: {} as any,
+            payload: { nawal: 'imox', sameNawal: true }
+        };
+        // 'imox' generically -> INTROSPECTION_RECOVERY (GENERIC)
+        // sameNawal -> INTROSPECTION_RECOVERY (PERSONALIZED)
+        const ev = DomainProjectionEngine.project([mayaRel]);
+        
+        const introspectionEvs = ev.filter(e => e.domain === 'INTROSPECTION_RECOVERY');
+        // We should get 2: one generic, one personalized.
+        expect(introspectionEvs.length).toBe(2);
+        
+        const generic = introspectionEvs.find(e => e.evidenceSpecificity === 'GENERIC');
+        const personal = introspectionEvs.find(e => e.evidenceSpecificity === 'PERSONALIZED');
+        
+        expect(generic).toBeDefined();
+        expect(personal).toBeDefined();
     });
 });

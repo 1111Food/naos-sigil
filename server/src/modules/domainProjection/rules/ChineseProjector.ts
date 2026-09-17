@@ -11,59 +11,74 @@ export class ChineseProjector {
         const evidence: DomainEvidence[] = [];
         const payload = signal.payload as any;
         const animal = (payload.animal || '').toLowerCase();
+        const sameAnimal = !!payload.sameAnimal;
+        const sameElement = !!payload.sameElement;
         
         const isStructural = signal.temporalScope === 'STRUCTURAL';
-        const mappedDomains = this.evaluateRules(animal, isStructural);
+
+        const mappedDomains = this.evaluateRules(animal, isStructural, sameAnimal, sameElement);
 
         for (const mapping of mappedDomains) {
-            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance));
+            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance, mapping.isPersonalized || isStructural));
         }
 
         return evidence;
     }
 
-    private static evaluateRules(animal: string, isStructural: boolean): { domain: CanonicalDomain; relevance: DomainRelevanceClass }[] {
-        const results: { domain: CanonicalDomain; relevance: DomainRelevanceClass }[] = [];
-        const topRelevance: DomainRelevanceClass = isStructural ? 'CONTEXTUAL' : 'PRIMARY';
+    private static evaluateRules(animal: string, isStructural: boolean, sameAnimal: boolean, sameElement: boolean): { domain: CanonicalDomain; relevance: DomainRelevanceClass; isPersonalized: boolean }[] {
+        const results: { domain: CanonicalDomain; relevance: DomainRelevanceClass; isPersonalized: boolean }[] = [];
         
+        const topRelevance: DomainRelevanceClass = isStructural ? 'CONTEXTUAL' : 'PRIMARY';
+
+        // Generic rules
         switch (animal) {
-            case 'rat':
             case 'dragon':
-            case 'monkey':
-                // Action / Business cluster
-                results.push({ domain: 'ACTION_INITIATIVE', relevance: topRelevance });
-                results.push({ domain: 'BUSINESS_EXPANSION', relevance: topRelevance });
-                break;
-            case 'ox':
-            case 'snake':
-            case 'rooster':
-                // Structure / Introspection / Detail
-                results.push({ domain: 'BUSINESS_EXPANSION', relevance: topRelevance });
-                results.push({ domain: 'INTROSPECTION_RECOVERY', relevance: 'SECONDARY' });
-                break;
             case 'tiger':
             case 'horse':
-            case 'dog':
-                // Action / Communication / Social
-                results.push({ domain: 'ACTION_INITIATIVE', relevance: topRelevance });
-                results.push({ domain: 'COMMUNICATION_LEARNING', relevance: topRelevance });
+                results.push({ domain: 'ACTION_INITIATIVE', relevance: topRelevance, isPersonalized: false });
                 break;
             case 'rabbit':
-            case 'goat':
-            case 'pig':
-                // Relationships / Regulation
-                results.push({ domain: 'RELATIONSHIPS_LOVE', relevance: topRelevance });
-                results.push({ domain: 'BODY_REGULATION', relevance: 'SECONDARY' });
+            case 'sheep':
+                results.push({ domain: 'RELATIONSHIPS_LOVE', relevance: topRelevance, isPersonalized: false });
+                break;
+            case 'rat':
+            case 'monkey':
+                results.push({ domain: 'BUSINESS_EXPANSION', relevance: topRelevance, isPersonalized: false });
                 break;
         }
 
-        return results;
+        // Relational features
+        if (sameAnimal) {
+            // Ben Ming Nian (Zodiac year of birth)
+            results.push({ domain: 'INTROSPECTION_RECOVERY', relevance: 'PRIMARY', isPersonalized: true });
+        }
+        
+        if (sameElement) {
+            // Element resonance
+            results.push({ domain: 'BODY_REGULATION', relevance: 'SECONDARY', isPersonalized: true });
+        }
+
+        const unique = new Map<string, { relevance: DomainRelevanceClass, isPersonalized: boolean }>();
+        const rank = { 'PRIMARY': 3, 'SECONDARY': 2, 'CONTEXTUAL': 1 };
+        
+        for (const res of results) {
+            const key = `${res.domain}::${res.isPersonalized}`;
+            const existing = unique.get(key);
+            if (!existing || rank[res.relevance] > rank[existing.relevance]) {
+                unique.set(key, res);
+            }
+        }
+
+        return Array.from(unique.entries()).map(([key, val]) => {
+            const domain = key.split('::')[0] as CanonicalDomain;
+            return { domain, relevance: val.relevance, isPersonalized: val.isPersonalized };
+        });
     }
 
-    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass): DomainEvidence {
+    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass, isPersonalized: boolean): DomainEvidence {
         const sourceKind: SourceKind = signal.temporalScope === 'STRUCTURAL' ? 'STRUCTURAL_BACKGROUND' : 'SYMBOLIC_SIGNAL';
         
-        const hashInput = `${domain}|${relevance}|${signal.id}|${this.METHODOLOGY}`;
+        const hashInput = `${domain}|${relevance}|${signal.id}|${isPersonalized}|${this.METHODOLOGY}`;
         const idHash = crypto.createHash('sha256').update(hashInput).digest('hex').substring(0, 12);
         
         return {
@@ -75,6 +90,7 @@ export class ChineseProjector {
             sourceId: signal.id,
             direction: signal.direction,
             temporalScope: signal.temporalScope,
+            evidenceSpecificity: isPersonalized ? 'PERSONALIZED' : 'GENERIC',
             methodology: this.METHODOLOGY,
             provenance: {
                 projectionRuleId: 'CHINESE_V1_ANIMAL_MAPPING'

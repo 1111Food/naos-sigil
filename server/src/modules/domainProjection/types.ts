@@ -26,6 +26,8 @@ export interface DomainEvidence {
     direction: string;
     temporalScope: string;
     
+    evidenceSpecificity: 'GENERIC' | 'PERSONALIZED';
+    
     sourceAuthority?: string;
     sourceFreshness?: string;
     

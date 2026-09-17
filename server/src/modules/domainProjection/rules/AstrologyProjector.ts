@@ -12,25 +12,30 @@ export class AstrologyProjector {
         const payload = signal.payload as any;
         const transit = payload.transitPlanet || payload.planet || '';
         const target = payload.natalTarget || '';
+        const aspectType = payload.aspectType || '';
 
         // Example proprietary rule mapping (Backend Only)
-        // We evaluate transit and target to generate deterministic evidence
-        const mappedDomains = this.evaluateRules(transit, target);
+        // We evaluate transit, target and aspect to generate deterministic evidence
+        const mappedDomains = this.evaluateRules(transit, target, aspectType);
 
         for (const mapping of mappedDomains) {
-            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance));
+            evidence.push(this.createEvidence(signal, mapping.domain, mapping.relevance, target !== ''));
         }
 
         return evidence;
     }
 
-    private static evaluateRules(transit: string, target: string): { domain: CanonicalDomain; relevance: DomainRelevanceClass }[] {
+    private static evaluateRules(transit: string, target: string, aspectType: string): { domain: CanonicalDomain; relevance: DomainRelevanceClass }[] {
         const results: { domain: CanonicalDomain; relevance: DomainRelevanceClass }[] = [];
         const bodies = [transit.toLowerCase(), target.toLowerCase()].filter(Boolean);
 
         // Core Recipe - V1 (Server-side deterministic mapping)
         if (bodies.includes('mars')) {
             results.push({ domain: 'ACTION_INITIATIVE', relevance: 'PRIMARY' });
+            // Aspect type modifies meaning
+            if (aspectType.toLowerCase() === 'square' || aspectType.toLowerCase() === 'opposition') {
+                results.push({ domain: 'INTROSPECTION_RECOVERY', relevance: 'CONTEXTUAL' }); // forced rest due to burnout risk
+            }
         }
         if (bodies.includes('venus')) {
             results.push({ domain: 'RELATIONSHIPS_LOVE', relevance: 'PRIMARY' });
@@ -64,7 +69,7 @@ export class AstrologyProjector {
         return Array.from(unique.entries()).map(([domain, relevance]) => ({ domain, relevance }));
     }
 
-    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass): DomainEvidence {
+    private static createEvidence(signal: NaosSignal, domain: CanonicalDomain, relevance: DomainRelevanceClass, isPersonalized: boolean): DomainEvidence {
         const sourceKind: SourceKind = signal.temporalScope === 'STRUCTURAL' ? 'STRUCTURAL_BACKGROUND' : 'SYMBOLIC_SIGNAL';
         
         // Deterministic ID
@@ -80,6 +85,7 @@ export class AstrologyProjector {
             sourceId: signal.id,
             direction: signal.direction,
             temporalScope: signal.temporalScope,
+            evidenceSpecificity: isPersonalized ? 'PERSONALIZED' : 'GENERIC',
             methodology: this.METHODOLOGY,
             provenance: {
                 projectionRuleId: 'ASTRO_V1_BASIC_BODIES' // Internal only
