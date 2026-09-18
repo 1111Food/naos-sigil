@@ -1,5 +1,5 @@
 import fs from 'fs';
-const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2YWlraHVrZ3VndmNvY3dlZHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNTEyNTIsImV4cCI6MjA4MzcyNzI1Mn0.hslPEVgg-gkk3ByYvZGEwFf7B3kdwhwXQipr1D_8ruo";
+const ANON_KEY = process.env.SUPABASE_ANON_KEY || "REDACTED";
 const URL = "https://avaikhukgugvcocwedsz.supabase.co/storage/v1/object/list/tarot-assets";
 
 async function list() {
