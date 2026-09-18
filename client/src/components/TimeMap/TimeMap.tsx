@@ -250,10 +250,10 @@ export const TimeMap: React.FC = () => {
                                             </div>
                                             <h3 className="text-white font-medium mb-2">{t('unlock_timeline', 'Desbloquea tu Línea Temporal')}</h3>
                                             <p className="text-xs text-white/70 mb-4">
-                                                Obtén visibilidad completa de tus próximos 11 meses con el Nivel Arquitecto.
+                                                Obtén visibilidad completa de tus próximos 11 meses con el Nivel {profile?.canonical_archetype?.nombre || 'Arquitecto'}.
                                             </p>
                                             <button className="px-6 py-2 bg-naos-gold text-black text-sm font-semibold rounded-full shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-                                                Subir a Arquitecto
+                                                Subir a {profile?.canonical_archetype?.nombre || 'Arquitecto'}
                                             </button>
                                         </div>
                                     )}

@@ -58,7 +58,7 @@ export const RankingView = ({ onBack, onNavigate }: { onBack: () => void, onNavi
         </div>
     );
 
-    const TIERS = ['Fragmentado', 'Inestable', 'En Construcción', 'En Dominio', 'Arquitecto'];
+    const TIERS = ['Fragmentado', 'Inestable', 'En Construcción', 'En Dominio', profile?.canonical_archetype?.nombre || 'Arquitecto'];
     const maxCount = data ? Math.max(...Object.values(data.community.distribution)) : 10;
 
     return (
@@ -167,7 +167,7 @@ export const RankingView = ({ onBack, onNavigate }: { onBack: () => void, onNavi
                         <p className="text-[10px] uppercase tracking-widest text-white/40">Tu Motor de Alquimia Diaria</p>
                     </div>
                     <p className="text-sm text-white/60 max-w-xs mx-auto leading-relaxed">
-                        Cumplir con tus pilares diarios es la forma más rápida de elevar tu frecuencia SMA-30 y alcanzar el rango de Arquitecto.
+                        Cumplir con tus pilares diarios es la forma más rápida de elevar tu frecuencia SMA-30 y alcanzar el rango de {profile?.canonical_archetype?.nombre || 'Arquitecto'}.
                     </p>
                     <button
                         onClick={() => onNavigate?.('PROTOCOL21')}

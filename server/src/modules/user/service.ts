@@ -11,6 +11,7 @@ import { config } from '../../config/env';
 import { MayanCalculator } from '../../utils/mayaCalculator';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
 import { supabase } from '../../lib/supabase';
+import { ArchetypeEngine } from './archetypeEngine';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const PROFILES_FILE = path.join(DATA_DIR, 'profiles.json');

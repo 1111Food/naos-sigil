@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { getAsyncAuthHeaders, API_BASE_URL, endpoints } from '../lib/api';
 import { supabase } from '../lib/supabase';
+
 import { useAuth } from './AuthContext';
 import { AstrologyEngine } from '../lib/astrologyEngine';
 import { NumerologyEngine } from '../lib/numerologyEngine';
@@ -68,6 +70,7 @@ export interface UserProfile {
     plan_type?: 'free' | 'premium' | 'admin';
     naosIdentityCode?: any;
     active_sub_profile_id?: string;
+    canonical_archetype?: any;
     sub_profiles?: any[];
     consciousness_level?: string;
     consciousness_points?: number;
@@ -235,7 +238,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }, [user?.id, authLoading, profile?.id, refreshProfile]);
 
-    const updateProfile = useCallback(async (data: Partial<UserProfile>) => {
+        const updateProfile = useCallback(async (data: Partial<UserProfile>) => {
         if (!user) return;
 
         try {
@@ -243,51 +246,38 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
             // DEMO BYPASS
             if (user.id === DEMO_USER_ID) {
-                // Update in memory using functional state update to completely avoid closure bugs
                 setProfile(prev => {
                     const baseProfile = prev || DEMO_PROFILE;
                     return { ...baseProfile, ...data } as UserProfile;
                 });
-                return undefined as any; // return is not critical for timezone effect
+                return undefined as any;
             }
 
-            const payload: any = {
-                id: user.id,
-                updated_at: new Date().toISOString(),
-                ...data
-            };
+            // Route update through secure backend API
+            const headers = await getAsyncAuthHeaders('PUT');
+            const response = await fetch(endpoints.profile, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(data)
+            });
 
-            // Explicitly handle complex objects and field mapping
-            if (data.name) payload.full_name = data.name;
-            if ((data as any).birthDate) payload.birth_date = (data as any).birthDate;
-            if ((data as any).birthTime) payload.birth_time = (data as any).birthTime;
-            if ((data as any).birthCity) payload.birth_city = (data as any).birthCity;
-            if (data.astrology) payload.astrology = data.astrology;
-            if (data.numerology) payload.numerology = data.numerology;
-            if (data.mayan) payload.mayan = data.mayan;
-            if (data.fengShui) payload.fengShui = data.fengShui;
-            if (data.onboarding_completed !== undefined) payload.onboarding_completed = data.onboarding_completed;
-
-            // Delete camelCase keys spread from frontend to prevent PostgREST 400 errors
-            delete payload.name;
-            delete payload.birthDate;
-            delete payload.birthTime;
-            delete payload.birthCity;
-            delete payload.birthCountry;
-            delete payload.birthDepartment;
-
-            const { data: updated, error } = await supabase
-                .from('profiles')
-                .upsert(payload)
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            if (updated) {
-                const newProfile = mapProfileData(updated, user.email);
-                setProfile(newProfile);
-                return newProfile;
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error('API Update failed with status: ' + response.status + ' ' + text);
+            }
+            
+            const updatedProfile = await response.json();
+            
+            if (updatedProfile) {
+                setProfile(updatedProfile);
+                
+                // Clear all cached synthesis so Identity View recalculates
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('naos_identity_synthesis')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                return updatedProfile;
             }
         } catch (err) {
             console.error("Context: Update failed", err);

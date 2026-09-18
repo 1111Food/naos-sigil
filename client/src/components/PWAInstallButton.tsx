@@ -22,6 +22,15 @@ export function PWAInstallButton() {
             setIsStandalone(true);
         }
 
+        // 1.5. Detect if installed via getInstalledRelatedApps
+        if ('getInstalledRelatedApps' in navigator) {
+            (navigator as any).getInstalledRelatedApps().then((relatedApps: any[]) => {
+                if (relatedApps.length > 0) {
+                    setIsInstalled(true);
+                }
+            });
+        }
+
         // Detect platform
         const ua = window.navigator.userAgent;
         setIsIOS(/iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream);

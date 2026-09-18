@@ -19,7 +19,7 @@ interface OnboardingFormProps {
 export const OnboardingForm: React.FC<OnboardingFormProps> = ({ onComplete }) => {
     const { t, language } = useTranslation();
     const { user } = useAuth();
-    const { profile, refreshProfile } = useProfile();
+    const { profile, refreshProfile, updateProfile } = useProfile();
     const [isEditing, setIsEditing] = useState(false);
     const [view, setView] = useState<'THRESHOLD' | 'MANIFESTO' | 'CONSOLE'>('THRESHOLD');
     const [loading, setLoading] = useState(false);

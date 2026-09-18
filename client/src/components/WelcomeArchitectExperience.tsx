@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '../i18n';
+import { useProfile } from '../hooks/useProfile';
 import { useSound } from '../hooks/useSound';
 import { Play, Sparkles, Zap, Map, Beaker, Eye } from 'lucide-react';
 
@@ -11,6 +12,7 @@ interface WelcomeArchitectExperienceProps {
 export const WelcomeArchitectExperience: React.FC<WelcomeArchitectExperienceProps> = ({ onComplete }) => {
     const [step, setStep] = useState(0);
     const { t, language } = useTranslation();
+    const { profile } = useProfile();
     const { playSound } = useSound();
     const isEn = language === 'en';
 
@@ -25,8 +27,8 @@ export const WelcomeArchitectExperience: React.FC<WelcomeArchitectExperienceProp
 
     const steps = [
         {
-            eyebrow: isEn ? "NAOS ARCHITECT" : "NAOS ARQUITECTO",
-            headline: isEn ? "WELCOME, ARCHITECT" : "BIENVENIDO,\nARQUITECTO",
+            eyebrow: isEn ? `NAOS ${profile?.canonical_archetype?.nombre_en?.toUpperCase() || "ARCHITECT"}` : `NAOS ${profile?.canonical_archetype?.nombre?.toUpperCase() || "ARQUITECTO"}`,
+            headline: isEn ? `WELCOME, ${profile?.canonical_archetype?.nombre_en?.toUpperCase() || "ARCHITECT"}` : `BIENVENIDO,\n${profile?.canonical_archetype?.nombre?.toUpperCase() || "ARQUITECTO"}`,
             body: isEn 
                 ? "Your system has just expanded.\n\nNAOS can now guide you with greater depth, broader context, and new ways to explore your patterns." 
                 : "Tu sistema acaba de expandirse.\n\nNAOS ahora puede acompañarte con más profundidad, más contexto y más formas de explorar tus patrones.",
@@ -66,7 +68,7 @@ export const WelcomeArchitectExperience: React.FC<WelcomeArchitectExperienceProp
         },
         {
             eyebrow: "SYSTEM EXPANDED",
-            headline: isEn ? "NAOS ARCHITECT\nIS ACTIVE" : "NAOS ARQUITECTO\nESTÁ ACTIVO",
+            headline: isEn ? `NAOS ${profile?.canonical_archetype?.nombre_en?.toUpperCase() || "ARCHITECT"}\nIS ACTIVE` : `NAOS ${profile?.canonical_archetype?.nombre?.toUpperCase() || "ARQUITECTO"}\nESTÁ ACTIVO`,
             body: isEn 
                 ? "Your identity was only the beginning.\n\nNow you can work with time, connections, memory, and context." 
                 : "Tu identidad era el comienzo.\n\nAhora puedes trabajar con el tiempo, los vínculos, la memoria y el contexto.",

@@ -1,6 +1,6 @@
 export class DateUtils {
     /**
-     * Resolves the canonical current IANA timezone of the user, falling back to offset arithmetic if missing.
+     * Resolves the canonical current IANA timezone of the user, falling back to UTC if missing.
      */
     static getCurrentTimezoneIana(profile: any): string | null {
         if (!profile) return null;
@@ -8,19 +8,21 @@ export class DateUtils {
         if (profileData.timezone_iana) {
             return profileData.timezone_iana;
         }
-        return null;
+        return null; // Explicit fallback
     }
 
     /**
      * Resolves the canonical current timezone offset of the user.
+     * Only uses profile_data.timezone_offset (which is the browser offset).
+     * Does NOT use astrology.timezone_offset which is the birth location offset!
      */
     static getCurrentTimezoneOffset(profile: any): number {
         if (!profile) return 0;
         const profileData = profile.profile_data || {};
-        const astroData = profile.astrology || {};
-        if (profileData.timezone_offset !== undefined && profileData.timezone_offset !== null) return profileData.timezone_offset;
-        if (astroData.timezone_offset !== undefined && astroData.timezone_offset !== null) return astroData.timezone_offset;
-        return 0; 
+        if (profileData.timezone_offset !== undefined && profileData.timezone_offset !== null) {
+            return profileData.timezone_offset;
+        }
+        return 0; // Default to UTC if completely missing
     }
 
     /**
@@ -29,18 +31,19 @@ export class DateUtils {
     static getUserLocalDate(profile: any, now: Date = new Date()): string {
         const iana = this.getCurrentTimezoneIana(profile);
         if (iana) {
-            // Use Intl for DST-safe formatting
-            const formatter = new Intl.DateTimeFormat('en-CA', { // en-CA gives YYYY-MM-DD
-                timeZone: iana,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            });
-            // Some environments return 'YYYY-MM-DD', others 'YYYY/MM/DD', so replace slashes just in case
-            return formatter.format(now).replace(/\//g, '-');
+            try {
+                const formatter = new Intl.DateTimeFormat('en-CA', { 
+                    timeZone: iana,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                return formatter.format(now).replace(/\//g, '-');
+            } catch (e) {
+                // If IANA is invalid, fall through to UTC
+            }
         }
 
-        // Fallback to offset arithmetic
         const offset = this.getCurrentTimezoneOffset(profile);
         const localTimeMs = now.getTime() + (offset * 3600000);
         const localDate = new Date(localTimeMs);
@@ -56,18 +59,18 @@ export class DateUtils {
     static getUserLocalHour(profile: any, now: Date = new Date()): number {
         const iana = this.getCurrentTimezoneIana(profile);
         if (iana) {
-            const formatter = new Intl.DateTimeFormat('en-US', {
-                timeZone: iana,
-                hour: 'numeric',
-                hour12: false
-            });
-            let hourStr = formatter.format(now);
-            // Handle '24' edge case for midnight in some Intl implementations
-            if (hourStr === '24') hourStr = '0';
-            return parseInt(hourStr, 10);
+            try {
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: iana,
+                    hour: 'numeric',
+                    hour12: false
+                });
+                let hourStr = formatter.format(now);
+                if (hourStr === '24') hourStr = '0';
+                return parseInt(hourStr, 10);
+            } catch(e) {}
         }
         
-        // Fallback
         const offset = this.getCurrentTimezoneOffset(profile);
         const localTimeMs = now.getTime() + (offset * 3600000);
         return new Date(localTimeMs).getUTCHours();
