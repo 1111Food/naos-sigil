@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Smartphone, Share, PlusSquare, X, Monitor, ChevronRight } from 'lucide-react';
 import { trackEvent } from '../lib/analytics';
 import { useTranslation } from '../i18n';
@@ -81,19 +81,19 @@ export function PWAInstallButton() {
 
     const t = {
         es: {
-            installApp: 'Descargar aplicaciÃ³n',
+            installApp: 'Descargar aplicación',
             installNAOS: 'Instalar NAOS',
             close: 'Cerrar',
             iosTitle: 'Instalar en iPhone / iPad',
             iosStep1: 'Abre NAOS en Safari.',
-            iosStep2: 'Toca el Ã­cono Compartir',
-            iosStep3: 'Selecciona "AÃ±adir a pantalla de inicio".',
-            iosStep4: 'Confirma con "AÃ±adir".',
+            iosStep2: 'Toca el ícono Compartir',
+            iosStep3: 'Selecciona "Añadir a pantalla de inicio".',
+            iosStep4: 'Confirma con "Añadir".',
             androidTitle: 'Instalar en Android',
-            androidDesc: 'Toca el menÃº de opciones (tres puntos) en tu navegador y selecciona "Instalar aplicaciÃ³n" o "AÃ±adir a pantalla de inicio".',
+            androidDesc: 'Toca el menú de opciones (tres puntos) en tu navegador y selecciona "Instalar aplicación" o "Añadir a pantalla de inicio".',
             desktopTitle: 'Instalar en Computadora',
-            desktopDesc: 'Haz clic en el Ã­cono de instalaciÃ³n en la barra de direcciones de Chrome, Edge o Safari, o usa el menÃº del navegador.',
-            genericDesc: 'AÃ±ade NAOS a tu pantalla de inicio desde el menÃº de opciones de tu navegador web para la mejor experiencia.',
+            desktopDesc: 'Haz clic en el ícono de instalación en la barra de direcciones de Chrome, Edge o Safari, o usa el menú del navegador.',
+            genericDesc: 'Añade NAOS a tu pantalla de inicio desde el menú de opciones de tu navegador web para la mejor experiencia.',
         },
         en: {
             installApp: 'Install NAOS',
@@ -110,7 +110,7 @@ export function PWAInstallButton() {
             desktopDesc: 'Click the install icon in the address bar of Chrome, Edge, or Safari, or use the browser menu.',
             genericDesc: 'Add NAOS to your home screen from your web browser options menu for the best experience.',
         }
-    }[language] || { es: { installApp: 'Descargar aplicaciÃ³n', installNAOS: 'Instalar NAOS', close: 'Cerrar', iosTitle: 'Instalar en iPhone / iPad', iosStep1: 'Abre NAOS en Safari.', iosStep2: 'Toca el Ã­cono Compartir', iosStep3: 'Selecciona "AÃ±adir a pantalla de inicio".', iosStep4: 'Confirma con "AÃ±adir".', androidTitle: 'Instalar en Android', androidDesc: 'Toca el menÃº de opciones (tres puntos) en tu navegador y selecciona "Instalar aplicaciÃ³n" o "AÃ±adir a pantalla de inicio".', desktopTitle: 'Instalar en Computadora', desktopDesc: 'Haz clic en el Ã­cono de instalaciÃ³n en la barra de direcciones de Chrome, Edge o Safari, o usa el menÃº del navegador.', genericDesc: 'AÃ±ade NAOS a tu pantalla de inicio desde el menÃº de opciones de tu navegador web para la mejor experiencia.' } }.es; // Default to ES
+    }[language] || { es: { installApp: 'Descargar aplicación', installNAOS: 'Instalar NAOS', close: 'Cerrar', iosTitle: 'Instalar en iPhone / iPad', iosStep1: 'Abre NAOS en Safari.', iosStep2: 'Toca el ícono Compartir', iosStep3: 'Selecciona "Añadir a pantalla de inicio".', iosStep4: 'Confirma con "Añadir".', androidTitle: 'Instalar en Android', androidDesc: 'Toca el menú de opciones (tres puntos) en tu navegador y selecciona "Instalar aplicación" o "Añadir a pantalla de inicio".', desktopTitle: 'Instalar en Computadora', desktopDesc: 'Haz clic en el ícono de instalación en la barra de direcciones de Chrome, Edge o Safari, o usa el menú del navegador.', genericDesc: 'Añade NAOS a tu pantalla de inicio desde el menú de opciones de tu navegador web para la mejor experiencia.' } }.es; // Default to ES
 
     return (
         <>
@@ -124,7 +124,7 @@ export function PWAInstallButton() {
             </button>
 
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="relative w-full max-w-sm glass border border-white/10 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-300">
                         <button 
                             onClick={() => { setShowModal(false); trackEvent('install_dismissed'); }}

@@ -647,7 +647,7 @@ function App() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-cyan-950/90 border border-cyan-500/50 text-cyan-50 px-6 py-3 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-3"
+                  className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] pointer-events-none bg-cyan-950/90 border border-cyan-500/50 text-cyan-50 px-6 py-3 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-3"
                 >
                   <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
                   <span className="text-[10px] uppercase tracking-widest font-bold">{t('sintonizando_eter') || 'Despertando el Templo...'}</span>
