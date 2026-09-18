@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { createClient } from '@supabase/supabase-js';
 import { config } from '../config/env';
+import { sendProactiveMessage } from '../modules/sigil/telegramService';
 
 export async function adminRoutes(app: FastifyInstance) {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || config.SUPABASE_ANON_KEY || '';
@@ -23,6 +24,59 @@ export async function adminRoutes(app: FastifyInstance) {
         }
     };
 
+    // Create user via invitation
+    app.post<{ Body: { email: string, name: string } }>('/api/admin/users', { preHandler: [requireAdmin] }, async (req, reply) => {
+        const { email, name } = req.body;
+        try {
+            if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                return reply.status(400).send({ error: "Falta SUPABASE_SERVICE_ROLE_KEY en el servidor." });
+            }
+
+            // Send invite via Supabase Auth
+            const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+                data: { full_name: name, plan_type: 'free' },
+                redirectTo: 'https://naos-os.com/auth/callback'
+            });
+
+            if (error) throw error;
+            
+            // Note: Supabase will create the auth.users record. The trigger will create the profiles record.
+            return { success: true, user: data.user };
+        } catch (err: any) {
+             return reply.status(500).send({ error: err.message });
+        }
+    });
+
+    app.post('/api/admin/telegram-test', { preHandler: [requireAdmin] }, async (req, reply) => {
+        try {
+            const authHeader = req.headers.authorization;
+            const token = authHeader!.replace('Bearer ', '');
+            const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+            
+            if (user?.email !== 'luisalfredoherreramendez@gmail.com') {
+                return reply.status(403).send({ error: "Only the founder can send test messages." });
+            }
+
+            const { data: profile } = await supabaseAdmin.from('profiles').select('telegram_chat_id').eq('id', user.id).single();
+            if (!profile?.telegram_chat_id) {
+                return reply.status(400).send({ error: "No tienes Telegram vinculado." });
+            }
+
+            const success = await sendProactiveMessage(
+                profile.telegram_chat_id, 
+                "Prueba Operacional NAOS. Enlace de Telegram activo. (Este mensaje fue disparado desde el Panel de Administración)"
+            );
+
+            if (success) {
+                return { success: true };
+            } else {
+                return reply.status(500).send({ error: "Error enviando el mensaje a Telegram." });
+            }
+        } catch (err: any) {
+             return reply.status(500).send({ error: err.message });
+        }
+    });
+
     app.get('/api/admin/users', { preHandler: [requireAdmin] }, async (req, reply) => {
         try {
             const { data: profiles, error } = await supabaseAdmin.from('profiles').select('id, email, full_name, plan_type, created_at, updated_at');
@@ -44,6 +98,11 @@ export async function adminRoutes(app: FastifyInstance) {
                 return reply.status(400).send({ error: "Falta SUPABASE_SERVICE_ROLE_KEY en el servidor." });
             }
 
+            // Protect Founder from demotion
+            if (email === 'luisalfredoherreramendez@gmail.com' && role !== 'admin') {
+                return reply.status(403).send({ error: "Cannot demote the Founder." });
+            }
+
             const { error } = await supabaseAdmin.from('profiles').update({ plan_type: role }).eq('email', email);
             if (error) throw error;
             return { success: true };
@@ -57,6 +116,12 @@ export async function adminRoutes(app: FastifyInstance) {
         try {
             if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
                 return reply.status(400).send({ error: "Necesito tu Llave Maestra (Service Role Key) en el .env del servidor para borrar identidades de Supabase." });
+            }
+
+            // Protect Founder
+            const { data: userToDelete } = await supabaseAdmin.auth.admin.getUserById(id);
+            if (userToDelete?.user?.email === 'luisalfredoherreramendez@gmail.com') {
+                return reply.status(403).send({ error: "Cannot delete the Founder." });
             }
 
             const { error } = await supabaseAdmin.auth.admin.deleteUser(id);

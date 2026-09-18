@@ -100,9 +100,31 @@ export class UserService {
                     }
                     : (baseProfile.subscription || { plan: 'FREE', features: ['basic_chat'] });
 
+                const resolvedAstrology = activeSub?.astrology || data.astrology || data.natal_chart || baseProfile.astrology || undefined;
+                const resolvedNumerology = activeSub?.numerology || baseProfile.numerology || undefined;
+                const resolvedMayan = activeSub?.mayan || baseProfile.mayan || undefined;
+                const resolvedChinese = {
+                     animal: activeSub?.chinese_animal || baseProfile.chinese_animal,
+                     element: activeSub?.chinese_element || baseProfile.chinese_element,
+                     birthYear: activeSub?.chinese_birth_year || baseProfile.chinese_birth_year
+                };
+
+                let canonicalArchetype = undefined;
+                if (resolvedAstrology && resolvedNumerology && resolvedMayan) {
+                     canonicalArchetype = ArchetypeEngine.calculate({
+                         astrology: resolvedAstrology,
+                         numerology: resolvedNumerology,
+                         mayan: resolvedMayan,
+                         chinese_animal: resolvedChinese?.animal,
+                         chinese_element: resolvedChinese?.element,
+                         chinese_birth_year: resolvedChinese?.birthYear
+                     });
+                }
+
                 const dbProfile: UserProfile = {
                     ...baseProfile,
                     id: data.id,
+                    canonical_archetype: canonicalArchetype as any,
                     name: activeSub?.name || data.full_name || data.name || baseProfile.name || 'Viajero cosmico',
                     guardian_notes: data.guardian_notes || baseProfile.guardian_notes || undefined,
                     birthDate: activeSub?.birthDate || data.birth_date || baseProfile.birthDate || '',

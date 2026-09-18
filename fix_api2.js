@@ -1,14 +1,6 @@
 const fs = require('fs');
 let content = fs.readFileSync('server/src/routes/api.ts', 'utf8');
 
-const search = `            // Return readingData directly so frontend FrecuenciaDiaData matches, but add localDate
-            const finalData = {
-                ...readingData,
-                localDate: v2Payload.localDate // Pass canonical date
-            };
-
-            return { status: 'ok', data: finalData };`;
-
 const replacement = `            // Return readingData directly so frontend FrecuenciaDiaData matches, but add localDate
             
             // --- INJECT VIGÍA CÓSMICO IN-APP ---
@@ -23,7 +15,7 @@ const replacement = `            // Return readingData directly so frontend Frec
 
             if (currentMoment) {
                 // Generates if missing, returns null if already generated. We fetch it next anyway.
-                await ConsciousnessEngine.trySendTransmission(userId, v2Payload.localDate, currentMoment, lang).catch((e: any) => console.error("ConsciousnessEngine Error:", e));
+                await ConsciousnessEngine.trySendTransmission(userId, v2Payload.localDate, currentMoment, lang).catch((e) => console.error("ConsciousnessEngine Error:", e));
             }
             
             // Fetch today's transmissions to surface in-app
@@ -41,10 +33,7 @@ const replacement = `            // Return readingData directly so frontend Frec
 
             return { status: 'ok', data: finalData };`;
 
-if (content.includes(search)) {
-    content = content.replace(search, replacement);
-    fs.writeFileSync('server/src/routes/api.ts', content);
-    console.log("Success");
-} else {
-    console.log("Search string not found!");
-}
+const rx = /\/\/ Return readingData directly so frontend FrecuenciaDiaData matches[\s\S]*return \{ status: 'ok', data: finalData \};/;
+
+content = content.replace(rx, replacement);
+fs.writeFileSync('server/src/routes/api.ts', content);

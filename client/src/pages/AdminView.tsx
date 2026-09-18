@@ -22,6 +22,12 @@ export function AdminView() {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [updating, setUpdating] = useState<string | null>(null);
     const [isDemoEnabled, setIsDemoEnabled] = useState<boolean>(false);
+    const [isTestingTelegram, setIsTestingTelegram] = useState(false);
+    
+    // New User State
+    const [isCreatingUser, setIsCreatingUser] = useState(false);
+    const [newUserName, setNewUserName] = useState('');
+    const [newUserEmail, setNewUserEmail] = useState('');
 
     useEffect(() => {
         // Fetch current demo mode status

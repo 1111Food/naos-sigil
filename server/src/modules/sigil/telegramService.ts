@@ -205,6 +205,21 @@ export const initTelegramBot = () => {
 }
 
 export const sendProactiveMessage = async (telegramChatId: string, message: string, button?: { label: string; url: string }): Promise<boolean> => {
+    // GUARD: Development safety
+    if (!config.TELEGRAM_RUNTIME_ENABLED && !config.TELEGRAM_TEST_MODE) {
+        console.log(`[TELEGRAM_GUARD] Suppressed message to ${telegramChatId}: ${message.substring(0, 50)}...`);
+        return true;
+    }
+
+    if (config.TELEGRAM_TEST_MODE) {
+        // In test mode, we must verify this telegramChatId belongs to the TELEGRAM_TEST_USER_ID (Founder)
+        const { data: userLink } = await supabase.from('profiles').select('telegram_chat_id').eq('id', config.TELEGRAM_TEST_USER_ID).single();
+        if (!userLink || userLink.telegram_chat_id !== telegramChatId) {
+            console.log(`[TELEGRAM_TEST_GUARD] Suppressed message to ${telegramChatId}, not the founder.`);
+            return true;
+        }
+    }
+
     if (!bot && config.TELEGRAM_BOT_TOKEN) initTelegramBot();
     if (!bot) return false;
     try {
@@ -223,6 +238,20 @@ export const sendProactiveMessage = async (telegramChatId: string, message: stri
 }
 
 export const sendProactiveVoice = async (telegramChatId: string, audioBuffer: Buffer, message?: string): Promise<boolean> => {
+    // GUARD: Development safety
+    if (!config.TELEGRAM_RUNTIME_ENABLED && !config.TELEGRAM_TEST_MODE) {
+        console.log(`[TELEGRAM_GUARD] Suppressed voice to ${telegramChatId}`);
+        return true;
+    }
+
+    if (config.TELEGRAM_TEST_MODE) {
+        const { data: userLink } = await supabase.from('profiles').select('telegram_chat_id').eq('id', config.TELEGRAM_TEST_USER_ID).single();
+        if (!userLink || userLink.telegram_chat_id !== telegramChatId) {
+            console.log(`[TELEGRAM_TEST_GUARD] Suppressed voice to ${telegramChatId}, not the founder.`);
+            return true;
+        }
+    }
+
     if (!bot && config.TELEGRAM_BOT_TOKEN) initTelegramBot();
     if (!bot) return false;
     try {

@@ -32,6 +32,7 @@ export interface SubProfile {
 }
 
 export interface UserProfile {
+    canonical_archetype?: any;
     id: string;
     name: string;
     nickname?: string;

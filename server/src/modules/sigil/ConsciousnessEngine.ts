@@ -2,6 +2,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CONSCIOUSNESS_PROMPTS } from './ConsciousnessPrompts';
 import { config } from '../../config/env';
+import { UserService } from '../user/service';
 import { DailyContextOrchestrator } from '../daily/DailyContextOrchestrator';
 
 export type TransmissionMoment = 'MORNING' | 'EVENING';
@@ -12,21 +13,16 @@ export class ConsciousnessEngine {
     /**
      * Generates a daily transmission crossing user's deep data with today's energy
      */
-    static async generateTransmission(userId: string, moment: TransmissionMoment, lang: 'es' | 'en' = 'es'): Promise<string> {
+    static async generateTransmission(userId: string, moment: TransmissionMoment, lang: 'es' | 'en' = 'es'): Promise<{text: string, arch: string}> {
         console.log(`[CONSCIOUSNESS_ENGINE] Generating ${moment} for ${userId}`);
         
         // 1. Fetch user data (basic + astrology + metrics)
-        const { data: userProfile } = await supabase
-            .from('profiles')
-            .select('id, full_name, nickname, profile_data, astrology, language')
-            .eq('id', userId)
-            .single();
-            
+        const userProfile = await UserService.getProfile(userId);
         if (!userProfile) throw new Error("User not found");
         
         const isEn = lang === 'en';
-        const name = userProfile.nickname || userProfile.full_name || 'Arquitecto';
-        const arch = userProfile.profile_data?.archetype || (isEn ? 'Architect' : 'Arquitecto');
+        const name = userProfile.nickname || userProfile.name || 'Arquitecto';
+        const arch = userProfile.canonical_archetype?.nombre || (isEn ? 'Architect' : 'Arquitecto');
 
         // 2. Fetch Canonical Daily Context (V2Payload)
         const offset = 0; // Default offset
@@ -64,7 +60,7 @@ export class ConsciousnessEngine {
         const json = await response.json();
         const text = json.candidates[0].content.parts[0].text;
         
-        return text;
+        return { text, arch };
     }
 
     /**
@@ -86,7 +82,7 @@ export class ConsciousnessEngine {
         }
 
         // Generate it
-        const transmissionText = await this.generateTransmission(userId, moment, lang);
+        const { text: transmissionText, arch: archetypeUsed } = await this.generateTransmission(userId, moment, lang);
 
         // Save it to DB
         await supabase
@@ -97,7 +93,11 @@ export class ConsciousnessEngine {
                 moment: moment,
                 transmission: transmissionText,
                 was_sent: true,
-                sent_at: new Date().toISOString()
+                sent_at: new Date().toISOString(),
+                archetype_used: archetypeUsed,
+                delivery_channel: 'telegram',
+                scheduler_runtime_version: 'v3',
+                canonical_daily_context_version: 'v2_daily_context'
             }, { onConflict: 'user_id,date,moment' });
             
         return transmissionText;
