@@ -56,7 +56,7 @@ CREATE TABLE public.deep_interpretations (
 -- Concurrency / Duplicate Prevention Constraint
 -- A user can only have ONE successful/generating interpretation for a specific key + fingerprint + methodology + cycle
 CREATE UNIQUE INDEX idx_unique_deep_interpretation 
-ON public.deep_interpretations(user_id, interpretation_key, source_fingerprint, locale, methodology_version, usage_cycle_period);
+ON public.deep_interpretations(user_id, interpretation_key, source_fingerprint, locale, methodology_version);
 
 ALTER TABLE public.deep_interpretations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can read own interpretations" ON public.deep_interpretations FOR SELECT USING (auth.uid() = user_id);

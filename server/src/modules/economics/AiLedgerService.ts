@@ -23,21 +23,15 @@ export class AiLedgerService {
     private static supabaseAdmin = createClient(config.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
 
     static getUsageCycle(profile: any): string {
-        // Simple usage cycle definition: YYYY-MM for simplicity,
-        // unless they are on a specific active subscription period.
-        if (profile?.current_period_end) {
-            const endDate = new Date(profile.current_period_end);
-            return `sub_cycle_${endDate.getUTCFullYear()}_${endDate.getUTCMonth() + 1}`;
-        }
-        
-        // Trial/Test/Owner fallback
-        const now = new Date();
-        return `cal_${now.getUTCFullYear()}_${now.getUTCMonth() + 1}`;
+        // BETA FIXED CREDIT MODEL:
+        // No auto-renewal, no billing period reset, no calendar month reset.
+        // Future subscription-cycle economics (Paddle) will add dynamic logic here.
+        return 'beta_fixed';
     }
 
     static async checkBudget(userId: string, profile: any): Promise<{ allowed: boolean, reason?: string, isOwner: boolean }> {
         // 1. Owner check
-        const isOwner = (profile?.system_role === 'owner' || profile?.system_role === 'admin' || profile?.plan_type === 'admin');
+        const isOwner = (profile?.system_role === 'owner' || profile?.system_role === 'admin');
         if (isOwner) {
             return { allowed: true, isOwner: true }; // Unlimited internal budget
         }

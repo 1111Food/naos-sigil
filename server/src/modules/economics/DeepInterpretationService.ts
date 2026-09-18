@@ -25,7 +25,7 @@ export class DeepInterpretationService {
         generator: () => Promise<{ content: string; inputTokens: number; outputTokens: number; model: string }>
     ): Promise<{ content: string; fromCache: boolean; cost?: any }> {
         const fingerprint = this.calculateFingerprint(query.canonicalData);
-        const uniqueKey = `${query.userId}:${query.interpretationKey}:${fingerprint}:${query.locale}:${query.methodologyVersion}:${query.usageCyclePeriod}`;
+        const uniqueKey = `${query.userId}:${query.interpretationKey}:${fingerprint}:${query.locale}:${query.methodologyVersion}`;
 
         // 1. Check in-memory deduplication
         if (this.inProgress.has(uniqueKey)) {
@@ -44,7 +44,6 @@ export class DeepInterpretationService {
                 .eq('source_fingerprint', fingerprint)
                 .eq('locale', query.locale)
                 .eq('methodology_version', query.methodologyVersion)
-                .eq('usage_cycle_period', query.usageCyclePeriod)
                 .single();
 
             if (!error && existing && existing.status === 'READY') {
@@ -68,7 +67,7 @@ export class DeepInterpretationService {
                     methodology_version: query.methodologyVersion,
                     usage_cycle_period: query.usageCyclePeriod,
                     status: 'GENERATING'
-                }, { onConflict: 'user_id, interpretation_key, source_fingerprint, locale, methodology_version, usage_cycle_period' });
+                }, { onConflict: 'user_id, interpretation_key, source_fingerprint, locale, methodology_version' });
             } catch (e) {}
 
             try {
@@ -88,7 +87,7 @@ export class DeepInterpretationService {
                         content: result.content,
                         model_metadata: { model: result.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens },
                         updated_at: new Date().toISOString()
-                    }, { onConflict: 'user_id, interpretation_key, source_fingerprint, locale, methodology_version, usage_cycle_period' });
+                    }, { onConflict: 'user_id, interpretation_key, source_fingerprint, locale, methodology_version' });
                 } catch (e) {}
                 
                 return result;
@@ -105,7 +104,7 @@ export class DeepInterpretationService {
                         usage_cycle_period: query.usageCyclePeriod,
                         status: 'FAILED',
                         updated_at: new Date().toISOString()
-                    }, { onConflict: 'user_id, interpretation_key, source_fingerprint, locale, methodology_version, usage_cycle_period' });
+                    }, { onConflict: 'user_id, interpretation_key, source_fingerprint, locale, methodology_version' });
                 } catch (e) {}
                 throw error;
             }
