@@ -23,7 +23,7 @@ export class DailyContextOrchestrator {
     ): Promise<V2Payload> {
         
         const { DateUtils } = require('../../utils/DateUtils');
-        const localDate = DateUtils.getUserLocalDate(currentTimezoneOffset, now);
+        const localDate = DateUtils.getUserLocalDate(fullProfile, now);
 
         const cacheKey = `daily_${userId}_${localDate}_${language}_v2_daily_context_v1`;
 

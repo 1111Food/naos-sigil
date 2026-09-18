@@ -206,7 +206,7 @@ export async function apiRoutes(app: FastifyInstance) {
             const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
             
             const { DailyContextOrchestrator } = require('../modules/daily/DailyContextOrchestrator');
-            const v2Payload = await DailyContextOrchestrator.getDailySnapshot(userId, currentTimezoneOffset, lang);
+            const v2Payload = await DailyContextOrchestrator.getDailySnapshot(userId, fullProfile, lang);
             
             if (!v2Payload) return reply.status(404).send({ exists: false, needsGeneration: true });
 
@@ -670,7 +670,7 @@ export async function apiRoutes(app: FastifyInstance) {
             const { DateUtils } = require('../utils/DateUtils');
             
             const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
-            const serverLocalDate = DateUtils.getUserLocalDate(currentTimezoneOffset);
+            const serverLocalDate = DateUtils.getUserLocalDate(fullProfile);
             
             return await ProtocolService.sealDay(userId, protocolId, dayNumber, notes, token, serverLocalDate);
         } catch (e: any) {
@@ -768,8 +768,7 @@ export async function apiRoutes(app: FastifyInstance) {
             // --- INJECT VIGÍA CÓSMICO IN-APP ---
             const { ConsciousnessEngine } = require('../modules/sigil/ConsciousnessEngine');
             const now = new Date();
-            const userLocal = new Date(now.getTime() + (3600000 * currentTimezoneOffset));
-            const userHours = userLocal.getUTCHours();
+            const userHours = DateUtils.getUserLocalHour(fullProfile, now);
             
             let currentMoment = null;
             if (userHours >= 6 && userHours < 18) currentMoment = 'MORNING';
@@ -777,7 +776,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
             if (currentMoment) {
                 // Generates if missing, returns null if already generated. We fetch it next anyway.
-                await ConsciousnessEngine.trySendTransmission(userId, v2Payload.localDate, currentMoment, lang).catch((e) => console.error("ConsciousnessEngine Error:", e));
+                await ConsciousnessEngine.trySendTransmission(userId, v2Payload.localDate, currentMoment, lang).catch((e: any) => console.error("ConsciousnessEngine Error:", e));
             }
             
             // Fetch today's transmissions to surface in-app

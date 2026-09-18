@@ -296,17 +296,23 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, [user]);
 
     // Auto-Calibración de Timezone para soporte global
-    useEffect(() => {
+        useEffect(() => {
         if (profile && profile.onboarding_completed) {
             const currentOffset = new Date().getTimezoneOffset() / -60;
+            const currentIana = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const savedOffset = profile.astrology?.timezone_offset;
+            const savedIana = profile.profile_data?.timezone_iana;
 
-            if (savedOffset !== currentOffset) {
-                console.log("🛡️ Calibrando Timezone Offset a:", currentOffset);
+            if (savedOffset !== currentOffset || savedIana !== currentIana) {
+                console.log("🌌 Calibrando Timezone a:", currentIana, "offset:", currentOffset);
                 updateProfile({
                     astrology: {
                         ...(profile.astrology || {}),
                         timezone_offset: currentOffset
+                    },
+                    profile_data: {
+                        ...(profile.profile_data || {}),
+                        timezone_iana: currentIana
                     }
                 }).catch(err => console.error("Error calibrating timezone:", err));
             }
