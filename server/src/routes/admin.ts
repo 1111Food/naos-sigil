@@ -24,6 +24,54 @@ export async function adminRoutes(app: FastifyInstance) {
         }
     };
 
+    // Create specific account with password and duration
+    app.post<{ Body: { email: string, password?: string, days?: number } }>('/api/admin/create-account', { preHandler: [requireAdmin] }, async (req, reply) => {
+        const { email, password, days } = req.body;
+        try {
+            if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                return reply.status(500).send({ error: "Falta SUPABASE_SERVICE_ROLE_KEY en el servidor." });
+            }
+
+            const finalPassword = password || Math.random().toString(36).slice(-10) + 'A1!';
+
+            const { data: userAuth, error: authError } = await supabaseAdmin.auth.admin.createUser({
+                email,
+                password: finalPassword,
+                email_confirm: true
+            });
+
+            if (authError) {
+                return reply.status(400).send({ error: authError.message });
+            }
+
+            if (days && days > 0) {
+                 const expirationDate = new Date();
+                 expirationDate.setDate(expirationDate.getDate() + days);
+                 
+                 // Wait a bit for the trigger to create the profile record
+                 await new Promise(r => setTimeout(r, 1500));
+                 
+                 const { error: profileError } = await supabaseAdmin.from('profiles').update({ 
+                     plan_type: 'premium',
+                     subscription_status: 'active',
+                     current_period_end: expirationDate.toISOString()
+                 }).eq('id', userAuth.user.id);
+                 
+                 if (profileError) {
+                     console.error("Error setting premium expiration:", profileError);
+                 }
+                 
+                 await supabaseAdmin.from('ai_economics_ledger').update({ 
+                     current_cycle_budget: 1000000 
+                 }).eq('user_id', userAuth.user.id);
+            }
+
+            return { success: true, email: userAuth.user.email, password: finalPassword };
+        } catch (err: any) {
+            return reply.status(500).send({ error: err.message });
+        }
+    });
+
     // Create user via invitation
     app.post<{ Body: { email: string, name: string } }>('/api/admin/users', { preHandler: [requireAdmin] }, async (req, reply) => {
         const { email, name } = req.body;

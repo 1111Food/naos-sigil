@@ -28,6 +28,10 @@ export function AdminView() {
     const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [newUserName, setNewUserName] = useState('');
     const [newUserEmail, setNewUserEmail] = useState('');
+    const [newUserPassword, setNewUserPassword] = useState('');
+    const [newUserDuration, setNewUserDuration] = useState<number>(0);
+    const [createdCredentials, setCreatedCredentials] = useState<{email: string, password: string} | null>(null);
+    const [isSubmittingUser, setIsSubmittingUser] = useState(false);
 
     useEffect(() => {
         // Fetch current demo mode status
@@ -219,6 +223,19 @@ export function AdminView() {
 
                 {/* Actions & Search */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                    <button 
+                        onClick={() => {
+                            setIsCreatingUser(true);
+                            setCreatedCredentials(null);
+                            setNewUserEmail('');
+                            setNewUserPassword('');
+                            setNewUserDuration(0);
+                        }}
+                        className="px-4 py-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/40 border border-emerald-500/50 transition-colors rounded-xl text-xs font-bold font-sans flex items-center justify-center"
+                    >
+                        + Crear Cuenta
+                    </button>
+
                     {/* Kill Switch Toggle */}
                     <button 
                         onClick={toggleDemoMode}
@@ -358,6 +375,115 @@ export function AdminView() {
                     </div>
                 )}
             </div>
+            {/* Create User Modal */}
+            {isCreatingUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-slate-900 border border-white/20 rounded-2xl p-6 max-w-md w-full relative">
+                        <button 
+                            onClick={() => setIsCreatingUser(false)}
+                            className="absolute top-4 right-4 text-white/50 hover:text-white"
+                        >
+                            ✕
+                        </button>
+                        <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Nueva Cuenta</h2>
+                        
+                        {createdCredentials ? (
+                            <div className="space-y-4">
+                                <p className="text-sm text-white/80">La cuenta se ha creado con éxito. Copia las credenciales antes de cerrar esta ventana.</p>
+                                <div className="bg-black/50 p-4 rounded-xl border border-white/10 relative">
+                                    <p className="text-xs text-white/50 uppercase mb-1">Email</p>
+                                    <p className="font-mono text-sm mb-3">{createdCredentials.email}</p>
+                                    <p className="text-xs text-white/50 uppercase mb-1">Contraseña</p>
+                                    <p className="font-mono text-sm">{createdCredentials.password}</p>
+                                    
+                                    <button 
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(`Email: ${createdCredentials.email}\nContraseña: ${createdCredentials.password}`);
+                                            alert("¡Credenciales copiadas al portapapeles!");
+                                        }}
+                                        className="mt-4 w-full py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2"
+                                    >
+                                        Copiar Credenciales
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs uppercase text-white/50 mb-1 font-bold tracking-widest">Email</label>
+                                    <input 
+                                        type="email" 
+                                        value={newUserEmail}
+                                        onChange={e => setNewUserEmail(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
+                                        placeholder="correo@ejemplo.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs uppercase text-white/50 mb-1 font-bold tracking-widest">Contraseña (opcional)</label>
+                                    <input 
+                                        type="text" 
+                                        value={newUserPassword}
+                                        onChange={e => setNewUserPassword(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
+                                        placeholder="Dejar vacío para generar una"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs uppercase text-white/50 mb-1 font-bold tracking-widest">Plan / Duración</label>
+                                    <select 
+                                        value={newUserDuration}
+                                        onChange={e => setNewUserDuration(Number(e.target.value))}
+                                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
+                                    >
+                                        <option value={0}>Free (Ilimitado)</option>
+                                        <option value={1}>Premium - 1 Día</option>
+                                        <option value={3}>Premium - 3 Días</option>
+                                        <option value={7}>Premium - 7 Días</option>
+                                        <option value={30}>Premium - 30 Días</option>
+                                    </select>
+                                </div>
+                                <button 
+                                    onClick={async () => {
+                                        if (!newUserEmail) return alert("El email es requerido");
+                                        setIsSubmittingUser(true);
+                                        try {
+                                            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+                                            const parsedToken = token ? JSON.parse(token) : null;
+                                            
+                                            const res = await fetch(`${API_BASE_URL}/api/admin/create-account`, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Authorization': `Bearer ${parsedToken?.access_token}`,
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({
+                                                    email: newUserEmail,
+                                                    password: newUserPassword || undefined,
+                                                    days: newUserDuration
+                                                })
+                                            });
+                                            const data = await res.json();
+                                            if (!res.ok) throw new Error(data.error || "Error al crear cuenta");
+                                            
+                                            setCreatedCredentials({ email: data.email, password: data.password });
+                                            fetchUsers();
+                                        } catch (e: any) {
+                                            alert(e.message);
+                                        } finally {
+                                            setIsSubmittingUser(false);
+                                        }
+                                    }}
+                                    disabled={isSubmittingUser}
+                                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl disabled:opacity-50"
+                                >
+                                    {isSubmittingUser ? 'Creando...' : 'Crear Cuenta'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
