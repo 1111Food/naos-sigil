@@ -27,7 +27,7 @@ export class RelationshipConsultant {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) return this.getFallback(context.language);
 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/:generateContent?key=${apiKey}`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.GEMINI_MODEL}:generateContent?key=${apiKey}`;
         const isEn = context.language === 'en';
         
         const systemInstruction = isEn ? `

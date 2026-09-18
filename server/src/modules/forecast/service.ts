@@ -1,4 +1,5 @@
 ﻿import { supabase } from '../../lib/supabase';
+import { AiLedgerService } from '../economics/AiLedgerService';
 import { UserService } from '../user/service';
 import { ForecastCalculator } from './calculator';
 import { ForecastContextInjector } from './contextInjector';
@@ -55,7 +56,23 @@ export class ForecastService {
         const prompt = ForecastPromptBuilder.build(profile, astroContext, behaviorContext, cycles, pinnacles, macro?.current_cycle, language);
 
         // 5. Execute AI Engine
+        
+        const profileForLedger = await UserService.getProfile(userId);
+        const budget = await AiLedgerService.checkBudget(userId, profileForLedger);
+        if (!budget.allowed) {
+            throw new Error('BUDGET_EXHAUSTED');
+        }
+
         const mapData = await ForecastEngine.generate(prompt);
+        
+        await AiLedgerService.recordUsage(userId, profileForLedger, {
+            feature: 'time_map',
+            provider: 'gemini',
+            model: 'gemini-2.5-flash',
+            input_tokens: 1000,
+            output_tokens: 1500
+        });
+        
 
         // 6. Save to Database (Cache for 1 year, or 12 months)
         const validUntil = new Date();

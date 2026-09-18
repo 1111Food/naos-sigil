@@ -3,7 +3,7 @@ import { config } from '../../config/env';
 
 // Pricing config: DO NOT SCATTER LITERALS
 export const MODEL_PRICING = {
-    'gemini-2.5-flash': { input_1m: 0.075, output_1m: 0.30 },
+    'gemini-2.5-flash': { input_1m: 0.30, output_1m: 2.50 },
     'gemini-2.5-pro': { input_1m: 1.25, output_1m: 5.00 }
 };
 

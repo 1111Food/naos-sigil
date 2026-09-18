@@ -1,4 +1,5 @@
 ﻿import { supabase } from '../../lib/supabase';
+import { AiLedgerService } from '../economics/AiLedgerService';
 import { UserService } from '../user/service';
 import { ForecastCalculator } from '../forecast/calculator';
 import { LifelinePromptBuilder } from './promptBuilder';
