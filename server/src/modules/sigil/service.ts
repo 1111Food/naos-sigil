@@ -9,6 +9,7 @@ import { UserService } from '../user/service';
 import { ProfileConsolidator } from '../user/profileConsolidator';
 import { CodexService } from '../codex/service';
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { AiLedgerService } from '../economics/AiLedgerService';
 import { config } from '../../config/env';
 import { supabase } from '../../lib/supabase';
 import { UserProfile } from '../../types';
@@ -539,7 +540,7 @@ ${segments.truth_injection.waiting_desc}
         }
     }
 
-    private async callGeminiAPI(message: string, systemInstruction: string, history: any[] = []): Promise<string> {
+    private async callGeminiAPI(message: string, systemInstruction: string, history: any[] = [], userId?: string, profile?: any): Promise<string> {
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) {
             throw new Error("❌ Error: Faltan las credenciales (API Key).");
@@ -664,6 +665,18 @@ ${segments.truth_injection.waiting_desc}
             }
 
             const text = result.response.text();
+            
+            if (userId && profile) {
+                const usage = result.response.usageMetadata;
+                await AiLedgerService.recordUsage(userId, profile, {
+                    feature: 'sigil_chat',
+                    provider: 'gemini',
+                    model: modelName,
+                    input_tokens: usage?.promptTokenCount || 0,
+                    output_tokens: usage?.candidatesTokenCount || 0
+                });
+            }
+
             if (text) return text;
             
             throw new Error("No content generated.");

@@ -4,6 +4,7 @@ import { CONSCIOUSNESS_PROMPTS } from './ConsciousnessPrompts';
 import { config } from '../../config/env';
 import { UserService } from '../user/service';
 import { DailyContextOrchestrator } from '../daily/DailyContextOrchestrator';
+import { AiLedgerService } from '../economics/AiLedgerService';
 
 export type TransmissionMoment = 'MORNING' | 'EVENING';
 

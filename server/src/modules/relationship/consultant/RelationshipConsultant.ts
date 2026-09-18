@@ -1,6 +1,7 @@
 import { Metric } from '../models/Metric';
 import { ContextMatrix } from '../models/ContextMatrix';
 import { config } from '../../../config/env';
+import { AiLedgerService } from '../../economics/AiLedgerService';
 
 export type ConsultantMode = 'analysis' | 'strategy' | 'coaching' | 'summary' | 'executive' | 'technical';
 
@@ -12,7 +13,17 @@ export type ConsultantMode = 'analysis' | 'strategy' | 'coaching' | 'summary' | 
  */
 export class RelationshipConsultant {
 
-    public async consult(metrics: Metric[], context: ContextMatrix, mode: ConsultantMode): Promise<any> {
+    public async consult(
+        metrics: Metric[],
+        context: ContextMatrix,
+        mode: ConsultantMode,
+        userId?: string,
+        profile?: any
+    ): Promise<any> {
+        if (userId && profile) {
+            const budget = await AiLedgerService.checkBudget(userId, profile);
+            if (!budget.allowed) throw new Error('BUDGET_EXHAUSTED');
+        }
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) return this.getFallback(context.language);
 

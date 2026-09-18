@@ -7,6 +7,8 @@ import { MayaMathV1 } from '../modules/maya/MayaMathV1';
 import { ChineseMathV1 } from '../modules/chinese/ChineseMathV1';
 import { config } from '../config/env';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { AiLedgerService } from '../modules/economics/AiLedgerService';
+import { DeepInterpretationService } from '../modules/economics/DeepInterpretationService';
 
 interface InterpretRequest {
     school: 'ASTRO' | 'NUMERO' | 'MAYA' | 'ORIENTAL';

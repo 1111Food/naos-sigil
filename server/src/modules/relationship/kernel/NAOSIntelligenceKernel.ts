@@ -26,7 +26,9 @@ export class NAOSIntelligenceKernel {
         userA: any, 
         userB: any, 
         context: ContextMatrix, 
-        mode: ConsultantMode
+        mode: ConsultantMode,
+        userId?: string,
+        profile?: any
     ): Promise<any> {
         
         // 1. Ingest & Normalize Signals
@@ -43,7 +45,7 @@ export class NAOSIntelligenceKernel {
         metrics = this.explainabilityEngine.enrichMetrics(metrics);
         
         // 5. Generative AI Consultation
-        const consultation = await this.consultant.consult(metrics, context, mode);
+        const consultation = await this.consultant.consult(metrics, context, mode, userId, profile);
         
         return {
             entityId: entity.id,

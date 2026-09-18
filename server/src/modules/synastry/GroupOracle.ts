@@ -1,11 +1,18 @@
 import { config } from '../../config/env';
+import { AiLedgerService } from '../economics/AiLedgerService';
 
 /**
  * Organizational Oracle for Group Dynamics (B2B)
  * Narrates the operational flow of a team using clinical, NAOS architecture tone.
  */
 export class GroupOracle {
-    public static async generateSynthesis(report: any, lang: string = 'es'): Promise<any> {
+    public static async generateSynthesis(report: any, lang: string = 'es', userId?: string, profile?: any): Promise<any> {
+        if (userId && profile) {
+            const budget = await AiLedgerService.checkBudget(userId, profile);
+            if (!budget.allowed) {
+                throw new Error('BUDGET_EXHAUSTED');
+            }
+        }
         const apiKey = config.GOOGLE_API_KEY;
         const isEn = lang === 'en';
 

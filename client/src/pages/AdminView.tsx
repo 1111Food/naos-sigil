@@ -96,6 +96,43 @@ export function AdminView() {
         fetchUsers(searchTerm);
     };
 
+    
+    const handleSetBudget = async (email: string, currentBudget: any) => {
+        const val = prompt(`Set new budget in USD for ${email} (leave blank to remove override):`, currentBudget !== 'Unlimited' ? currentBudget : '');
+        if (val === null) return;
+        
+        let budget = null;
+        if (val.trim() !== '') {
+            budget = parseFloat(val);
+            if (isNaN(budget) || budget < 0) {
+                alert("Invalid budget amount.");
+                return;
+            }
+        }
+        
+        try {
+            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+            const parsedToken = token ? JSON.parse(token) : null;
+            const accessToken = parsedToken?.access_token;
+            
+            const res = await fetch(`${API_BASE_URL}/api/admin/set-budget`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, budget })
+            });
+            if (res.ok) {
+                fetchData();
+            } else {
+                alert("Error setting budget");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const handleRoleChange = async (email: string, newRole: string, id: string) => {
         if (!email) return;
         if (!window.confirm(`¿Estás seguro de cambiar el rol de ${email} a [${newRole}]?`)) return;
@@ -260,6 +297,16 @@ export function AdminView() {
                                             )}>
                                                 {u.plan_type}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-mono text-white/80">
+                                            {u.ai_budget === 'Unlimited' ? '∞' : `${Number(u.ai_budget).toFixed(2)}`}
+                                            <button onClick={() => handleSetBudget(u.email, u.ai_budget)} className="ml-2 text-blue-400 hover:text-blue-300">Edit</button>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-mono text-white/80">
+                                            ${Number(u.ai_used || 0).toFixed(4)}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-mono text-white/80">
+                                            {u.ai_remaining === 'Unlimited' ? '∞' : `${Number(u.ai_remaining).toFixed(4)}`}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-white/40">
                                             {u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}

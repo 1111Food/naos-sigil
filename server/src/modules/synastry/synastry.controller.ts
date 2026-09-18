@@ -228,7 +228,8 @@ export class SynastryController {
 
             // Generate Organizational Oracle Synthesis
             console.log("🤖 Invoking Group Oracle Synthesis...");
-            const synthesis = await GroupOracle.generateSynthesis(groupReport, lang);
+            const groupUserId = (request as any).user_id;
+            const synthesis = await GroupOracle.generateSynthesis(groupReport, lang, groupUserId, (request.body as any)?.userProfile);
 
             const finalResult = {
                 metrics: [
