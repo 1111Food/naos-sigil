@@ -7,6 +7,7 @@ import { TelegramLinkService } from './telegramLinkService';
 import { TTSService } from './ttsService';
 
 let bot: Telegraf | null = null;
+let telegramDegraded = false;
 const sigilService = new SigilService();
 
 // Simple in-memory deduplication for update_ids (Point 3)
@@ -32,7 +33,7 @@ const splitMessage = (text: string, maxLength: number = 4000): string[] => {
 };
 
 export const initTelegramBot = () => {
-    if (bot) return;
+    if (bot || telegramDegraded) return;
     if (!config.TELEGRAM_BOT_TOKEN) return;
 
     try {
@@ -186,21 +187,57 @@ export const initTelegramBot = () => {
             }
         });
 
-        bot!.telegram.deleteWebhook({ drop_pending_updates: true })
-            .then(() => new Promise(resolve => setTimeout(resolve, 2000)))
-            .then(() => {
+        const bootTelegram = async (retries = 3, delay = 5000) => {
+            try {
+                await bot!.telegram.deleteWebhook({ drop_pending_updates: true });
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
                 bot!.launch({ dropPendingUpdates: true }).catch(err => {
                     if (err?.response?.error_code === 409) {
-                        setTimeout(() => bot?.launch({ dropPendingUpdates: true }).catch(() => {}), 10000);
+                        console.warn("[TELEGRAM] 409 Webhook Conflict during polling. Retrying polling in 10s...");
+                        setTimeout(() => {
+                            if (!telegramDegraded && bot) bot.launch({ dropPendingUpdates: true }).catch(() => {});
+                        }, 10000);
+                    } else if (err?.response?.error_code === 401) {
+                        console.error("[TELEGRAM] 401 Unauthorized. Invalid TELEGRAM_BOT_TOKEN. Halting bot.");
+                        telegramDegraded = true;
+                        bot = null;
+                    } else {
+                        console.error("[TELEGRAM] Unhandled polling error:", err);
                     }
                 });
-            });
+                console.log("[TELEGRAM] Bot successfully launched via Long Polling.");
+            } catch (err: any) {
+                if (err.code === 'ETIMEDOUT' || err.type === 'system') {
+                    console.error(`[TELEGRAM] ETIMEDOUT / Network Failure during boot. Retries left: ${retries}`);
+                    if (retries > 0) {
+                        setTimeout(() => bootTelegram(retries - 1, delay * 2), delay);
+                    } else {
+                        console.error("[TELEGRAM] Degraded state: Max retries reached. Telegram bot is unavailable.");
+                        telegramDegraded = true;
+                        bot = null;
+                    }
+                } else if (err?.response?.error_code === 401) {
+                    console.error("[TELEGRAM] 401 Unauthorized during deleteWebhook. Invalid TOKEN. Degraded state.");
+                    telegramDegraded = true;
+                    bot = null;
+                } else {
+                    console.error("[TELEGRAM] Unknown boot failure:", err);
+                    telegramDegraded = true;
+                    bot = null;
+                }
+            }
+        };
+
+        bootTelegram();
 
         process.once('SIGINT', () => bot?.stop('SIGINT'));
         process.once('SIGTERM', () => bot?.stop('SIGTERM'));
 
     } catch (e) {
         console.error("Error initializing Telegram Bot:", e);
+        telegramDegraded = true;
+        bot = null;
     }
 }
 
