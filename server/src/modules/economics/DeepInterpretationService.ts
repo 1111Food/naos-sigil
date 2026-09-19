@@ -1,7 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
 import { config } from '../../config/env';
 import crypto from 'crypto';
 import { AiLedgerService } from './AiLedgerService';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 
 export interface DeepInterpretationQuery {
     userId: string;
@@ -15,7 +15,6 @@ export interface DeepInterpretationQuery {
 }
 
 export class DeepInterpretationService {
-    private static supabaseAdmin = createClient(config.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
     private static inProgress = new Map<string, Promise<string>>();
 
     static calculateFingerprint(canonicalData: any): string {
@@ -38,7 +37,7 @@ export class DeepInterpretationService {
 
         // 2. Check Database Persistence
         try {
-            const { data: existing, error } = await this.supabaseAdmin
+            const { data: existing, error } = await supabaseAdmin
                 .from('deep_interpretations')
                 .select('content, status')
                 .eq('user_id', query.userId)
@@ -66,7 +65,7 @@ export class DeepInterpretationService {
 
             // Pre-insert GENERATING status if DB exists
             try {
-                await this.supabaseAdmin.from('deep_interpretations').upsert({
+                await supabaseAdmin.from('deep_interpretations').upsert({
                     user_id: query.userId,
                     interpretation_key: query.interpretationKey,
                     target: query.target,
@@ -92,7 +91,7 @@ export class DeepInterpretationService {
 
                 // Save success to DB
                 try {
-                    await this.supabaseAdmin.from('deep_interpretations').upsert({
+                    await supabaseAdmin.from('deep_interpretations').upsert({
                         user_id: query.userId,
                         interpretation_key: query.interpretationKey,
                         target: query.target,
@@ -111,7 +110,7 @@ export class DeepInterpretationService {
             } catch (error) {
                 // Save failure to DB
                 try {
-                    await this.supabaseAdmin.from('deep_interpretations').upsert({
+                    await supabaseAdmin.from('deep_interpretations').upsert({
                         user_id: query.userId,
                         interpretation_key: query.interpretationKey,
                         target: query.target,

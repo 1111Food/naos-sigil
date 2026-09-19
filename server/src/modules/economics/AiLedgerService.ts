@@ -1,10 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
 import { config } from '../../config/env';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 
 // Pricing config: DO NOT SCATTER LITERALS
 export const MODEL_PRICING = {
     'gemini-2.5-flash': { input_1m: 0.30, output_1m: 2.50 },
-    'gemini-2.5-pro': { input_1m: 1.25, output_1m: 5.00 }
+    'gemini-1.5-flash': { input_1m: 0.075, output_1m: 0.30 }, // Fallback logic
+    'gemini-1.5-flash-8b': { input_1m: 0.0375, output_1m: 0.15 } // Background tasks
 };
 
 export const DEFAULT_USER_BUDGET_USD = 1.00;
@@ -20,8 +21,6 @@ export interface AiLedgerEntry {
 }
 
 export class AiLedgerService {
-    private static supabaseAdmin = createClient(config.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
-
     static getUsageCycle(profile: any): string {
         // BETA FIXED CREDIT MODEL:
         // No auto-renewal, no billing period reset, no calendar month reset.
@@ -39,7 +38,7 @@ export class AiLedgerService {
         // 2. Resolve Budget Limit
         let budgetLimit = DEFAULT_USER_BUDGET_USD;
         try {
-            const { data: override, error } = await this.supabaseAdmin
+            const { data: override, error } = await supabaseAdmin
                 .from('user_ai_budgets')
                 .select('budget_usd')
                 .eq('user_id', userId)
@@ -55,7 +54,7 @@ export class AiLedgerService {
         const cycle = this.getUsageCycle(profile);
         let used = 0.0;
         try {
-            const { data: usage, error } = await this.supabaseAdmin
+            const { data: usage, error } = await supabaseAdmin
                 .from('ai_usage_ledger')
                 .select('estimated_cost_usd')
                 .eq('user_id', userId)
@@ -98,7 +97,7 @@ export class AiLedgerService {
         };
 
         try {
-            await this.supabaseAdmin.from('ai_usage_ledger').insert(payload);
+            await supabaseAdmin.from('ai_usage_ledger').insert(payload);
         } catch (e: any) {
             if (e?.code !== '42P01') { // Ignore relation does not exist
                 console.error("[ECONOMICS] Error recording ledger usage:", e);
