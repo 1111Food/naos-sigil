@@ -154,7 +154,9 @@ export class SynastryController {
                 { ...userProfile, name: nameA, profile_data: userProfile }, 
                 { ...partnerData, name: nameB, profile_data: partnerData }, 
                 context, 
-                'analysis'
+                'analysis',
+                userId,
+                userProfile
             );
 
             const finalResult = {
@@ -181,12 +183,15 @@ export class SynastryController {
                 if (insertError) console.error("❌ History Insertion Error:", insertError);
             }
 
-            console.log("📤 API RESPONSE MODULES:", finalResult.consultation?.modules ? "OK" : "MISSING");
+            console.log("🚀 API RESPONSE MODULES:", finalResult.consultation?.modules ? "OK" : "MISSING");
             await UsageGuardService.incrementUsage(userId, 'synastry_dual');
             return reply.send({ success: true, cached: false, data: finalResult });
         } catch (error: any) {
             console.error("❌ Synastry Analysis Critical Failure:", error);
             const errMsg = error.message || "System failure.";
+            if (errMsg === 'BUDGET_EXHAUSTED' || errMsg.includes('LIMITE_PRESUPUESTO')) {
+                return reply.status(402).send({ error: "Límite de presupuesto de IA alcanzado.", message: errMsg });
+            }
             return reply.status(500).send({ error: errMsg, message: errMsg });
         }
     }

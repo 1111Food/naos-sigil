@@ -109,11 +109,20 @@ export class GroupOracle {
 
             if (!response.ok) throw new Error("Gemini Offline");
             const data = await response.json();
-            const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (!textResult) {
-                console.warn("⚠️ Group Oracle: No response text, using fallback");
+            const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+            if (textResult === "{}") {
                 return this.getFallback(lang);
+            }
+
+            if (userId && profile) {
+                const usage = data.usageMetadata || {};
+                await AiLedgerService.recordUsage(userId, profile, {
+                    feature: 'synastry_group',
+                    provider: 'gemini',
+                    model: config.GEMINI_MODEL || 'gemini-1.5-flash',
+                    input_tokens: usage.promptTokenCount || 0,
+                    output_tokens: usage.candidatesTokenCount || 0
+                });
             }
 
             const parsed = JSON.parse(textResult);

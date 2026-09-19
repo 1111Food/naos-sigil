@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { SigilService } from '../modules/sigil/service';
 import { validateUser } from '../middleware/auth';
 import { UsageGuardService } from '../modules/user/UsageGuard';
+import { AiLedgerService } from '../modules/economics/AiLedgerService';
+import { UserService } from '../modules/user/service';
 import { RequestDeduplicator } from '../lib/deduplicator';
 
 const sigilService = new SigilService();
@@ -83,16 +85,16 @@ export async function tarotRoutes(app: FastifyInstance) {
         console.log(`🔮 Tarot/Ritual POST. Intent: "${question}", Engine: ${selectedEngine}, Spread: ${spreadType}`);
 
         try {
-            // 0. Fetch User Language Profile for safe AI instruction
-            const { data: userProfile } = await supabase
-                .from('profiles')
-                .select('language')
-                .eq('id', userId)
-                .maybeSingle();
+            // 0. Fetch User Profile for Economics & Language
+            const profile = await UserService.getProfile(userId);
+            
+            // ECONOMICS: Preflight Check
+            const ledgerCheck = await AiLedgerService.checkBudget(userId, profile);
+            if (!ledgerCheck.allowed) {
+                return reply.status(402).send({ error: "Límite de presupuesto de IA alcanzado.", message: ledgerCheck.reason });
+            }
 
-            // 0. Prioritize language from request body, then user profile, then default to 'es'
-            // @ts-ignore - language might not be in interface yet
-            language = request.body.language || userProfile?.language || 'es';
+            language = request.body.language || (profile as any).language || 'es';
 
             const prompts = {
                 es: {

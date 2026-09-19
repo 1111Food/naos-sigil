@@ -108,6 +108,18 @@ export class RelationshipConsultant {
             if (!response.ok) throw new Error("Gemini API Error");
             const data = await response.json();
             const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+
+            if (userId && profile) {
+                const usage = data.usageMetadata || {};
+                await AiLedgerService.recordUsage(userId, profile, {
+                    feature: 'synastry_dual',
+                    provider: 'gemini',
+                    model: config.GEMINI_MODEL || 'gemini-1.5-flash',
+                    input_tokens: usage.promptTokenCount || 0,
+                    output_tokens: usage.candidatesTokenCount || 0
+                });
+            }
+
             return JSON.parse(rawText);
         } catch (error) {
             console.warn("⚠️ Consultant Engine failed, using fallback", error);

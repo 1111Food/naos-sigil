@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { config } from '../../config/env';
 import crypto from 'crypto';
+import { AiLedgerService } from './AiLedgerService';
 
 export interface DeepInterpretationQuery {
     userId: string;
+    profile: any;
     interpretationKey: string;
     target: string;
     locale: string;
@@ -54,8 +56,14 @@ export class DeepInterpretationService {
             // DB fallback if table doesn't exist yet
         }
 
-        // 3. Generate New Content
+        // 3. Generate New Content (with economics)
         const generationPromise = (async () => {
+            // Economics Preflight BEFORE GENERATION
+            const budgetCheck = await AiLedgerService.checkBudget(query.userId, query.profile);
+            if (!budgetCheck.allowed) {
+                throw new Error(`LIMITE_PRESUPUESTO: ${budgetCheck.reason}`);
+            }
+
             // Pre-insert GENERATING status if DB exists
             try {
                 await this.supabaseAdmin.from('deep_interpretations').upsert({
@@ -73,6 +81,15 @@ export class DeepInterpretationService {
             try {
                 const result = await generator();
                 
+                // Record Usage AFTER SUCCESS
+                await AiLedgerService.recordUsage(query.userId, query.profile, {
+                    feature: 'deep_interpretations',
+                    provider: 'gemini',
+                    model: result.model,
+                    input_tokens: result.inputTokens,
+                    output_tokens: result.outputTokens
+                });
+
                 // Save success to DB
                 try {
                     await this.supabaseAdmin.from('deep_interpretations').upsert({

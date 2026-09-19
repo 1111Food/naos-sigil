@@ -310,6 +310,12 @@ Escribe una introducción poética y profunda sobre esta firma instintiva terren
 Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelectual.`;
             }
 
+            // ECONOMICS: Preflight Check (Cache Miss)
+            const ledgerCheck = await AiLedgerService.checkBudget(userId, profile);
+            if (!ledgerCheck.allowed) {
+                throw new Error(`LIMITE_PRESUPUESTO: ${ledgerCheck.reason}`);
+            }
+
             // 5. Llamar a la API de Gemini via SDK
             const genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY!);
             const model = genAI.getGenerativeModel({ 
@@ -318,6 +324,8 @@ Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelect
             });
 
             let rawInterpretation;
+            let inputTokens = 0;
+            let outputTokens = 0;
             let retries = 2;
             while (retries > 0) {
                 try {
@@ -331,6 +339,9 @@ Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelect
                         generationConfig: { temperature: 0.35 }
                     });
                     rawInterpretation = result.response.text();
+                    const usage = result.response.usageMetadata;
+                    inputTokens = usage?.promptTokenCount || 0;
+                    outputTokens = usage?.candidatesTokenCount || 0;
                     break;
                 } catch (err: any) {
                     console.error(`Gemini SDK attempt failed. Retries left: ${retries - 1}. Error:`, err.message);
@@ -343,6 +354,15 @@ Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelect
             if (!rawInterpretation) {
                 throw new Error("No se pudo generar la interpretación dinámica.");
             }
+
+            // ECONOMICS: Record Usage AFTER successful generation
+            await AiLedgerService.recordUsage(userId, profile, {
+                feature: 'deep_interpretations',
+                provider: 'gemini',
+                model: config.GEMINI_MODEL,
+                input_tokens: inputTokens,
+                output_tokens: outputTokens
+            });
 
             // Guardar en cache en memoria
             interpretationCache.set(cacheKey, rawInterpretation);
@@ -362,6 +382,11 @@ Usa negritas, listas ordenadas/desordenadas y un tono de alto contraste intelect
         } catch (e: any) {
             inProgressRequests.delete(cacheKey);
             console.error("🔥 [INTERPRET ROUTE ERROR]:", e.message);
+
+            if (e.message && e.message.includes('LIMITE_PRESUPUESTO')) {
+                return reply.status(402).send({ error: "Límite de presupuesto de IA alcanzado.", details: e.message });
+            }
+
             // DO NOT convert technical errors to mystical fiction.
             return reply.status(500).send({ error: "Technical error generating interpretation.", details: e.message });
         }
