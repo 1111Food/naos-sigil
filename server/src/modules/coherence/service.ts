@@ -37,14 +37,11 @@ export class CoherenceService {
             .maybeSingle();
 
         if (error) {
-            console.warn("⚠️ Coherence table degraded/missing. Returning placeholder.", error.message);
+            console.warn("⚠️ Coherence table degraded/missing. Returning unavailable state.", error.message);
             return {
-                user_id: userId,
-                discipline_score: 50,
-                energy_score: 50,
-                clarity_score: 50,
-                current_streak: 0,
-                last_interaction_at: new Date().toISOString()
+                data: null,
+                available: false,
+                reason: 'dependency_unavailable'
             } as any;
         }
 
@@ -58,26 +55,20 @@ export class CoherenceService {
                     .single();
                 
                 if (initError) {
-                    console.warn("⚠️ Coherence table degraded/missing during insert. Returning placeholder.");
+                    console.warn("⚠️ Coherence table degraded/missing during insert. Returning unavailable state.");
                     return {
-                        user_id: userId,
-                        discipline_score: 50,
-                        energy_score: 50,
-                        clarity_score: 50,
-                        current_streak: 0,
-                        last_interaction_at: new Date().toISOString()
+                        data: null,
+                        available: false,
+                        reason: 'dependency_unavailable'
                     } as any;
                 }
                 return newData;
             } catch (e) {
-                console.warn("⚠️ Coherence table degraded/missing during insert catch. Returning placeholder.");
+                console.warn("⚠️ Coherence table degraded/missing during insert catch. Returning unavailable state.");
                 return {
-                    user_id: userId,
-                    discipline_score: 50,
-                    energy_score: 50,
-                    clarity_score: 50,
-                    current_streak: 0,
-                    last_interaction_at: new Date().toISOString()
+                    data: null,
+                    available: false,
+                    reason: 'dependency_unavailable'
                 } as any;
             }
         }
@@ -93,6 +84,8 @@ export class CoherenceService {
 
         // Obtenemos el valor actual para clampear
         const current = await this.getCoherence(userId);
+        if ((current as any).available === false) return;
+
         const newValue = Math.max(0, Math.min(100, (current as any)[field] + delta));
 
         const { error } = await supabase
@@ -115,7 +108,9 @@ export class CoherenceService {
      */
     static async applyInactivityDecay(userId: string) {
         const state = await this.getCoherence(userId);
-        const lastInteraction = new Date(state.last_interaction_at);
+        if ((state as any).available === false || !(state as any).last_interaction_at) return;
+
+        const lastInteraction = new Date((state as any).last_interaction_at);
         const now = new Date();
         const diffMs = now.getTime() - lastInteraction.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
@@ -140,6 +135,7 @@ export class CoherenceService {
      */
     static async updateStreak(userId: string, mode: 'increment' | 'freeze' | 'reset' = 'increment') {
         const state = await this.getCoherence(userId);
+        if ((state as any).available === false || (state as any).current_streak === undefined) return;
 
         let newStreak = state.current_streak;
 

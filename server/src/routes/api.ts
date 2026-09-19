@@ -641,19 +641,19 @@ export async function apiRoutes(app: FastifyInstance) {
 
     app.post('/api/onboarding/complete', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
-        console.log(`Ã°Å¸â€œÂ¡ [API] Completing onboarding for User: ${userId}`);
+        console.log(`🛡️ [API] Completing onboarding for User: ${userId}`);
         try {
-            const result = await UserService.updateProfile(userId, { onboarding_completed: true });
-            console.log(`Ã¢Å“â€¦ [API] Onboarding marked complete for ${userId}`);
+            const result = await UserService.markOnboardingCompleted(userId);
+            console.log(`✅ [API] Onboarding marked complete for ${userId}`);
 
             // Fire-and-forget: Pre-compile NAOS Identity so it's ready when they enter the dashboard
             NaosCompilerService.compile(userId, true).then(() => {
-                console.log(`Ã¢Å“â€¦ [API] Background NAOS Identity compiled for ${userId}`);
-            }).catch(e => console.error("Ã°Å¸â€Â¥ [API] Background NAOS compile failed:", e));
+                console.log(`✅ [API] Background NAOS Identity compiled for ${userId}`);
+            }).catch(e => console.error("❌ [API] Background NAOS compile failed:", e));
 
             return { status: 'ok', onboarding_completed: result.onboarding_completed };
         } catch (error: any) {
-            console.error("Ã°Å¸â€ Â¥ [API] Onboarding Complete Error:", error.message);
+            console.error("❌ [API] Onboarding Complete Error:", error.message);
             return reply.status(500).send({ error: 'Failed to complete onboarding.' });
         }
     });

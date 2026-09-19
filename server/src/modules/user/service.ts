@@ -218,11 +218,23 @@ export class UserService {
             coordinates: d.coordinates,
             language: d.language,
             push_subscriptions: d.push_subscriptions,
-            telegram_voice_enabled: d.telegram_voice_enabled,
-            astrology: d.astrology,
-            profile_data: d.profile_data,
-            onboarding_completed: d.onboarding_completed
+            telegram_voice_enabled: d.telegram_voice_enabled
         };
+
+        // SEC-006 FIX: Narrow Timezone Update (No arbitrary canonical object writes)
+        if (d.astrology?.timezone_offset !== undefined) {
+            allowedUpdates.astrology = {
+                ...(current.astrology || {}),
+                timezone_offset: d.astrology.timezone_offset
+            };
+        }
+
+        if (d.profile_data?.timezone_iana !== undefined) {
+            allowedUpdates.profile_data = {
+                ...((current as any).profile_data || {}),
+                timezone_iana: d.profile_data.timezone_iana
+            };
+        }
 
         // Remove undefined fields
         Object.keys(allowedUpdates).forEach(key => allowedUpdates[key] === undefined && delete allowedUpdates[key]);
@@ -281,6 +293,20 @@ export class UserService {
         }
 
         return await this.getProfile(userId);
+    }
+
+    static async markOnboardingCompleted(userId: string): Promise<UserProfile> {
+        let current = await this.getProfile(userId);
+        
+        if (config.SUPABASE_URL) {
+            await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', userId);
+        }
+        
+        const updated = { ...current, onboarding_completed: true };
+        this.profilesCache[userId] = updated;
+        await this.saveProfiles();
+        
+        return updated;
     }
 
     static async addSubProfile(userId: string, data: any): Promise<UserProfile> {
