@@ -130,9 +130,10 @@ export class UserService {
                         try {
                             const clearedBase = { ...baseProfile, naos_identity_code: null };
                             supabase.from('profiles').update({ 
-                                naos_identity_code: null,
                                 profile_data: clearedBase 
-                            }).eq('id', userId).then();
+                            }).eq('id', userId).then((res) => {
+                                if (res.error) console.error('[ARCHETYPE_ENGINE] DB Wipe error:', res.error);
+                            });
                         } catch(e) {
                             console.error('Failed to invalidate stale identity code in DB:', e);
                         }

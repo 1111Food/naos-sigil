@@ -22,12 +22,15 @@ export class AstrologyService {
         houseSystem: 'Equal' | 'Placidus' = 'Equal'
     ) {
         try {
-            // 1. Validación de Entrada
-            if (!dateStr || !timeStr) {
-                console.warn("⚠️ AstroService: Fecha u hora faltante. Usando 'Ahora'.");
+            // 1. Validacin de Entrada
+            if (!dateStr) {
+                console.warn("AstroService: Fecha faltante. Usando 'Ahora'.");
                 const now = new Date();
                 dateStr = now.toISOString().split('T')[0];
                 timeStr = `${now.getHours()}:${now.getMinutes()}`;
+            } else if (!timeStr) {
+                console.warn("AstroService: Hora faltante. Usando '12:00' por defecto.");
+                timeStr = '12:00';
             }
 
             // 2. Construcción de Fecha UTC (Critical Fix v9.2)
