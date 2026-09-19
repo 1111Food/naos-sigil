@@ -508,11 +508,11 @@ function App() {
             {/* HEADER (Conditional) */}
             {activeView !== 'LANDING' && activeView !== 'LOGIN' && activeView !== 'WELCOME_BACK' && activeView !== 'ORACLE_SOULS' && activeView !== 'IDENTITY_NEXUS' && activeView !== 'PROFILE' && (
               <header
-                className="fixed top-0 left-0 right-0 pt-[calc(1rem+env(safe-area-inset-top))] px-4 md:px-6 pb-4 flex flex-col md:flex-row justify-between items-center w-full z-50 pointer-events-none transition-opacity duration-300 pointer-events-auto"
+                className="fixed top-0 left-0 right-0 pt-[calc(1rem+env(safe-area-inset-top))] px-4 md:px-6 pb-4 flex flex-col md:flex-row justify-between items-center w-full z-50 pointer-events-none transition-opacity duration-300"
                 style={{ opacity: headerOpacity }}
               >
                 {/* TOP ROW: LOGO & PROFILE (Mobile) / LOGO (Desktop) */}
-                <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-4 mb-3 md:mb-0">
+                <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-4 mb-3 md:mb-0 pointer-events-auto">
                   <div className="flex items-center gap-3">
                     {activeView !== 'TEMPLE' ? (
                       <button
@@ -547,7 +547,7 @@ function App() {
                 {/* USER PROFILE BUTTON (Desktop View) REMOVED */}
 
                 {/* RIGHT/BOTTOM ROW: LUNAR PHASE & TOOLS */}
-                <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 md:gap-6">
+                <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 md:gap-6 pointer-events-auto">
                   
                   <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0">
                     <span className="text-[8px] md:text-[10px] uppercase tracking-[0.3em] text-white/30 font-medium whitespace-nowrap">{t('lunar_phase_label')}</span>
