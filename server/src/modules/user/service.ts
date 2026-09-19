@@ -101,12 +101,12 @@ export class UserService {
                     : (baseProfile.subscription || { plan: 'FREE', features: ['basic_chat'] });
 
                 const resolvedAstrology = activeSub?.astrology || data.astrology || data.natal_chart || baseProfile.astrology || undefined;
-                const resolvedNumerology = activeSub?.numerology || baseProfile.numerology || undefined;
-                const resolvedMayan = activeSub?.mayan || baseProfile.mayan || undefined;
+                const resolvedNumerology = activeSub?.numerology || data.numerology || baseProfile.numerology || undefined;
+                const resolvedMayan = activeSub?.mayan || data.mayan || baseProfile.mayan || undefined;
                 const resolvedChinese = {
-                     animal: activeSub?.chinese_animal || baseProfile.chinese_animal,
-                     element: activeSub?.chinese_element || baseProfile.chinese_element,
-                     birthYear: activeSub?.chinese_birth_year || baseProfile.chinese_birth_year
+                     animal: activeSub?.chinese_animal || data.chinese_animal || baseProfile.chinese_animal,
+                     element: activeSub?.chinese_element || data.chinese_element || baseProfile.chinese_element,
+                     birthYear: activeSub?.chinese_birth_year || data.chinese_birth_year || baseProfile.chinese_birth_year
                 };
 
                 let canonicalArchetype = undefined;
@@ -119,6 +119,24 @@ export class UserService {
                          chinese_element: resolvedChinese?.element,
                          chinese_birth_year: resolvedChinese?.birthYear
                      });
+                }
+                
+                let identityCode = data.naos_identity_code || baseProfile.naos_identity_code || undefined;
+                if (canonicalArchetype && identityCode?.arquetipo?.id) {
+                    if (canonicalArchetype.id !== identityCode.arquetipo.id) {
+                        console.warn(`[ARCHETYPE_ENGINE] Canonical override: Discarding stale identity code (Stored: ${identityCode.arquetipo.id} vs Canonical: ${canonicalArchetype.id})`);
+                        identityCode = undefined;
+                        
+                        try {
+                            const clearedBase = { ...baseProfile, naos_identity_code: null };
+                            supabase.from('profiles').update({ 
+                                naos_identity_code: null,
+                                profile_data: clearedBase 
+                            }).eq('id', userId).then();
+                        } catch(e) {
+                            console.error('Failed to invalidate stale identity code in DB:', e);
+                        }
+                    }
                 }
 
                 const dbProfile: UserProfile = {
@@ -148,7 +166,7 @@ export class UserService {
                     usage_level: data.usage_level || baseProfile.usage_level || 'normal',
                     daily_interactions: data.daily_interactions || baseProfile.daily_interactions || 0,
                     onboarding_completed: data.onboarding_completed || baseProfile.onboarding_completed || false,
-                    naos_identity_code: data.naos_identity_code || baseProfile.naos_identity_code || undefined,
+                    naos_identity_code: identityCode,
                     active_sub_profile_id: baseProfile.active_sub_profile_id,
                     sub_profiles: baseProfile.sub_profiles,
                     consciousness_level: level,
