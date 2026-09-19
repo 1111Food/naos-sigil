@@ -185,18 +185,15 @@ function App() {
     }
   }, [user, profile?.onboarding_completed, isAppFullyReady, activeView]);
 
-  // 3. SOFT GUARD: Profile Completion
+  // 3. HARD GUARD: Profile Completion State Machine
   useEffect(() => {
-    if (!isAppFullyReady) return;
+    if (!storageReady) return;
 
-    // Conditions: Authenticated, but missing vital data
-    const isProfileIncomplete = user && profile && (!profile.name || !profile.birthDate);
-
-    if (isProfileIncomplete && !['ONBOARDING', 'LOGIN', 'LANDING'].includes(activeView)) {
-      console.log("🛡️ App Guard: Profile incomplete. Redirecting to Onboarding.");
+    if (guardState === 'PROFILE_READY_INCOMPLETE' && !['ONBOARDING', 'LOGIN', 'LANDING'].includes(activeView)) {
+      console.log("🛡️ App Guard: Profile genuinely incomplete. Redirecting to Onboarding.");
       setActiveView('ONBOARDING');
     }
-  }, [user, profile, isAppFullyReady, activeView]);
+  }, [guardState, storageReady, activeView]);
 
   // Force Login Event Listener (triggered by PreLaunchGate)
   useEffect(() => {

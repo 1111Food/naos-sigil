@@ -37,8 +37,15 @@ export class CoherenceService {
             .maybeSingle();
 
         if (error) {
-            console.error("❌ Error fetching coherence:", error);
-            throw error;
+            console.warn("⚠️ Coherence table degraded/missing. Returning placeholder.", error.message);
+            return {
+                user_id: userId,
+                discipline_score: 50,
+                energy_score: 50,
+                clarity_score: 50,
+                current_streak: 0,
+                last_interaction_at: new Date().toISOString()
+            } as any;
         }
 
         if (!data) {
@@ -49,15 +56,29 @@ export class CoherenceService {
                     .insert([{ user_id: userId }])
                     .select()
                     .single();
-
+                
                 if (initError) {
-                    console.warn("⚠️ Coherence Init failed (RLS?):", initError.message);
-                    return this.getDefaultState(userId);
+                    console.warn("⚠️ Coherence table degraded/missing during insert. Returning placeholder.");
+                    return {
+                        user_id: userId,
+                        discipline_score: 50,
+                        energy_score: 50,
+                        clarity_score: 50,
+                        current_streak: 0,
+                        last_interaction_at: new Date().toISOString()
+                    } as any;
                 }
                 return newData;
-            } catch (err) {
-                console.warn("⚠️ Coherence Init crashed:", err);
-                return this.getDefaultState(userId);
+            } catch (e) {
+                console.warn("⚠️ Coherence table degraded/missing during insert catch. Returning placeholder.");
+                return {
+                    user_id: userId,
+                    discipline_score: 50,
+                    energy_score: 50,
+                    clarity_score: 50,
+                    current_streak: 0,
+                    last_interaction_at: new Date().toISOString()
+                } as any;
             }
         }
 
@@ -83,8 +104,8 @@ export class CoherenceService {
             .eq('user_id', userId);
 
         if (error) {
-            console.error(`❌ Error updating ${pillar} score:`, error);
-            throw error;
+            console.warn(`⚠️ Error updating ${pillar} score (degraded table):`, error.message);
+            return;
         }
     }
 

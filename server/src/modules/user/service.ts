@@ -207,7 +207,7 @@ export class UserService {
         // SEC-005 FIX: Mass Assignment Prevention
         // ONLY extract fields that the frontend is explicitly allowed to modify.
         const d = data as any;
-        const allowedUpdates = {
+        const allowedUpdates: any = {
             name: d.name,
             full_name: d.name || d.full_name,
             birthDate: d.birthDate,
@@ -218,11 +218,14 @@ export class UserService {
             coordinates: d.coordinates,
             language: d.language,
             push_subscriptions: d.push_subscriptions,
-            telegram_voice_enabled: d.telegram_voice_enabled
+            telegram_voice_enabled: d.telegram_voice_enabled,
+            astrology: d.astrology,
+            profile_data: d.profile_data,
+            onboarding_completed: d.onboarding_completed
         };
 
         // Remove undefined fields
-        Object.keys(allowedUpdates).forEach(key => (allowedUpdates as any)[key] === undefined && delete (allowedUpdates as any)[key]);
+        Object.keys(allowedUpdates).forEach(key => allowedUpdates[key] === undefined && delete allowedUpdates[key]);
 
         let updated = { ...baseProfile, ...allowedUpdates }; // operates on raw to save correctly below
 
@@ -246,7 +249,7 @@ export class UserService {
                 }
 
                 const tzId = GeocodingService.getTimezoneId(updated.coordinates.lat, updated.coordinates.lng);
-                updated.utcOffset = GeocodingService.getHistoricalUtcOffset(tzId, updated.birthDate, updated.birthTime);
+                updated.utcOffset = GeocodingService.getHistoricalUtcOffset(tzId, updated.birthDate || current.birthDate, updated.birthTime || current.birthTime);
             } catch (e) {
                 if (!updated.coordinates?.lat) {
                     updated.coordinates = { lat: 14.6349, lng: -90.5069 };
@@ -256,21 +259,21 @@ export class UserService {
         }
 
         // Sync local cache
-        this.profilesCache[userId] = updated;
+        this.profilesCache[userId] = { ...current, ...updated };
         await this.saveProfiles();
 
         // Supabase Sync
         if (config.SUPABASE_URL) {
             const payload = {
                 id: userId,
-                name: updated.name,
-                full_name: updated.name,
-                birth_date: updated.birthDate,
-                birth_time: updated.birthTime,
-                birth_location: updated.birthCity,
-                plan_type: updated.plan_type,
-                onboarding_completed: updated.onboarding_completed,
-                oracle_time: updated.oracle_time,
+                name: updated.name || current.name,
+                full_name: updated.full_name || updated.name || current.name,
+                birth_date: updated.birthDate || current.birthDate,
+                birth_time: updated.birthTime || current.birthTime,
+                birth_location: updated.birthCity || current.birthCity,
+                plan_type: updated.plan_type || current.plan_type,
+                onboarding_completed: updated.onboarding_completed !== undefined ? updated.onboarding_completed : current.onboarding_completed,
+                oracle_time: updated.oracle_time || current.oracle_time,
                 profile_data: updated,
                 updated_at: new Date().toISOString()
             };

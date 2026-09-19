@@ -76,10 +76,21 @@ export interface UserProfile {
     consciousness_points?: number;
 }
 
+export type ProfileGuardState = 
+  | 'AUTH_LOADING'
+  | 'PROFILE_LOADING'
+  | 'PROFILE_UPDATING'
+  | 'PROFILE_READY_COMPLETE'
+  | 'PROFILE_READY_INCOMPLETE'
+  | 'PROFILE_ERROR';
+
 interface ProfileContextType {
     profile: UserProfile | null;
     loading: boolean;
     appReady: boolean;
+    profileUpdating: boolean;
+    profileError: Error | null;
+    guardState: ProfileGuardState;
     updateProfile: (data: Partial<UserProfile>) => Promise<UserProfile | undefined>;
     refreshProfile: () => Promise<UserProfile | null>;
 }
@@ -179,6 +190,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const { user, loading: authLoading } = useAuth();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
+    const [profileUpdating, setProfileUpdating] = useState(false);
+    const [profileError, setProfileError] = useState<Error | null>(null);
 
     const refreshProfile = useCallback(async (): Promise<UserProfile | null> => {
         if (!user) {
@@ -194,6 +207,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const fullDemoProfile = buildSubprofileCosmicData(DEMO_PROFILE);
             setProfile(fullDemoProfile);
             setProfileLoading(false);
+            setProfileError(null);
             return fullDemoProfile;
         }
 
@@ -223,6 +237,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } catch (err) {
             console.error("🛡️ SSoT: Critical fetch error", err);
             setProfile(null);
+            setProfileError(err as Error);
             return null;
         } finally {
             setProfileLoading(false);
@@ -240,6 +255,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         const updateProfile = useCallback(async (data: Partial<UserProfile>) => {
         if (!user) return;
+        setProfileUpdating(true);
+        setProfileError(null);
 
         try {
             console.log("Context: Updating Profile for User:", user.id);
@@ -281,7 +298,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
         } catch (err) {
             console.error("Context: Update failed", err);
+            setProfileError(err as Error);
             throw err;
+        } finally {
+            setProfileUpdating(false);
         }
     }, [user]);
 
@@ -312,13 +332,26 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // appReady = Auth is settled AND (either no user OR profile is settled)
     const appReady = !authLoading && (!user || !profileLoading);
 
+    const guardState = useMemo<ProfileGuardState>(() => {
+        if (authLoading) return 'AUTH_LOADING';
+        if (!user) return 'PROFILE_READY_COMPLETE';
+        if (profileLoading) return 'PROFILE_LOADING';
+        if (profileUpdating) return 'PROFILE_UPDATING';
+        if (profileError) return 'PROFILE_ERROR';
+        if (!profile?.name || !profile?.birthDate) return 'PROFILE_READY_INCOMPLETE';
+        return 'PROFILE_READY_COMPLETE';
+    }, [authLoading, user, profileLoading, profileUpdating, profileError, profile]);
+
     const contextValue = useMemo(() => ({
         profile,
         loading: authLoading || profileLoading,
         appReady,
+        profileUpdating,
+        profileError,
+        guardState,
         updateProfile,
         refreshProfile
-    }), [profile, authLoading, profileLoading, appReady, updateProfile, refreshProfile]);
+    }), [profile, authLoading, profileLoading, appReady, profileUpdating, profileError, guardState, updateProfile, refreshProfile]);
 
     return (
         <ProfileContext.Provider value={contextValue}>

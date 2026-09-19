@@ -20,8 +20,11 @@ export const useProfile = () => {
             profile: DEMO_PROFILE,
             appReady: true,
             loading: false,
-            refreshProfile: async () => {},
-            updateProfile: async () => { console.warn("Demo mode: updateProfile blocked"); }
+            profileUpdating: false,
+            profileError: null,
+            guardState: 'PROFILE_READY_COMPLETE' as any,
+            refreshProfile: async () => DEMO_PROFILE,
+            updateProfile: async () => { console.warn("Demo mode: updateProfile blocked"); return undefined; }
         };
     }
 
