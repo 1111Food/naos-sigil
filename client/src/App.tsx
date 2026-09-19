@@ -79,7 +79,7 @@ function App() {
   const { t } = useTranslation();
   const { energy } = useEnergy();
   const { user, signOut, isRecoveringPassword } = useAuth();
-  const { profile, appReady: profileReady, refreshProfile, updateProfile } = useProfile();
+  const { profile, appReady: profileReady, refreshProfile, updateProfile, guardState } = useProfile();
   useSubscription(); // Mantiene el contexto de suscripción activo (estado gestionado internamente)
 
   const [activeView, setActiveView] = useState<ViewState>('LANDING');
