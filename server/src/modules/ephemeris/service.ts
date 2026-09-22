@@ -13,6 +13,7 @@ export class EphemerisService {
     private static cache: Map<string, PlanetaryPosition[]> = new Map();
     private static CACHE_TTL = 1000 * 60 * 60 * 12; // 12 hours cache
     private static cacheTime: number = 0;
+    private static inFlight: Promise<PlanetaryPosition[]> | null = null;
 
     // JPL Horizons Body IDs
     private static BODIES = [
@@ -37,29 +38,38 @@ export class EphemerisService {
             return Array.from(this.cache.values()).flat();
         }
 
-        console.log("🔭 [NASA/JPL] Conectando en vivo con Horizons API...");
-        const positions: PlanetaryPosition[] = [];
-
-        try {
-            // Se ejecuta de manera secuencial con un pequeño delay para no disparar el rate-limit de NASA
-            for (const body of this.BODIES) {
-                const pos = await this.fetchFromHorizons(body.id, body.name);
-                positions.push(pos);
-                // Delay artificial de 200ms entre llamadas para proteger la conexión
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-
-            this.cache.set('current', positions);
-            this.cacheTime = now;
-            console.log("✅ [NASA/JPL] Efemérides obtenidas y cacheadas con éxito.");
-            return positions;
-        } catch (error) {
-            console.error("🔥 [NASA/JPL] Error conectando con Horizons API. Usando fallback de seguridad:", error);
-            if (this.cache.size > 0) return Array.from(this.cache.values()).flat();
-            
-            // Si la NASA falla totalmente y no hay caché, usamos un fallback para que NAOS no colapse.
-            return this.BODIES.map(b => this.calculateFallbackPosition(b.name));
+        // Prevent concurrent cold requests from multiplying NASA/JPL traffic.
+        if (this.inFlight) {
+            return this.inFlight;
         }
+
+        this.inFlight = (async () => {
+            console.log("[NASA/JPL] Refreshing Horizons ephemeris...");
+            const positions: PlanetaryPosition[] = [];
+
+            try {
+                // Intentionally sequential to respect the external provider.
+                for (const body of this.BODIES) {
+                    const pos = await this.fetchFromHorizons(body.id, body.name);
+                    positions.push(pos);
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+
+                this.cache.set('current', positions);
+                this.cacheTime = Date.now();
+                console.log("[NASA/JPL] Ephemeris refreshed and cached.");
+                return positions;
+            } catch (error) {
+                console.error("[NASA/JPL] Ephemeris refresh failed:", error);
+                // Truth rule: unavailable data must remain unavailable.
+                // Never fabricate astronomical positions.
+                throw new Error("EPHEMERIS_UNAVAILABLE");
+            } finally {
+                this.inFlight = null;
+            }
+        })();
+
+        return this.inFlight;
     }
 
     /**
@@ -143,13 +153,4 @@ export class EphemerisService {
         };
     }
 
-    private static calculateFallbackPosition(bodyName: string): PlanetaryPosition {
-        return {
-            body: bodyName,
-            longitude: Math.random() * 360,
-            latitude: 0,
-            distance: 1,
-            speed: 1
-        };
-    }
 }

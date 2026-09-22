@@ -68,8 +68,18 @@ export class ContextBuilder {
 
         // 1.5. Signal Integrations (NASA/JPL & Patterns)
         // Resolves silently without blocking to ensure stability
+        // Astronomical refresh must never hold Sigil's response path.
+        // The underlying refresh continues in background and warms the process cache.
+        const transitsPromise = TimeMapEngine.calculateCurrentTransits().catch((error) => {
+            console.warn('[CONTEXT] Astronomical transits unavailable:', error);
+            return null;
+        });
+        const transitsTimeout = new Promise<null>((resolve) =>
+            setTimeout(() => resolve(null), 250)
+        );
+
         const [transitsSignal, patternSignal] = await Promise.all([
-            TimeMapEngine.calculateCurrentTransits().catch(() => null),
+            Promise.race([transitsPromise, transitsTimeout]),
             PatternEngine.evaluate(userId, memories).catch(() => null)
         ]);
 
