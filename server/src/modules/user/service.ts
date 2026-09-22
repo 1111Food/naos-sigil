@@ -115,21 +115,21 @@ export class UserService {
                          astrology: resolvedAstrology,
                          numerology: resolvedNumerology,
                          mayan: resolvedMayan,
-                         chinese_animal: resolvedChinese?.animal,
-                         chinese_element: resolvedChinese?.element,
-                         chinese_birth_year: resolvedChinese?.birthYear
+                         chinese: resolvedChinese
                      });
                 }
                 
                 let identityCode = data.naos_identity_code || baseProfile.naos_identity_code || undefined;
-                if (canonicalArchetype && identityCode?.arquetipo?.id) {
-                    if (canonicalArchetype.id !== identityCode.arquetipo.id) {
-                        console.warn(`[ARCHETYPE_ENGINE] Canonical override: Discarding stale identity code (Stored: ${identityCode.arquetipo.id} vs Canonical: ${canonicalArchetype.id})`);
+                if (canonicalArchetype && identityCode) {
+                    const storedArchetypeId = (identityCode as any)?.arquetipo?.id;
+                    if (!storedArchetypeId || canonicalArchetype.id !== storedArchetypeId) {
+                        console.warn(`[ARCHETYPE_ENGINE] Canonical override: Discarding stale identity code (Stored: ${storedArchetypeId || 'MISSING_ID'} vs Canonical: ${canonicalArchetype.id})`);
                         identityCode = undefined;
                         
                         try {
                             const clearedBase = { ...baseProfile, naos_identity_code: null };
                             supabase.from('profiles').update({ 
+                                naos_identity_code: null,
                                 profile_data: clearedBase 
                             }).eq('id', userId).then((res) => {
                                 if (res.error) console.error('[ARCHETYPE_ENGINE] DB Wipe error:', res.error);
@@ -150,12 +150,12 @@ export class UserService {
                     birthTime: activeSub?.birthTime || data.birth_time || baseProfile.birthTime || '',
                     birthCity: activeSub?.birthCity || data.birth_location || baseProfile.birthCity || '',
                     astrology: activeSub?.astrology || data.astrology || data.natal_chart || baseProfile.astrology || undefined,
-                    numerology: activeSub?.numerology || baseProfile.numerology || undefined,
-                    mayan: activeSub?.mayan || baseProfile.mayan || undefined,
+                    numerology: resolvedNumerology,
+                    mayan: resolvedMayan,
                     nawal_maya: activeSub?.nawal_maya || baseProfile.nawal_maya || undefined,
-                    chinese_animal: activeSub?.chinese_animal || baseProfile.chinese_animal || undefined,
-                    chinese_element: activeSub?.chinese_element || baseProfile.chinese_element || undefined,
-                    chinese_birth_year: activeSub?.chinese_birth_year || baseProfile.chinese_birth_year || undefined,
+                    chinese_animal: resolvedChinese.animal || undefined,
+                    chinese_element: resolvedChinese.element || undefined,
+                    chinese_birth_year: resolvedChinese.birthYear || undefined,
                     sigil_url: activeSub?.sigil_url || baseProfile.sigil_url || undefined,
                     coordinates: activeSub?.coordinates || baseProfile.coordinates || { lat: 14.6349, lng: -90.5069 },
                     utcOffset: activeSub?.utcOffset !== undefined ? activeSub.utcOffset : (baseProfile.utcOffset !== undefined ? baseProfile.utcOffset : -6),

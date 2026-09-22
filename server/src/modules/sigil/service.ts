@@ -141,7 +141,7 @@ export class SigilService {
             const energeticBible = ProfileConsolidator.consolidate(userProfile);
 
             // --- NAOS ARCHETYPE CONSCIOUSNESS (v11.0) ---
-            const archetype = ArchetypeEngine.calculate({
+            const archetype = userProfile.canonical_archetype || ArchetypeEngine.calculate({
                 ...userProfile,
                 astrology: energeticBible.western,
                 numerology: energeticBible.numerology
@@ -347,9 +347,9 @@ export class SigilService {
 
             let truthInjection = userProfile.cached_identity_context || "";
 
-            if (userProfile.naos_identity_code) {
+            if (userProfile.canonical_archetype || userProfile.naos_identity_code) {
                 const code = userProfile.naos_identity_code;
-                const arch = code.arquetipo || {};
+                const arch = userProfile.canonical_archetype || archetype || code.arquetipo || {};
                 truthInjection = `
 ──────────────────────────
 [${segments.truth_injection.synced_title}]

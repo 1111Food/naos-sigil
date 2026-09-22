@@ -39,16 +39,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
     const [quickIntel, setQuickIntel] = React.useState<any>(null);
     const [initialDeepTab, setInitialDeepTab] = React.useState<any>(undefined);
 
-    const getSynthesis = () => {
-        if (profile?.naos_identity_code) return profile.naos_identity_code;
-        if (profile?.naosIdentityCode) return profile.naosIdentityCode;
-        try {
-            const cached = localStorage.getItem(`naos_identity_${profile?.id || 'guest'}`);
-            return cached ? JSON.parse(cached) : null;
-        } catch (e) { return null; }
-    };
-    
-    const synthesis = getSynthesis();
+    const canonicalArchetype = profile?.canonical_archetype;
 
     // 1. Essence Number (Life Path Number)
     const essence = profile?.numerology?.lifePathNumber || profile?.life_path_number || "?";
@@ -86,9 +77,9 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
         : (rankData?.personal?.tier || t('initiated'));
 
     // Archetype resolution for English translations
-    const archName = synthesis?.arquetipo?.nombre || t('the_custodian');
+    const archName = canonicalArchetype?.nombre || t('identity_aligning');
     const archLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
-    const archetypeId = synthesis?.arquetipo?.id;
+    const archetypeId = canonicalArchetype?.id;
     
     let resolvedId = archetypeId;
     if (!resolvedId && archName) {
@@ -315,7 +306,7 @@ export const IdentityAltar: React.FC<IdentityAltarProps> = ({ profile, onEdit, o
                             assetType="none"
                             highlight
                             isArchetypeCard
-                            archColor={profile?.naosIdentityCode?.arquetipo?.elemento}
+                            archColor={canonicalArchetype?.elemento || canonicalArchetype?.elemento_dominante}
                             onClick={() => setQuickIntel(getQuickIntelData('NAOS'))}
                         />
                         {/* 4. Nawal Maya */}

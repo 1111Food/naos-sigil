@@ -1,3 +1,5 @@
+import { getMayanColorByNawal } from '../../utils/mayaCalculator';
+
 // server/src/modules/user/archetypeEngine.ts
 
 export type ElementId = 'fuego' | 'tierra' | 'aire' | 'agua';
@@ -308,7 +310,7 @@ export class ArchetypeEngine {
                 contribuciones.astrologia.push(`${isEn ? 'Ascendant in' : 'Ascendente en'} ${risingSign} (+2 ${risingElem})`); 
             }
 
-            const chineseElement = profile.chinese?.element;
+            const chineseElement = profile.chinese?.element || profile.chinese_element;
             if (chineseElement && this.CHINESE_TO_ELEMENT[chineseElement]) {
                 const elem = this.CHINESE_TO_ELEMENT[chineseElement];
                 scores[elem] += 2; legacyScores[elem] += 2;
@@ -316,7 +318,13 @@ export class ArchetypeEngine {
             }
 
             // Maya Color is ONLY applied to V2 scores, not legacyScores
-            const nahualColor = profile.mayan?.color; 
+            const nahualColor =
+                profile.mayan?.color ||
+                getMayanColorByNawal(
+                    profile.mayan?.kicheName ||
+                    profile.mayan?.name ||
+                    profile.nawal_maya
+                );
             if (nahualColor && this.MAYAN_COLORS_TO_ELEMENT[nahualColor]) {
                 const elem = this.MAYAN_COLORS_TO_ELEMENT[nahualColor];
                 scores[elem] += 3;

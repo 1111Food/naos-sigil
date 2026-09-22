@@ -22,8 +22,8 @@ export class ConsciousnessEngine {
         if (!userProfile) throw new Error("User not found");
         
         const isEn = lang === 'en';
-        const name = userProfile.nickname || userProfile.name || 'Arquitecto';
-        const arch = userProfile.canonical_archetype?.nombre || (isEn ? 'Architect' : 'Arquitecto');
+        const name = userProfile.nickname || userProfile.name || (isEn ? 'Traveler' : 'Viajero');
+        const arch = userProfile.canonical_archetype?.nombre || (isEn ? 'Identity unavailable' : 'Identidad no disponible');
 
         // 2. Fetch Canonical Daily Context (V2Payload)
         const offset = 0; // Default offset

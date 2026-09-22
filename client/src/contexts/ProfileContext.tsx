@@ -165,18 +165,19 @@ const mapProfileData = (data: any, userEmail?: string): UserProfile => {
         masterName: rootName,
         name: rootName,
         nickname: data.nickname || data.profile_data?.nickname || '',
-        email: data.email,
-        birthDate: data.birth_date,
-        birthTime: data.birth_time,
-        birthCity: data.birth_city,
-        birthCountry: data.birth_country,
+        email: data.email || userEmail,
+        birthDate: data.birthDate || data.birth_date,
+        birthTime: data.birthTime || data.birth_time,
+        birthCity: data.birthCity || data.birth_city || data.birth_location,
+        birthCountry: data.birthCountry || data.birth_country,
         // Ensure complex objects are handled
         astrology: data.astrology || data.natal_chart || undefined,
         numerology: data.numerology || undefined,
         mayan: data.mayan || undefined,
         onboarding_completed: data.onboarding_completed ?? false,
         fengShui: data.fengShui || undefined,
-        naosIdentityCode: data.naos_identity_code || data.profile_data?.naos_identity_code || undefined
+        naosIdentityCode: data.naosIdentityCode || data.naos_identity_code || data.profile_data?.naos_identity_code || undefined,
+        canonical_archetype: data.canonical_archetype || undefined
     };
 
     // --- MULTI-PROFILE LAUNCH FREEZE ---
@@ -213,16 +214,18 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         try {
             // console.log("🛡️ SSoT: Fetching profile for authenticated user:", user.id);
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
+            const headers = await getAsyncAuthHeaders('GET');
+            const response = await fetch(endpoints.profile, {
+                method: 'GET',
+                headers
+            });
 
-            if (error && error.code !== 'PGRST116') {
-                console.warn("🛡️ SSoT: Supabase fetch warning:", error.message);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error('Profile API failed with status: ' + response.status + ' ' + text);
             }
 
+            const data = await response.json();
             const newProfile = data ? mapProfileData(data, user.email) : null;
             if (newProfile) {
                 // Sincronizar memoria persistente para el WelcomeBackView

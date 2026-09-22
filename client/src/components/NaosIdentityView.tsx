@@ -300,7 +300,13 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         { id: 'conclusion_directa', title: t('identity_conclusion_directa'), icon: Scroll, content: synthesis?.conclusion_directa || t('identity_aligning'), color: 'emerald', formula: getFormula('conclusion_directa') },
     ];
 
-    const archetype = synthesis?.arquetipo;
+    const canonicalArchetype = (_profile as any)?.canonical_archetype;
+    const archetype = canonicalArchetype
+        ? {
+            ...canonicalArchetype,
+            elemento: canonicalArchetype.elemento || canonicalArchetype.elemento_dominante
+        }
+        : synthesis?.arquetipo;
     const archColor = archetype ? (colorConfig[archetype.elemento === 'fuego' ? 'rose' : archetype.elemento === 'tierra' ? 'amber' : archetype.elemento === 'aire' ? 'cyan' : 'indigo']) : colorConfig.cyan;
 
     // --- DYNAMIC TRANSLATION RESOLVER FOR ARCHETYPE ---
@@ -316,7 +322,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         ? archLib.find(a => a.id === resolvedId) 
         : archLib.find(a => a.nombre.toLowerCase().trim() === (archetype?.nombre || '').toLowerCase().trim());
         
-    const displayArchName = archInfo?.nombre || archetype?.nombre || (language === 'en' ? 'The Custodian' : 'El Custodio');
+    const displayArchName = archInfo?.nombre || archetype?.nombre || t('identity_aligning');
     const displayArchFreq = archInfo?.frecuencia || archetype?.frecuencia;
     const displayArchRole = archInfo?.rol || archetype?.rol;
     const displayDeepText = archInfo?.interpretacion_profunda || archetype?.interpretacion_profunda || archInfo?.descripcion || archetype?.descripcion;
@@ -358,7 +364,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                         label={t('identity_archetype_label')} 
                         value={displayArchName} 
                         isArchetype={true}
-                        archColor={synthesis?.arquetipo?.elemento ? frequencyConfig[synthesis.arquetipo.frecuencia] : undefined}
+                        archColor={archetype?.frecuencia ? frequencyConfig[archetype.frecuencia] : undefined}
                         delay={0.1}
                         onClick={() => setIsArchetypeExpanded(!isArchetypeExpanded)}
                         onInfoClick={() => setExplainerType('IDENTITY_ARCHETYPE')}

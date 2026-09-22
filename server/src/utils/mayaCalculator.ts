@@ -259,6 +259,29 @@ export const TONES = {
 
 import { MayaMathV1 } from '../modules/maya/MayaMathV1';
 
+export type MayanColor = 'Rojo' | 'Blanco' | 'Azul' | 'Amarillo';
+
+export function getMayanColorByNawal(kicheName?: string | null): MayanColor | undefined {
+    if (!kicheName) return undefined;
+
+    const candidates = [
+        kicheName,
+        kicheName === "I'x" ? 'Ix' : null,
+        kicheName === 'Ix' ? "I'x" : null
+    ].filter(Boolean) as string[];
+
+    let index = -1;
+    for (const candidate of candidates) {
+        index = NAWALES.findIndex((n: any) => n.name === candidate);
+        if (index >= 0) break;
+    }
+
+    if (index < 0) return undefined;
+
+    const colors: MayanColor[] = ['Rojo', 'Blanco', 'Azul', 'Amarillo'];
+    return colors[(index + 2) % 4];
+}
+
 export class MayanCalculator {
     static calculate(dateString: string, lang: 'es' | 'en' = 'es') {
         

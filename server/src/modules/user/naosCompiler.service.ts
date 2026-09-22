@@ -1,7 +1,7 @@
 import { config } from '../../config/env';
 import { UserProfile } from '../../types';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
-import { MayanCalculator, NAWALES } from '../../utils/mayaCalculator';
+import { MayanCalculator, getMayanColorByNawal } from '../../utils/mayaCalculator';
 import { NumerologyService } from '../../modules/numerology/service';
 import { AstrologyService } from '../astrology/astroService';
 import fs from 'fs';
@@ -73,6 +73,11 @@ export class NaosCompilerService {
                 const hasArchetype = !!(cachedArchetype && cachedArchetype.nombre && 
                                       cachedArchetype.nombre !== "Calculando..." && 
                                       cachedArchetype.nombre !== "Buscando...");
+                const archetypeMatchesCanonical = !!(
+                    hasArchetype &&
+                    cachedArchetype?.id &&
+                    cachedArchetype.id === archetype.id
+                );
                                       
                 // Check if all 11 new sections are present in cache
                 const matchesMandatory = !!((cachedCode as any).diagnostico_global && 
@@ -106,7 +111,7 @@ export class NaosCompilerService {
                     return enrichedResult;
                 }
 
-                const isPoisoned = !hasArchetype || !hasNarrativeBlocks || !narrativeIsClean;
+                const isPoisoned = !hasArchetype || !archetypeMatchesCanonical || !hasNarrativeBlocks || !narrativeIsClean;
                 if (!isPoisoned) {
                     return cachedCode as NaosIdentitySynthesis;
                 }
@@ -122,10 +127,6 @@ export class NaosCompilerService {
                 return v && v.length > 50 && !v.includes("...");
             });
 
-            if (isValid) {
-                await this.persistSynthesis(userId, synthesis);
-            }
-            
             const finalSynthesis = {
                 ...synthesis,
                 language, // Store language to validate cache
@@ -140,6 +141,10 @@ export class NaosCompilerService {
                 }
             };
             
+            if (isValid) {
+                await this.persistSynthesis(userId, finalSynthesis);
+            }
+
             return finalSynthesis;
 
         } catch (error: any) {
@@ -158,6 +163,9 @@ export class NaosCompilerService {
             if (cached) {
                 if (typeof cached === 'string') try { cached = JSON.parse(cached); } catch(e) {}
                 const repaired: any = { ...(cached as any) };
+
+                repaired.language = language;
+
                 
                 keys.forEach(key => {
                     const val = repaired[key];
@@ -170,6 +178,7 @@ export class NaosCompilerService {
                 });
 
                 repaired.arquetipo = {
+                    id: archetype.id,
                     nombre: archetype.nombre,
                     frecuencia: archetype.frecuencia,
                     rol: archetype.rol,
@@ -188,6 +197,7 @@ export class NaosCompilerService {
             keys.forEach(k => { fallback[k] = NaosCompilerService.generateLocalNarrative(k, bible, archetype, language); });
             fallback.language = language;
             fallback.arquetipo = {
+                id: archetype.id,
                 nombre: archetype.nombre,
                 frecuencia: archetype.frecuencia,
                 rol: archetype.rol,
@@ -343,7 +353,7 @@ export class NaosCompilerService {
             numerology: num,
             mayan: {
                 ...mayan,
-                color: ['Rojo', 'Blanco', 'Azul', 'Amarillo'][(NAWALES.findIndex((n: any) => n.name === mayan.kicheName) + 2) % 4]
+                color: getMayanColorByNawal(mayan.kicheName)
             },
             chinese: {
                 animal: chinese.animal,

@@ -78,7 +78,7 @@ export class ContextBuilder {
         let energySnapshot: any = null;
         if (userProfile) {
             const consolidated = ProfileConsolidator.consolidate(userProfile);
-            const archetype = ArchetypeEngine.calculate({
+            const archetype = userProfile.canonical_archetype || ArchetypeEngine.calculate({
                 ...userProfile,
                 astrology: consolidated.western,
                 numerology: consolidated.numerology
