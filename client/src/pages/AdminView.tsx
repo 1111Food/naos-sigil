@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Shield } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { API_BASE_URL } from '../lib/api';
 
