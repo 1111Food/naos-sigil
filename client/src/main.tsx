@@ -13,9 +13,27 @@ import { LanguageProvider } from './i18n';
 import { queryClient } from './lib/queryClient';
 
 
+// Recover gracefully when a deployment replaces hashed lazy-loaded chunks.
+// Example: an already-open tab requests an asset from the previous deployment.
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+
+    const reloadKey = 'naos_preload_reload_at';
+    const now = Date.now();
+    const previous = Number(sessionStorage.getItem(reloadKey) || '0');
+
+    // Prevent an accidental infinite reload loop if the deployment itself is unhealthy.
+    if (now - previous > 15000) {
+      sessionStorage.setItem(reloadKey, String(now));
+      window.location.reload();
+    }
+  });
+}
+
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((registration) => {
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((registration) => {
       console.log('✨ NAOS Service Worker registered with scope:', registration.scope);
     }).catch((error) => {
       console.error('🔥 NAOS Service Worker registration failed:', error);

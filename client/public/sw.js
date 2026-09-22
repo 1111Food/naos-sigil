@@ -1,41 +1,43 @@
-const CACHE_NAME = 'naos-v3';
+// NAOS Service Worker ? launch-safe cleanup worker.
+// Runtime caching is intentionally disabled to prevent stale hashed chunks
+// from surviving application deployments.
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    event.waitUntil(clients.claim());
-});
+    event.waitUntil((async () => {
+        const cacheNames = await caches.keys();
+        const hadOldCaches = cacheNames.length > 0;
 
-self.addEventListener('fetch', (event) => {
-    const url = event.request.url;
-    
-    // 1. COMPLETELY IGNORE ALL API CALLS
-    if (url.includes('/api/') || event.request.method !== 'GET') {
-        return;
-    }
+        await Promise.all(
+            cacheNames.map((cacheName) => caches.delete(cacheName))
+        );
 
-    // 2. ONLY HANDLE STATIC ASSETS (GET requests to non-API endoints)
-    event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-                return cachedResponse;
-            }
+        await self.clients.claim();
 
-            return fetch(event.request)
-                .then((networkResponse) => {
-                    // Cache matching assets if needed, but for now just return
-                    return networkResponse;
+        // Existing users may currently be running an HTML/JS bundle that
+        // references obsolete hashed chunks. Reload only when stale caches
+        // were actually found and removed.
+        if (hadOldCaches) {
+            const windows = await self.clients.matchAll({
+                type: 'window',
+                includeUncontrolled: true
+            });
+
+            await Promise.all(
+                windows.map((client) => {
+                    if ('navigate' in client) {
+                        return client.navigate(client.url);
+                    }
+                    return Promise.resolve();
                 })
-                .catch(() => {
-                    // Return a generic offline response to avoid Response-conversion errors
-                    return new Response('Offline', {
-                        status: 503,
-                        statusText: 'Service Unavailable',
-                        headers: { 'Content-Type': 'text/plain' }
-                    });
-                });
-        })
-    );
+            );
+        }
+    })());
 });
+
+// IMPORTANT:
+// No fetch handler during launch.
+// Browser/Vercel are authoritative for HTML and hashed application assets.
