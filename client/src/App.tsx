@@ -16,7 +16,6 @@ import { NaosVibrationEngine } from './components/NaosVibrationEngine';
 import { Guardian } from './components/Guardian';
 import { SigilBubble } from './components/SigilBubble';
 import { SacredDock } from './components/SacredDock';
-import { PreLaunchGate } from './components/PreLaunchGate';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { GlobalUpgradeButton } from './components/GlobalUpgradeButton';
 import { GuardianProvider } from './contexts/GuardianContext';
@@ -195,14 +194,6 @@ function App() {
     }
   }, [guardState, storageReady, activeView]);
 
-  // Force Login Event Listener (triggered by PreLaunchGate)
-  useEffect(() => {
-    const handleForceLogin = () => {
-      setActiveView('LOGIN');
-    };
-    window.addEventListener('naos-force-login', handleForceLogin);
-    return () => window.removeEventListener('naos-force-login', handleForceLogin);
-  }, []);
 
   // 4. ADMIN ROUTE DETECT
   useEffect(() => {
@@ -409,53 +400,48 @@ function App() {
         return <FirstRevelation onComplete={handleFirstRevelationComplete} />;
         case 'TEMPLE':
           return (
-            <PreLaunchGate>
               <Home onSelectFeature={navigateWithRitual} />
-            </PreLaunchGate>
           );
   
         case 'RANKING':
-          return <PreLaunchGate><RankingView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} /></PreLaunchGate>;
+          return <RankingView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
   
         case 'TAROT':
-          return <PreLaunchGate><Tarot onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+          return <Tarot onBack={() => setActiveView('TEMPLE')} />;
         case 'CHAT':
-          return <PreLaunchGate><ChatInterface onNavigate={setActiveView} initialPrompt={viewPayload?.pendingSigilPrompt} /></PreLaunchGate>;
+          return <ChatInterface onNavigate={setActiveView} initialPrompt={viewPayload?.pendingSigilPrompt} />;
         case 'SANCTUARY':
-          return <PreLaunchGate><Sanctuary onBack={() => setActiveView('TEMPLE')} initialRitual={activeRitual} /></PreLaunchGate>;
+          return <Sanctuary onBack={() => setActiveView('TEMPLE')} initialRitual={activeRitual} />;
         case 'PROFILE':
           return (
-            <PreLaunchGate>
               <IdentityAltar
                 profile={profile}
                 onEdit={() => setActiveView('ONBOARDING')}
                 onNavigate={navigateWithRitual}
               />
-            </PreLaunchGate>
           );
         case 'IDENTITY_NEXUS':
-          return <PreLaunchGate><IdentityNexus onNavigate={setActiveView} onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+          return <IdentityNexus onNavigate={setActiveView} onBack={() => setActiveView('TEMPLE')} />;
         case 'DECISION_ENGINE':
-          return <PreLaunchGate><DecisionEngine onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+          return <DecisionEngine onBack={() => setActiveView('TEMPLE')} />;
         case 'MISSION_YEAR':
-          return <PreLaunchGate><MissionYear onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+          return <MissionYear onBack={() => setActiveView('TEMPLE')} />;
         case 'PROTOCOL21':
-          return <PreLaunchGate><Protocol21 onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} /></PreLaunchGate>;
+          return <Protocol21 onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} />;
         case 'ELEMENTAL_LAB':
-          return <PreLaunchGate><ElementalLaboratoryView onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} /></PreLaunchGate>;
+          return <ElementalLaboratoryView onBack={() => setActiveView('TEMPLE')} onNavigate={navigateWithRitual} />;
         case 'EVOLUTION':
-          return <PreLaunchGate><EvolutionView onBack={() => setActiveView('TEMPLE')} /></PreLaunchGate>;
+          return <EvolutionView onBack={() => setActiveView('TEMPLE')} />;
         case 'MANUALS':
-          return <PreLaunchGate><ManualsView onBack={() => setActiveView('TEMPLE')} initialManual={viewPayload?.initialManual} /></PreLaunchGate>;
+          return <ManualsView onBack={() => setActiveView('TEMPLE')} initialManual={viewPayload?.initialManual} />;
         case 'TIME_MAP_NEXUS':
-          return <PreLaunchGate><TimeMapNexus onNavigate={setActiveView} onBack={() => setActiveView('IDENTITY_NEXUS')} /></PreLaunchGate>;
+          return <TimeMapNexus onNavigate={setActiveView} onBack={() => setActiveView('IDENTITY_NEXUS')} />;
         case 'TIME_MAP_LIFELINE':
-          return <PreLaunchGate><LifelineView onBack={() => setActiveView('TIME_MAP_NEXUS')} /></PreLaunchGate>;
+          return <LifelineView onBack={() => setActiveView('TIME_MAP_NEXUS')} />;
         case 'TIME_MAP_CURRENT':
-          return <PreLaunchGate><CurrentEnergyView onBack={() => setActiveView('TIME_MAP_NEXUS')} onNavigate={navigateWithRitual} /></PreLaunchGate>;
+          return <CurrentEnergyView onBack={() => setActiveView('TIME_MAP_NEXUS')} onNavigate={navigateWithRitual} />;
         case 'TIME_MAP_ANNUAL':
           return (
-            <PreLaunchGate>
               <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-24 min-h-screen">
                   <button
                       onClick={() => setActiveView('TIME_MAP_NEXUS')}
@@ -466,18 +452,15 @@ function App() {
                   </button>
                   <TimeMap />
               </div>
-            </PreLaunchGate>
           );
         case 'ORACLE_SOULS':
         case 'SYNASTRY':
-          return <PreLaunchGate><OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} /></PreLaunchGate>;
+          return <OracleSoulsView onBack={() => setActiveView('TEMPLE')} onNavigate={setActiveView} />;
         case 'ADMIN':
           return <AdminView />;
         default:
           return (
-            <PreLaunchGate>
               <Home onSelectFeature={(feat) => setActiveView(feat as ViewState)} activeFeature={activeView} />
-            </PreLaunchGate>
           );
     }
   };
