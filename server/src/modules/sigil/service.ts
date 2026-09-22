@@ -111,6 +111,15 @@ export class SigilService {
                 (async () => { try { return await memoryService.recall(userId, message, 6); } catch (e) { console.warn('⚠️ Memory recall failed (graceful):', e); return []; } })()
             ]);
 
+            // AI ECONOMICS: normal Sigil conversations use the beta budget.
+            // Specialized forceReading flows manage their own economics to avoid double charging.
+            if (!forceReading) {
+                const budgetCheck = await AiLedgerService.checkBudget(userId, userProfile);
+                if (!budgetCheck.allowed) {
+                    throw new Error(budgetCheck.reason || 'BUDGET_EXHAUSTED');
+                }
+            }
+
             let evolutionStage = evolutionData?.data ?? 1;
             let preferredTone = toneData?.data ?? 'MISTICO';
             let userTier = rankResponse.data?.tier_label || 'Fragmentado';
@@ -485,7 +494,13 @@ ${segments.truth_injection.waiting_desc}
             let response: string;
             try {
                 console.log("⚡ Executing Gemini via Raw REST API (Memory Enabled)...");
-                response = await this.callGeminiAPI(message, unifiedSystemPrompt, chatHistory);
+                response = await this.callGeminiAPI(
+                    message,
+                    unifiedSystemPrompt,
+                    chatHistory,
+                    forceReading ? undefined : userId,
+                    forceReading ? undefined : userProfile
+                );
             } catch (apiError: any) {
                 // If it's a forced reading (Tarot/Synastry), re-throw so specialized route can handle fallback
                 if (forceReading) {

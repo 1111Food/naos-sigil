@@ -392,6 +392,20 @@ export async function apiRoutes(app: FastifyInstance) {
                 });
             }
 
+            if (error.message?.includes('BUDGET_EXHAUSTED')) {
+                return reply.status(402).send({
+                    error: "Has alcanzado el l\u00edmite de uso de IA disponible para esta etapa beta.",
+                    details: "BUDGET_EXHAUSTED"
+                });
+            }
+
+            if (error.message?.includes('BUDGET_CHECK_FAILED')) {
+                return reply.status(503).send({
+                    error: "No fue posible verificar temporalmente el presupuesto de IA.",
+                    details: "BUDGET_CHECK_FAILED"
+                });
+            }
+
             return reply.status(500).send({
                 error: "La red estelar estÃƒÂ¡ inestable. Revisa tu conexiÃƒÂ³n mÃƒÂ­stica.",
                 details: error.message

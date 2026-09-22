@@ -42,12 +42,17 @@ export class AiLedgerService {
                 .from('user_ai_budgets')
                 .select('budget_usd')
                 .eq('user_id', userId)
-                .single();
-            if (!error && override) {
-                budgetLimit = override.budget_usd;
+                .maybeSingle();
+            if (error) {
+                console.error("[ECONOMICS] Budget lookup failed:", error);
+                return { allowed: false, reason: 'BUDGET_CHECK_FAILED', isOwner: false };
+            }
+            if (override) {
+                budgetLimit = Number(override.budget_usd);
             }
         } catch (e) {
-            // Graceful fallback if migration not run
+            console.error("[ECONOMICS] Budget lookup crashed:", e);
+            return { allowed: false, reason: 'BUDGET_CHECK_FAILED', isOwner: false };
         }
 
         // 3. Resolve Current Cycle Usage
@@ -60,11 +65,16 @@ export class AiLedgerService {
                 .eq('user_id', userId)
                 .eq('usage_cycle_period', cycle);
                 
-            if (!error && usage) {
+            if (error) {
+                console.error("[ECONOMICS] Ledger lookup failed:", error);
+                return { allowed: false, reason: 'BUDGET_CHECK_FAILED', isOwner: false };
+            }
+            if (usage) {
                 used = usage.reduce((acc, row) => acc + Number(row.estimated_cost_usd || 0), 0);
             }
         } catch (e) {
-            // Graceful fallback
+            console.error("[ECONOMICS] Ledger lookup crashed:", e);
+            return { allowed: false, reason: 'BUDGET_CHECK_FAILED', isOwner: false };
         }
 
         if (used >= budgetLimit) {
@@ -97,11 +107,11 @@ export class AiLedgerService {
         };
 
         try {
-            await supabaseAdmin.from('ai_usage_ledger').insert(payload);
+            const { error } = await supabaseAdmin.from('ai_usage_ledger').insert(payload);
+            if (error) throw error;
         } catch (e: any) {
-            if (e?.code !== '42P01') { // Ignore relation does not exist
-                console.error("[ECONOMICS] Error recording ledger usage:", e);
-            }
+            console.error("[ECONOMICS] Error recording ledger usage:", e);
+            throw e;
         }
     }
 }

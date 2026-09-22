@@ -173,6 +173,7 @@ export class UserService {
                     consciousness_level: level,
                     consciousness_points: score
                 };
+                (dbProfile as any).system_role = data.system_role || 'user';
                 this.profilesCache[userId] = dbProfile;
                 return dbProfile;
             }
