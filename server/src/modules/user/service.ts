@@ -153,7 +153,12 @@ export class UserService {
                     astrology: activeSub?.astrology || data.astrology || data.natal_chart || baseProfile.astrology || undefined,
                     numerology: resolvedNumerology,
                     mayan: resolvedMayan,
-                    nawal_maya: activeSub?.nawal_maya || baseProfile.nawal_maya || undefined,
+                    nawal_maya:
+                        activeSub?.nawal_maya ||
+                        baseProfile.nawal_maya ||
+                        (resolvedMayan?.tone && resolvedMayan?.kicheName
+                            ? `${resolvedMayan.tone} ${resolvedMayan.kicheName}`
+                            : undefined),
                     chinese_animal: resolvedChinese.animal || undefined,
                     chinese_element: resolvedChinese.element || undefined,
                     chinese_birth_year: resolvedChinese.birthYear || undefined,
