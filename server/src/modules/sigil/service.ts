@@ -52,6 +52,7 @@ export class SigilService {
     }
 
     async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any, language: string = 'es', geo?: { country: string, region: string }, options: { persistUserMessage?: boolean, visibleInConversation?: boolean, source?: string } = { persistUserMessage: true, visibleInConversation: true, source: 'user' }): Promise<string> {
+        const perfStart = Date.now();
         console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}, Lang: ${language}, Geo: ${geo?.region}, InternalSource: ${options.source}`);
         
         const lang = (language === 'en' || language === 'es') ? language : 'es';
@@ -74,13 +75,18 @@ export class SigilService {
 
             // --- COHERENCE ENGINE CONNECTION ---
             // Aplicar decaimiento primero
+            const decayStart = Date.now();
             await CoherenceService.applyInactivityDecay(userId);
+            console.log(`[PERF][SIGIL] inactivity_decay=${Date.now() - decayStart}ms`);
 
             // 0. FETCH CONTEXT DATA IN PARALLEL (SCALING OPTIMIZATION)
             console.log(`🌀 SigilService: Orchestrating parallel data fetch for ${userId}...`);
             
             // --- NAOS CONTEXT INTEGRATION (V1.1) ---
+            const contextBuilderStart = Date.now();
             const naosContext = await ContextBuilder.build(userId, localTimestamp);
+            console.log(`[PERF][SIGIL] context_builder=${Date.now() - contextBuilderStart}ms`);
+            const parallelContextStart = Date.now();
             
             const [
                 userProfile,
@@ -111,10 +117,14 @@ export class SigilService {
                 (async () => { try { return await memoryService.recall(userId, message, 6); } catch (e) { console.warn('⚠️ Memory recall failed (graceful):', e); return []; } })()
             ]);
 
+            console.log(`[PERF][SIGIL] parallel_context=${Date.now() - parallelContextStart}ms`);
+
             // AI ECONOMICS: normal Sigil conversations use the beta budget.
             // Specialized forceReading flows manage their own economics to avoid double charging.
             if (!forceReading) {
+                const budgetStart = Date.now();
                 const budgetCheck = await AiLedgerService.checkBudget(userId, userProfile);
+                console.log(`[PERF][SIGIL] budget_check=${Date.now() - budgetStart}ms`);
                 if (!budgetCheck.allowed) {
                     throw new Error(budgetCheck.reason || 'BUDGET_EXHAUSTED');
                 }
@@ -494,6 +504,8 @@ ${segments.truth_injection.waiting_desc}
             let response: string;
             try {
                 console.log("⚡ Executing Gemini via Raw REST API (Memory Enabled)...");
+                console.log(`[PERF][SIGIL] pre_gemini_total=${Date.now() - perfStart}ms`);
+                const geminiStart = Date.now();
                 response = await this.callGeminiAPI(
                     message,
                     unifiedSystemPrompt,
@@ -501,6 +513,7 @@ ${segments.truth_injection.waiting_desc}
                     forceReading ? undefined : userId,
                     forceReading ? undefined : userProfile
                 );
+                console.log(`[PERF][SIGIL] gemini_and_ledger=${Date.now() - geminiStart}ms`);
             } catch (apiError: any) {
                 // If it's a forced reading (Tarot/Synastry), re-throw so specialized route can handle fallback
                 if (forceReading) {
@@ -535,6 +548,8 @@ ${segments.truth_injection.waiting_desc}
             state.relationshipLevel += 1;
             state.lastInteraction = new Date().toISOString();
 
+            console.log(`[PERF][SIGIL] total_before_async_persist=${Date.now() - perfStart}ms`);
+
             // ASYNC PERSISTENCE: Save log, update notes, and evaluate memory
             if (options.persistUserMessage) {
                 this.persistInteraction(userId, message, finalResponse, forceReading).catch(e => console.error("❌ Persistence failed:", e));
@@ -556,6 +571,7 @@ ${segments.truth_injection.waiting_desc}
     }
 
     private async callGeminiAPI(message: string, systemInstruction: string, history: any[] = [], userId?: string, profile?: any): Promise<string> {
+        const geminiApiStart = Date.now();
         const apiKey = config.GOOGLE_API_KEY;
         if (!apiKey) {
             throw new Error("❌ Error: Faltan las credenciales (API Key).");
@@ -616,7 +632,9 @@ ${segments.truth_injection.waiting_desc}
 
         try {
             console.log(`🚀 Sigil v2.0 Launching with SDK model: ${modelName}...`);
+            const firstSendStart = Date.now();
             let result = await chat.sendMessage(message);
+            console.log(`[PERF][GEMINI] first_send=${Date.now() - firstSendStart}ms`);
             let call = result.response.functionCalls()?.[0];
             
             if (call) {
@@ -683,6 +701,7 @@ ${segments.truth_injection.waiting_desc}
             
             if (userId && profile) {
                 const usage = result.response.usageMetadata;
+                const ledgerStart = Date.now();
                 await AiLedgerService.recordUsage(userId, profile, {
                     feature: 'sigil_chat',
                     provider: 'gemini',
@@ -690,7 +709,10 @@ ${segments.truth_injection.waiting_desc}
                     input_tokens: usage?.promptTokenCount || 0,
                     output_tokens: usage?.candidatesTokenCount || 0
                 });
+                console.log(`[PERF][GEMINI] ledger_write=${Date.now() - ledgerStart}ms`);
             }
+
+            console.log(`[PERF][GEMINI] call_total=${Date.now() - geminiApiStart}ms`);
 
             if (text) return text;
             

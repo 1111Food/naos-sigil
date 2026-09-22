@@ -322,19 +322,24 @@ export async function apiRoutes(app: FastifyInstance) {
             }
         }
     }, async (req, reply) => {
+        const routePerfStart = Date.now();
         const { message, localTimestamp, oracleState, role, energyContext, language, voice_enabled } = req.body;
         const userId = (req as any).user_id;
 
         // Ã°Å¸â€ºÂ¡Ã¯Â¸Â UsageGuard Limit Check
         console.log(`Ã°Å¸â€ºÂ¡Ã¯Â¸Â Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
+        const usageCheckStart = Date.now();
         const limitCheck = await UsageGuardService.checkLimit(userId, 'sigil', (req as any).user?.role);
+        console.log(`[PERF][CHAT] usage_check=${Date.now() - usageCheckStart}ms`);
         if (!limitCheck.ok) {
             return reply.status(403).send({ error: "LÃƒÂ­mite de EnergÃƒÂ­a Agotado", message: limitCheck.message });
         }
 
         try {
             console.log(`Ã°Å¸Å'â‚¬ INCOMING MESSAGE from ${userId}: "${message}"`);
+            const sigilStart = Date.now();
             const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo);
+            console.log(`[PERF][CHAT] sigil_process=${Date.now() - sigilStart}ms`);
 
             let finalText = res;
             let kernelAction = undefined;
@@ -358,7 +363,9 @@ export async function apiRoutes(app: FastifyInstance) {
             if (voice_enabled === true) {
                 try {
                     const tts = new TTSService();
+                    const ttsStart = Date.now();
                     const { hash, buffer } = await tts.generateVoice(userId, finalText, (req as any).userGeo?.region || 'global');
+                    console.log(`[PERF][CHAT] tts=${Date.now() - ttsStart}ms`);
                     audioUrl = buffer ? `/api/sigil/audio/${hash}` : undefined;
                     audioBase64 = buffer ? buffer.toString('base64') : undefined;
                 } catch (ttsError: any) {
@@ -367,7 +374,10 @@ export async function apiRoutes(app: FastifyInstance) {
                 }
             }
 
+            const usageIncrementStart = Date.now();
             await UsageGuardService.incrementUsage(userId, 'sigil');
+            console.log(`[PERF][CHAT] usage_increment=${Date.now() - usageIncrementStart}ms`);
+            console.log(`[PERF][CHAT] total=${Date.now() - routePerfStart}ms`);
 
             return { 
                 text: finalText,
