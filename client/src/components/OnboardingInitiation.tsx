@@ -93,46 +93,42 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
 
             console.log("Saving profile for user:", currentUser.id);
             const profilePayload = {
-                id: currentUser.id,
                 name: formData.name,
-                full_name: formData.name,
-                nickname: formData.nickname || '',
-                email: formData.email,
-                plan_type: formData.email.toLowerCase().includes('luisalfredoherreramendez') ? 'admin' : 'free',
-                birth_date: formData.birthDate,
-                birth_time: formData.birthTime,
-                birth_city: formData.birthCity,
-                birth_country: formData.birthCountry,
-                astrology: astroData,
-                numerology: { lifePathNumber, pinaculo, nameNumber },
-                mayan: mayanData,
-                nawal_maya: `${mayanData.tone} ${mayanData.kicheName}`,
-                chinese_animal: chineseData.animal,
-                chinese_element: chineseData.element,
-                chinese_birth_year: chineseData.birthYear,
-                onboarding_completed: true,
-                updated_at: new Date().toISOString()
+                birthDate: formData.birthDate,
+                birthTime: formData.birthTime,
+                birthCity: formData.birthCity,
+                birthCountry: formData.birthCountry
             };
 
-            const { error: upsertError } = await supabase
-                .from('profiles')
-                .upsert(profilePayload);
-
-            if (upsertError) throw upsertError;
-
             const headers = await getAsyncAuthHeaders();
-            await fetch(`${API_BASE_URL}/api/onboarding/complete`, { 
-                method: 'POST', 
+
+            const profileResponse = await fetch(`${API_BASE_URL}/api/profile`, {
+                method: 'POST',
                 headers,
-                body: JSON.stringify({}) 
+                body: JSON.stringify(profilePayload)
             });
+
+            if (!profileResponse.ok) {
+                const details: any = await profileResponse.json().catch(() => ({}));
+                throw new Error(details?.error || `Profile save failed (${profileResponse.status})`);
+            }
+
+            const completeResponse = await fetch(`${API_BASE_URL}/api/onboarding/complete`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({})
+            });
+
+            if (!completeResponse.ok) {
+                const details: any = await completeResponse.json().catch(() => ({}));
+                throw new Error(details?.error || `Onboarding completion failed (${completeResponse.status})`);
+            }
 
             trackEvent('signup_completed');
             onComplete();
         } catch (err: any) {
             console.error('Failed to complete onboarding', err);
             alert(t('reserved_content') + ": " + (err.message || err));
-            onComplete();
         } finally { setCompleting(false); }
     };
 

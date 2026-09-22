@@ -11,6 +11,7 @@ import { config } from '../../config/env';
 import { MayanCalculator } from '../../utils/mayaCalculator';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
 import { supabase } from '../../lib/supabase';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import { ArchetypeEngine } from './archetypeEngine';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -128,7 +129,7 @@ export class UserService {
                         
                         try {
                             const clearedBase = { ...baseProfile, naos_identity_code: null };
-                            supabase.from('profiles').update({ 
+                            supabaseAdmin.from('profiles').update({
                                 naos_identity_code: null,
                                 profile_data: clearedBase 
                             }).eq('id', userId).then((res) => {
@@ -309,7 +310,8 @@ export class UserService {
                 profile_data: updated,
                 updated_at: new Date().toISOString()
             };
-            await supabase.from('profiles').upsert(payload);
+            const { error: upsertError } = await supabaseAdmin.from('profiles').upsert(payload);
+            if (upsertError) throw upsertError;
         }
 
         return await this.getProfile(userId);
@@ -319,7 +321,11 @@ export class UserService {
         let current = await this.getProfile(userId);
         
         if (config.SUPABASE_URL) {
-            await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', userId);
+            const { error: onboardingError } = await supabaseAdmin
+                .from('profiles')
+                .update({ onboarding_completed: true })
+                .eq('id', userId);
+            if (onboardingError) throw onboardingError;
         }
         
         const updated = { ...current, onboarding_completed: true };
