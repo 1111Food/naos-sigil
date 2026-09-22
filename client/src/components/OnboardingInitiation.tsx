@@ -126,7 +126,11 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
             }
 
             trackEvent('signup_completed');
+            // The backend is now authoritative for the completed profile.
+            // Reload once so ProfileContext starts from persisted canonical state
+            // instead of the pre-onboarding profile held in memory.
             onComplete();
+            window.location.reload();
         } catch (err: any) {
             console.error('Failed to complete onboarding', err);
             alert(t('reserved_content') + ": " + (err.message || err));
