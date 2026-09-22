@@ -291,6 +291,52 @@ export class UserService {
             }
         }
 
+        // Canonical identity signals are calculated server-side.
+        // Client input is limited to birth/name/location facts only.
+        const nameChanged =
+            !!data.name && data.name !== current.name;
+
+        const canonicalSignalsMissing =
+            !current.numerology ||
+            !current.mayan ||
+            !current.chinese_animal ||
+            !current.chinese_element ||
+            !current.astrology;
+
+        if ((birthDataChanged || nameChanged || canonicalSignalsMissing) && updated.birthDate) {
+            // Date-based systems do not require birth time.
+            const numerology = NumerologyService.calculateProfile(
+                updated.birthDate,
+                updated.name || current.name || 'Viajero'
+            );
+
+            const mayan = MayanCalculator.calculate(updated.birthDate);
+            const chinese = ChineseAstrology.calculate(updated.birthDate);
+
+            updated.numerology = numerology;
+            updated.mayan = mayan;
+            updated.nawal_maya = `${mayan.tone} ${mayan.kicheName}`;
+            updated.chinese_animal = chinese.animal;
+            updated.chinese_element = chinese.element;
+            updated.chinese_birth_year = chinese.birthYear;
+
+            // Astrology requires a real birth time. Never fabricate noon here.
+            if (
+                updated.birthTime &&
+                updated.coordinates?.lat !== undefined &&
+                updated.coordinates?.lng !== undefined &&
+                updated.utcOffset !== undefined
+            ) {
+                updated.astrology = await AstrologyService.calculateProfile(
+                    updated.birthDate,
+                    updated.birthTime,
+                    updated.coordinates.lat,
+                    updated.coordinates.lng,
+                    updated.utcOffset
+                );
+            }
+        }
+
         // Sync local cache
         this.profilesCache[userId] = { ...current, ...updated };
         await this.saveProfiles();

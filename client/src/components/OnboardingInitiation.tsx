@@ -97,6 +97,7 @@ export const OnboardingInitiation: React.FC<OnboardingInitiationProps> = ({ onCo
                 birthDate: formData.birthDate,
                 birthTime: formData.birthTime,
                 birthCity: formData.birthCity,
+                birthState: formData.birthDepartment,
                 birthCountry: formData.birthCountry
             };
 
