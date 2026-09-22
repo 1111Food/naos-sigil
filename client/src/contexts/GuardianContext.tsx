@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
-import { DEMO_USER_ID } from '../constants/demoProfile';
 
 type GuardianState = 'RESTING' | 'LISTENING' | 'RESPONDING';
 
@@ -157,7 +156,7 @@ export const GuardianProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // Load Message History from Supabase
     useEffect(() => {
-        if (!user?.id || user.id === DEMO_USER_ID) {
+        if (!user?.id) {
             setIsHistoryLoading(false);
             return;
         }
@@ -269,7 +268,7 @@ export const GuardianProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             rituals: { day, checks }
         }));
 
-        if (user?.id && user.id !== DEMO_USER_ID) {
+        if (user?.id) {
             await supabase.from('rituals').upsert({
                 user_id: user.id,
                 day_number: day,

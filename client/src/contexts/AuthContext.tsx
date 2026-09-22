@@ -94,8 +94,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 };
 
-import { useDemo } from './DemoContext';
-import { DEMO_USER_ID } from '../constants/demoProfile';
 
 export const useAuth = () => {
     const context = useContext(AuthContext);

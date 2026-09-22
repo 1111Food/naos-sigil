@@ -4,22 +4,18 @@ import { SlideToEnter } from './SlideToEnter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LegalView } from './LegalView';
 import { useTranslation } from '../i18n';
-import { useDemo } from '../contexts/DemoContext';
 
 interface LandingScreenProps {
     onEnter: () => void;
     onTemporaryAccess: () => void;
-    onEnterDemo?: () => void;
 }
 
 export const LandingScreen: React.FC<LandingScreenProps> = ({
     onEnter,
-    onTemporaryAccess,
-    onEnterDemo
+    onTemporaryAccess
 }) => {
     const { t } = useTranslation();
     const timeMode = useTimeBasedMode();
-    const { setDemoActive } = useDemo();
     const [isEntering, setIsEntering] = useState(false);
     
     // ⚖️ Legal States
@@ -36,18 +32,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
         setTimeout(() => {
             onEnter();
         }, 1200); // Match animation duration
-    };
-
-    const handleEnterDemo = () => {
-        setDemoActive(true);
-        setIsEntering(true);
-        setTimeout(() => {
-            if (onEnterDemo) {
-                onEnterDemo();
-            } else {
-                onEnter();
-            }
-        }, 1200);
     };
 
     return (

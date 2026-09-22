@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { API_BASE_URL } from '../lib/api';
 
@@ -21,7 +21,6 @@ export function AdminView() {
     const [loading, setLoading] = useState<boolean>(true);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [updating, setUpdating] = useState<string | null>(null);
-    const [isDemoEnabled, setIsDemoEnabled] = useState<boolean>(false);
     const [isTestingTelegram, setIsTestingTelegram] = useState(false);
     
     // New User State
@@ -32,14 +31,6 @@ export function AdminView() {
     const [newUserDuration, setNewUserDuration] = useState<number>(0);
     const [createdCredentials, setCreatedCredentials] = useState<{email: string, password: string} | null>(null);
     const [isSubmittingUser, setIsSubmittingUser] = useState(false);
-
-    useEffect(() => {
-        // Fetch current demo mode status
-        fetch(`${API_BASE_URL}/api/system/demo-mode`)
-            .then(res => res.json())
-            .then(data => setIsDemoEnabled(data.enabled))
-            .catch(err => console.error("Error fetching demo mode:", err));
-    }, []);
 
     const fetchUsers = async (query: string = '') => {
         setLoading(true);
@@ -63,31 +54,6 @@ export function AdminView() {
             // alert("No se pudo cargar la matriz. Verifica que tienes rol 'admin' y estás logueado.");
         } finally {
             setLoading(false);
-        }
-    };
-
-    const toggleDemoMode = async () => {
-        try {
-            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
-            const parsedToken = token ? JSON.parse(token) : null;
-            const accessToken = parsedToken?.access_token;
-            
-            const newState = !isDemoEnabled;
-            const res = await fetch(`${API_BASE_URL}/api/admin/demo-mode`, {
-                method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ enabled: newState })
-            });
-            if (res.ok) {
-                setIsDemoEnabled(newState);
-            } else {
-                alert("Error al cambiar el estado del modo Demo");
-            }
-        } catch (e) {
-            console.error(e);
         }
     };
 
@@ -234,20 +200,6 @@ export function AdminView() {
                         className="px-4 py-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/40 border border-emerald-500/50 transition-colors rounded-xl text-xs font-bold font-sans flex items-center justify-center"
                     >
                         + Crear Cuenta
-                    </button>
-
-                    {/* Kill Switch Toggle */}
-                    <button 
-                        onClick={toggleDemoMode}
-                        className={cn(
-                            "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors flex items-center justify-center gap-2",
-                            isDemoEnabled 
-                                ? "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]" 
-                                : "bg-white/5 border-white/20 text-white/40 hover:bg-white/10"
-                        )}
-                    >
-                        <Shield className="w-4 h-4" />
-                        {isDemoEnabled ? "Bloquear Review IA" : "Activar Review IA"}
                     </button>
 
                     <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">

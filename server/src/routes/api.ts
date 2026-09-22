@@ -424,63 +424,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
 
-    // Ã°Å¸â€Â® Sigil Chat DEMO / Review Mode Endpoint
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en' } }>('/api/demo/sigil', { 
-        config: {
-            rateLimit: {
-                max: parseInt(process.env.VITE_REVIEW_LLM_MAX_REQUESTS || '10'),
-                timeWindow: '1 hour'
-            }
-        }
-    }, async (req, reply) => {
-        if (process.env.VITE_REVIEW_MODE !== 'true') {
-            return reply.status(403).send({ error: "Review Mode no estÃƒÂ¡ activo en el servidor." });
-        }
 
-        const { message, localTimestamp, oracleState, role, energyContext, language } = req.body;
-        
-        // Fija la identidad de la DEMO de forma absoluta desde el backend, ignorando cualquier cosa del cliente.
-        const DEMO_USER_ID = "00000000-0000-0000-0000-000000000000";
-
-        try {
-            console.log(`Ã°Å¸Å’â‚¬ INCOMING DEMO MESSAGE from IP: "${message}"`);
-            
-            // Forzamos el userId a DEMO_USER_ID y un flag de demo (isDemo = true) si processMessage lo soporta
-            // O podemos usar un generador estÃƒÂ¡tico para ahorrar tokens en revisiÃƒÂ³n.
-            if (process.env.VITE_REVIEW_MOCK_SIGIL === 'true') {
-                return { 
-                    text: `*Respuesta de prueba (MOCK_SIGIL activo)*. Has dicho: "${message}". En modo producciÃƒÂ³n, esta respuesta vendrÃƒÂ­a del LLM real con el perfil demo.`,
-                    kernelAction: undefined
-                };
-            }
-
-            // AquÃƒÂ­ pasamos isDemo=true al sigilService si tuviÃƒÂ©ramos un flag, pero por ahora usamos el ID dummy.
-            // Para evitar llenar la DB real o fallos de foreign keys, sigilService deberÃƒÂ­a manejar el demo_id graciosamente.
-            // Actualmente processMessage espera que userId exista en profiles. Para la DEMO, quizÃƒÂ¡s es mejor usar un LLM directo sin history persistente o confiar en que SigilService puede manejar usuarios anÃƒÂ³nimos/demos.
-            // Como no estoy seguro de si processMessage explotarÃƒÂ¡ con un UUID que no estÃƒÂ¡ en la base de datos, lo mÃƒÂ¡s seguro es proveer una respuesta directa con Gemini si isMockSigil no estÃƒÂ¡ forzado, O usar processMessage si sabemos que lo soporta.
-            // Por requerimiento del usuario "con rate-limiting estricto global por IP".
-            
-            // Llama a processMessage con el DEMO_USER_ID. Si processMessage asume que existe en Supabase y falla, entonces
-            // necesitaremos hacer bypass del history guardado, pero por el momento le pasamos DEMO_USER_ID.
-            // Se asume que el DEMO_USER_ID estÃƒÂ¡ creado en la DB, o SigilService es tolerante a fallos de escritura de logs.
-            
-            // Se usarÃƒÂ¡ una llamada bÃƒÂ¡sica de Gemini para aislar la Demo de la base de datos
-            const { GoogleGenerativeAI } = require('@google/generative-ai');
-            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-            const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
-            const prompt = `Eres NAOS Sigil, un orÃƒÂ¡culo de autoconocimiento, operando en modo DEMO. Responde con sabidurÃƒÂ­a, en el idioma ${language || 'es'}, de forma misteriosa pero ÃƒÂºtil a esto: "${message}"`;
-            const result = await model.generateContent(prompt);
-            const finalText = result.response.text();
-            
-            return { 
-                text: finalText,
-                kernelAction: undefined
-            };
-        } catch (error: any) {
-            console.error("Ã°Å¸â€Â¥ Demo Chat Error:", error);
-            return reply.status(500).send({ error: error.message });
-        }
-    });
 
 
     // Prompt 5: Lab Session Trigger

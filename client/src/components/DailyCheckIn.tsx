@@ -174,8 +174,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
                         </div>
                         <button
                             onClick={() => {
-                                if (onReflectWithSigil) onReflectWithSigil(currentDay);
-                                else window.location.href = `/review/sigil?protocol=true&day=${currentDay}`;
+                                onReflectWithSigil?.(currentDay);
                             }}
                             className="text-[10px] uppercase tracking-[0.2em] px-6 py-3 min-h-[44px] border border-fuchsia-500/30 text-fuchsia-400 bg-fuchsia-500/10 rounded-full hover:bg-fuchsia-500/20 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] transition-all duration-300 flex items-center gap-3 font-bold focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50"
                         >

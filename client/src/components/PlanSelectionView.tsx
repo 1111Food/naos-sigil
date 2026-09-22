@@ -15,13 +15,6 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
     useEffect(() => { trackEvent('pricing_viewed'); }, []);
-    
-    let isDemoActive = false;
-    try {
-        const { useDemo } = require('../contexts/DemoContext');
-        const demoCtx = useDemo();
-        isDemoActive = demoCtx.isDemoActive;
-    } catch(e) {}
 
     const provider = import.meta.env.VITE_PAYMENT_PROVIDER || 'stripe';
 
@@ -66,8 +59,8 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
 
     const handleCheckout = async (priceId: string, endpoint: string = 'create-session', planMode?: string) => {
         trackEvent('checkout_started', { plan: planMode });
-        if (isDemoActive || profile?.plan_type === 'admin') {
-            alert('Demo Mode / Admin - Payments Disabled');
+        if (profile?.plan_type === 'admin') {
+            alert('Admin account - Payments Disabled');
             return;
         }
 

@@ -57,62 +57,40 @@ export function useSigil(userName?: string, energyContext?: any) {
         }
 
         try {
-            let apiUrl = endpoints.chat;
             let finalResponseText = '';
             let finalAudioUrl = undefined;
             let finalAudioBase64 = undefined;
             let finalKernelAction = undefined;
 
-            let isDemoActive = false;
-            let isMockSigil = false;
-            try {
-                const { useDemo } = require('../contexts/DemoContext');
-                const demoCtx = useDemo();
-                isDemoActive = demoCtx.isDemoActive;
-                isMockSigil = demoCtx.isMockSigil;
-            } catch(e) {}
+            const response = await fetch(endpoints.chat, {
+                method: 'POST',
+                headers: getAuthHeaders() as HeadersInit,
+                body: JSON.stringify({
+                    message: text,
+                    localTimestamp: new Date().toISOString(),
+                    oracleState,
+                    energyContext,
+                    role,
+                    language,
+                    voice_enabled: localStorage.getItem('naos_sigil_voice_enabled') === 'true'
+                })
+            });
 
-            if (isDemoActive) {
-                if (isMockSigil) {
-                    const { SigilDemoService } = require('../services/SigilDemoService');
-                    finalResponseText = await SigilDemoService.generateMockResponse(text);
-                } else {
-                    apiUrl = `${API_BASE_URL}/api/demo/sigil`;
+            if (!response.ok) {
+                if (response.status === 429 && retryCount < 1) {
+                    setMessages(prev => [...prev, { id: `local-s-timeout-${now}`, role: 'model', text: `${t('network_saturated')}` }]);
+                    setTimeout(() => sendMessage(text, role, retryCount + 1), 2000);
+                    return;
                 }
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
             }
 
-            if (!isDemoActive || (isDemoActive && !isMockSigil)) {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: isDemoActive ? { 'Content-Type': 'application/json' } : getAuthHeaders() as HeadersInit,
-                    body: JSON.stringify({
-                        message: text,
-                        localTimestamp: new Date().toISOString(),
-                        oracleState,
-                        energyContext,
-                        role,
-                        language,
-                        // POINT 6: Tell backend to generate TTS only when user wants voice
-                        voice_enabled: localStorage.getItem('naos_sigil_voice_enabled') === 'true'
-                    })
-                });
-
-                if (!response.ok) {
-                    if (response.status === 429 && retryCount < 1) {
-                        setMessages(prev => [...prev, { id: `local-s-timeout-${now}`, role: 'model', text: `${t('network_saturated')}` }]);
-                        setTimeout(() => sendMessage(text, role, retryCount + 1), 2000);
-                        return;
-                    }
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
-                }
-
-                const data = await response.json();
-                finalResponseText = data.text || '';
-                finalAudioUrl = data.audioUrl;
-                finalAudioBase64 = data.audioBase64;
-                finalKernelAction = data.kernelAction;
-            }
+            const data = await response.json();
+            finalResponseText = data.text || '';
+            finalAudioUrl = data.audioUrl;
+            finalAudioBase64 = data.audioBase64;
+            finalKernelAction = data.kernelAction;
 
             // Sanitización inmediata frontend
             const sanitizedData = (finalResponseText || '')

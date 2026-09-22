@@ -211,12 +211,4 @@ export async function adminRoutes(app: FastifyInstance) {
             return reply.status(500).send({ error: err.message });
         }
     });
-
-    // --- AI REVIEW MODE KILL SWITCH (IN-MEMORY) ---
-    // Defaults to false on server restart. Only an architect can turn it on.
-    app.post<{ Body: { enabled: boolean } }>('/demo-mode', { preHandler: [requireAdmin] }, async (req, reply) => {
-        const { enabled } = req.body;
-        (global as any).isAiReviewModeActive = enabled;
-        return { success: true, enabled: (global as any).isAiReviewModeActive };
-    });
 }

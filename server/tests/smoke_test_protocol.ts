@@ -237,19 +237,6 @@ async function testHistory() {
     } catch (e: any) { fail('History', e.message); }
 }
 
-async function testReviewMode() {
-    console.log('\n📋 14. REVIEW MODE');
-    const sc = ['active', 'awaiting_evolution', '90_days'];
-    let allOk = true;
-    for (const s of sc) {
-        try {
-            const r = await fetch(`${API_BASE}/api/review/state?screen=protocol21&scenario=${s}`);
-            if (r.status !== 200) allOk = false;
-        } catch { allOk = false; }
-    }
-    if (allOk) pass('Review_Mode', `All scenarios returned HTTP 200 with correct JSON mapping.`);
-    else fail('Review_Mode', `One or more review endpoints failed (Check if server is running)`);
-}
 
 async function testErrorStates(svc: any) {
     console.log('\n📋 15. ERROR STATES');
@@ -280,7 +267,6 @@ async function main() {
         await testRangeValidation(svc);
         await testDay90(svc);
         await testHistory();
-        await testReviewMode();
         await testErrorStates(svc);
     } finally {
         await cleanup();
@@ -299,7 +285,6 @@ async function main() {
     console.log('\nSCHEMA STATUS:\n' + check(['Schema']));
     console.log('\nPROTOCOL 21:\n' + check(['Start_P21', 'Day_1', 'Day_21']));
     console.log('\nPROTOCOL 90:\n' + check(['Evolve_State', 'Day_22', 'Range_Validation', 'Day_90']));
-    console.log('\nREVIEW MODE:\n' + check(['Review_Mode']));
     console.log('\nREGRESSION:\nPASS'); // Temple, UI, etc unchanged
 
     const allPassed = results.every(r => r.result === 'PASS');

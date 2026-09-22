@@ -7,8 +7,6 @@ import { AstrologyEngine } from '../lib/astrologyEngine';
 import { NumerologyEngine } from '../lib/numerologyEngine';
 import { MayanEngine } from '../lib/mayanEngine';
 import { calculateChineseZodiac } from '../utils/chineseMapper';
-import { DEMO_USER_ID, DEMO_PROFILE } from '../constants/demoProfile';
-
 export interface SubProfile {
     id: string;
     name: string;
@@ -203,15 +201,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         if (!profile) setProfileLoading(true);
 
-        // DEMO BYPASS
-        if (user.id === DEMO_USER_ID) {
-            const fullDemoProfile = buildSubprofileCosmicData(DEMO_PROFILE);
-            setProfile(fullDemoProfile);
-            setProfileLoading(false);
-            setProfileError(null);
-            return fullDemoProfile;
-        }
-
         try {
             // console.log("🛡️ SSoT: Fetching profile for authenticated user:", user.id);
             const headers = await getAsyncAuthHeaders('GET');
@@ -263,15 +252,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         try {
             console.log("Context: Updating Profile for User:", user.id);
-
-            // DEMO BYPASS
-            if (user.id === DEMO_USER_ID) {
-                setProfile(prev => {
-                    const baseProfile = prev || DEMO_PROFILE;
-                    return { ...baseProfile, ...data } as UserProfile;
-                });
-                return undefined as any;
-            }
 
             // Route update through secure backend API
             const headers = await getAsyncAuthHeaders('PUT');
