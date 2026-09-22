@@ -544,7 +544,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.get('/api/naos-code', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
+    app.get('/api/naos-code', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const forceRefresh = (req.query as any).refresh === 'true';
         const lang = (req.query as any).lang || 'es';
