@@ -326,14 +326,8 @@ export async function apiRoutes(app: FastifyInstance) {
         const { message, localTimestamp, oracleState, role, energyContext, language, voice_enabled } = req.body;
         const userId = (req as any).user_id;
 
-        // Ã°Å¸â€ºÂ¡Ã¯Â¸Â UsageGuard Limit Check
+        // Sigil usage counter is telemetry only; AI spend is enforced inside SigilService.
         console.log(`Ã°Å¸â€ºÂ¡Ã¯Â¸Â Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
-        const usageCheckStart = Date.now();
-        const limitCheck = await UsageGuardService.checkLimit(userId, 'sigil', (req as any).user?.role);
-        console.log(`[PERF][CHAT] usage_check=${Date.now() - usageCheckStart}ms`);
-        if (!limitCheck.ok) {
-            return reply.status(403).send({ error: "LÃƒÂ­mite de EnergÃƒÂ­a Agotado", message: limitCheck.message });
-        }
 
         try {
             console.log(`Ã°Å¸Å'â‚¬ INCOMING MESSAGE from ${userId}: "${message}"`);

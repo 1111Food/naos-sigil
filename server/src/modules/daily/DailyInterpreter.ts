@@ -2,11 +2,16 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { DailyContextLayerA, DailySignal } from './types';
 import { DailyInterpretation, SupportedInterpretationBlock } from './interpretationTypes';
 import { config } from '../../config/env';
+import { AiLedgerService } from '../economics/AiLedgerService';
 
 const genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY || 'dummy');
 
 export class DailyInterpreter {
-    static async interpret(layerA: DailyContextLayerA): Promise<DailyInterpretation> {
+    static async interpret(
+        layerA: DailyContextLayerA,
+        userId?: string,
+        profile?: any
+    ): Promise<DailyInterpretation> {
         if (!config.GOOGLE_API_KEY) return this.getFallback(layerA);
 
         const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
@@ -14,16 +19,42 @@ export class DailyInterpreter {
         let attempts = 0;
         let lastError = '';
 
-        while (attempts < 1) {
+        while (attempts < 2) {
             attempts++;
             const prompt = this.buildPrompt(layerA, lastError);
 
             try {
+                if (userId && profile) {
+                    const budgetCheck = await AiLedgerService.checkBudget(userId, profile);
+
+                    if (!budgetCheck.allowed) {
+                        console.warn(`[DailyInterpreter] Budget denied: ${budgetCheck.reason}`);
+                        return this.getFallback(layerA);
+                    }
+                }
+
                 const result = await model.generateContent({
                     contents: [{ role: 'user', parts: [{ text: prompt.user }] }],
                     systemInstruction: { role: 'system', parts: [{ text: prompt.system }] },
                     generationConfig: { temperature: 0.7, responseMimeType: "application/json" }
                 });
+
+                if (userId && profile) {
+                    try {
+                        const usage = result.response.usageMetadata;
+
+                        await AiLedgerService.recordUsage(userId, profile, {
+                            feature: 'daily_interpretation',
+                            provider: 'gemini',
+                            model: config.GEMINI_MODEL,
+                            input_tokens: usage?.promptTokenCount || 0,
+                            output_tokens: usage?.candidatesTokenCount || 0
+                        });
+                    } catch (ledgerError) {
+                        console.error('[DailyInterpreter] Ledger persistence failed:', ledgerError);
+                        return this.getFallback(layerA);
+                    }
+                }
 
                 const textResponse = result.response.text();
                 let parsed: any;
@@ -160,7 +191,23 @@ Output Schema:
             interpretationVersion: 'v1',
             interpretationStatus: 'unavailable',
             localDate: layerA.localDate,
-            language: layerA.language
+            language: layerA.language,
+            primarySignal: {
+                title: '',
+                text: '',
+                signalIds: []
+            },
+            integratedPattern: {
+                convergence: false,
+                text: '',
+                signalIds: []
+            },
+            systems: {
+                astrology: { text: '', signalIds: [] },
+                numerology: { text: '', signalIds: [] },
+                maya: { text: '', signalIds: [] },
+                chinese: { text: '', signalIds: [] }
+            }
         };
     }
 }

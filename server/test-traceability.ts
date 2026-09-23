@@ -3,6 +3,7 @@ import { DailyInterpreter } from './src/modules/daily/DailyInterpreter';
 import { DailyContextOrchestrator } from './src/modules/daily/DailyContextOrchestrator';
 import { DailyContextBuilder } from './src/modules/daily/DailyContextBuilder';
 import { SignalResolver } from './src/modules/daily/SignalResolver';
+import { AiLedgerService } from './src/modules/economics/AiLedgerService';
 import { DailyContextLayerA, DailySignal } from './src/modules/daily/types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -132,13 +133,27 @@ async function runTests() {
         callCount = 0;
         mockResponses = [getValidMock()]; // Next try succeeds!
 
-        const finalPayload = await DailyContextOrchestrator.getOrGenerate('user1', {}, -6, 'es');
-        
-        assertEqual(layerABuilt, false); // Reused!
-        assertEqual(finalPayload.interpretation.interpretationStatus, 'ready'); // Hit Gemini and worked
-        assertEqual(callCount, 1);
-        
-        DailyContextBuilder.build = originalBuild;
+        const originalCheckBudget = AiLedgerService.checkBudget;
+        const originalRecordUsage = AiLedgerService.recordUsage;
+
+        AiLedgerService.checkBudget = async () => ({
+            allowed: true,
+            isOwner: false
+        });
+
+        AiLedgerService.recordUsage = async () => {};
+
+        try {
+            const finalPayload = await DailyContextOrchestrator.getOrGenerate('user1', {}, -6, 'es');
+
+            assertEqual(layerABuilt, false);
+            assertEqual(finalPayload.interpretation.interpretationStatus, 'ready');
+            assertEqual(callCount, 1);
+        } finally {
+            AiLedgerService.checkBudget = originalCheckBudget;
+            AiLedgerService.recordUsage = originalRecordUsage;
+            DailyContextBuilder.build = originalBuild;
+        }
     });
 
     await test('SIGNAL RESOLVER: Resolves IDs properly', async () => {

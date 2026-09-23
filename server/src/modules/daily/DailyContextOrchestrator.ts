@@ -51,7 +51,11 @@ export class DailyContextOrchestrator {
                 layerA = await DailyContextBuilder.build(userId, fullProfile, currentTimezoneOffset, language, coherenceLevel, now);
             }
 
-            const interpretation = await DailyInterpreter.interpret(layerA);
+            const interpretation = await DailyInterpreter.interpret(
+                layerA,
+                userId,
+                fullProfile
+            );
 
             const payload: V2Payload = {
                 contextVersion: 'v2_daily_context',
