@@ -43,7 +43,7 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         // --- RBAC INJECTION (Consolidated Prompts) ---
         let { data: profile } = await supabase
             .from('profiles')
-            .select('plan_type')
+            .select('plan_type, system_role')
             .eq('id', user.id)
             .single();
 
@@ -95,11 +95,13 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
             console.log(`⭐ [AUTH_ADMIN] Request ${requestId} | Identified Admin Exception: `);
         }
 
+        // We keep role for backwards compatibility, but we now pass system_role properly
         const userRole = plan === 'admin' ? 'admin' : (plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free');
 
         (request as any).user = {
             id: user.id,
-            role: userRole
+            role: userRole,
+            system_role: profile?.system_role || 'user'
         };
 
     } catch (error: any) {
@@ -123,7 +125,7 @@ export const validateAdmin = async (request: FastifyRequest, reply: FastifyReply
     const user = (request as any).user;
     
     // STRICT ADMIN CHECK
-    if (!user || user.role !== "admin") {
+    if (!user || (user.system_role !== 'owner' && user.system_role !== 'admin')) {
         return reply.status(403).send({ error: "Access denied: Admin restricted feature" });
     }
 };

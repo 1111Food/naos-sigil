@@ -8,7 +8,8 @@ export const MODEL_PRICING = {
     'gemini-1.5-flash-8b': { input_1m: 0.0375, output_1m: 0.15 } // Background tasks
 };
 
-export const DEFAULT_USER_BUDGET_USD = 1.00;
+export const DEFAULT_USER_BUDGET_USD = 0.10;
+export const PREMIUM_USER_BUDGET_USD = 2.00;
 
 export interface AiLedgerEntry {
     feature: string;
@@ -36,7 +37,7 @@ export class AiLedgerService {
         }
 
         // 2. Resolve Budget Limit
-        let budgetLimit = DEFAULT_USER_BUDGET_USD;
+        let budgetLimit = profile?.plan_type === 'premium' || profile?.plan_type === 'premium_plus' ? PREMIUM_USER_BUDGET_USD : DEFAULT_USER_BUDGET_USD;
         try {
             const { data: override, error } = await supabaseAdmin
                 .from('user_ai_budgets')

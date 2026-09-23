@@ -22,7 +22,7 @@ export function AdminView() {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [updating, setUpdating] = useState<string | null>(null);
     const [isTestingTelegram, setIsTestingTelegram] = useState(false);
-    
+
     // New User State
     const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [newUserName, setNewUserName] = useState('');
@@ -35,7 +35,7 @@ export function AdminView() {
     const fetchUsers = async (query: string = '') => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token');
             const parsedToken = token ? JSON.parse(token) : null;
             const accessToken = parsedToken?.access_token;
 
@@ -66,11 +66,11 @@ export function AdminView() {
         fetchUsers(searchTerm);
     };
 
-    
-    const handleSetBudget = async (email: string, currentBudget: any) => {
+
+    const handleSetBudget = async (id: string, email: string, currentBudget: any) => {
         const val = prompt(`Set new budget in USD for ${email} (leave blank to remove override):`, currentBudget !== 'Unlimited' ? currentBudget : '');
         if (val === null) return;
-        
+
         let budget = null;
         if (val.trim() !== '') {
             budget = parseFloat(val);
@@ -79,19 +79,19 @@ export function AdminView() {
                 return;
             }
         }
-        
+
         try {
-            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token');
             const parsedToken = token ? JSON.parse(token) : null;
             const accessToken = parsedToken?.access_token;
-            
+
             const res = await fetch(`${API_BASE_URL}/api/admin/set-budget`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ email, budget })
+                body: JSON.stringify({ user_id: id, budget })
             });
             if (res.ok) {
                 fetchData();
@@ -109,7 +109,7 @@ export function AdminView() {
 
         setUpdating(id);
         try {
-            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token');
             const parsedToken = token ? JSON.parse(token) : null;
             const accessToken = parsedToken?.access_token;
 
@@ -141,7 +141,7 @@ export function AdminView() {
 
         setUpdating(id);
         try {
-            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token');
             const parsedToken = token ? JSON.parse(token) : null;
             const accessToken = parsedToken?.access_token;
 
@@ -189,7 +189,7 @@ export function AdminView() {
 
                 {/* Actions & Search */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                    <button 
+                    <button
                         onClick={() => {
                             setIsCreatingUser(true);
                             setCreatedCredentials(null);
@@ -205,9 +205,9 @@ export function AdminView() {
                     <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
                         <div className="flex items-center gap-2 flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2">
                             <Search className="w-4 h-4 text-white/40" />
-                            <input 
-                                type="text" 
-                                placeholder="Buscar por email..." 
+                            <input
+                                type="text"
+                                placeholder="Buscar por email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="bg-transparent text-sm focus:outline-none flex-grow"
@@ -269,7 +269,7 @@ export function AdminView() {
                                         </td>
                                         <td className="px-6 py-4 text-sm font-mono text-white/80">
                                             {u.ai_budget === 'Unlimited' ? '∞' : `${Number(u.ai_budget).toFixed(2)}`}
-                                            <button onClick={() => handleSetBudget(u.email, u.ai_budget)} className="ml-2 text-blue-400 hover:text-blue-300">Edit</button>
+                                            <button onClick={() => handleSetBudget(u.id, u.email, u.ai_budget)} className="ml-2 text-blue-400 hover:text-blue-300">Edit</button>
                                         </td>
                                         <td className="px-6 py-4 text-sm font-mono text-white/80">
                                             ${Number(u.ai_used || 0).toFixed(4)}
@@ -282,17 +282,9 @@ export function AdminView() {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                {u.plan_type !== 'admin' && (
-                                                    <button 
-                                                        onClick={() => handleRoleChange(u.email, 'admin', u.id)}
-                                                        disabled={updating === u.id || !u.email}
-                                                        className="p-1 px-2 bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/30 rounded-lg text-[10px] font-bold text-amber-300 transition-all hover:scale-105"
-                                                    >
-                                                        Hacer Admin
-                                                    </button>
-                                                )}
+
                                                 {u.plan_type !== 'premium' && (
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleRoleChange(u.email, 'premium', u.id)}
                                                         disabled={updating === u.id || !u.email}
                                                         className="p-1 px-2 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 rounded-lg text-[10px] font-bold text-purple-300 transition-all hover:scale-105"
@@ -301,7 +293,7 @@ export function AdminView() {
                                                     </button>
                                                 )}
                                                 {u.plan_type !== 'free' && (!u.email?.includes('luisalfredoherreramendez')) && (
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleRoleChange(u.email, 'free', u.id)}
                                                         disabled={updating === u.id || !u.email}
                                                         className="p-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold text-white/60 transition-all hover:scale-105"
@@ -310,7 +302,7 @@ export function AdminView() {
                                                     </button>
                                                 )}
                                                 {(!u.email?.includes('luisalfredoherreramendez')) && (
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleDeleteUser(u.id, u.email || "Usuario sin email")}
                                                         disabled={updating === u.id}
                                                         className="p-1 px-2 bg-red-600/20 hover:bg-red-600/40 border border-red-500/30 rounded-lg text-[10px] font-bold text-red-300 transition-all hover:scale-105"
@@ -331,14 +323,14 @@ export function AdminView() {
             {isCreatingUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-slate-900 border border-white/20 rounded-2xl p-6 max-w-md w-full relative">
-                        <button 
+                        <button
                             onClick={() => setIsCreatingUser(false)}
                             className="absolute top-4 right-4 text-white/50 hover:text-white"
                         >
                             ✕
                         </button>
                         <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Nueva Cuenta</h2>
-                        
+
                         {createdCredentials ? (
                             <div className="space-y-4">
                                 <p className="text-sm text-white/80">La cuenta se ha creado con éxito. Copia las credenciales antes de cerrar esta ventana.</p>
@@ -347,8 +339,8 @@ export function AdminView() {
                                     <p className="font-mono text-sm mb-3">{createdCredentials.email}</p>
                                     <p className="text-xs text-white/50 uppercase mb-1">Contraseña</p>
                                     <p className="font-mono text-sm">{createdCredentials.password}</p>
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(`Email: ${createdCredentials.email}\nContraseña: ${createdCredentials.password}`);
                                             alert("¡Credenciales copiadas al portapapeles!");
@@ -363,8 +355,8 @@ export function AdminView() {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-xs uppercase text-white/50 mb-1 font-bold tracking-widest">Email</label>
-                                    <input 
-                                        type="email" 
+                                    <input
+                                        type="email"
                                         value={newUserEmail}
                                         onChange={e => setNewUserEmail(e.target.value)}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
@@ -373,8 +365,8 @@ export function AdminView() {
                                 </div>
                                 <div>
                                     <label className="block text-xs uppercase text-white/50 mb-1 font-bold tracking-widest">Contraseña (opcional)</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         value={newUserPassword}
                                         onChange={e => setNewUserPassword(e.target.value)}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
@@ -383,7 +375,7 @@ export function AdminView() {
                                 </div>
                                 <div>
                                     <label className="block text-xs uppercase text-white/50 mb-1 font-bold tracking-widest">Plan / Duración</label>
-                                    <select 
+                                    <select
                                         value={newUserDuration}
                                         onChange={e => setNewUserDuration(Number(e.target.value))}
                                         className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500/50"
@@ -395,14 +387,14 @@ export function AdminView() {
                                         <option value={30}>Premium - 30 Días</option>
                                     </select>
                                 </div>
-                                <button 
+                                <button
                                     onClick={async () => {
                                         if (!newUserEmail) return alert("El email es requerido");
                                         setIsSubmittingUser(true);
                                         try {
-                                            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token'); 
+                                            const token = localStorage.getItem('sb-avaikhukgugvcocwedsz-auth-token');
                                             const parsedToken = token ? JSON.parse(token) : null;
-                                            
+
                                             const res = await fetch(`${API_BASE_URL}/api/admin/create-account`, {
                                                 method: 'POST',
                                                 headers: {
@@ -417,7 +409,7 @@ export function AdminView() {
                                             });
                                             const data = await res.json();
                                             if (!res.ok) throw new Error(data.error || "Error al crear cuenta");
-                                            
+
                                             setCreatedCredentials({ email: data.email, password: data.password });
                                             fetchUsers();
                                         } catch (e: any) {
