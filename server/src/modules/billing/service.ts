@@ -1,4 +1,4 @@
-﻿import { supabaseAdmin } from '../../lib/supabaseAdmin';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 
 export class BillingService {
 
@@ -39,9 +39,39 @@ export class BillingService {
         return data;
     }
 
-    static async handleActivation(userId: string | undefined, provider: string, customerId: string, subscriptionId: string, is3Day: boolean, eventId: string, eventType: string, occurredAt: string) {
+    static async handleActivation(
+        userId: string | undefined,
+        provider: string,
+        customerId: string,
+        subscriptionId: string,
+        is3Day: boolean,
+        eventId: string,
+        eventType: string,
+        occurredAt: string,
+        overrideExpiresAt?: Date,
+        priceId?: string
+    ) {
         if (!userId) return;
-        
+
+        // --- PRICE ID VALIDATION (NAOS P0) ---
+        if (provider === 'paddle') {
+            const { config } = require('../../config/env');
+            if (!priceId) {
+                console.warn(`[BillingService] Missing price_id for paddle event ${eventId}. Rejecting activation.`);
+                return;
+            }
+            if (priceId !== config.PADDLE_PRICE_MONTHLY && priceId !== config.PADDLE_PRICE_YEARLY) {
+                console.warn(`[BillingService] Unknown Paddle price_id [${priceId}]. Rejecting activation.`);
+                return;
+            }
+            // Validate UUID format to prevent customData manipulation attacks
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!uuidRegex.test(userId)) {
+                console.error(`[BillingService] Invalid customData.user_id format [${userId}]. Rejecting activation.`);
+                return;
+            }
+        }
+
         if (await this.isEventProcessed(provider, eventId)) {
             console.log(`[BillingService] Event ${eventId} already processed, skipping safely.`);
             return;
@@ -54,12 +84,17 @@ export class BillingService {
             return;
         }
 
-        const expiresAt = new Date();
-        if (is3Day) {
-            expiresAt.setHours(expiresAt.getHours() + 72);
+        // --- SUBSCRIPTION PERIOD AUTHORITY (NAOS P0) ---
+        let expiresAt = new Date();
+        if (overrideExpiresAt) {
+            expiresAt = overrideExpiresAt;
         } else {
-            expiresAt.setMonth(expiresAt.getMonth() + 1);
-            expiresAt.setDate(expiresAt.getDate() + 3);
+            if (is3Day) {
+                expiresAt.setHours(expiresAt.getHours() + 72);
+            } else {
+                expiresAt.setMonth(expiresAt.getMonth() + 1);
+                expiresAt.setDate(expiresAt.getDate() + 3);
+            }
         }
 
         const updatePayload = {
@@ -82,7 +117,7 @@ export class BillingService {
         await this.markEventProcessed(provider, eventId, eventType, occurredAt);
     }
 
-    static async handleCancellation(provider: string, subscriptionId: string, eventId: string, eventType: string, occurredAt: string) {
+    static async handleCancellation(provider: string, subscriptionId: string, eventId: string, eventType: string, occurredAt: string, statusOverride: string = 'canceled') {
         if (!subscriptionId) return;
 
         if (await this.isEventProcessed(provider, eventId)) return;
@@ -95,9 +130,9 @@ export class BillingService {
 
         const { error } = await supabaseAdmin
             .from('profiles')
-            .update({ 
-                plan_type: 'free', 
-                subscription_status: 'canceled',
+            .update({
+                plan_type: 'free',
+                subscription_status: statusOverride,
                 last_webhook_occurred_at: occurredAt,
                 updated_at: new Date().toISOString()
             })

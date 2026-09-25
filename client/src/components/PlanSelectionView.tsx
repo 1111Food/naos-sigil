@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2, Zap } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
@@ -26,8 +26,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
             script.onload = () => {
                 if ((window as any).Paddle) {
                     (window as any).Paddle.Environment.set(import.meta.env.VITE_PADDLE_ENVIRONMENT || 'sandbox');
-                    (window as any).Paddle.Initialize({ 
-                        token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN || 'test_token',
+                    (window as any).Paddle.Initialize({                        token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN || 'test_token',
                         eventCallback: function(data: any) {
                             if (data.name === 'checkout.completed') {
                                 handleCheckoutSuccess();
@@ -69,32 +68,33 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
             return;
         }
 
-        if (provider === 'paddle' && planMode !== '3days') {
-            if ((window as any).Paddle) {
-                console.log('Opening Paddle with priceId:', priceId, 'Token:', import.meta.env.VITE_PADDLE_CLIENT_TOKEN);
-                  (window as any).Paddle.Checkout.open({
-                    items: [{ priceId, quantity: 1 }],
-                    customData: { user_id: profile?.id }
-                });
-            } else {
-                alert('Paddle not loaded');
-            }
-            return;
-        }
-
-        // Stripe Flow
         setIsCheckoutLoading(true);
         try {
             const headers = await getAsyncAuthHeaders('POST');
-            const response = await fetch('/api/checkout/', {
+            const response = await fetch(`/api/checkout/${endpoint}`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ priceId })
             });
 
             const data = await response.json();
-            if (data.url) {
-                window.location.href = data.url;
+            if (response.ok) {
+                if (provider === 'paddle' && data.transactionId && planMode !== '3days') {
+                    if ((window as any).Paddle) {
+                        (window as any).Paddle.Checkout.open({
+                            transactionId: data.transactionId
+                        });
+                        setIsCheckoutLoading(false);
+                    } else {
+                        alert('Paddle not loaded');
+                        setIsCheckoutLoading(false);
+                    }
+                } else if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Failed to start checkout (Missing URL or Transaction ID)');
+                    setIsCheckoutLoading(false);
+                }
             } else {
                 alert(data.error || 'Failed to start checkout');
                 setIsCheckoutLoading(false);
@@ -124,8 +124,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
             <h2 className="text-2xl font-serif text-white text-center">Modo Arquitecto</h2>
             <div className="grid grid-cols-1 gap-4">
                 {/* Monthly */}
-                <div 
-                    onClick={() => handleCheckout(monthlyPrice || '')}
+                <div                    onClick={() => handleCheckout(monthlyPrice || '')}
                     className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-naos-gold/50 cursor-pointer transition-all"
                 >
                     <div className="flex justify-between items-center mb-2">
@@ -138,10 +137,8 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
                         <li className="flex gap-2"><Check className="w-4 h-4 text-naos-gold" /> Interpretaciones Profundas</li>
                     </ul>
                 </div>
-                
                 {/* Yearly */}
-                <div 
-                    onClick={() => handleCheckout(yearlyPrice || '')}
+                <div                    onClick={() => handleCheckout(yearlyPrice || '')}
                     className="p-6 rounded-2xl bg-naos-gold/10 border border-naos-gold/50 hover:bg-naos-gold/20 cursor-pointer transition-all relative overflow-hidden"
                 >
                     <div className="absolute top-2 right-2 bg-naos-gold text-black text-xs font-bold px-2 py-1 rounded">20% OFF</div>
@@ -157,8 +154,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
 
                 {/* 3 Days - Stripe Only */}
                 {provider === 'stripe' && (
-                    <div 
-                        onClick={() => handleCheckout(import.meta.env.VITE_STRIPE_PRICE_3DAYS || '', 'create-session-3days', '3days')}
+                    <div                        onClick={() => handleCheckout(import.meta.env.VITE_STRIPE_PRICE_3DAYS || '', 'create-session-3days', '3days')}
                         className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 cursor-pointer transition-all"
                     >
                         <div className="flex justify-between items-center">
