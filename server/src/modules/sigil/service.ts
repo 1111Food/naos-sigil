@@ -51,7 +51,7 @@ export class SigilService {
         return stateStore[userId];
     }
 
-    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any, language: string = 'es', geo?: { country: string, region: string }, options: { persistUserMessage?: boolean, visibleInConversation?: boolean, source?: string } = { persistUserMessage: true, visibleInConversation: true, source: 'user' }): Promise<string> {
+    async processMessage(userId: string, message: string, localTimestamp?: string, oracleState?: any, role: 'maestro' | 'guardian' = 'maestro', forceReading: boolean = false, energyContext?: any, language: string = 'es', geo?: { country: string, region: string }, options: { persistUserMessage?: boolean, visibleInConversation?: boolean, source?: string, timeZone?: string } = { persistUserMessage: true, visibleInConversation: true, source: 'user' }): Promise<string> {
         const perfStart = Date.now();
         console.log(`🕯️ SigilService: processMessage called. User: ${userId}, Force: ${forceReading}, Lang: ${language}, Geo: ${geo?.region}, InternalSource: ${options.source}`);
         
@@ -63,6 +63,20 @@ export class SigilService {
             // Cronos Wisdom: Analyze local time context
             const localDate = localTimestamp ? new Date(localTimestamp) : new Date();
             const hour = localDate.getHours();
+            let formattedLocalDate = '';
+            try {
+                formattedLocalDate = new Intl.DateTimeFormat(lang === 'es' ? 'es-MX' : 'en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: options?.timeZone || undefined
+                }).format(localDate);
+            } catch (e) {
+                formattedLocalDate = localDate.toLocaleString();
+            }
             
 
 
@@ -88,8 +102,12 @@ export class SigilService {
             console.log(`[PERF][SIGIL] context_builder=${Date.now() - contextBuilderStart}ms`);
             const parallelContextStart = Date.now();
             
+            const userProfile = await UserService.getProfile(userId);
+            const { DateUtils } = require('../../utils/DateUtils');
+            const { DailyContextOrchestrator } = require('../daily/DailyContextOrchestrator');
+            const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(userProfile);
+
             const [
-                userProfile,
                 state,
                 rankResponse,
                 logsResponse,
@@ -102,13 +120,20 @@ export class SigilService {
                 todaySessionsResponse,
                 longTermMemories
             ] = await Promise.all([
-                UserService.getProfile(userId),
                 this.getSigilState(userId),
                 supabase.from('user_performance_stats').select('tier_label').eq('user_id', userId).maybeSingle(),
                 supabase.from('interaction_logs').select('user_message, sigil_response').eq('user_id', userId).order('created_at', { ascending: false }).limit(15),
                 supabase.from('intentions').select('intention_text').eq('user_id', userId).gte('created_at', today.toISOString()),
                 supabase.from('meditation_sessions').select('element, initial_state, target_state, completed_at, type').eq('user_id', userId).gte('completed_at', threeHoursAgo).order('completed_at', { ascending: false }).limit(1).maybeSingle(),
-                supabase.from('user_energy_snapshots').select('payload').eq('user_id', userId).order('snapshot_date', { ascending: false }).limit(1).maybeSingle(),
+                (async () => {
+                    try {
+                        const v2Payload = await DailyContextOrchestrator.getOrGenerate(userId, userProfile, currentTimezoneOffset, lang);
+                        return { data: { payload: v2Payload } };
+                    } catch(e) {
+                        console.warn('DailyContextOrchestrator failed in Sigil:', e);
+                        return { data: null };
+                    }
+                })(),
                 (async () => { try { return await supabase.rpc('calculate_evolution_stage', { target_user_id: userId }); } catch { return { data: 1 }; } })(),
                 (async () => { try { return await supabase.rpc('determine_preferred_tone', { target_user_id: userId }); } catch { return { data: 'MISTICO' }; } })(),
                 CoherenceService.getCoherence(userId),
@@ -396,6 +421,11 @@ ${segments.truth_injection.waiting_desc}
 
             const unifiedSystemPrompt = `
     ${prompts.naos_system}
+
+    [CONTEXTO TEMPORAL ACTUAL]
+    ${lang === 'es' ? 'Fecha y hora local del usuario' : 'User local date and time'}: ${formattedLocalDate}
+    (${lang === 'es' ? 'Usa ESTA fecha como el "hoy" absoluto para responder y para tu entendimiento del día actual.' : 'Use THIS date as the absolute "today" to answer.'})
+
     
     ──────────────────────────
     OUTPUT_LANGUAGE: ${language}
@@ -878,3 +908,4 @@ ${segments.truth_injection.waiting_desc}
 function userInfoHasTime(user: UserProfile): boolean {
     return !!(user.birthTime && user.birthTime !== "00:00" && user.birthTime !== "12:00");
 }
+
