@@ -19,7 +19,11 @@ export const webhookRoutes = async (app: FastifyInstance) => {
         }
     });
 
-    app.post('/api/webhooks/paddle', async (request: FastifyRequest, reply: FastifyReply) => {
+    app.post('/api/webhooks/paddle', {
+        config: {
+            rawBody: true
+        }
+    }, async (request: FastifyRequest, reply: FastifyReply) => {
         const signature = request.headers['paddle-signature'] as string;
         const rawBody = (request as any).rawBody;
 
