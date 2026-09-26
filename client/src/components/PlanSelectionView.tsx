@@ -71,7 +71,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
         setIsCheckoutLoading(true);
         try {
             const headers = await getAsyncAuthHeaders('POST');
-            const response = await fetch(`/api/checkout/${endpoint}`, {
+            const response = await fetch(`${API_BASE_URL}/api/checkout/${endpoint}`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ priceId })
