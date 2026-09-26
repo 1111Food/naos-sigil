@@ -23,8 +23,7 @@ const geoip = require('geoip-lite');
 
 function detectRegionFromIP(ip: string) {
     // For localhost loopbacks, default to standard US IP so geoip returns viable results for testing
-    const cleanIp = ip === '::1' || ip === '127.0.0.1' ? '142.250.190.46' : ip; 
-    const geo = geoip.lookup(cleanIp);
+    const cleanIp = ip === '::1' || ip === '127.0.0.1' ? '142.250.190.46' : ip;    const geo = geoip.lookup(cleanIp);
 
     if (!geo) return { country: "unknown", region: "global" };
 
@@ -93,13 +92,11 @@ export async function apiRoutes(app: FastifyInstance) {
         const userRole = (req as any).user?.role;
         const isPremium = userRole === 'premium' || userRole === 'admin';
         const lang = req.query.lang || 'es';
-        
         try {
             const map = await ForecastService.getTimeMap(userId, lang);
             if (!map) {
                 return reply.status(404).send({ error: "No forecast found", needsGeneration: true });
             }
-            
             // Server-side Premium Enforcement: Censor months > 0 for free users
             if (!isPremium && map?.months && Array.isArray(map.months)) {
                 for (let i = 1; i < map.months.length; i++) {
@@ -116,8 +113,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.post<{ Body: { lang?: string } }>('/api/forecast/generate', { 
-        preValidation: [validateUser, validatePremium],
+    app.post<{ Body: { lang?: string } }>('/api/forecast/generate', {        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 3,
@@ -129,10 +125,8 @@ export async function apiRoutes(app: FastifyInstance) {
         const userRole = (req as any).user?.role;
         const isPremium = userRole === 'premium' || userRole === 'admin';
         const lang = req.body.lang || 'es';
-        
         try {
             const map = await RequestDeduplicator.execute(`forecast_${userId}_${lang}`, () => ForecastService.generateTimeMap(userId, lang));
-            
             // Server-side Premium Enforcement: Censor months > 0 for free users
             if (!isPremium && map?.months && Array.isArray(map.months)) {
                 for (let i = 1; i < map.months.length; i++) {
@@ -141,7 +135,6 @@ export async function apiRoutes(app: FastifyInstance) {
                     map.months[i].keywords = [];
                 }
             }
-            
             return { map };
         } catch (error: any) {
             console.error("Ã°Å¸â€Â¥ Error generating forecast:", error);
@@ -153,7 +146,6 @@ export async function apiRoutes(app: FastifyInstance) {
     app.get<{ Querystring: { lang?: string } }>('/api/lifeline', { preValidation: [validateUser, validatePremium] }, async (req, reply) => {
         const userId = (req as any).user_id;
         const lang = req.query.lang || 'es';
-        
         try {
             const map = await LifelineService.getLifeline(userId, lang);
             if (!map) {
@@ -166,8 +158,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.post<{ Body: { lang?: string } }>('/api/lifeline/generate', { 
-        preValidation: [validateUser, validatePremium],
+    app.post<{ Body: { lang?: string } }>('/api/lifeline/generate', {        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 3,
@@ -177,7 +168,6 @@ export async function apiRoutes(app: FastifyInstance) {
     }, async (req, reply) => {
         const userId = (req as any).user_id;
         const lang = req.body.lang || 'es';
-        
         try {
             const map = await RequestDeduplicator.execute(`lifeline_${userId}_${lang}`, () => LifelineService.generateLifeline(userId, lang));
             return { map };
@@ -189,28 +179,21 @@ export async function apiRoutes(app: FastifyInstance) {
 
     // 🌟 Current Energy Endpoint
         // YOY Current Energy Endpoint GET (Cache Only)
-    app.get<{ Querystring: { lang?: string } }>('/api/energy/current', { 
-        preValidation: [validateUser],
+    app.get<{ Querystring: { lang?: string } }>('/api/energy/current', {        preValidation: [validateUser],
         config: { rateLimit: { max: 20, timeWindow: '1 minute' } }
     }, async (req, reply) => {
         const userId = (req as any).user_id;
         const langRaw = req.query.lang || 'es';
-        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es'; 
-        
-        try {
+        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es';        try {
             const { supabase } = require('../lib/supabase');
             const { data: fullProfile } = await supabase.from('profiles').select('*').eq('id', userId).single();
             if (!fullProfile) throw new Error('User profile not found');
-            
             const { DateUtils } = require('../utils/DateUtils');
             const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
-            
             const { DailyContextOrchestrator } = require('../modules/daily/DailyContextOrchestrator');
             const v2Payload = await DailyContextOrchestrator.getDailySnapshot(userId, fullProfile, lang);
-            
             if (!v2Payload) return reply.status(404).send({ exists: false, needsGeneration: true });
 
-            
             let energy: any = {
                 interpretationStatus: 'unavailable',
                 rawSignals: v2Payload.layerA
@@ -240,17 +223,14 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // YOY Current Energy Endpoint POST (Generate)
-    app.post<{ Body: { lang?: string } }>('/api/energy/current/generate', { 
-        preValidation: [validateUser],
+    app.post<{ Body: { lang?: string } }>('/api/energy/current/generate', {        preValidation: [validateUser],
         config: {
             rateLimit: { max: 5, timeWindow: '1 minute' }
         }
     }, async (req, reply) => {
         const userId = (req as any).user_id;
         const langRaw = req.body.lang || 'es';
-        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es'; 
-        
-        try {
+        const lang = ['es', 'en'].includes(langRaw) ? langRaw : 'es';        try {
             const { supabase } = require('../lib/supabase');
             const { data: fullProfile } = await supabase
                 .from('profiles')
@@ -259,16 +239,12 @@ export async function apiRoutes(app: FastifyInstance) {
                 .single();
 
             if (!fullProfile) throw new Error("User profile not found");
-            
             const { DateUtils } = require('../utils/DateUtils');
             const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
 
             const { DailyContextOrchestrator } = require('../modules/daily/DailyContextOrchestrator');
             const v2Payload = await DailyContextOrchestrator.getOrGenerate(
-                userId, 
-                fullProfile, 
-                currentTimezoneOffset, 
-                lang
+                userId,                fullProfile,                currentTimezoneOffset,                lang
             );
 
             // ADAPTER: Map V2 Interpretation to Legacy Energy Shape
@@ -292,11 +268,7 @@ export async function apiRoutes(app: FastifyInstance) {
                         action: interpretation.behavioral_guidance || interpretation.guidance || '',
                         avoid: interpretation.behavioral_avoid || (interpretation as any).avoid || ''
                     },
-                    metrics: { 
-                        focus: interpretation.metrics?.focus ?? null, 
-                        creativity: interpretation.metrics?.creativity ?? null, 
-                        relationships: interpretation.metrics?.relationships ?? null 
-                    },
+                    metrics: {                        focus: interpretation.metrics?.focus ?? null,                        creativity: interpretation.metrics?.creativity ?? null,                        relationships: interpretation.metrics?.relationships ?? null                    },
                     weekly: {
                         theme: (interpretation.integratedPattern as any)?.title || (lang === 'es' ? 'Tema Semanal' : 'Weekly Theme'),
                         description: interpretation.integratedPattern?.text || null
@@ -313,8 +285,7 @@ export async function apiRoutes(app: FastifyInstance) {
     });
 
     // Ã°Å¸â€ Â® Sigil Chat / Interaction Endpoint
-    app.post<{ Body: { message: string, localTimestamp?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en', voice_enabled?: boolean } }>('/api/chat', { 
-        preValidation: [validateUser],
+    app.post<{ Body: { message: string, localTimestamp?: string, timeZone?: string, oracleState?: any, role?: 'maestro' | 'guardian', energyContext?: any, language?: 'es' | 'en', voice_enabled?: boolean } }>('/api/chat', {        preValidation: [validateUser],
         config: {
             rateLimit: {
                 max: 5,
@@ -323,7 +294,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     }, async (req, reply) => {
         const routePerfStart = Date.now();
-        const { message, localTimestamp, oracleState, role, energyContext, language, voice_enabled } = req.body;
+        const { message, localTimestamp, timeZone, oracleState, role, energyContext, language, voice_enabled } = req.body;
         const userId = (req as any).user_id;
 
         // Sigil usage counter is telemetry only; AI spend is enforced inside SigilService.
@@ -332,7 +303,7 @@ export async function apiRoutes(app: FastifyInstance) {
         try {
             console.log(`Ã°Å¸Å'â‚¬ INCOMING MESSAGE from ${userId}: "${message}"`);
             const sigilStart = Date.now();
-            const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo);
+            const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo, { persistUserMessage: true, visibleInConversation: true, source: 'user', timeZone });
             console.log(`[PERF][CHAT] sigil_process=${Date.now() - sigilStart}ms`);
 
             let finalText = res;
@@ -373,8 +344,7 @@ export async function apiRoutes(app: FastifyInstance) {
             console.log(`[PERF][CHAT] usage_increment=${Date.now() - usageIncrementStart}ms`);
             console.log(`[PERF][CHAT] total=${Date.now() - routePerfStart}ms`);
 
-            return { 
-                text: finalText,
+            return {                text: finalText,
                 kernelAction,
                 audioUrl,
                 audioBase64
@@ -422,8 +392,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
 
     // Prompt 5: Lab Session Trigger
-    app.post<{ Body: { element: string } }>('/api/trigger/lab-session', { 
-        preValidation: [validateUser, validatePremium],
+    app.post<{ Body: { element: string } }>('/api/trigger/lab-session', {        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 5,
@@ -447,7 +416,6 @@ export async function apiRoutes(app: FastifyInstance) {
 
             const promptContext = `[SESIÃƒâ€œN LABORATORIO]: El usuario ha iniciado una prÃƒÂ¡ctica de ${element}. Genera una instrucciÃƒÂ³n mÃƒÂ­stica de 1-2 lÃƒÂ­neas para su respiraciÃƒÂ³n.`;
             const message = await sigilService.processMessage(userId, promptContext);
-            
             await sendProactiveMessage(user.telegram_chat_id, message);
             return { status: 'ok', sent: true };
         } catch (e: any) {
@@ -547,8 +515,7 @@ export async function apiRoutes(app: FastifyInstance) {
         const isAdmin = (req as any).user?.role === 'admin';
 
         // Ã°Å¸â€ºÂ¡Ã¯Â¸Â UsageGuard Limit Check
-        if (forceRefresh && !isAdmin) { 
-             const limitCheck = await UsageGuardService.checkLimit(userId, 'naos_code', (req as any).user?.role);
+        if (forceRefresh && !isAdmin) {             const limitCheck = await UsageGuardService.checkLimit(userId, 'naos_code', (req as any).user?.role);
              if (!limitCheck.ok) {
                  return reply.status(403).send({ error: "LÃƒÂ­mite de EnergÃƒÂ­a Agotado", message: limitCheck.message });
              }
@@ -626,14 +593,11 @@ export async function apiRoutes(app: FastifyInstance) {
         const token = (req as any).token;
         try {
             const { protocolId, dayNumber, notes } = req.body;
-            
             // SECURITY: SERVER-AUTHORITATIVE LOCAL DATE (Ignore client bypasses)
             const { data: fullProfile } = await supabase.from('profiles').select('*').eq('id', userId).single();
             const { DateUtils } = require('../utils/DateUtils');
-            
             const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
             const serverLocalDate = DateUtils.getUserLocalDate(fullProfile);
-            
             return await ProtocolService.sealDay(userId, protocolId, dayNumber, notes, token, serverLocalDate);
         } catch (e: any) {
             console.error("🚀 Protocol Seal-Day Error:", e);
@@ -644,8 +608,7 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     });
 
-    app.post<{ Body: { protocolId: string, newIntention?: string } }>('/api/protocols/evolve', { 
-        preValidation: [validateUser, validatePremium],
+    app.post<{ Body: { protocolId: string, newIntention?: string } }>('/api/protocols/evolve', {        preValidation: [validateUser, validatePremium],
         config: {
             rateLimit: {
                 max: 3,
@@ -699,22 +662,17 @@ export async function apiRoutes(app: FastifyInstance) {
                 .single();
 
             if (!fullProfile) throw new Error("User profile not found");
-            
             // FASE 3: Enforce current timezone
             const { DateUtils } = require('../utils/DateUtils');
             const currentTimezoneOffset = DateUtils.getCurrentTimezoneOffset(fullProfile);
 
             const { DailyContextOrchestrator } = require('../modules/daily/DailyContextOrchestrator');
             const v2Payload = await DailyContextOrchestrator.getOrGenerate(
-                userId, 
-                fullProfile, 
-                currentTimezoneOffset, 
-                lang
+                userId,                fullProfile,                currentTimezoneOffset,                lang
             );
 
             // ADAPTER: Map V2 Interpretation to Legacy Oracle Shape
             const { interpretation } = v2Payload;
-            
             const readingData = {
                 texto_principal: interpretation.primarySignal.text || interpretation.primarySignal.content,
                 score_energia_general: 50, // Unsupported in V2 factual core
@@ -726,12 +684,10 @@ export async function apiRoutes(app: FastifyInstance) {
             };
 
                         // Return readingData directly so frontend FrecuenciaDiaData matches, but add localDate
-            
             // --- INJECT VIGÍA CÓSMICO IN-APP ---
             const { ConsciousnessEngine } = require('../modules/sigil/ConsciousnessEngine');
             const now = new Date();
             const userHours = DateUtils.getUserLocalHour(fullProfile, now);
-            
             let currentMoment = null;
             if (userHours >= 6 && userHours < 18) currentMoment = 'MORNING';
             else if (userHours >= 18) currentMoment = 'EVENING';
@@ -740,7 +696,6 @@ export async function apiRoutes(app: FastifyInstance) {
                 // Generates if missing, returns null if already generated. We fetch it next anyway.
                 await ConsciousnessEngine.trySendTransmission(userId, v2Payload.localDate, currentMoment, lang).catch((e: any) => console.error("ConsciousnessEngine Error:", e));
             }
-            
             // Fetch today's transmissions to surface in-app
             const { data: transmissions } = await supabase
                 .from('sigil_daily_transmissions')

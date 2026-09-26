@@ -68,6 +68,7 @@ export function useSigil(userName?: string, energyContext?: any) {
                 body: JSON.stringify({
                     message: text,
                     localTimestamp: new Date().toISOString(),
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     oracleState,
                     energyContext,
                     role,
