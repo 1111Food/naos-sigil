@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2, Zap } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
@@ -14,6 +14,7 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     const { profile, refreshProfile } = useProfile();
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
+    const activationInFlightRef = useRef(false);
     useEffect(() => { trackEvent('pricing_viewed'); }, []);
 
     const provider = import.meta.env.VITE_PAYMENT_PROVIDER || 'stripe';
@@ -40,20 +41,37 @@ export const PlanSelectionView: React.FC<PlanSelectionViewProps> = ({ onBack }) 
     }, [provider]);
 
     const handleCheckoutSuccess = async () => {
+        if (activationInFlightRef.current) return;
+
+        activationInFlightRef.current = true;
         trackEvent('checkout_completed');
         setIsActivating(true);
-        // Poll for 10 seconds to allow webhook to process
-        let attempts = 0;
-        const interval = setInterval(async () => {
-            attempts++;
-            await refreshProfile();
-            // check if upgraded
-            if (attempts > 5) {
-                clearInterval(interval);
-                setIsActivating(false);
-                window.location.href = '/sanctuary?upgrade=success';
+
+        try {
+            for (let attempt = 0; attempt < 6; attempt++) {
+                const refreshed = await refreshProfile();
+                const planType = String(refreshed?.plan_type || '').toLowerCase();
+
+                if (planType === 'premium' || planType === 'premium_plus') {
+                    setIsActivating(false);
+                    window.location.href = '/sanctuary?upgrade=success';
+                    return;
+                }
+
+                if (attempt < 5) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
             }
-        }, 2000);
+
+            activationInFlightRef.current = false;
+            setIsActivating(false);
+            alert('Tu pago fue recibido. La activaci\u00f3n de Premium est\u00e1 tardando m\u00e1s de lo esperado. Recarga la aplicaci\u00f3n en unos segundos.');
+        } catch (error) {
+            activationInFlightRef.current = false;
+            setIsActivating(false);
+            console.error('Premium activation check failed:', error);
+            alert('Tu pago fue recibido, pero no pudimos confirmar la activaci\u00f3n todav\u00eda. Recarga la aplicaci\u00f3n en unos segundos.');
+        }
     };
 
     const handleCheckout = async (priceId: string, endpoint: string = 'create-session', planMode?: string) => {
