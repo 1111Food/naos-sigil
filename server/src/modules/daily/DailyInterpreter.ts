@@ -89,6 +89,14 @@ export class DailyInterpreter {
         const validIdsMap = new Map(layerA.provenance.map(p => [p.id, p]));
 
         const checkBlock = (block: any, expectedSystem?: string): string | null => {
+            if (expectedSystem) {
+                const hasSignalsForSystem = layerA.provenance.some(p => p.system === expectedSystem);
+                if (!hasSignalsForSystem) {
+                    if (!block || !Array.isArray(block.signalIds) || block.signalIds.length === 0) {
+                        return null; // OK
+                    }
+                }
+            }
             if (!block || !Array.isArray(block.signalIds)) return "Missing or invalid signalIds array.";
             if (block.signalIds.length === 0 && expectedSystem) return `Block requires at least 1 signalId.`;
             
@@ -211,3 +219,5 @@ Output Schema:
         };
     }
 }
+
+
