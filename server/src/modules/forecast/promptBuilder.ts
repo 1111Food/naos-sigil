@@ -1,3 +1,5 @@
+import { config } from '../../config/env';
+
 export class ForecastPromptBuilder {
     static build(
         userData: any, 
@@ -11,35 +13,35 @@ export class ForecastPromptBuilder {
         const isEs = language === 'es';
 
         const systemPrompt = isEs 
-            ? `Eres el Motor Temporal de NAOS. Tu objetivo no es predecir el futuro, sino simular el clima energético de los próximos 12 meses basándote en la interacción de 4 Intelligence Sources (Astrología, Numerología, Nahual Maya, Horóscopo Chino) y el comportamiento real del usuario en la plataforma (El Kernel de Inteligencia).
+            ? `Eres el Motor Temporal de NAOS. Tu objetivo no es predecir el futuro, sino simular el clima energǸtico de los prximos 12 meses basǭndote en la interaccin de 4 Intelligence Sources (Astrologa, Numerologa, Nahual Maya, Horscopo Chino) y el comportamiento real del usuario en la plataforma (El Kernel de Inteligencia).
 
 DATOS DEL USUARIO:
 - Nombre: ${userData.name || userData.full_name || 'Arquitecto'}
 - Nacimiento: ${userData.birthDate || userData.birth_date} (Hora: ${userData.birthTime || userData.birth_time || 'Desconocida'})
-- Astrología: Sol en ${astroContext?.sunSign}, Luna en ${astroContext?.moonSign}, Ascendente en ${astroContext?.ascendantSign}
-- Carta Astrológica Canónica: ${JSON.stringify(astroContext || {})}
+- Astrologa: Sol en ${astroContext?.sunSign}, Luna en ${astroContext?.moonSign}, Ascendente en ${astroContext?.ascendantSign}
+- Carta Astrolgica Cannica: ${JSON.stringify(astroContext || {})}
 - Nahual Natal: ${userData.mayan?.kicheName || userData.nawal_maya || '?'}
-- Astrología China Natal: ${userData.chinese_animal || userData.chinese_sign || '?'}
-- Numerología Natal (Camino de Vida): ${userData.numerology?.lifePathNumber || userData.numerology_path || '?'}
+- Astrologa China Natal: ${userData.chinese_animal || userData.chinese_sign || '?'}
+- Numerologa Natal (Camino de Vida): ${userData.numerology?.lifePathNumber || userData.numerology_path || '?'}
 
 COMPORTAMIENTO RECIENTE (KERNEL):
 ${behaviorContext}
 
-CICLO MAESTRO DE VIDA (PINÁCULOS):
-- Edad actual del usuario: ${pinnacles.currentAge} años.
-- Está cursando su Pináculo Número: ${pinnacles.pinnacleIndex} (de 4).
-- La vibración de este Pináculo es: ${pinnacles.pinnacleValue}.
-- Este gran ciclo define el clima y el aprendizaje macro de esta década de su vida.
+CICLO MAESTRO DE VIDA (PIN?CULOS):
+- Edad actual del usuario: ${pinnacles.currentAge} aos.
+- Estǭ cursando su Pinǭculo Nǧmero: ${pinnacles.pinnacleIndex} (de 4).
+- La vibracin de este Pinǭculo es: ${pinnacles.pinnacleValue}.
+- Este gran ciclo define el clima y el aprendizaje macro de esta dǸcada de su vida.
 
 EJES EVOLUTIVOS (MACRO):
 ${JSON.stringify(macroContext || {})}
 
 CICLOS DE 12 MESES (MESO):
-A continuación se detallan los próximos 12 meses. Para cada mes, se ha pre-calculado el mes personal numerológico.
-Debes integrar esa vibración mensual con los tránsitos astrológicos lentos (Júpiter, Saturno, Urano, Neptuno, Plutón) de ese mes y la energía animal del mes.
+A continuacin se detallan los prximos 12 meses. Para cada mes, se ha pre-calculado el mes personal numerolgico.
+Debes integrar esa vibracin mensual con los trǭnsitos astrolgicos lentos (Jǧpiter, Saturno, Urano, Neptuno, Plutn) de ese mes y la energa animal del mes.
 ${JSON.stringify(cycles12Months, null, 2)}
 
-INSTRUCCIONES CRÍTICAS:
+INSTRUCCIONES CR?TICAS:
 1. No utilices Markdown (sin \`\`\`json).
 2. Devuelve estrictamente el JSON.
 3. El idioma debe ser ${language}.
@@ -62,12 +64,12 @@ ESTRUCTURA JSON REQUERIDA:
     ],
     "months": [
         {
-            "month": "YYYY-MM",
-            "title": "...",
-            "description": "...",
-            "score": 85,
-            "numerology_month": 5,
-            "key_aspects": ["..."]
+            "month_name": "Nombre del mes (ej. Septiembre)",
+            "year": "Ao",
+            "frequency": "Ttulo de la vibracin del mes",
+            "quantum_reading": "Lectura profunda y reflexiva del mes",
+            "action_hack": "Una accin prǭctica y directa (Hack)",
+            "blind_spot": "Punto ciego o peligro a evitar"
         }
     ]
 }`
@@ -122,12 +124,12 @@ REQUIRED JSON STRUCTURE:
     ],
     "months": [
         {
-            "month": "YYYY-MM",
-            "title": "...",
-            "description": "...",
-            "score": 85,
-            "numerology_month": 5,
-            "key_aspects": ["..."]
+            "month_name": "Month name (e.g. September)",
+            "year": "Year",
+            "frequency": "Title for the month's vibration",
+            "quantum_reading": "Deep, reflective reading for the month",
+            "action_hack": "A practical, direct action (Hack)",
+            "blind_spot": "Blind spot or danger to avoid"
         }
     ]
 }`;
@@ -135,4 +137,3 @@ REQUIRED JSON STRUCTURE:
         return systemPrompt;
     }
 }
-

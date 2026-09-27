@@ -38,7 +38,7 @@ export const TimeMap: React.FC = () => {
         }),
         onSuccess: (newMap) => {
             if (newMap) {
-                qc.setQueryData(['forecast', profile?.id, language], { map: newMap });
+                qc.setQueryData(['forecast', profile?.id, language], newMap);
                 setErrorMsg(null);
             }
         },
