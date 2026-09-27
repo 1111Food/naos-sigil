@@ -348,7 +348,7 @@ export class UserService {
 
         // Supabase Sync
         if (config.SUPABASE_URL) {
-            const payload = {
+            const payload: any = {
                 id: userId,
                 name: updated.name || current.name,
                 full_name: updated.full_name || updated.name || current.name,
@@ -361,6 +361,7 @@ export class UserService {
                 profile_data: updated,
                 updated_at: new Date().toISOString()
             };
+            if (updated.astrology) payload.astrology = updated.astrology;
             const { error: upsertError } = await supabaseAdmin.from('profiles').upsert(payload);
             if (upsertError) throw upsertError;
         }
@@ -429,5 +430,3 @@ export class UserService {
         return await this.updateProfile(userId, { active_sub_profile_id: subId });
     }
 }
-
-
