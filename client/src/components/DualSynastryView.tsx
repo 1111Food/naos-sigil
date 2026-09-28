@@ -8,6 +8,7 @@ import { SynastryResultView } from './SynastryResultView';
 import { RelationshipType } from './SynastryModule';
 import { RelationshipLaboratory } from '../pages/RelationshipLaboratory';
 import { useTranslation } from '../i18n';
+import { cn } from '../lib/utils';
 
 interface DualSynastryViewProps {
     profile: any;
@@ -420,3 +421,4 @@ export const DualSynastryView: React.FC<DualSynastryViewProps> = ({ profile }) =
         </div>
     );
 };
+

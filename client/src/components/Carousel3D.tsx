@@ -45,8 +45,8 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
         },
         {
             id: 'oracle',
-            title: t('oracle') || 'Oráculo de Almas',
-            subtitle: 'Dinámica de Relaciones',
+            title: t('relationships_label') || 'V�nculos',
+            subtitle: 'Relationship Intelligence',
             accent: 'magenta',
             icon: Eye,
             featureId: 'ORACLE_SOULS',
@@ -284,4 +284,5 @@ export const Carousel3D: React.FC<Carousel3DProps> = ({
         </div>
     );
 };
+
 

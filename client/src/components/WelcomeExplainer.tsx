@@ -17,8 +17,8 @@ export const WelcomeExplainer: React.FC<WelcomeExplainerProps> = ({ onClose }) =
 
     const WELCOME_SLIDES = [
         {
-            title: t('ws_1_title') || "Bienvenido a Naos",
-            subtitle: t('ws_1_sub') || "El Ecosistema Arquitectónico",
+            title: t('ws_1_title') || "BIENVENIDO A NAOS",
+            subtitle: t('ws_1_sub') || "PERSONAL INTELLIGENCE",
             icon: Hexagon,
             iconColor: "text-amber-400",
             colorBg: "bg-amber-500/10",
@@ -157,7 +157,7 @@ export const WelcomeExplainer: React.FC<WelcomeExplainerProps> = ({ onClose }) =
 
                             <div className="space-y-3">
                                 <h2 className="text-3xl md:text-5xl font-serif italic text-white tracking-wider leading-tight">
-                                    {(currentSlide.title === "Bienvenido a Naos" || currentSlide.title === "Welcome to Naos") ? (
+                                    {(currentSlide.title === "BIENVENIDO A NAOS" || currentSlide.title === "Welcome to Naos") ? (
                                         <>{t('welcome_temple_title').replace("Naos", "")}<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-amber-300">Naos</span></>
                                     ) : currentSlide.title}
                                 </h2>
@@ -204,3 +204,4 @@ export const WelcomeExplainer: React.FC<WelcomeExplainerProps> = ({ onClose }) =
         </motion.div>
     );
 };
+

@@ -58,9 +58,7 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
         setMessages(prev => [...prev, { role: 'user', text: userText }]);
 
         // Procedural commands for quick navigation (Intuitive S2 Mapping v6.5)
-        if (cmd.includes('tarot') || cmd.includes('cartas')) {
-            onNavigate('TAROT');
-        } else if (cmd.includes('carta') || cmd.includes('astral') || cmd.includes('sol') || cmd.includes('estrellas') || cmd.includes('astros') || cmd.includes('luna')) {
+        if (cmd.includes('carta') || cmd.includes('astral') || cmd.includes('sol') || cmd.includes('estrellas') || cmd.includes('astros') || cmd.includes('luna')) {
             onNavigate('ASTRO');
         } else if (cmd.includes('nahual') || cmd.includes('maya') || cmd.includes('espÃ­ritu') || cmd.includes('glifo')) {
             onNavigate('MAYA');
@@ -212,5 +210,6 @@ export const SigilWidget: React.FC<SigilWidgetProps> = ({ onNavigate, externalMe
         </div>
     );
 };
+
 
 
