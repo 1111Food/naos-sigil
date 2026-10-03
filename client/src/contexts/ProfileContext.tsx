@@ -66,6 +66,7 @@ export interface UserProfile {
         features: string[];
     };
     plan_type?: 'free' | 'premium' | 'admin';
+    system_role?: string;
     naosIdentityCode?: any;
     active_sub_profile_id?: string;
     canonical_archetype?: any;

@@ -35,6 +35,34 @@ interface RelationshipLaboratoryProps {
 export const RelationshipLaboratory: React.FC<RelationshipLaboratoryProps> = ({ metrics, report, isScanning }) => {
     const { language } = useTranslation();
     const isEs = language === 'es';
+
+    const translateModuleTitle = (title: string, isEs: boolean) => {
+        if (!isEs) return title;
+        const dict: Record<string, string> = {
+            'Love & Emotional Dynamics': 'Amor y Dinámicas Emocionales',
+            'Communication': 'Comunicación',
+            'Business & Wealth': 'Negocios y Abundancia',
+            'Projects & Collaboration': 'Proyectos y Colaboración',
+            'Family & Social Circles': 'Familia y Círculos Sociales',
+            'Spiritual & Growth': 'Crecimiento y Espiritualidad',
+            'Shadow & Unconscious Dynamics': 'Sombra e Inconsciente',
+            'Lifestyle & Shared Vision': 'Estilo de Vida y Visión'
+        };
+        return dict[title] || title;
+    };
+
+    const translateContext = (context: string, isEs: boolean) => {
+        if (!isEs) return context;
+        const dict: Record<string, string> = {
+            'Romance': 'Romance',
+            'Business': 'Negocios',
+            'Friendship': 'Amistad',
+            'Parenting': 'Crianza',
+            'Travel': 'Viajes',
+            'Living Together': 'Convivencia'
+        };
+        return dict[context] || context;
+    };
     
     const [activeView, setActiveView] = useState<string>('executive');
 
@@ -88,7 +116,7 @@ export const RelationshipLaboratory: React.FC<RelationshipLaboratoryProps> = ({ 
                             className={`nav-btn ${activeView === mod.id ? 'active' : ''}`}
                             onClick={() => setActiveView(mod.id)}
                         >
-                            {mod.title}
+                            {translateModuleTitle(mod.title, isEs)}
                         </button>
                     ))}
 
@@ -130,7 +158,7 @@ export const RelationshipLaboratory: React.FC<RelationshipLaboratoryProps> = ({ 
                                 {report.contextCompatibility.map(ctx => (
                                     <div key={ctx.context} className="context-bar-wrapper">
                                         <div className="context-label">
-                                            <span>{ctx.context}</span>
+                                            <span>{translateContext(ctx.context, isEs)}</span>
                                             <span>{ctx.score}%</span>
                                         </div>
                                         <div className="context-track">
@@ -144,7 +172,7 @@ export const RelationshipLaboratory: React.FC<RelationshipLaboratoryProps> = ({ 
                 )}
 
                 {activeModule && (
-                    <ModuleContent module={activeModule} />
+                    <ModuleContent module={{...activeModule, title: translateModuleTitle(activeModule.title, isEs)}} />
                 )}
 
                 {activeView === 'scenarios' && (

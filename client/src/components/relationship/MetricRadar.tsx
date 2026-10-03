@@ -64,7 +64,7 @@ export const MetricRadar: React.FC<MetricRadarProps> = ({ metrics }) => {
                 {metrics.map((m, i) => {
                     // Position text slightly outside the max radius
                     const labelPos = getCoordinates(115, i, metrics.length);
-                    const displayName = m.name.replace(/([A-Z])/g, ' $1').trim();
+                    const displayName = (m.name || m.label || '').replace(/([A-Z])/g, ' $1').trim();
                     return (
                         <text 
                             key={`label-${i}`} 

@@ -58,7 +58,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
     const [intention, setIntention] = useState('');
     const [pendingTab, setPendingTab] = useState<Tab | null>(null);
     // Spline is only alive in LOBBY — unmounts automatically when user enters INTENTION or ACTIVE
-    const splineVisible = step === 'LOBBY';
+    const splineVisible = false; // step === 'LOBBY'; disabled due to 403
     const [showWarning, setShowWarning] = useState(false);
     const [hasProceeded, setHasProceeded] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
@@ -153,7 +153,7 @@ export const OracleSoulsView: React.FC<OracleSoulsViewProps> = ({ onBack, onNavi
         playSound('click');
     };
 
-    const isGodMode = profile?.email === 'luisalfredoherreramendez@gmail.com' || profile?.plan_type === 'admin';
+    const isGodMode = profile?.system_role === 'owner' || profile?.system_role === 'admin';
 
     const tabs = [
         ...(isGodMode ? [{
