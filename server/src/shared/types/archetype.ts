@@ -46,3 +46,20 @@ export type ArchetypeCalculationResult =
     | { status: 'UNAVAILABLE'; error: string };
 
 export const ARCHETYPE_CANON_VERSION = "vnext-1";
+
+
+export interface V4ArchetypePayload {
+    schema_version: 'v4.0';
+    canon_version: string;
+    archetype_id: ArchetypeId;
+    language: 'es' | 'en';
+    input_fingerprint: string;
+    is_fallback: boolean;
+    identidad_central: string;
+    motor_instintivo: string;
+    mecanismo_operativo: string;
+    talento_manifestado: string;
+    riesgo_y_sombra: string;
+    imperativo_evolutivo: string;
+    aplicacion_vital: string;
+}

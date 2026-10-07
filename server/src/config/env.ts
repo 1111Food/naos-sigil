@@ -33,7 +33,8 @@ export const config = {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     TELEGRAM_RUNTIME_ENABLED: process.env.TELEGRAM_RUNTIME_ENABLED === "true",
     TELEGRAM_TEST_MODE: process.env.TELEGRAM_TEST_MODE === "true",
-    TELEGRAM_TEST_USER_ID: process.env.TELEGRAM_TEST_USER_ID || "2c48f84f-2c2e-4b0d-b799-166709fd1d1f"
+    TELEGRAM_TEST_USER_ID: process.env.TELEGRAM_TEST_USER_ID || "2c48f84f-2c2e-4b0d-b799-166709fd1d1f",
+    NAOS_ARCHETYPE_V4_ENABLED: process.env.NAOS_ARCHETYPE_V4_ENABLED === "true"
 };
 
 if (!config.GOOGLE_API_KEY) {

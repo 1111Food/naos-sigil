@@ -1,4 +1,4 @@
-import { ArchetypeCanonMap } from './types';
+import { ArchetypeCanonMap } from '../types/archetype';
 
 export const NAOS_ARCHETYPES_CANON: ArchetypeCanonMap = {
   "fuego-1": {

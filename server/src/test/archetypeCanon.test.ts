@@ -1,4 +1,4 @@
-import { ARCHETYPE_CANON_VERSION, ArchetypeId, CanonicalArchetype } from '../shared/canon/types';
+import { ARCHETYPE_CANON_VERSION, ArchetypeId, CanonicalArchetype } from '../shared/types/archetype';
 import { NAOS_ARCHETYPES_CANON } from '../shared/canon/archetypes';
 import { ArchetypeEngine } from '../modules/user/archetypeEngine';
 

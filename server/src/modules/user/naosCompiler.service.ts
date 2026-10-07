@@ -1,3 +1,7 @@
+import crypto from 'crypto';
+import { V4ArchetypePayload, ArchetypeId, ARCHETYPE_CANON_VERSION } from '../../shared/types/archetype';
+import { NAOS_ARCHETYPES_CANON } from '../../shared/canon/archetypes';
+import { ArchetypeValidator } from './archetypeValidator';
 import { config } from '../../config/env';
 import { UserProfile } from '../../types';
 import { ChineseAstrology } from '../../utils/chineseAstrology';
@@ -39,11 +43,17 @@ export interface NaosIdentitySynthesis {
     conclusion_directa: string;
 }
 
+export type NaosIdentityCompileResult = NaosIdentitySynthesis | V4ArchetypePayload | { status: 'UNAVAILABLE', error: string };
+
 export class NaosCompilerService {
     private static TARGET_MODEL = config.GEMINI_MODEL;
     private static API_VERSION = "v1beta";
 
-    static async compile(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es'): Promise<NaosIdentitySynthesis> {
+    static async compile(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es'): Promise<NaosIdentityCompileResult> {
+        if (config.NAOS_ARCHETYPE_V4_ENABLED) {
+            return this.compileV4(userId, forceRefresh, language);
+        }
+
         const isEn = language === 'en';
         console.log(`[NAOS_COMPILER_v3.0] Incoming request for ${userId} (Force: ${forceRefresh}, Lang: ${language})`);
         const userProfile = await this.getCompleteProfile(userId);
@@ -504,4 +514,191 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
             conclusion_directa: normalize(findValue(['conclusion_directa']), NaosCompilerService.generateLocalNarrative('conclusion_directa', bible, archetype, language))
         };
     }
+
+    private static async compileV4(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es'): Promise<V4ArchetypePayload | { status: 'UNAVAILABLE', error: string }> {
+        console.log(`[NAOS_COMPILER_V4] Dark launch request for ${userId} (Lang: ${language})`);
+
+        const userProfile = await this.getCompleteProfile(userId);
+        const { bible, archetype } = await this.consolidateBible(userProfile, language);
+
+        const canonicalId = `${archetype.elemento_dominante}-${archetype.rol}` as ArchetypeId;
+        const canon = NAOS_ARCHETYPES_CANON[canonicalId];
+
+        if (!canon) {
+            return { status: 'UNAVAILABLE', error: 'IDENTITY_CALCULATION_UNAVAILABLE' };
+        }
+
+        const fingerprint = this.computeV4Fingerprint(canonicalId, language, bible);
+
+        // Dark launch isolated cache check
+        if (!forceRefresh) {
+            const { data: profile } = await supabase.from('profiles').select('profile_data').eq('id', userId).maybeSingle();
+            if (profile?.profile_data?.v4_identity && typeof profile.profile_data.v4_identity === 'object') {
+                const cached = profile.profile_data.v4_identity[language];
+                if (cached && cached.schema_version === 'v4.0' && cached.canon_version === ARCHETYPE_CANON_VERSION && cached.input_fingerprint === fingerprint && cached.language === language) {
+                    console.log(`[NAOS_COMPILER_V4] Returning valid cached V4 identity for ${userId} (${language})`);
+                    return cached;
+                }
+            }
+        }
+
+        try {
+            console.log(`[NAOS_COMPILER_V4] Calling Gemini for ${userId}...`);
+            let payload = await this.callGeminiCompilerV4(bible, canon, language);
+
+            payload.schema_version = 'v4.0';
+            payload.canon_version = ARCHETYPE_CANON_VERSION;
+            payload.archetype_id = canonicalId;
+            payload.language = language;
+            payload.input_fingerprint = fingerprint;
+            payload.is_fallback = false;
+
+            const validation = ArchetypeValidator.validateAndRepair(payload, canonicalId);
+
+            if (validation.outcome === 'PASS') {
+                console.log(`[NAOS_COMPILER_V4] Validation PASSED for ${userId}`);
+                // Dark launch isolated cache write
+                const { data: profile } = await supabase.from('profiles').select('profile_data').eq('id', userId).maybeSingle();
+                const existingV4 = (profile?.profile_data?.v4_identity && typeof profile.profile_data.v4_identity === 'object')
+                    ? profile.profile_data.v4_identity
+                    : {};
+                const updatedV4 = { ...existingV4, [language]: validation.payload };
+                const updatedData = { ...(profile?.profile_data || {}), v4_identity: updatedV4 };
+                await supabase.from('profiles').update({ profile_data: updatedData }).eq('id', userId);
+
+                return validation.payload as V4ArchetypePayload;
+            } else {
+                console.warn(`[NAOS_COMPILER_V4] Validation REJECTED for ${userId}. Reason: ${validation.error}`);
+                return this.buildV4Fallback(canon, language, fingerprint);
+            }
+
+        } catch (error: any) {
+            console.error(`[NAOS_COMPILER_V4] Failure for ${userId}:`, error.message);
+            return this.buildV4Fallback(canon, language, fingerprint);
+        }
+    }
+
+    private static sortObjectKeys(obj: any): any {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.sortObjectKeys(item));
+        }
+        const sortedKeys = Object.keys(obj).sort();
+        const result: any = {};
+        for (const key of sortedKeys) {
+            result[key] = this.sortObjectKeys(obj[key]);
+        }
+        return result;
+    }
+
+    private static computeV4Fingerprint(canonicalId: string, language: string, bible: any): string {
+        const payload = {
+            schema_version: 'v4.0',
+            canon_version: ARCHETYPE_CANON_VERSION,
+            language,
+            archetype_id: canonicalId,
+            astrology: bible.astrology || null,
+            numerology: bible.numerology || null,
+            maya: bible.mayan || null,
+            chinese: bible.chinese || null
+        };
+        // Canonical recursive serialization
+        const sortedPayload = this.sortObjectKeys(payload);
+        const str = JSON.stringify(sortedPayload);
+        return crypto.createHash('sha256').update(str).digest('hex');
+    }
+
+    private static buildV4Fallback(canon: any, language: 'es' | 'en', fingerprint: string): V4ArchetypePayload {
+        return {
+            schema_version: 'v4.0',
+            canon_version: ARCHETYPE_CANON_VERSION,
+            archetype_id: canon.archetype_id,
+            language,
+            input_fingerprint: fingerprint,
+            is_fallback: true,
+            identidad_central: canon.dimensions.identidad_central[language],
+            motor_instintivo: canon.dimensions.motor_instintivo[language],
+            mecanismo_operativo: canon.dimensions.mecanismo_operativo[language],
+            talento_manifestado: canon.dimensions.talento_manifestado[language],
+            riesgo_y_sombra: canon.dimensions.riesgo_y_sombra[language],
+            imperativo_evolutivo: canon.dimensions.imperativo_evolutivo[language],
+            aplicacion_vital: canon.dimensions.aplicacion_vital[language]
+        };
+    }
+
+    private static async callGeminiCompilerV4(bible: any, canon: any, language: 'es' | 'en'): Promise<any> {
+        const isEn = language === 'en';
+        const apiKey = config.GOOGLE_API_KEY;
+        const url = `https://generativelanguage.googleapis.com/${this.API_VERSION}/models/${this.TARGET_MODEL}:generateContent?key=${apiKey}`;
+
+        const safeCanon = {
+            identidad: canon.dimensions.identidad_central[language],
+            impulso: canon.dimensions.motor_instintivo[language],
+            mecanismo: canon.dimensions.mecanismo_operativo[language],
+            talento: canon.dimensions.talento_manifestado[language],
+            sombra: canon.dimensions.riesgo_y_sombra[language],
+            evolucion: canon.dimensions.imperativo_evolutivo[language],
+            aplicacion: canon.dimensions.aplicacion_vital[language]
+        };
+
+        const systemPrompt = isEn
+            ? `You are the NAOS Compiler v4.0. Your role is to contextualize a user's master archetype using their specific astrological and numerological signals.
+Rules:
+1. The canonical identity is IMMUTABLE. You must use the provided canon as the core truth.
+2. Personal signals (Astrology, Numerology, etc.) contextualize how this identity manifests, but CANNOT redefine it.
+3. ABSOLUTELY NO deterministic destiny claims or predictions of the future.
+4. ABSOLUTELY NO supernatural, magical, or psychic claims (e.g., "you are psychic", "you have magic").
+5. ABSOLUTELY NO psychological or medical diagnosis.
+6. The word "Architect" as an identity metaphor is EXCLUSIVELY reserved for the 'tierra-4' archetype. Do not use it for others unless referring to software/technical architecture.
+7. Output MUST be in exactly 7 JSON keys: 'identidad_central', 'motor_instintivo', 'mecanismo_operativo', 'talento_manifestado', 'riesgo_y_sombra', 'imperativo_evolutivo', 'aplicacion_vital'.
+8. Respond ONLY in valid JSON in ENGLISH.`
+            : `Eres el Compilador NAOS v4.0. Tu rol es contextualizar el arquetipo maestro del usuario usando sus señales astrológicas y numerológicas.
+Reglas:
+1. La identidad canónica es INMUTABLE. Debes usar el canon provisto como la verdad central.
+2. Las señales personales (Astrología, Numerología, etc.) contextualizan cómo se manifiesta esta identidad, pero NO PUEDEN redefinirla.
+3. ABSOLUTAMENTE NINGUNA afirmación de destino determinista o predicciones del futuro.
+4. ABSOLUTAMENTE NINGUNA afirmación sobrenatural, mágica o psíquica (ej. "eres psíquico", "tienes poderes").
+5. ABSOLUTAMENTE NINGÚN diagnóstico médico o psicológico.
+6. La palabra "Arquitecto" como metáfora de identidad está EXCLUSIVAMENTE reservada para el arquetipo 'tierra-4'. No la uses para otros a menos que te refieras a arquitectura de software/técnica.
+7. El output DEBE contener exactamente 7 claves JSON: 'identidad_central', 'motor_instintivo', 'mecanismo_operativo', 'talento_manifestado', 'riesgo_y_sombra', 'imperativo_evolutivo', 'aplicacion_vital'.
+8. Responde ÚNICAMENTE en JSON válido en ESPAÑOL.`;
+
+        const payload = {
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: "user", parts: [{
+                text: `COMPUTED_CANONICAL:
+${JSON.stringify(safeCanon)}
+
+PERSONAL_SIGNAL:
+${JSON.stringify(bible)}`
+            }] }],
+            generationConfig: { temperature: 0.25, response_mime_type: "application/json" }
+        };
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error(`Gemini API Error: ${response.status}`);
+
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error("No synthesis generated");
+
+            return JSON.parse(text);
+        } catch (error: any) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    }
+
 }
