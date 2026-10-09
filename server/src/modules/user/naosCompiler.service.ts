@@ -45,12 +45,16 @@ export interface NaosIdentitySynthesis {
 
 export type NaosIdentityCompileResult = NaosIdentitySynthesis | V4ArchetypePayload | { status: 'UNAVAILABLE', error: string };
 
+export interface ArchetypeCompileContext {
+    system_role?: string | null;
+}
+
 export class NaosCompilerService {
     private static TARGET_MODEL = config.GEMINI_MODEL;
     private static API_VERSION = "v1beta";
 
-    static async compile(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es'): Promise<NaosIdentityCompileResult> {
-        if (config.NAOS_ARCHETYPE_V4_ENABLED) {
+    static async compile(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es', trustedContext?: ArchetypeCompileContext): Promise<NaosIdentityCompileResult> {
+        if (config.NAOS_ARCHETYPE_V4_ENABLED && trustedContext?.system_role === 'owner') {
             return this.compileV4(userId, forceRefresh, language);
         }
 
@@ -535,9 +539,32 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
             const { data: profile } = await supabase.from('profiles').select('profile_data').eq('id', userId).maybeSingle();
             if (profile?.profile_data?.v4_identity && typeof profile.profile_data.v4_identity === 'object') {
                 const cached = profile.profile_data.v4_identity[language];
-                if (cached && cached.schema_version === 'v4.0' && cached.canon_version === ARCHETYPE_CANON_VERSION && cached.input_fingerprint === fingerprint && cached.language === language) {
-                    console.log(`[NAOS_COMPILER_V4] Returning valid cached V4 identity for ${userId} (${language})`);
-                    return cached;
+                if (cached && cached.schema_version === 'v4.0' && cached.canon_version === ARCHETYPE_CANON_VERSION && cached.input_fingerprint === fingerprint && cached.language === language && cached.archetype_id === canon.archetype_id && typeof cached.is_fallback === 'boolean') {
+                    // Extract exact 7 dimensions for semantic validator
+                    const dims: Record<string, string> = {
+                        identidad_central: cached.identidad_central,
+                        motor_instintivo: cached.motor_instintivo,
+                        mecanismo_operativo: cached.mecanismo_operativo,
+                        talento_manifestado: cached.talento_manifestado,
+                        riesgo_y_sombra: cached.riesgo_y_sombra,
+                        imperativo_evolutivo: cached.imperativo_evolutivo,
+                        aplicacion_vital: cached.aplicacion_vital
+                    };
+                    const isValidDims = Object.values(dims).every(val => typeof val === 'string' && val.length > 0);
+                    if (isValidDims) {
+                        const validation = ArchetypeValidator.validateAndRepair(dims, canonicalId);
+                        if (validation.outcome === 'PASS') {
+                            console.log(`[NAOS_COMPILER_V4] Returning valid cached V4 identity for ${userId} (${language})`);
+                            return {
+                                ...cached,
+                                ...validation.payload
+                            };
+                        } else {
+                            console.warn(`[NAOS_COMPILER_V4] Cache semantic validation REJECTED for ${userId}. Reason: ${validation.error}`);
+                        }
+                    } else {
+                        console.warn(`[NAOS_COMPILER_V4] Cache malformed dimensions REJECTED for ${userId}.`);
+                    }
                 }
             }
         }
@@ -553,7 +580,17 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
             payload.input_fingerprint = fingerprint;
             payload.is_fallback = false;
 
-            const validation = ArchetypeValidator.validateAndRepair(payload, canonicalId);
+            const dimsForValidation: Record<string, string> = {
+                identidad_central: payload.identidad_central,
+                motor_instintivo: payload.motor_instintivo,
+                mecanismo_operativo: payload.mecanismo_operativo,
+                talento_manifestado: payload.talento_manifestado,
+                riesgo_y_sombra: payload.riesgo_y_sombra,
+                imperativo_evolutivo: payload.imperativo_evolutivo,
+                aplicacion_vital: payload.aplicacion_vital
+            };
+
+            const validation = ArchetypeValidator.validateAndRepair(dimsForValidation, canonicalId);
 
             if (validation.outcome === 'PASS') {
                 console.log(`[NAOS_COMPILER_V4] Validation PASSED for ${userId}`);

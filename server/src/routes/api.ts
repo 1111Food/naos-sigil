@@ -10,6 +10,12 @@ import { UserProfile } from '../types';
 import { config } from '../config/env';
 import { supabase } from '../lib/supabase';
 import { validateUser, validatePremium } from '../middleware/auth';
+import { FastifyRequest } from 'fastify';
+
+interface AuthenticatedRequest extends FastifyRequest {
+    user?: { system_role?: string; role?: string; [key: string]: unknown };
+    user_id?: string;
+}
 import { CoherenceService } from '../modules/coherence/service';
 import { NaosCompilerService } from '../modules/user/naosCompiler.service';
 import { ProtocolService } from '../modules/protocol/service';
@@ -524,7 +530,7 @@ export async function apiRoutes(app: FastifyInstance) {
         console.log(`Ã°Å¸Â§Â¬ [NAOS_CODE_START] CompilaciÃƒÂ³n solicitada para: ${userId} | Refresh: ${forceRefresh} | Lang: ${lang}`);
         try {
 
-            const res = await NaosCompilerService.compile(userId, forceRefresh, lang as any);
+            const res = await NaosCompilerService.compile(userId, forceRefresh, lang as any, { system_role: (req as AuthenticatedRequest).user?.system_role });
             if (forceRefresh) {
                  await UsageGuardService.incrementUsage(userId, 'naos_code');
             }
@@ -576,7 +582,7 @@ export async function apiRoutes(app: FastifyInstance) {
             console.log(`✅ [API] Onboarding marked complete for ${userId}`);
 
             // Fire-and-forget: Pre-compile NAOS Identity so it's ready when they enter the dashboard
-            NaosCompilerService.compile(userId, true).then(() => {
+            NaosCompilerService.compile(userId, true, 'es', { system_role: (req as AuthenticatedRequest).user?.system_role }).then(() => {
                 console.log(`✅ [API] Background NAOS Identity compiled for ${userId}`);
             }).catch(e => console.error("❌ [API] Background NAOS compile failed:", e));
 

@@ -77,9 +77,12 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         mutationFn: () => naosQueryFn<any>(`${API_BASE_URL}/api/naos-code?lang=${language}&refresh=true`),
         onSuccess: (newData) => {
             queryClient.setQueryData(['naos_identity', activeSubKey, language], newData);
-            try {
-                localStorage.setItem(cacheKey, JSON.stringify(newData));
-            } catch (e) { console.warn("Failed to write to localStorage", e); }
+              try {
+                  const parsed = parseIdentityPayload(newData);
+                  if (parsed.type === 'V3' || parsed.type === 'V4') {
+                      localStorage.setItem(cacheKey, JSON.stringify(newData));
+                  }
+              } catch (e) { console.warn("Failed to write to localStorage", e); }
         }
     });
 
@@ -118,7 +121,10 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     useEffect(() => {
         if (synthesis) {
             try {
-                localStorage.setItem(cacheKey, JSON.stringify(synthesis));
+                const parsed = parseIdentityPayload(synthesis);
+                if (parsed.type === 'V3' || parsed.type === 'V4') {
+                    localStorage.setItem(cacheKey, JSON.stringify(synthesis));
+                }
             } catch (e) {}
         }
     }, [synthesis, cacheKey]);
