@@ -71,6 +71,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         queryKey: ['naos_identity', activeSubKey, language],
         queryFn: () => naosQueryFn(`${API_BASE_URL}/api/naos-code?lang=${language}`),
         initialData: getInitialSynthesis(),
+        refetchOnMount: 'always',
     });
 
     const refreshMutation = useMutation({
