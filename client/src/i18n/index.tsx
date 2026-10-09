@@ -27,6 +27,15 @@ export const translations = {
         // Original Dashboard/Main
         identity: "Código de Identidad",
         identity_description: "El mapa de tu arquitectura espiritual. Una síntesis exclusiva que unifica para ti 4 fuentes de inteligencia (Astrología, Numerología, Maya y Oriental) para revelar tu Arcano de Naos.",
+
+        identity_v4_identidad: "IDENTIDAD",
+        identity_v4_impulso: "IMPULSO",
+        identity_v4_operacion: "FORMA DE OPERAR",
+        identity_v4_talento: "TALENTO",
+        identity_v4_sombra: "SOMBRA",
+        identity_v4_evolucion: "EVOLUCIÓN",
+        identity_v4_aplicacion: "APLICACIÓN",
+        identity_unavailable_msg: "No pudimos calcular tu Código de Identidad en este momento. Inténtalo nuevamente.",
         relationships_label: "Vínculos",
         oracle: "Oráculo",
         protocols: "Protocolos 21/90",
@@ -1417,6 +1426,15 @@ export const translations = {
         // Original Dashboard/Main
         identity: "Identity Code",
         identity_description: "The map of your spiritual architecture. An exclusive synthesis that unifies 4 energetic schools (Astrology, Numerology, Mayan, and Oriental) to reveal your Naos Arcana.",
+
+        identity_v4_identidad: "IDENTITY",
+        identity_v4_impulso: "DRIVE",
+        identity_v4_operacion: "WAY OF OPERATING",
+        identity_v4_talento: "TALENT",
+        identity_v4_sombra: "SHADOW",
+        identity_v4_evolucion: "EVOLUTION",
+        identity_v4_aplicacion: "APPLICATION",
+        identity_unavailable_msg: "We couldn't calculate your Identity Code right now. Please try again.",
         relationships_label: "Relationships",
         oracle: "Oracle",
         protocols: "Protocols 21/90",

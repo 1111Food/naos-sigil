@@ -1,3 +1,5 @@
+import { parseIdentityPayload, isLanguageMismatched } from '../lib/identityPayload';
+import { NaosIdentitySynthesis, V4ArchetypePayload, ParsedIdentityPayload } from '../types/archetypePayload';
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,37 +18,6 @@ import { ArchetypeDecodifier } from './ArchetypeDecodifier';
 import { useSubscription } from '../hooks/useSubscription';
 import { useUpgrade } from '../contexts/UpgradeContext';
 
-interface NaosIdentitySynthesis {
-    arquetipo?: {
-        nombre: string;
-        frecuencia: string;
-        rol: string;
-        descripcion: string;
-        interpretacion_profunda?: string;
-        elemento: string;
-        powerLines?: any[];
-        desglose?: {
-            scores: Record<string, number>;
-            contribuciones: {
-                astrologia: string[];
-                maya: string[];
-                chino: string[];
-                numerologia: string[];
-            }
-        };
-    };
-    nucleo_estructural: string;
-    campo_perceptivo: string;
-    arquitectura_mental: string;
-    motor_accion: string;
-    expresion_proyeccion: string;
-    direccion_evolutiva: string;
-    conflicto_central: string;
-    diagnostico_global: string;
-    potencial_elevado: string;
-    sombra_riesgo: string;
-    conclusion_directa: string;
-}
 
 const colorConfig: Record<string, { main: string, glow: string, bg: string }> = {
     cyan: { main: '#06b6d4', glow: 'rgba(6, 182, 212, 0.4)', bg: 'rgba(6, 182, 212, 0.1)' },
@@ -78,7 +49,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
     const isPremium = _profile?.plan_type === 'premium' || _profile?.plan_type === 'admin' || _profile?.plan_type === 'premium_plus' ||
         (typeof subscription === 'object' && (subscription?.plan === 'PREMIUM' || subscription?.plan === 'EXTENDED')) ||
         (typeof subscription === 'string' && (subscription === 'PREMIUM' || subscription === 'EXTENDED'));
-    
+
     const queryClient = useQueryClient();
     const [openModuleId, setOpenModuleId] = useState<string | null>('nucleo_estructural');
     const [isArchetypeExpanded, setIsArchetypeExpanded] = useState(false);
@@ -96,14 +67,14 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         } catch (e) { return undefined; }
     };
 
-    const { data: querySynthesis, isLoading: isQueryLoading, error: queryError, refetch } = useQuery<NaosIdentitySynthesis, Error>({
+    const { data: querySynthesis, isLoading: isQueryLoading, error: queryError, refetch } = useQuery<any, Error>({
         queryKey: ['naos_identity', activeSubKey, language],
         queryFn: () => naosQueryFn(`${API_BASE_URL}/api/naos-code?lang=${language}`),
         initialData: getInitialSynthesis(),
     });
 
     const refreshMutation = useMutation({
-        mutationFn: () => naosQueryFn<NaosIdentitySynthesis>(`${API_BASE_URL}/api/naos-code?lang=${language}&refresh=true`),
+        mutationFn: () => naosQueryFn<any>(`${API_BASE_URL}/api/naos-code?lang=${language}&refresh=true`),
         onSuccess: (newData) => {
             queryClient.setQueryData(['naos_identity', activeSubKey, language], newData);
             try {
@@ -112,8 +83,17 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         }
     });
 
-    const synthesis = refreshMutation.data || querySynthesis || null;
+        const rawSynthesis = refreshMutation.data || querySynthesis || null;
+    const parsedSchema = parseIdentityPayload(rawSynthesis);
+    const isMismatched = isLanguageMismatched(parsedSchema, language);
+
+    // Only use V3 or V4 payloads if they are valid and match language (for V4)
+    const synthesis = parsedSchema.type === 'V3' ? parsedSchema.payload :
+                      parsedSchema.type === 'V4' && !isMismatched ? parsedSchema.payload : null;
+    const parsedType = parsedSchema.type;
+
     const loading = isQueryLoading && !synthesis;
+    const isUnavailable = parsedType === 'UNAVAILABLE' || parsedType === 'UNKNOWN' || isMismatched;
     const isRefreshing = refreshMutation.isPending;
 
     let error: string | null = null;
@@ -123,6 +103,8 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         if (errStr.includes('429')) error = t('identity_error_quota');
         else if (errStr.includes('504')) error = t('identity_error_timeout');
         else error = errStr || t('identity_error_generic');
+    } else if (isUnavailable) {
+        error = t('identity_unavailable_msg') || "No pudimos calcular tu Código de Identidad en este momento. Inténtalo nuevamente.";
     }
 
     const fetchSynthesis = (refresh = false) => {
@@ -143,9 +125,20 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
 
     useEffect(() => {
         const checkCompleteness = () => {
+            if (parsedType === 'UNAVAILABLE' || parsedType === 'UNKNOWN' || isMismatched) {
+                // If it's unavailable or schema mismatch, stop Deep Sync loop. It's "complete" in failing.
+                return { isComplete: true, hasArchetype: false, hasMandatoryBlocks: false };
+            }
+
             if (!synthesis) return { isComplete: false, hasArchetype: false };
-            
-            const hasArchetype = !!(synthesis.arquetipo?.nombre && synthesis.arquetipo.nombre !== "Calculando...");
+
+            if (parsedType === 'V4') {
+                // V4 completeness relies on parser. If it parsed as V4, it is complete.
+                return { isComplete: true, hasArchetype: true, hasMandatoryBlocks: true };
+            }
+
+            // V3 legacy completeness
+            const hasArchetype = !!((synthesis as NaosIdentitySynthesis).arquetipo?.nombre && (synthesis as NaosIdentitySynthesis).arquetipo?.nombre !== "Calculando...");
             const mandatoryKeys = [
                 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion',
                 'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global',
@@ -156,7 +149,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                 return typeof val === 'string' && val.length > 50 && !val.includes("...");
             });
 
-            return { 
+            return {
                 isComplete: hasArchetype && hasMandatoryBlocks,
                 hasArchetype,
                 hasMandatoryBlocks
@@ -164,7 +157,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         };
 
         const { isComplete } = checkCompleteness();
-        
+
         // CASE 2: Incomplete data, trigger ONE-TIME deep synchronization
         // DO NOT trigger if there is already an error (like Quota 429) to avoid loops
         if (synthesis && !loading && !isRefreshing && !isComplete && !hasAutoRefreshed.current && !error) {
@@ -286,19 +279,29 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         );
     }
 
-    const modules = [
-        { id: 'nucleo_estructural', title: t('identity_nucleo_estructural'), icon: Hexagon, content: synthesis?.nucleo_estructural || t('identity_aligning'), color: 'cyan', formula: getFormula('nucleo_estructural') },
-        { id: 'campo_perceptivo', title: t('identity_campo_perceptivo'), icon: Eye, content: synthesis?.campo_perceptivo || t('identity_aligning'), color: 'indigo', formula: getFormula('campo_perceptivo') },
-        { id: 'arquitectura_mental', title: t('identity_arquitectura_mental'), icon: Brain, content: synthesis?.arquitectura_mental || t('identity_aligning'), color: 'amber', formula: getFormula('arquitectura_mental') },
-        { id: 'motor_accion', title: t('identity_motor_accion'), icon: Zap, content: synthesis?.motor_accion || t('identity_aligning'), color: 'rose', formula: getFormula('motor_accion') },
-        { id: 'expresion_proyeccion', title: t('identity_expresion_proyeccion'), icon: User, content: synthesis?.expresion_proyeccion || t('identity_aligning'), color: 'fuchsia', formula: getFormula('expresion_proyeccion') },
-        { id: 'direccion_evolutiva', title: t('identity_direccion_evolutiva'), icon: Compass, content: synthesis?.direccion_evolutiva || t('identity_aligning'), color: 'emerald', formula: getFormula('direccion_evolutiva') },
-        { id: 'conflicto_central', title: t('identity_conflicto_central'), icon: AlertTriangle, content: synthesis?.conflicto_central || t('identity_aligning'), color: 'indigo', formula: getFormula('conflicto_central') },
-        { id: 'diagnostico_global', title: t('identity_diagnostico_global'), icon: Shield, content: synthesis?.diagnostico_global || t('identity_aligning'), color: 'cyan', formula: getFormula('diagnostico_global') },
-        { id: 'potencial_elevado', title: t('identity_potencial_elevado'), icon: Sparkles, content: synthesis?.potencial_elevado || t('identity_aligning'), color: 'amber', formula: getFormula('potencial_elevado') },
-        { id: 'sombra_riesgo', title: t('identity_sombra_riesgo'), icon: Lock, content: synthesis?.sombra_riesgo || t('identity_aligning'), color: 'rose', formula: getFormula('sombra_riesgo') },
-        { id: 'conclusion_directa', title: t('identity_conclusion_directa'), icon: Scroll, content: synthesis?.conclusion_directa || t('identity_aligning'), color: 'emerald', formula: getFormula('conclusion_directa') },
-    ];
+    const modules = parsedType === 'V4'
+        ? [
+            { id: 'identidad_central', title: t('identity_v4_identidad'), icon: Hexagon, content: (synthesis as V4ArchetypePayload)?.identidad_central || t('identity_aligning'), color: 'cyan', formula: getFormula('nucleo_estructural') },
+            { id: 'motor_instintivo', title: t('identity_v4_impulso'), icon: Zap, content: (synthesis as V4ArchetypePayload)?.motor_instintivo || t('identity_aligning'), color: 'rose', formula: getFormula('motor_accion') },
+            { id: 'mecanismo_operativo', title: t('identity_v4_operacion'), icon: Brain, content: (synthesis as V4ArchetypePayload)?.mecanismo_operativo || t('identity_aligning'), color: 'amber', formula: getFormula('arquitectura_mental') },
+            { id: 'talento_manifestado', title: t('identity_v4_talento'), icon: Sparkles, content: (synthesis as V4ArchetypePayload)?.talento_manifestado || t('identity_aligning'), color: 'emerald', formula: getFormula('potencial_elevado') },
+            { id: 'riesgo_y_sombra', title: t('identity_v4_sombra'), icon: Lock, content: (synthesis as V4ArchetypePayload)?.riesgo_y_sombra || t('identity_aligning'), color: 'indigo', formula: getFormula('sombra_riesgo') },
+            { id: 'imperativo_evolutivo', title: t('identity_v4_evolucion'), icon: Compass, content: (synthesis as V4ArchetypePayload)?.imperativo_evolutivo || t('identity_aligning'), color: 'emerald', formula: getFormula('direccion_evolutiva') },
+            { id: 'aplicacion_vital', title: t('identity_v4_aplicacion'), icon: Scroll, content: (synthesis as V4ArchetypePayload)?.aplicacion_vital || t('identity_aligning'), color: 'cyan', formula: getFormula('conclusion_directa') },
+        ]
+        : [
+            { id: 'nucleo_estructural', title: t('identity_nucleo_estructural'), icon: Hexagon, content: (synthesis as NaosIdentitySynthesis)?.nucleo_estructural || t('identity_aligning'), color: 'cyan', formula: getFormula('nucleo_estructural') },
+            { id: 'campo_perceptivo', title: t('identity_campo_perceptivo'), icon: Eye, content: (synthesis as NaosIdentitySynthesis)?.campo_perceptivo || t('identity_aligning'), color: 'indigo', formula: getFormula('campo_perceptivo') },
+            { id: 'arquitectura_mental', title: t('identity_arquitectura_mental'), icon: Brain, content: (synthesis as NaosIdentitySynthesis)?.arquitectura_mental || t('identity_aligning'), color: 'amber', formula: getFormula('arquitectura_mental') },
+            { id: 'motor_accion', title: t('identity_motor_accion'), icon: Zap, content: (synthesis as NaosIdentitySynthesis)?.motor_accion || t('identity_aligning'), color: 'rose', formula: getFormula('motor_accion') },
+            { id: 'expresion_proyeccion', title: t('identity_expresion_proyeccion'), icon: User, content: (synthesis as NaosIdentitySynthesis)?.expresion_proyeccion || t('identity_aligning'), color: 'fuchsia', formula: getFormula('expresion_proyeccion') },
+            { id: 'direccion_evolutiva', title: t('identity_direccion_evolutiva'), icon: Compass, content: (synthesis as NaosIdentitySynthesis)?.direccion_evolutiva || t('identity_aligning'), color: 'emerald', formula: getFormula('direccion_evolutiva') },
+            { id: 'conflicto_central', title: t('identity_conflicto_central'), icon: AlertTriangle, content: (synthesis as NaosIdentitySynthesis)?.conflicto_central || t('identity_aligning'), color: 'indigo', formula: getFormula('conflicto_central') },
+            { id: 'diagnostico_global', title: t('identity_diagnostico_global'), icon: Shield, content: (synthesis as NaosIdentitySynthesis)?.diagnostico_global || t('identity_aligning'), color: 'cyan', formula: getFormula('diagnostico_global') },
+            { id: 'potencial_elevado', title: t('identity_potencial_elevado'), icon: Sparkles, content: (synthesis as NaosIdentitySynthesis)?.potencial_elevado || t('identity_aligning'), color: 'amber', formula: getFormula('potencial_elevado') },
+            { id: 'sombra_riesgo', title: t('identity_sombra_riesgo'), icon: Lock, content: (synthesis as NaosIdentitySynthesis)?.sombra_riesgo || t('identity_aligning'), color: 'rose', formula: getFormula('sombra_riesgo') },
+            { id: 'conclusion_directa', title: t('identity_conclusion_directa'), icon: Scroll, content: (synthesis as NaosIdentitySynthesis)?.conclusion_directa || t('identity_aligning'), color: 'emerald', formula: getFormula('conclusion_directa') },
+        ];
 
     const canonicalArchetype = (_profile as any)?.canonical_archetype;
     const archetype = canonicalArchetype
@@ -306,7 +309,9 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             ...canonicalArchetype,
             elemento: canonicalArchetype.elemento || canonicalArchetype.elemento_dominante
         }
-        : synthesis?.arquetipo;
+        : parsedType === 'V4'
+            ? { id: (synthesis as V4ArchetypePayload).archetype_id }
+            : (synthesis as NaosIdentitySynthesis)?.arquetipo;
     const archColor = archetype ? (colorConfig[archetype.elemento === 'fuego' ? 'rose' : archetype.elemento === 'tierra' ? 'amber' : archetype.elemento === 'aire' ? 'cyan' : 'indigo']) : colorConfig.cyan;
 
     // --- DYNAMIC TRANSLATION RESOLVER FOR ARCHETYPE ---
@@ -318,14 +323,16 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
         const foundInEn = NAOS_ARCHETYPES_EN.find(a => a.nombre.toLowerCase().trim() === searchName);
         resolvedId = foundInSp?.id || foundInEn?.id;
     }
-    const archInfo = resolvedId 
-        ? archLib.find(a => a.id === resolvedId) 
+    const archInfo = resolvedId
+        ? archLib.find(a => a.id === resolvedId)
         : archLib.find(a => a.nombre.toLowerCase().trim() === (archetype?.nombre || '').toLowerCase().trim());
-        
+
     const displayArchName = archInfo?.nombre || archetype?.nombre || t('identity_aligning');
     const displayArchFreq = archInfo?.frecuencia || archetype?.frecuencia;
     const displayArchRole = archInfo?.rol || archetype?.rol;
-    const displayDeepText = archInfo?.interpretacion_profunda || archetype?.interpretacion_profunda || archInfo?.descripcion || archetype?.descripcion;
+    const displayDeepText = parsedType === 'V4'
+        ? null
+        : archInfo?.interpretacion_profunda || archetype?.interpretacion_profunda || archInfo?.descripcion || archetype?.descripcion;
 
 
     return (
@@ -360,24 +367,24 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             <div className="flex justify-center mb-16">
                 {/* ARCHETYPE CARD (PRIMARY) */}
                 <div className="md:col-span-2 lg:col-span-3">
-                    <InnerStatCard 
-                        label={t('identity_archetype_label')} 
-                        value={displayArchName} 
+                    <InnerStatCard
+                        label={t('identity_archetype_label')}
+                        value={displayArchName}
                         isArchetype={true}
                         archColor={archetype?.frecuencia ? frequencyConfig[archetype.frecuencia] : undefined}
                         delay={0.1}
                         onClick={() => setIsArchetypeExpanded(!isArchetypeExpanded)}
                         onInfoClick={() => setExplainerType('IDENTITY_ARCHETYPE')}
                     />
-                    
+
                     {/* ACCESO AL CÓDICE & DECODIFICADOR */}
                     <div className="mt-4 flex flex-col sm:flex-row justify-center items-center gap-3">
-                        <button 
+                        <button
                             onClick={() => setIsArchetypeExpanded(!isArchetypeExpanded)}
                             className={cn(
                                 "flex items-center gap-2 px-6 py-2 rounded-full border text-[10px] uppercase tracking-[0.3em] font-black transition-all group",
-                                isArchetypeExpanded 
-                                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" 
+                                isArchetypeExpanded
+                                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
                                     : "bg-white/[0.03] border-white/10 text-white/40 hover:text-cyan-400 hover:border-cyan-400/30"
                             )}
                         >
@@ -385,7 +392,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                             {isArchetypeExpanded ? t('identity_hide_eq') : t('identity_decode_freq')}
                         </button>
 
-                        <button 
+                        <button
                             onClick={() => setShowArchetypeLibrary(true)}
                             className="flex items-center gap-2 px-6 py-2 rounded-full bg-white/[0.03] border border-white/10 text-[10px] uppercase tracking-[0.3em] font-black text-white/40 hover:text-cyan-400 hover:border-cyan-400/30 transition-all group"
                         >
@@ -395,8 +402,8 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                     </div>
 
                     {/* DECODIFICADOR DESPLEGABLE */}
-                    <ArchetypeDecodifier 
-                        desglose={synthesis?.arquetipo?.desglose} 
+                    <ArchetypeDecodifier
+                        desglose={synthesis?.arquetipo?.desglose}
                         archColor={synthesis?.arquetipo?.frecuencia ? frequencyConfig[synthesis.arquetipo.frecuencia]?.main : undefined}
                         isOpen={isArchetypeExpanded}
                         onClose={() => setIsArchetypeExpanded(false)}
@@ -411,7 +418,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-16 p-8 md:p-12 rounded-[2.5rem] relative overflow-hidden glass-panel"
-                    style={{ 
+                    style={{
                         borderColor: `${archColor.main}33`,
                         boxShadow: `0 0 60px ${archColor.glow}11`
                     }}
@@ -419,13 +426,13 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
                         <Hexagon size={280} style={{ color: archColor.main }} />
                     </div>
-                    
+
                     <div className="relative space-y-6">
                         <div className="flex items-center gap-4">
                             <span className="text-[10px] uppercase tracking-[0.6em] font-black text-white/30 italic">{t('identity_sythesis_label')}</span>
                             <div className="h-px w-12" style={{ backgroundColor: archColor.main }} />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <h1 className="text-4xl md:text-6xl font-serif italic text-white tracking-tighter">
                                 {displayArchName}
@@ -434,14 +441,16 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                 {displayArchFreq} • {displayArchRole}
                             </p>
                         </div>
-                        
+
                         <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent" />
-                        
+
                         {isPremium ? (() => {
                             return (
+                                displayDeepText ? (
                                 <p className="text-white/60 leading-relaxed font-serif text-lg italic mt-8 relative z-10">
                                     "{displayDeepText}"
                                 </p>
+                                ) : null
                             );
                         })() : (
                             <div className="mt-6 p-6 bg-black/40 rounded-2xl border border-dashed border-purple-500/30 text-center space-y-4 max-w-2xl cursor-pointer hover:bg-black/60 transition-all" onClick={(e) => { e.stopPropagation(); triggerUpgrade('synthesis'); }}>
@@ -470,7 +479,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                     const Icon = mod.icon;
                     const config = colorConfig[mod.color];
                     const isPlaceHolder = mod.content === "Alineando..." || mod.content?.includes("...");
-                    
+
                     return (
                         <motion.div
                             key={mod.id}
@@ -481,7 +490,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                 "group relative overflow-hidden rounded-[2rem] transition-all duration-700 glass-card",
                                 isOpen ? "shadow-2xl scale-[1.02]" : "hover:border-white/20"
                             )}
-                            style={{ 
+                            style={{
                                 borderColor: isOpen ? config.main : undefined,
                                 boxShadow: isOpen ? `0 0 40px ${config.bg}` : undefined
                             }}
@@ -491,11 +500,11 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                 className="w-full text-left px-8 py-6 flex items-center justify-between group-hover:bg-white/[0.02] transition-colors"
                             >
                                 <div className="flex items-center gap-6">
-                                    <motion.div 
+                                    <motion.div
                                         animate={isOpen ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : { scale: 1 }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                         className="p-3 rounded-xl border transition-all duration-700"
-                                        style={{ 
+                                        style={{
                                             backgroundColor: isOpen ? config.bg : 'rgba(255,255,255,0.02)',
                                             borderColor: isOpen ? config.glow : 'rgba(255,255,255,0.05)',
                                             color: isOpen ? config.main : isPlaceHolder ? 'rgba(255,255,255,0.1)' : config.main + '44'
@@ -523,7 +532,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                 <ChevronDown className={cn(
                                     "w-4 h-4 text-white/10 transition-transform duration-500",
                                     isOpen && "rotate-180 text-white/60"
-                                )} 
+                                )}
                                 style={{ color: isOpen ? config.main : undefined }}
                                 />
                             </button>
@@ -538,7 +547,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                     >
                                         <div className="px-8 pb-10 pt-2">
                                             <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent mb-8" />
-                                            
+
                                             <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-10">
                                                 <div className="space-y-6">
                                                     <div className="flex items-center gap-3">
@@ -552,12 +561,12 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                     >
                                                         {mod.formula}
                                                     </p>
-                                                    
+
                                                     <div className="pt-4 flex flex-col gap-4">
                                                         <div className="flex items-center gap-4">
                                                             <div className="flex gap-1.5">
                                                                 {[1, 2, 3].map(i => (
-                                                                    <div key={i} className="w-1.5 h-4 rounded-full" 
+                                                                    <div key={i} className="w-1.5 h-4 rounded-full"
                                                                          style={{ backgroundColor: i === 1 ? config.main : 'rgba(255,255,255,0.05)' }} />
                                                                 ))}
                                                             </div>
@@ -567,7 +576,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                         </div>
 
                                                         {isPlaceHolder && (
-                                                            <button 
+                                                            <button
                                                                 onClick={(e) => { e.stopPropagation(); fetchSynthesis(true); }}
                                                                 disabled={isRefreshing}
                                                                 className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-cyan-400 hover:text-white transition-colors animate-pulse"
@@ -580,7 +589,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                 </div>
 
                                                 <div className="relative">
-                                                    <motion.p 
+                                                    <motion.p
                                                         initial={{ opacity: 0, x: 20 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         className={cn(
@@ -590,7 +599,7 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
                                                     >
                                                         "{mod.content}"
                                                     </motion.p>
-                                                    
+
                                                     {isPlaceHolder && (
                                                         <div className="mt-8 flex items-center gap-3 px-4 py-2 rounded-full bg-rose-500/5 border border-rose-500/10 w-fit">
                                                             <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)] animate-pulse" />
@@ -629,9 +638,9 @@ export const NaosIdentityView: React.FC<{ profile: any }> = ({ profile: _profile
             {/* Explainer Overlay */}
             <AnimatePresence>
                 {explainerType && (
-                    <OracleExplainer 
-                        type={explainerType} 
-                        onClose={() => setExplainerType(null)} 
+                    <OracleExplainer
+                        type={explainerType}
+                        onClose={() => setExplainerType(null)}
                     />
                 )}
             </AnimatePresence>
@@ -655,8 +664,8 @@ interface InnerStatCardProps {
     onInfoClick?: () => void;
 }
 
-const InnerStatCard: React.FC<InnerStatCardProps> = ({ 
-    label, value, image, assetType, isNeonNumber, isArchetype, archColor, color, delay, onClick, onInfoClick 
+const InnerStatCard: React.FC<InnerStatCardProps> = ({
+    label, value, image, assetType, isNeonNumber, isArchetype, archColor, color, delay, onClick, onInfoClick
 }) => {
     const { t, language } = useTranslation();
     const [imgError, setImgError] = React.useState(false);
@@ -681,7 +690,7 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
             <div className="flex items-center gap-1 z-10 shrink-0 mb-1">
                 <span className="text-[8px] uppercase tracking-[0.3em] text-white/10">{label}</span>
                 {isArchetype && onInfoClick && (
-                    <button 
+                    <button
                         onClick={(e) => { e.stopPropagation(); onInfoClick(); }}
                         className="p-1 rounded-full text-white/20 hover:text-white hover:scale-110 hover:bg-white/5 transition-all"
                         title={t('info')}
@@ -699,12 +708,12 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                             // Find the archetype in either language
                             const foundSp = NAOS_ARCHETYPES.find((a: any) => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
                             const foundEn = NAOS_ARCHETYPES_EN.find((a: any) => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
-                            
+
                             const masterId = foundSp?.id || foundEn?.id;
-                            
+
                             // Retrieve from the CURRENT active language library
                             const uiLib = language === 'en' ? NAOS_ARCHETYPES_EN : NAOS_ARCHETYPES;
-                            const archInfo = masterId 
+                            const archInfo = masterId
                                 ? uiLib.find(a => a.id === masterId)
                                 : uiLib.find(a => a.nombre.toLowerCase().trim() === value?.toLowerCase().trim());
 
@@ -714,8 +723,8 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                             if (archInfo?.imagePath) {
                                 return (
                                     <div className="absolute inset-0 z-0">
-                                        <motion.img 
-                                            src={archInfo.imagePath} 
+                                        <motion.img
+                                            src={archInfo.imagePath}
                                             alt={finalDisplayValue}
                                             initial={{ opacity: 0, scale: 1.1 }}
                                             animate={{ opacity: 1, scale: 1 }}
@@ -728,7 +737,7 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                             return (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                                     <motion.div
-                                        animate={{ 
+                                        animate={{
                                             scale: [1, 1.05, 1],
                                             opacity: [0.1, 0.2, 0.1]
                                         }}
@@ -741,7 +750,7 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                                 </div>
                             );
                         })()}
-                        
+
                         <div className="relative z-10 flex flex-col items-center justify-center p-6 text-center">
                             <h3 className="text-2xl font-serif italic text-white tracking-tighter leading-tight mb-1 drop-shadow-lg">
                                 {(() => {
@@ -753,9 +762,9 @@ const InnerStatCard: React.FC<InnerStatCardProps> = ({
                                     return archInfo?.nombre || value;
                                 })()}
                             </h3>
-                            
+
                             <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/40 to-transparent my-2" />
-                            
+
                             <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-60 text-white drop-shadow-md">
                                 {t('identity_essence_label')}
                             </span>
