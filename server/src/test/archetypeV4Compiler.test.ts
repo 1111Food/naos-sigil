@@ -211,7 +211,7 @@ describe('Phase 4B: V4 Compiler & Validator Tests (Required Fixes)', () => {
             });
 
             // Mock consolidateBible
-            vi.spyOn(NaosCompilerService as any, 'consolidateBible').mockResolvedValue({ bible: {}, archetype: { elemento_dominante: 'fuego', rol: '4' } });
+            vi.spyOn(NaosCompilerService as any, 'consolidateBible').mockResolvedValue({ bible: {}, archetype: { id: 'fuego-4', elemento_dominante: 'fuego', rol: 'Analista' } });
 
             // Call compileV4 explicitly, or through compile
             config.NAOS_ARCHETYPE_V4_ENABLED = true;
@@ -312,7 +312,7 @@ describe('Phase 4B: V4 Compiler & Validator Tests (Required Fixes)', () => {
                 getProfileSpy = vi.spyOn(NaosCompilerService as any, 'getCompleteProfile').mockResolvedValue({ active_sub_profile_id: null });
                 consolidateSpy = vi.spyOn(NaosCompilerService as any, 'consolidateBible').mockResolvedValue({
                     bible: {},
-                    archetype: { elemento_dominante: 'fuego', rol: '4' }
+                    archetype: { id: 'fuego-4', elemento_dominante: 'fuego', rol: 'Analista' }
                 });
                 callGeminiSpy = vi.spyOn(NaosCompilerService as any, 'callGeminiCompilerV4').mockResolvedValue({
                     ...validDims,
@@ -533,6 +533,198 @@ describe('Phase 4B: V4 Compiler & Validator Tests (Required Fixes)', () => {
                 const res = await NaosCompilerService.compile('user1', false, 'es', { system_role: 'owner' });
                 expect(callGeminiSpy).not.toHaveBeenCalled();
                 expect((res as any).identidad_central).toBe(' **this string has markdown that will be removed** ');
+            });
+        });
+
+        describe('Phase 4E: Canonical Bridge Safety', () => {
+            let compiler: any;
+            let callGeminiSpy: any;
+
+            beforeEach(() => {
+                compiler = (NaosCompilerService as any);
+                callGeminiSpy = vi.spyOn(compiler, 'callGeminiCompilerV4').mockResolvedValue({
+                    identidad_central: 'test string long enough to pass',
+                    motor_instintivo: 'test string long enough to pass',
+                    mecanismo_operativo: 'test string long enough to pass',
+                    talento_manifestado: 'test string long enough to pass',
+                    riesgo_y_sombra: 'test string long enough to pass',
+                    imperativo_evolutivo: 'test string long enough to pass',
+                    aplicacion_vital: 'test string long enough to pass'
+                });
+            });
+
+            it('A. id=fuego-4, rol=Analista => resolves fuego-4 => NOT UNAVAILABLE', async () => {
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { id: 'fuego-4', elemento_dominante: 'fuego', rol: 'Analista' }
+                });
+                const res = await compiler.compileV4('user', true, 'es');
+                expect(res.status).not.toBe('UNAVAILABLE');
+                expect(res.archetype_id).toBe('fuego-4');
+            });
+
+            it('B. id=tierra-4, rol=Analista => resolves tierra-4 => NOT fuego-4', async () => {
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { id: 'tierra-4', elemento_dominante: 'tierra', rol: 'Analista' }
+                });
+                const res = await compiler.compileV4('user', true, 'es');
+                expect(res.status).not.toBe('UNAVAILABLE');
+                expect(res.archetype_id).toBe('tierra-4');
+            });
+
+            it('C. localized role changes do NOT alter identity', async () => {
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { id: 'fuego-4', elemento_dominante: 'fuego', rol: 'Analyst' }
+                });
+                const res = await compiler.compileV4('user', true, 'en');
+                expect(res.status).not.toBe('UNAVAILABLE');
+                expect(res.archetype_id).toBe('fuego-4');
+            });
+
+            it('D. invalid id => UNAVAILABLE', async () => {
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { id: 'fuego-Analista', elemento_dominante: 'fuego', rol: 'Analista' }
+                });
+                const res = await compiler.compileV4('user', true, 'es');
+                expect(res.status).toBe('UNAVAILABLE');
+                expect(res.error).toBe('IDENTITY_CALCULATION_UNAVAILABLE');
+            });
+
+            it('E. missing id => UNAVAILABLE', async () => {
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { elemento_dominante: 'fuego', rol: 'Analista' }
+                });
+                const res = await compiler.compileV4('user', true, 'es');
+                expect(res.status).toBe('UNAVAILABLE');
+                expect(res.error).toBe('IDENTITY_CALCULATION_UNAVAILABLE');
+            });
+
+            it('F. unknown id => UNAVAILABLE', async () => {
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { id: 'void-99' }
+                });
+                const res = await compiler.compileV4('user', true, 'es');
+                expect(res.status).toBe('UNAVAILABLE');
+                expect(res.error).toBe('IDENTITY_CALCULATION_UNAVAILABLE');
+            });
+
+            it('G. valid authoritative id reaches Gemini fallback path', async () => {
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { id: 'agua-2', elemento_dominante: 'agua', rol: 'Constructor' }
+                });
+                const res = await compiler.compileV4('user', true, 'es');
+                expect(res.status).not.toBe('UNAVAILABLE');
+                expect(callGeminiSpy).toHaveBeenCalled();
+            });
+
+            it('H. metadata completely survives validation repair pass', async () => {
+                const applyRepairsSpy = vi.spyOn(ArchetypeValidator as any, 'applyRepairs');
+
+                const initialProfileData = {
+                    existing_user_pref: 'dark_mode',
+                    v4_identity: {
+                        en: { schema_version: 'v4.0', note: 'existing_en_cache' }
+                    }
+                };
+                let currentProfileData: any = { ...initialProfileData };
+
+                const updateSpy = vi.fn().mockImplementation((args: any) => {
+                    currentProfileData = args.profile_data;
+                    return { eq: async () => ({}) };
+                });
+
+                vi.spyOn(supabase, 'from').mockReturnValue({
+                    select: () => ({
+                        eq: () => ({
+                            maybeSingle: async () => ({
+                                data: { profile_data: currentProfileData }
+                            })
+                        })
+                    }),
+                    update: updateSpy
+                } as any);
+
+                compiler.consolidateBible = vi.fn().mockResolvedValue({
+                    bible: {},
+                    archetype: { id: 'fuego-4', elemento_dominante: 'fuego', rol: 'Analista' }
+                });
+
+                callGeminiSpy.mockResolvedValue({
+                    identidad_central: '```json\nTexto validado para identidad central sin contaminacion.\n```',
+                    motor_instintivo: 'Texto validado para motor instintivo sin contaminacion.',
+                    mecanismo_operativo: 'Texto validado para mecanismo operativo sin contaminacion.',
+                    talento_manifestado: 'Texto validado para talento manifestado sin contaminacion.',
+                    riesgo_y_sombra: 'Texto validado para riesgo y sombra sin contaminacion.',
+                    imperativo_evolutivo: 'Texto validado para imperativo evolutivo sin contaminacion.',
+                    aplicacion_vital: 'Texto validado para aplicacion vital sin contaminacion.'
+                });
+
+                const res = await compiler.compileV4('user', true, 'es');
+                expect(res.status).not.toBe('UNAVAILABLE');
+
+                // 1. Proof of Real Repair Execution
+                expect(applyRepairsSpy).toHaveBeenCalled();
+
+                // 2. All Seven Dimensions (Surviving Repair & Cleaned)
+                expect(res.identidad_central).toBe('Texto validado para identidad central sin contaminacion.');
+                expect(res.motor_instintivo).toBe('Texto validado para motor instintivo sin contaminacion.');
+                expect(res.mecanismo_operativo).toBe('Texto validado para mecanismo operativo sin contaminacion.');
+                expect(res.talento_manifestado).toBe('Texto validado para talento manifestado sin contaminacion.');
+                expect(res.riesgo_y_sombra).toBe('Texto validado para riesgo y sombra sin contaminacion.');
+                expect(res.imperativo_evolutivo).toBe('Texto validado para imperativo evolutivo sin contaminacion.');
+                expect(res.aplicacion_vital).toBe('Texto validado para aplicacion vital sin contaminacion.');
+
+                // 3. All Six Metadata Fields
+                expect(res.schema_version).toBe('v4.0');
+                expect(res.canon_version).toBe('vnext-1');
+                expect(res.archetype_id).toBe('fuego-4');
+                expect(res.language).toBe('es');
+                expect(typeof res.input_fingerprint).toBe('string');
+                expect(res.input_fingerprint).toMatch(/^[a-f0-9]{64}$/);
+                expect(res.is_fallback).toBe(false);
+
+                // 4. Cache Write Verification
+                expect(updateSpy).toHaveBeenCalled();
+                const writtenData = updateSpy.mock.calls[0][0].profile_data;
+                expect(writtenData.existing_user_pref).toBe('dark_mode');
+                expect(writtenData.v4_identity.en).toEqual({ schema_version: 'v4.0', note: 'existing_en_cache' });
+
+                const writtenEs = writtenData.v4_identity.es;
+                expect(writtenEs.schema_version).toBe('v4.0');
+                expect(writtenEs.canon_version).toBe('vnext-1');
+                expect(writtenEs.archetype_id).toBe('fuego-4');
+                expect(writtenEs.language).toBe('es');
+                expect(writtenEs.input_fingerprint).toBe(res.input_fingerprint);
+                expect(writtenEs.is_fallback).toBe(false);
+
+                expect(writtenEs.identidad_central).toBe('Texto validado para identidad central sin contaminacion.');
+                expect(writtenEs.motor_instintivo).toBe('Texto validado para motor instintivo sin contaminacion.');
+                expect(writtenEs.mecanismo_operativo).toBe('Texto validado para mecanismo operativo sin contaminacion.');
+                expect(writtenEs.talento_manifestado).toBe('Texto validado para talento manifestado sin contaminacion.');
+                expect(writtenEs.riesgo_y_sombra).toBe('Texto validado para riesgo y sombra sin contaminacion.');
+                expect(writtenEs.imperativo_evolutivo).toBe('Texto validado para imperativo evolutivo sin contaminacion.');
+                expect(writtenEs.aplicacion_vital).toBe('Texto validado para aplicacion vital sin contaminacion.');
+
+                // 5. Cache Read Verification (Subsequent Non-Forced Compilation)
+                callGeminiSpy.mockClear();
+                const cachedRes = await compiler.compileV4('user', false, 'es');
+
+                expect(callGeminiSpy).not.toHaveBeenCalled();
+                expect(cachedRes.status).not.toBe('UNAVAILABLE');
+                expect(cachedRes.schema_version).toBe('v4.0');
+                expect(cachedRes.canon_version).toBe('vnext-1');
+                expect(cachedRes.archetype_id).toBe('fuego-4');
+                expect(cachedRes.language).toBe('es');
+                expect(cachedRes.input_fingerprint).toBe(res.input_fingerprint);
+                expect(cachedRes.is_fallback).toBe(false);
+                expect(cachedRes.identidad_central).toBe('Texto validado para identidad central sin contaminacion.');
+                expect(cachedRes.aplicacion_vital).toBe('Texto validado para aplicacion vital sin contaminacion.');
             });
         });
     });

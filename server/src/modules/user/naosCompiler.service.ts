@@ -73,7 +73,7 @@ export class NaosCompilerService {
                 .maybeSingle();
 
             let cachedCode = profile?.naos_identity_code || profile?.profile_data?.naos_identity_code;
-            
+
             // Check if cached code matches requested language
             if (cachedCode && (cachedCode as any).language === language) {
                 if (typeof cachedCode === 'string') {
@@ -82,20 +82,20 @@ export class NaosCompilerService {
 
                 const keys = Object.keys(cachedCode as any);
                 const values = Object.values(cachedCode as any);
-                
+
                 const cachedArchetype = (cachedCode as any).arquetipo;
-                const hasArchetype = !!(cachedArchetype && cachedArchetype.nombre && 
-                                      cachedArchetype.nombre !== "Calculando..." && 
+                const hasArchetype = !!(cachedArchetype && cachedArchetype.nombre &&
+                                      cachedArchetype.nombre !== "Calculando..." &&
                                       cachedArchetype.nombre !== "Buscando...");
                 const archetypeMatchesCanonical = !!(
                     hasArchetype &&
                     cachedArchetype?.id &&
                     cachedArchetype.id === archetype.id
                 );
-                                      
+
                 // Check if all 11 new sections are present in cache
-                const matchesMandatory = !!((cachedCode as any).diagnostico_global && 
-                                   (cachedCode as any).potencial_elevado && 
+                const matchesMandatory = !!((cachedCode as any).diagnostico_global &&
+                                   (cachedCode as any).potencial_elevado &&
                                    (cachedCode as any).conclusion_directa);
 
                 const hasNarrativeBlocks = matchesMandatory && keys.length >= 11;
@@ -103,7 +103,7 @@ export class NaosCompilerService {
                     if (typeof v === 'object' && v !== null && 'nombre' in v) {
                         return v.nombre === "Calculando..." || v.nombre === "Buscando...";
                     }
-                    return v === "Buscando equilibrio..." || v === "Sintonizando esencia..." || 
+                    return v === "Buscando equilibrio..." || v === "Sintonizando esencia..." ||
                            v === "Alineando..." || (typeof v === 'string' && (v.includes("...") && v.length < 50));
                 });
 
@@ -154,7 +154,7 @@ export class NaosCompilerService {
                     desglose: archetype.desglose
                 }
             };
-            
+
             if (isValid) {
                 await this.persistSynthesis(userId, finalSynthesis);
             }
@@ -163,11 +163,11 @@ export class NaosCompilerService {
 
         } catch (error: any) {
             console.error(`🔥 NaosCompiler Meta-Failure for ${userId}:`, error.message);
-            
+
             // Fallback for ANY compilation failure to ensure UI integrity
             const { data: profile } = await supabase.from('profiles').select('naos_identity_code, profile_data').eq('id', userId).maybeSingle();
             let cached = profile?.naos_identity_code || profile?.profile_data?.naos_identity_code;
-            
+
             const keys = [
                 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_accion',
                 'expresion_proyeccion', 'direccion_evolutiva', 'conflicto_central', 'diagnostico_global',
@@ -180,12 +180,12 @@ export class NaosCompilerService {
 
                 repaired.language = language;
 
-                
+
                 keys.forEach(key => {
                     const val = repaired[key];
-                    const isInvalid = !val || val === "Calculando..." || val === "Buscando..." || 
+                    const isInvalid = !val || val === "Calculando..." || val === "Buscando..." ||
                                     (typeof val === 'string' && val.includes("...") && val.length < 50);
-                    
+
                     if (isInvalid) {
                         repaired[key] = NaosCompilerService.generateLocalNarrative(key, bible, archetype, language);
                     }
@@ -205,7 +205,7 @@ export class NaosCompilerService {
                 console.log(`🛠️ NaosCompiler: Returning fully repaired fallback for ${userId}`);
                 return repaired;
             }
-            
+
             // If NO cache exists at all, generate a 100% local identity to avoid blocked UI
             const fallback: any = {};
             keys.forEach(k => { fallback[k] = NaosCompilerService.generateLocalNarrative(k, bible, archetype, language); });
@@ -229,7 +229,7 @@ export class NaosCompilerService {
         const sign = bible.astrology?.sun || (isEn ? 'Leo' : 'Leo');
         const animal = bible.chinese_animal || (isEn ? 'Dragon' : 'Dragón');
         const role = archetype.rol;
-        
+
         const templates_es: Record<string, string[]> = {
             nucleo_estructural: [
                 `Como ${archetype.nombre}, tu estructura principal se basa en la energía focalizada de ${sign} y la practicidad instintiva de tu ${animal}. Tienes una capacidad natural para entender la realidad a un nivel profundo y construir sobre bases sólidas.`,
@@ -357,13 +357,13 @@ export class NaosCompilerService {
 
         const astro = await AstrologyService.calculateProfile(birthDate, birthTime, lat, lng, offset);
         const num = NumerologyService.calculateProfile(birthDate, profile.name || 'Viajero');
-        
+
         const mayan = MayanCalculator.calculate(birthDate);
         const chinese = ChineseAstrology.calculate(birthDate);
 
-        const enrichedProfile = { 
-            ...profile, 
-            astrology: astro, 
+        const enrichedProfile = {
+            ...profile,
+            astrology: astro,
             numerology: num,
             mayan: {
                 ...mayan,
@@ -374,7 +374,7 @@ export class NaosCompilerService {
                 element: chinese.element
             }
         };
-        
+
         let archetype;
         try {
             archetype = ArchetypeEngine.calculate(enrichedProfile, language);
@@ -412,7 +412,7 @@ export class NaosCompilerService {
         const apiKey = config.GOOGLE_API_KEY;
         const url = `https://generativelanguage.googleapis.com/${this.API_VERSION}/models/${this.TARGET_MODEL}:generateContent?key=${apiKey}`;
 
-        const systemPrompt = isEn 
+        const systemPrompt = isEn
             ? `You are the NAOS Compiler v3.0. Your function is to consolidate a deep architectural and psychological identity in a clinical, analytical, and practical way.
 The user's master archetype is: "${archetype.nombre}" (${archetype.rol} | ${archetype.frecuencia}).
 Avoid excessive superficial technicalities and avoid mystical or cryptic language. Use a direct, deeply psychological, and serious tone.
@@ -449,7 +449,7 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
 
             const rawJson = JSON.parse(text);
             const normalized = this.normalizeSynthesis(rawJson, bible, archetype, language);
-            
+
             return {
                 ...normalized,
                 arquetipo: {
@@ -471,13 +471,13 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
         try {
             console.log(`💾 [NaosCompiler] Persisting synthesis for ${userId}...`);
             const { error: columnError } = await supabase.from('profiles').update({ naos_identity_code: synthesis }).eq('id', userId);
-            
+
             if (columnError) {
                 console.warn(`⚠️ [NaosCompiler] 'naos_identity_code' column update failed, trying 'profile_data' fallback...`, columnError.message);
                 const { data: current } = await supabase.from('profiles').select('profile_data').eq('id', userId).maybeSingle();
                 const updatedData = { ...(current?.profile_data || {}), naos_identity_code: synthesis };
                 const { error: fallbackError } = await supabase.from('profiles').update({ profile_data: updatedData }).eq('id', userId);
-                
+
                 if (fallbackError) {
                     console.error(`❌ [NaosCompiler] Fallback save to 'profile_data' failed:`, fallbackError.message);
                 } else {
@@ -525,12 +525,17 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
         const userProfile = await this.getCompleteProfile(userId);
         const { bible, archetype } = await this.consolidateBible(userProfile, language);
 
-        const canonicalId = `${archetype.elemento_dominante}-${archetype.rol}` as ArchetypeId;
-        const canon = NAOS_ARCHETYPES_CANON[canonicalId];
+        const rawId = archetype?.id;
 
-        if (!canon) {
+        if (
+            typeof rawId !== 'string' ||
+            !Object.prototype.hasOwnProperty.call(NAOS_ARCHETYPES_CANON, rawId)
+        ) {
             return { status: 'UNAVAILABLE', error: 'IDENTITY_CALCULATION_UNAVAILABLE' };
         }
+
+        const canonicalId = rawId as ArchetypeId;
+        const canon = NAOS_ARCHETYPES_CANON[canonicalId];
 
         const fingerprint = this.computeV4Fingerprint(canonicalId, language, bible);
 
@@ -594,16 +599,18 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
 
             if (validation.outcome === 'PASS') {
                 console.log(`[NAOS_COMPILER_V4] Validation PASSED for ${userId}`);
+                const finalPayload = { ...payload, ...validation.payload };
+
                 // Dark launch isolated cache write
                 const { data: profile } = await supabase.from('profiles').select('profile_data').eq('id', userId).maybeSingle();
                 const existingV4 = (profile?.profile_data?.v4_identity && typeof profile.profile_data.v4_identity === 'object')
                     ? profile.profile_data.v4_identity
                     : {};
-                const updatedV4 = { ...existingV4, [language]: validation.payload };
+                const updatedV4 = { ...existingV4, [language]: finalPayload };
                 const updatedData = { ...(profile?.profile_data || {}), v4_identity: updatedV4 };
                 await supabase.from('profiles').update({ profile_data: updatedData }).eq('id', userId);
 
-                return validation.payload as V4ArchetypePayload;
+                return finalPayload as V4ArchetypePayload;
             } else {
                 console.warn(`[NAOS_COMPILER_V4] Validation REJECTED for ${userId}. Reason: ${validation.error}`);
                 return this.buildV4Fallback(canon, language, fingerprint);
