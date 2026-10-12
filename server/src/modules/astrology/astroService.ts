@@ -48,7 +48,7 @@ export class AstrologyService {
             const utcTimestamp = Date.UTC(year, month - 1, day, hour - utcOffset, minute);
             const dateObj = new Date(utcTimestamp);
 
-            console.log(`🌌 Astro Engine: Calculating for ${dateStr} ${timeStr} (Offset ${utcOffset}) => UTC: ${dateObj.toISOString()}`);
+            console.log(`🌌 Astro Engine: Calculating chart (Offset ${utcOffset})`);
 
             // 3. Llamada al Motor Astronómico
             // El motor usa year/month/day/hour del objeto Date en su contexto UTC interno si se usa Astronomy.MakeTime(date)

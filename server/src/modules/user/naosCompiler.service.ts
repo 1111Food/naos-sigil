@@ -59,7 +59,7 @@ export class NaosCompilerService {
         }
 
         const isEn = language === 'en';
-        console.log(`[NAOS_COMPILER_v3.0] Incoming request for ${userId} (Force: ${forceRefresh}, Lang: ${language})`);
+        console.log(`[NAOS_COMPILER_v3.0] Incoming compilation request (Force: ${forceRefresh}, Lang: ${language})`);
         const userProfile = await this.getCompleteProfile(userId);
         const { bible, archetype } = await this.consolidateBible(userProfile, language);
 
@@ -108,7 +108,7 @@ export class NaosCompilerService {
                 });
 
                 if (hasNarrativeBlocks && narrativeIsClean && !hasArchetype) {
-                    console.log(`🧬 NaosCompiler: Repairing cached identity for ${userId}...`);
+                    console.log("🧬 NaosCompiler: Repairing cached identity...");
                     const enrichedResult = {
                         ...(cachedCode as any),
                         arquetipo: {
@@ -133,7 +133,7 @@ export class NaosCompilerService {
         }
 
         try {
-            console.log(`🚀 NaosCompiler: Starting full 11-section compilation for ${userId} (${language})...`);
+            console.log(`🚀 NaosCompiler: Starting full 11-section compilation (${language})...`);
             const synthesis = await this.callGeminiCompiler(bible, archetype, language, userId);
 
             const isValid = Object.entries(synthesis).every(([k, v]) => {
@@ -162,7 +162,7 @@ export class NaosCompilerService {
             return finalSynthesis;
 
         } catch (error: any) {
-            console.error(`🔥 NaosCompiler Meta-Failure for ${userId}:`, error.message);
+            console.error("🔥 NaosCompiler Meta-Failure: COMPILER_SYNTHESIS_ERROR");
 
             // Fallback for ANY compilation failure to ensure UI integrity
             const { data: profile } = await supabase.from('profiles').select('naos_identity_code, profile_data').eq('id', userId).maybeSingle();
@@ -202,7 +202,7 @@ export class NaosCompilerService {
                     desglose: archetype.desglose
                 };
 
-                console.log(`🛠️ NaosCompiler: Returning fully repaired fallback for ${userId}`);
+                console.log("🛠️ NaosCompiler: Returning fully repaired fallback");
                 return repaired;
             }
 
@@ -469,25 +469,25 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
 
     private static async persistSynthesis(userId: string, synthesis: NaosIdentitySynthesis) {
         try {
-            console.log(`💾 [NaosCompiler] Persisting synthesis for ${userId}...`);
+            console.log("💾 [NaosCompiler] Persisting synthesis...");
             const { error: columnError } = await supabase.from('profiles').update({ naos_identity_code: synthesis }).eq('id', userId);
 
             if (columnError) {
-                console.warn(`⚠️ [NaosCompiler] 'naos_identity_code' column update failed, trying 'profile_data' fallback...`, columnError.message);
+                console.warn("⚠️ [NaosCompiler] 'naos_identity_code' column update failed, trying 'profile_data' fallback: DATABASE_WARNING");
                 const { data: current } = await supabase.from('profiles').select('profile_data').eq('id', userId).maybeSingle();
                 const updatedData = { ...(current?.profile_data || {}), naos_identity_code: synthesis };
                 const { error: fallbackError } = await supabase.from('profiles').update({ profile_data: updatedData }).eq('id', userId);
 
                 if (fallbackError) {
-                    console.error(`❌ [NaosCompiler] Fallback save to 'profile_data' failed:`, fallbackError.message);
+                    console.error("❌ [NaosCompiler] Fallback save to 'profile_data' failed: DATABASE_ERROR");
                 } else {
-                    console.log(`✅ [NaosCompiler] Synthesis saved in 'profile_data' fallback for ${userId}`);
+                    console.log("✅ [NaosCompiler] Synthesis saved in 'profile_data' fallback");
                 }
             } else {
-                console.log(`✅ [NaosCompiler] Synthesis saved in 'naos_identity_code' column for ${userId}`);
+                console.log("✅ [NaosCompiler] Synthesis saved in 'naos_identity_code' column");
             }
         } catch (e: any) {
-            console.error(`🔥 [NaosCompiler] Major crash during persistSynthesis:`, e.message);
+            console.error("🔥 [NaosCompiler] Major crash during persistSynthesis: DATABASE_ERROR");
         }
     }
 
@@ -520,7 +520,7 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
     }
 
     private static async compileV4(userId: string, forceRefresh = false, language: 'es' | 'en' = 'es'): Promise<V4ArchetypePayload | { status: 'UNAVAILABLE', error: string }> {
-        console.log(`[NAOS_COMPILER_V4] Dark launch request for ${userId} (Lang: ${language})`);
+        console.log(`[NAOS_COMPILER_V4] Dark launch request (Lang: ${language})`);
 
         const userProfile = await this.getCompleteProfile(userId);
         const { bible, archetype } = await this.consolidateBible(userProfile, language);
@@ -559,23 +559,23 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
                     if (isValidDims) {
                         const validation = ArchetypeValidator.validateAndRepair(dims, canonicalId);
                         if (validation.outcome === 'PASS') {
-                            console.log(`[NAOS_COMPILER_V4] Returning valid cached V4 identity for ${userId} (${language})`);
+                            console.log(`[NAOS_COMPILER_V4] Returning valid cached V4 identity (${language})`);
                             return {
                                 ...cached,
                                 ...validation.payload
                             };
                         } else {
-                            console.warn(`[NAOS_COMPILER_V4] Cache semantic validation REJECTED for ${userId}. Reason: ${validation.error}`);
+                            console.warn(`[NAOS_COMPILER_V4] Cache semantic validation REJECTED. Reason: ${validation.error}`);
                         }
                     } else {
-                        console.warn(`[NAOS_COMPILER_V4] Cache malformed dimensions REJECTED for ${userId}.`);
+                        console.warn("[NAOS_COMPILER_V4] Cache malformed dimensions REJECTED.");
                     }
                 }
             }
         }
 
         try {
-            console.log(`[NAOS_COMPILER_V4] Calling Gemini for ${userId}...`);
+            console.log("[NAOS_COMPILER_V4] Calling Gemini...");
             let payload = await this.callGeminiCompilerV4(bible, canon, language);
 
             payload.schema_version = 'v4.0';
@@ -598,7 +598,7 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
             const validation = ArchetypeValidator.validateAndRepair(dimsForValidation, canonicalId);
 
             if (validation.outcome === 'PASS') {
-                console.log(`[NAOS_COMPILER_V4] Validation PASSED for ${userId}`);
+                console.log("[NAOS_COMPILER_V4] Validation PASSED");
                 const finalPayload = { ...payload, ...validation.payload };
 
                 // Dark launch isolated cache write
@@ -612,12 +612,12 @@ CAMPOS: 'nucleo_estructural', 'campo_perceptivo', 'arquitectura_mental', 'motor_
 
                 return finalPayload as V4ArchetypePayload;
             } else {
-                console.warn(`[NAOS_COMPILER_V4] Validation REJECTED for ${userId}. Reason: ${validation.error}`);
+                console.warn(`[NAOS_COMPILER_V4] Validation REJECTED. Reason: ${validation.error}`);
                 return this.buildV4Fallback(canon, language, fingerprint);
             }
 
         } catch (error: any) {
-            console.error(`[NAOS_COMPILER_V4] Failure for ${userId}:`, error.message);
+            console.error("[NAOS_COMPILER_V4] Failure: COMPILER_V4_ERROR");
             return this.buildV4Fallback(canon, language, fingerprint);
         }
     }

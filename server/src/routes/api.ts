@@ -304,10 +304,10 @@ export async function apiRoutes(app: FastifyInstance) {
         const userId = (req as any).user_id;
 
         // Sigil usage counter is telemetry only; AI spend is enforced inside SigilService.
-        console.log(`Ã°Å¸â€ºÂ¡Ã¯Â¸Â Sigil API Request | User: ${userId} | Role: ${(req as any).user?.role}`);
+        console.log(`🛡️ Sigil API Request [Req: ${req.id}] | Role: ${(req as any).user?.role}`);
 
         try {
-            console.log(`Ã°Å¸Å'â‚¬ INCOMING MESSAGE from ${userId}: "${message}"`);
+            console.log(`💬 INCOMING MESSAGE [Req: ${req.id}] | Length: ${message?.length || 0}`);
             const sigilStart = Date.now();
             const res = await sigilService.processMessage(userId, message, localTimestamp, oracleState, role, false, energyContext, language || 'es', (req as any).userGeo, { persistUserMessage: true, visibleInConversation: true, source: 'user', timeZone });
             console.log(`[PERF][CHAT] sigil_process=${Date.now() - sigilStart}ms`);
@@ -357,12 +357,12 @@ export async function apiRoutes(app: FastifyInstance) {
             };
 
         } catch (error: any) {
-            console.error("Ã°Å¸â€ Â¥ SIGIL ERROR:", error);
+            console.error(`🔥 SIGIL ERROR [Req: ${req.id}]: SIGIL_PROCESSING_ERROR`);
             // Deep file logging
             try {
                 const fs = require('fs');
                 const logPath = require('path').join(process.cwd(), 'critical_error.log');
-                fs.appendFileSync(logPath, `[${new Date().toISOString()}] SIGIL ERROR: ${error.message}\n${error.stack}\n`);
+                fs.appendFileSync(logPath, `[${new Date().toISOString()}] [Req: ${req.id}] SIGIL ERROR: SIGIL_PROCESSING_ERROR\n`);
             } catch (e) {}
 
             if (error.message?.includes('LIMITE_CUOTA')) {
@@ -443,7 +443,7 @@ export async function apiRoutes(app: FastifyInstance) {
 
     app.post<{ Body: Partial<UserProfile> }>('/api/profile', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
-        console.log('✅ PROFILE UPDATE REQUEST | ID:', userId.split('-')[0]);
+        console.log(`✅ PROFILE UPDATE REQUEST [Req: ${req.id}]`);
         try {
             const result = await UserService.updateProfile(userId, req.body);
             return result;
@@ -527,7 +527,7 @@ export async function apiRoutes(app: FastifyInstance) {
              }
         }
 
-        console.log(`Ã°Å¸Â§Â¬ [NAOS_CODE_START] CompilaciÃƒÂ³n solicitada para: ${userId} | Refresh: ${forceRefresh} | Lang: ${lang}`);
+        console.log(`🧬 [NAOS_CODE_START] Compilación solicitada [Req: ${req.id}] | Refresh: ${forceRefresh} | Lang: ${lang}`);
         try {
 
             const res = await NaosCompilerService.compile(userId, forceRefresh, lang as any, { system_role: (req as AuthenticatedRequest).user?.system_role });
@@ -536,7 +536,7 @@ export async function apiRoutes(app: FastifyInstance) {
             }
             return res;
         } catch (e: any) {
-            console.error("Ã°Å¸â€Â¥ NAOS Compiler Route Error:", e);
+            console.error(`🔥 NAOS Compiler Route Error [Req: ${req.id}]: COMPILER_ROUTE_ERROR`);
             return reply.status(500).send({ error: 'Failed to compile NAOS Identity', details: e.message });
         }
     });
@@ -563,32 +563,32 @@ export async function apiRoutes(app: FastifyInstance) {
         }
     }, async (req, reply) => {
         const userId = (req as any).user_id;
-        console.log(`?o [API] Cold Read request for User: ${userId}`);
+        console.log(`🔍 [API] Cold Read request [Req: ${req.id}]`);
         try {
             const result = await sigilService.generateColdRead(userId);
-            console.log(`ǽ"? [API] Cold Read generated successfully for ${userId}`);
+            console.log(`✨ [API] Cold Read generated successfully [Req: ${req.id}]`);
             return result;
         } catch (error: any) {
-            console.error("?? [API] Cold Read Error:", error.message, error.stack);
+            console.error(`❌ [API] Cold Read Error [Req: ${req.id}]: COLD_READ_ERROR`);
             return reply.status(500).send({ error: 'Failed to generate initial initiation.', details: error.message });
         }
     });
 
     app.post('/api/onboarding/complete', { preValidation: [validateUser] }, async (req, reply) => {
         const userId = (req as any).user_id;
-        console.log(`🛡️ [API] Completing onboarding for User: ${userId}`);
+        console.log(`🛡️ [API] Completing onboarding [Req: ${req.id}]`);
         try {
             const result = await UserService.markOnboardingCompleted(userId);
-            console.log(`✅ [API] Onboarding marked complete for ${userId}`);
+            console.log(`✅ [API] Onboarding marked complete [Req: ${req.id}]`);
 
             // Fire-and-forget: Pre-compile NAOS Identity so it's ready when they enter the dashboard
             NaosCompilerService.compile(userId, true, 'es', { system_role: (req as AuthenticatedRequest).user?.system_role }).then(() => {
-                console.log(`✅ [API] Background NAOS Identity compiled for ${userId}`);
-            }).catch(e => console.error("❌ [API] Background NAOS compile failed:", e));
+                console.log(`✅ [API] Background NAOS Identity compiled [Req: ${req.id}]`);
+            }).catch(e => console.error(`❌ [API] Background NAOS compile failed [Req: ${req.id}]: BACKGROUND_COMPILE_ERROR`));
 
             return { status: 'ok', onboarding_completed: result.onboarding_completed };
         } catch (error: any) {
-            console.error("❌ [API] Onboarding Complete Error:", error.message);
+            console.error(`❌ [API] Onboarding Complete Error [Req: ${req.id}]: ONBOARDING_ERROR`);
             return reply.status(500).send({ error: 'Failed to complete onboarding.' });
         }
     });

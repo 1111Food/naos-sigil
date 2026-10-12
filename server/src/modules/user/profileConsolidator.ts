@@ -6,7 +6,7 @@ export class ProfileConsolidator {
      * This is a pure data transformation, no interpretations added here.
      */
     static consolidate(profile: UserProfile): UserEnergeticProfile {
-        console.log(`📜 Consolidating Dynamic Energetic Bible for: ${profile.name || 'Unknown'}`);
+        console.log("📜 Consolidating Dynamic Energetic Bible");
 
         return {
             western: {

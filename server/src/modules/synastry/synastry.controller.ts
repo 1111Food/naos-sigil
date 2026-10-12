@@ -41,7 +41,7 @@ export class SynastryController {
 
             const type = relationshipType || RelationshipType.ROMANTIC;
 
-            console.log(`🔮 Synastry Inversion: ${userProfile?.id} <-> ${partnerData?.name} (${type})`);
+            console.log(`🔮 Synastry Inversion [Req: ${request.id}] (${type})`);
 
             if (!userProfile?.birthDate || !partnerData?.birthDate) {
                 return reply.status(400).send({ 
@@ -89,7 +89,7 @@ export class SynastryController {
                     const context: any = { type, duration: 0, intensity: 1, language: lang };
                     const entity: any = { id: hash };
 
-                    console.log(`🤖 Invoking NAOS Intelligence Kernel V4.1 for Cache Upgrade... (${nameA} <-> ${nameB})`);
+                    console.log(`🤖 Invoking NAOS Intelligence Kernel V4.1 for Cache Upgrade [Req: ${request.id}]...`);
                     const kernelResult = await kernel.process(
                         entity, 
                         { ...userProfile, name: nameA, profile_data: userProfile }, 
@@ -116,10 +116,10 @@ export class SynastryController {
                             const { error } = await supabaseAdmin.from('synastry_history')
                                 .update({ calculated_results: results })
                                 .eq('id', cached.id);
-                            if (error) console.error("Cache upgrade failed:", error);
-                            else console.log(`✓ Cache ${cached.id} upgraded to V4.1 successfully.`);
+                            if (error) console.error("Cache upgrade failed: DATABASE_ERROR");
+                            else console.log("✓ Cache upgraded to V4.1 successfully.");
                         } catch (err: any) {
-                            console.error("Cache upgrade failed exception:", err);
+                            console.error("Cache upgrade failed exception: DATABASE_ERROR");
                         }
                     })();
                 }
@@ -148,7 +148,7 @@ export class SynastryController {
             const context: any = { type, duration: 0, intensity: 1, language: lang };
             const entity: any = { id: hash };
 
-            console.log(`🤖 Invoking NAOS Intelligence Kernel V4.1... (${nameA} <-> ${nameB})`);
+            console.log(`🤖 Invoking NAOS Intelligence Kernel V4.1 [Req: ${request.id}]...`);
             const kernelResult = await kernel.process(
                 entity, 
                 { ...userProfile, name: nameA, profile_data: userProfile }, 
@@ -180,14 +180,14 @@ export class SynastryController {
                     combination_hash: hash,
                     calculated_results: finalResult
                 });
-                if (insertError) console.error("❌ History Insertion Error:", insertError);
+                if (insertError) console.error(`❌ History Insertion Error [Req: ${request.id}]: DATABASE_ERROR`);
             }
 
             console.log("🚀 API RESPONSE MODULES:", finalResult.consultation?.modules ? "OK" : "MISSING");
             await UsageGuardService.incrementUsage(userId, 'synastry_dual');
             return reply.send({ success: true, cached: false, data: finalResult });
         } catch (error: any) {
-            console.error("❌ Synastry Analysis Critical Failure:", error);
+            console.error(`❌ Synastry Analysis Critical Failure [Req: ${request.id}]: ANALYSIS_FAILURE`);
             const errMsg = error.message || "System failure.";
             if (errMsg === 'BUDGET_EXHAUSTED' || errMsg.includes('LIMITE_PRESUPUESTO')) {
                 return reply.status(402).send({ error: "Límite de presupuesto de IA alcanzado.", message: errMsg });
@@ -265,14 +265,14 @@ export class SynastryController {
                     combination_hash: comboHash,
                     calculated_results: finalResult
                 });
-                if (insertError) console.error("❌ Group History Insertion Error:", insertError);
+                if (insertError) console.error(`❌ Group History Insertion Error [Req: ${request.id}]: DATABASE_ERROR`);
             }
 
             await UsageGuardService.incrementUsage(userId, 'synastry_group');
             return reply.send({ success: true, data: finalResult });
 
         } catch (error: any) {
-            console.error("❌ Group Synastry Critical Failure:", error);
+            console.error(`❌ Group Synastry Critical Failure [Req: ${request.id}]: ANALYSIS_FAILURE`);
             const errMsg = error.message || "System failure.";
             return reply.status(500).send({ error: errMsg, message: errMsg });
         }
@@ -304,7 +304,7 @@ export class SynastryController {
                 // Incorporate birthState and birthCountry for better geocoding accuracy
                 const locationComponents = [profile.birthCity, profile.birthState, profile.birthCountry].filter(Boolean);
                 const queryStr = locationComponents.join(', ');
-                console.log(`🌍 Backend Geocoding for: ${queryStr}`);
+                console.log("🌍 Backend Geocoding request initiated");
 
                 const query = encodeURIComponent(queryStr);
                 const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`, {
@@ -318,7 +318,7 @@ export class SynastryController {
                             lng: parseFloat(geoData[0].lon)
                         };
                         profile.utcOffset = Math.round(profile.coordinates.lng / 15);
-                        console.log(`📍 Found: ${profile.coordinates.lat}, ${profile.coordinates.lng} (Offset: ${profile.utcOffset})`);
+                        console.log(`📍 Coordinates resolved (Offset: ${profile.utcOffset})`);
                         return; // Mapping successful
                     }
                 }
@@ -367,7 +367,7 @@ export class SynastryController {
             id = id.substring(2);
         }
 
-        console.log(`🗑️ Deleting Synastry Record: ${id} (Original was prefixed: ${id !== (request.params as any).id}) for User: ${userId}`);
+        console.log(`🗑️ Deleting Synastry Record [Req: ${request.id}]`);
 
         const { error } = await supabaseAdmin
             .from('synastry_history')
@@ -376,7 +376,7 @@ export class SynastryController {
             .eq('user_id', userId);
 
         if (error) {
-            console.error("❌ Deletion Error:", error);
+            console.error(`❌ Deletion Error [Req: ${request.id}]: DATABASE_ERROR`);
             const isEn = (request as any).headers?.['accept-language']?.includes('en'); // Fallback check
             return reply.status(500).send({ 
                 error: isEn ? "Could not delete record." : "No se pudo borrar el registro." 

@@ -31,7 +31,7 @@ export class SupabaseVectorStore implements IVectorStore {
 
       return data.id;
     } catch (error) {
-      console.error('Error storing memory:', error);
+      console.error('Error storing memory: DATABASE_ERROR');
       throw error;
     }
   }
@@ -62,7 +62,7 @@ export class SupabaseVectorStore implements IVectorStore {
       
       return data || [];
     } catch (error) {
-      console.error('Error searching memories:', error);
+      console.error('Error searching memories: VECTOR_SEARCH_ERROR');
       throw error;
     }
   }
@@ -88,7 +88,7 @@ export class SupabaseVectorStore implements IVectorStore {
       
       return data;
     } catch (error) {
-      console.error(`Error getting memory by id ${id}:`, error);
+      console.error('Error getting memory by id: DATABASE_ERROR');
       throw error;
     }
   }
@@ -110,7 +110,7 @@ export class SupabaseVectorStore implements IVectorStore {
         throw error;
       }
     } catch (error) {
-      console.error(`Error updating memory ${id}:`, error);
+      console.error('Error updating memory: DATABASE_ERROR');
       throw error;
     }
   }
@@ -132,7 +132,7 @@ export class SupabaseVectorStore implements IVectorStore {
         throw error;
       }
     } catch (error) {
-      console.error(`Error soft deleting memory ${id}:`, error);
+      console.error('Error soft deleting memory: DATABASE_ERROR');
       throw error;
     }
   }
@@ -169,8 +169,8 @@ export class SupabaseVectorStore implements IVectorStore {
       }
       
       return data || [];
-    } catch (error) {
-      console.error(`Error listing memories for user ${userId}:`, error);
+    } catch (error: any) {
+      console.error("Error listing memories: DATABASE_ERROR");
       throw error;
     }
   }
@@ -193,7 +193,7 @@ export class SupabaseVectorStore implements IVectorStore {
         throw error;
       }
     } catch (error) {
-      console.error(`Error superseding memory ${oldId} with ${newId}:`, error);
+      console.error('Error superseding memory: DATABASE_ERROR');
       throw error;
     }
   }

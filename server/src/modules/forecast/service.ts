@@ -28,7 +28,7 @@ export class ForecastService {
     }
 
     static async generateTimeMap(userId: string, language: string = 'es') {
-        console.log(`ðŸŒ€ ForecastService: Generating Time Map for user ${userId} [${language}]`);
+        console.log(`🌪️ ForecastService: Generating Time Map [${language}]`);
         
         // 1. Get User Data
         const profile = await UserService.getProfile(userId);

@@ -22,7 +22,7 @@ export class LifelineService {
     }
 
     static async generateLifeline(userId: string, language: string = 'es') {
-        console.log(`ðŸŒ€ LifelineService: Generating Eje Evolutivo for user ${userId} [${language}]`);
+        console.log(`🌪️ LifelineService: Generating Eje Evolutivo [${language}]`);
         
         // 1. Get User Data
         const profile = await UserService.getProfile(userId);

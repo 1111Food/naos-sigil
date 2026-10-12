@@ -44,7 +44,7 @@ export class UsageGuardService {
             
             return stats;
         } catch (e) {
-            console.error("❌ UsageGuard: Failed to get/init stats:", e);
+            console.error("❌ UsageGuard: Failed to get/init stats: DATABASE_ERROR");
             // Fallback default (safe for crashes but bypasses lockdown if broken)
             return {
                 tarot_draw_count: 0,
@@ -61,7 +61,7 @@ export class UsageGuardService {
         const { data } = await supabase.from('profiles').select('plan_type').eq('id', userId).maybeSingle();
         const planType = planOverride || data?.plan_type || 'free';
 
-        console.log(`🛡️ UsageGuard: checkLimit | User: ${userId} | Action: ${action} | Override: ${planOverride} | FinalPlan: ${planType}`);
+        console.log(`🛡️ UsageGuard: checkLimit | Action: ${action} | Override: ${planOverride} | FinalPlan: ${planType}`);
 
         const stats = await this.getStats(userId);
         
@@ -122,7 +122,7 @@ export class UsageGuardService {
             
             await this.saveStats(userId, stats, profileData);
         } catch (e) {
-            console.error(`❌ UsageGuard: Failed to increment usage for ${action}:`, e);
+            console.error(`❌ UsageGuard: Failed to increment usage for ${action}: DATABASE_ERROR`);
         }
     }
 

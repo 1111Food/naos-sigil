@@ -121,7 +121,7 @@ export class TTSService {
     public getAudioPath(userId: string, hash: string): string | null {
          // SEC-F2B.4: Validate Hash and Path Traversal
          if (!/^[a-fA-F0-9]{32}$/.test(hash)) {
-             console.warn(`[TTS] Invalid audio hash format requested by ${userId}`);
+             console.warn("[TTS] Invalid audio hash format requested");
              return null;
          }
 
@@ -130,7 +130,7 @@ export class TTSService {
          
          // Path Traversal Security Verification
          if (!cachePath.startsWith(userCacheDir)) {
-             console.warn(`[TTS] Path traversal blocked for ${userId}`);
+             console.warn("[TTS] Path traversal blocked");
              return null;
          }
 

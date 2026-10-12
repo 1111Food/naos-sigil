@@ -765,7 +765,7 @@ ${segments.truth_injection.waiting_desc}
     }
 
     private async persistInteraction(userId: string, userMsg: string, sigilResp: string, forceReading: boolean = false) {
-        console.log(`📝 Persisting interaction for ${userId}... (Force: ${forceReading})`);
+        console.log(`📝 Persisting interaction... (Force: ${forceReading})`);
         try {
             // 0. Update Clarity Score (+1 per deep interaction)
             await CoherenceService.updateScore(userId, 'clarity', 1);
@@ -885,7 +885,7 @@ ${segments.truth_injection.waiting_desc}
     }
 
     private async checkUsageIntensity(userId: string): Promise<boolean> {
-        console.log(`🔍 Checking usage intensity for ${userId}...`);
+        console.log("🔍 Checking usage intensity...");
         try {
             const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
             const { count, error } = await supabase

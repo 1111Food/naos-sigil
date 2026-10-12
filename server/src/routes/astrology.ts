@@ -87,7 +87,7 @@ export async function astrologyRoutes(app: FastifyInstance) {
 
                     // CRITICAL VALIDATION
                     if (!geo || typeof geo.lat !== 'number' || typeof geo.lng !== 'number') {
-                        console.error(`❌ Geocoding returned invalid data for: ${birthCity}`);
+                        console.error(`❌ Geocoding returned invalid data [Req: ${req.id}]`);
                         return reply.status(400).send({ error: `No pudimos localizar '${birthCity}'. Intenta verificar el nombre o añadir el país.` });
                     }
 
@@ -101,9 +101,9 @@ export async function astrologyRoutes(app: FastifyInstance) {
                         const tz = GeocodingService.getTimezoneId(lat, lng);
                         utcOffset = GeocodingService.getHistoricalUtcOffset(tz, birthDate, birthTime);
                     }
-                    console.log(`📍 Geocoded: ${birthCity} -> ${lat}, ${lng} (Offset: ${utcOffset})`);
-                } catch (geoError) {
-                    console.error("Geocoding failed:", geoError);
+                    console.log(`📍 Geocoded: Coordinates resolved [Req: ${req.id}] (Offset: ${utcOffset})`);
+                } catch (geoError: any) {
+                    console.error(`Geocoding failed [Req: ${req.id}]: GEOCODING_ERROR`);
                     return reply.status(400).send({ error: `No pudimos localizar la ciudad '${birthCity}'. Por favor verifica la ortografía.` });
                 }
             } else {
@@ -113,7 +113,7 @@ export async function astrologyRoutes(app: FastifyInstance) {
             // 2. VALIDATE DATE (FLEXIBLE PARSING)
             const dateObj = parseFlexibleDate(birthDate);
             if (!dateObj) {
-                console.warn("❌ Date Parse Failed for:", birthDate);
+                console.warn(`❌ Date Parse Failed [Req: ${req.id}]`);
                 return reply.status(400).send({ error: "Fecha inválida. Use YYYY-MM-DD o DD/MM/YYYY." });
             }
             // Normalize birthDate to YYYY-MM-DD string for AstrologyService
@@ -130,8 +130,8 @@ export async function astrologyRoutes(app: FastifyInstance) {
                     lng,
                     utcOffset
                 );
-            } catch (astroError) {
-                console.error("🔥 Astrology Calc Failed:", astroError);
+            } catch (astroError: any) {
+                console.error(`🔥 Astrology Calc Failed [Req: ${req.id}]: ASTRO_CALC_ERROR`);
                 return reply.status(400).send({ error: "Error interno calculando posiciones planetarias. Verifique la fecha/hora." });
             }
 
@@ -144,7 +144,7 @@ export async function astrologyRoutes(app: FastifyInstance) {
                     personalYear: 0 // Feature not available in temp profile
                 };
             } catch (e) {
-                console.warn("Temp Numerology Error:", e);
+                console.warn(`Temp Numerology Error [Req: ${req.id}]: NUMEROLOGY_ERROR`);
             }
 
             let mayanSign = "Desconocido";
@@ -152,7 +152,7 @@ export async function astrologyRoutes(app: FastifyInstance) {
                 const mayanData = MayanCalculator.calculate(normalizedDate);
                 mayanSign = mayanData.kicheName;
             } catch (e) {
-                console.warn("Temp Mayan Error:", e);
+                console.warn(`Temp Mayan Error [Req: ${req.id}]: MAYAN_ERROR`);
             }
 
             let chinese = { sign: "Desconocido", element: "Desconocido" };
@@ -163,7 +163,7 @@ export async function astrologyRoutes(app: FastifyInstance) {
                     element: chineseData.element
                 };
             } catch (e) {
-                console.warn("Temp Chinese Error:", e);
+                console.warn(`Temp Chinese Error [Req: ${req.id}]: CHINESE_ERROR`);
             }
 
             // 5. CONSTRUCT STRICT JSON RESPONSE
@@ -189,7 +189,7 @@ export async function astrologyRoutes(app: FastifyInstance) {
             return reply.send(response);
 
         } catch (globalError: any) {
-            console.error("🔥 CRITICAL ENDPOINT ERROR:", globalError);
+            console.error(`🔥 CRITICAL ENDPOINT ERROR [Req: ${req.id}]: ENDPOINT_ERROR`);
 
             // Log error with more details if possible
             const errorDetails = {

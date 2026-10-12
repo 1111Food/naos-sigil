@@ -44,7 +44,7 @@ export class ProtocolService {
         if (lastLog) {
             const lastLogLocalDate = lastLog.local_date || lastLog.completed_at.split('T')[0];
             if (lastLogLocalDate === localDate) {
-                console.warn(`⚠️ ProtocolService: Duplicate same-day check-in prevented for ${userId}`);
+                console.warn("⚠️ ProtocolService: Duplicate same-day check-in prevented");
                 throw new Error("ALREADY_CHECKED_IN_TODAY");
             }
         }

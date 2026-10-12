@@ -82,7 +82,7 @@ export async function tarotRoutes(app: FastifyInstance) {
 
         let language = 'es'; // Default
 
-        console.log(`🔮 Tarot/Ritual POST. Intent: "${question}", Engine: ${selectedEngine}, Spread: ${spreadType}`);
+        console.log(`🔮 Tarot/Ritual POST [Req: ${request.id}]. IntentLen: ${question?.length || 0}, Engine: ${selectedEngine}, Spread: ${spreadType}`);
 
         try {
             // 0. Fetch User Profile for Economics & Language
@@ -192,7 +192,7 @@ export async function tarotRoutes(app: FastifyInstance) {
             };
 
         } catch (error: any) {
-            console.error("❌ Tarot Route Error:", error);
+            console.error(`❌ Tarot Route Error [Req: ${request.id}]: TAROT_ROUTING_ERROR`);
 
             const isQuota = error.message?.includes('LIMITE_CUOTA');
             const isTimeout = error.name === 'AbortError';
@@ -201,9 +201,9 @@ export async function tarotRoutes(app: FastifyInstance) {
                 const fs = require('fs');
                 const path = require('path');
                 const logPath = path.join(process.cwd(), 'debug_sigil.log');
-                fs.appendFileSync(logPath, `\n[${new Date().toISOString()}] TAROT_ERROR: ${error.message} (Quota: ${isQuota})\n`);
+                fs.appendFileSync(logPath, `\n[${new Date().toISOString()}] [Req: ${request.id}] TAROT_ERROR: TAROT_ROUTING_ERROR (Quota: ${isQuota})\n`);
             } catch (e) {
-                console.error("Log failed", e);
+                console.error(`Log failed [Req: ${request.id}]: LOGGING_ERROR`);
             }
 
             // SMART FALLBACK (Plan B): Construct a meaningful response from hardcoded data
@@ -265,7 +265,7 @@ export async function tarotRoutes(app: FastifyInstance) {
             .limit(3);
 
         if (error) {
-            console.error("❌ Error al recuperar el historial de rituales:", error);
+            console.error(`❌ Error al recuperar el historial de rituales [Req: ${request.id}]: DATABASE_ERROR`);
             return reply.status(500).send({ error: "No se pudo recuperar el registro akáshico." });
         }
 
@@ -294,7 +294,7 @@ export async function tarotRoutes(app: FastifyInstance) {
         }
 
         try {
-            console.log(`💾 [RITUAL_SAVE] Inicia sellado para usuario: ${userId}`);
+            console.log(`💾 [RITUAL_SAVE] Inicia sellado [Req: ${request.id}]`);
             
             // FIFO Logic: Get counts
             const { count, error: countError } = await supabaseClient
@@ -303,7 +303,7 @@ export async function tarotRoutes(app: FastifyInstance) {
                 .eq('user_id', userId);
 
             if (countError) {
-                console.error("❌ [RITUAL_SAVE] Error al contar registros:", countError);
+                console.error(`❌ [RITUAL_SAVE] Error al contar registros [Req: ${request.id}]: DATABASE_ERROR`);
                 throw countError;
             }
 
@@ -320,7 +320,7 @@ export async function tarotRoutes(app: FastifyInstance) {
                     .limit(1);
 
                 if (findOldestError) {
-                    console.error("❌ [RITUAL_SAVE] Error buscando el más antiguo:", findOldestError);
+                    console.error(`❌ [RITUAL_SAVE] Error buscando el más antiguo [Req: ${request.id}]: DATABASE_ERROR`);
                     throw findOldestError;
                 }
 
@@ -331,9 +331,9 @@ export async function tarotRoutes(app: FastifyInstance) {
                         .eq('id', oldest[0].id);
                     
                     if (deleteError) {
-                        console.error("❌ [RITUAL_SAVE] Error al eliminar registro FIFO:", deleteError);
+                        console.error(`❌ [RITUAL_SAVE] Error al eliminar registro FIFO [Req: ${request.id}]: DATABASE_ERROR`);
                     } else {
-                        console.log(`✅ [RITUAL_SAVE] Registro eliminado ID: ${oldest[0].id}`);
+                        console.log(`✅ [RITUAL_SAVE] Registro más antiguo depurado [Req: ${request.id}]`);
                     }
                 }
             }
@@ -353,14 +353,14 @@ export async function tarotRoutes(app: FastifyInstance) {
                 .select();
 
             if (insertError) {
-                console.error("❌ [RITUAL_SAVE] Error al insertar nuevo ritual:", insertError);
+                console.error(`❌ [RITUAL_SAVE] Error al insertar nuevo ritual [Req: ${request.id}]: DATABASE_ERROR`);
                 throw insertError;
             }
 
             console.log("✨ [RITUAL_SAVE] Ritual sellado con éxito.");
             return { success: true, record: data[0] };
         } catch (error: any) {
-            console.error("❌ [RITUAL_SAVE] Error global en el guardado:", error);
+            console.error(`❌ [RITUAL_SAVE] Error global en el guardado [Req: ${request.id}]: RITUAL_SAVE_ERROR`);
             return reply.status(500).send({ error: "No se pudo sellar el ritual en el registro akáshico." });
         }
     });
