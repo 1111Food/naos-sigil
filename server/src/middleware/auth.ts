@@ -2,6 +2,9 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { supabase } from '../lib/supabase';
 import { config } from '../config/env';
 
+const ALLOWED_SYSTEM_ROLES = new Set(['user', 'admin', 'owner']);
+const ALLOWED_PLAN_TYPES = new Set(['free', 'premium', 'premium_plus', 'admin']);
+
 export const validateUser = async (request: FastifyRequest, reply: FastifyReply) => {
     const requestId = Math.random().toString(36).substring(7);
     const authHeader = request.headers.authorization;
@@ -30,17 +33,17 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
         ]) as any;
 
         if (error || !user) {
-            console.warn(`❌ [AUTH_FAIL] Request ${requestId} | Invalid User or Token. Error:`, JSON.stringify(error || { msg: "No user returned" }, null, 2));
+            console.warn(`❌ [AUTH_FAIL] Request ${requestId} | Invalid User or Token: AUTH_VALIDATION_FAILED`);
             return reply.status(401).send({ error: 'Sesión expirada o inválida' });
         }
 
-        console.log(`✅ [AUTH_OK] Request ${requestId} | User: `);
+        console.log(`✅ [AUTH_OK] Request ${requestId} | User validated`);
 
-        // Inject user_id into the request for downstream use
+        // Inject user_id and token into the request for downstream use
         (request as any).user_id = user.id;
         (request as any).token = token;
 
-        // --- RBAC INJECTION (Consolidated Prompts) ---
+        // --- RBAC INJECTION (Database-Authoritative) ---
         let { data: profile } = await supabase
             .from('profiles')
             .select('plan_type, system_role')
@@ -48,14 +51,14 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
             .single();
 
         let profilePlan = profile?.plan_type;
+        let profileSystemRole = profile?.system_role;
 
-        // If profile wasn't found, it might be due to RLS blocking the Anon Key (Service Role Key missing on Render)
-        // Let's use the user's own token to fetch their profile directly via REST API
-        if (!profilePlan) {
+        // If profile wasn't found or system_role is missing, fetch directly via REST API with user's own token
+        if (!profilePlan || !profileSystemRole) {
             try {
                 const supabaseUrl = config.SUPABASE_URL || 'https://avaikhukgugvcocwedsz.supabase.co';
                 const supabaseAnonKey = config.SUPABASE_ANON_KEY || '';
-                const res = await fetch(`${supabaseUrl}/rest/v1/profiles?select=plan_type&id=eq.${user.id}`, {
+                const res = await fetch(`${supabaseUrl}/rest/v1/profiles?select=plan_type,system_role&id=eq.${user.id}`, {
                     headers: {
                         'apikey': supabaseAnonKey,
                         'Authorization': `Bearer ${token}`
@@ -63,51 +66,45 @@ export const validateUser = async (request: FastifyRequest, reply: FastifyReply)
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.length > 0) profilePlan = data[0].plan_type;
+                    if (data && data.length > 0) {
+                        if (!profilePlan) profilePlan = data[0].plan_type;
+                        if (!profileSystemRole) profileSystemRole = data[0].system_role;
+                    }
                 }
             } catch (fetchErr) {
-                console.warn(`⚠️ [AUTH_FETCH] Failed to fetch profile directly:`, fetchErr);
+                // SEC-5B: Log stable diagnostic event code without raw error object or URL details
+                console.warn(`⚠️ [AUTH_FETCH] Request ${requestId} | Profile fetch fallback failed: PROFILE_FETCH_FAILED`);
             }
         }
 
-        let plan = (profilePlan || 'free').toLowerCase();
-        
-        const userEmail = (user.email || user.user_metadata?.email || '').toLowerCase();
-        // SEC-F2B.3: Avoid logging email directly, only flag presence for debugging
-        console.log(`📧 [AUTH_EMAIL] Request ${requestId} | Email provided: ${!!userEmail}`);
-        
-        // --- HARDENED ADMIN CHECK (Fix for 403 on Render) ---
-        const isAdminEmail = 
-            userEmail === 'luisalfredoherreramendez@gmail.com' ||
-            userEmail.includes('luisalfredoherreramendez') || 
-            userEmail.includes('luis.herrera') ||
-            userEmail.includes('herreramendez') ||
-            userEmail.includes('luisalfredo.herrera') ||
-            userEmail === 'luis@luis.com' ||
-            userEmail === 'lahm@lahm.com';
+        // Strict allowlist validation — any malformed or unknown value fails closed
+        const candidatePlan = typeof profilePlan === 'string' ? profilePlan.trim().toLowerCase() : '';
+        const validPlan = ALLOWED_PLAN_TYPES.has(candidatePlan) ? candidatePlan : 'free';
 
-        const isAdminId = 
-            user.id === '22325a10-7b9f-4606-8a54-574bb63ba6a8' || 
-            user.id === '1c6e74b8-ad52-41c3-bc95-2577cd3c67e8';
+        const candidateSystemRole = typeof profileSystemRole === 'string' ? profileSystemRole.trim().toLowerCase() : '';
+        const validSystemRole = ALLOWED_SYSTEM_ROLES.has(candidateSystemRole) ? candidateSystemRole : 'user';
 
-        if (isAdminEmail || isAdminId) {
-            plan = 'admin';
-            console.log(`⭐ [AUTH_ADMIN] Request ${requestId} | Identified Admin Exception: `);
-        }
-
-        // We keep role for backwards compatibility, but we now pass system_role properly
-        const userRole = plan === 'admin' ? 'admin' : (plan === 'premium' || plan === 'premium_plus' ? 'premium' : 'free');
+        // Database-authoritative privilege resolution:
+        // System administrative privileges require database-backed 'owner' or 'admin'.
+        // Administrative accounts (owner/admin) or plan_type='admin' inherit usage exemptions.
+        const isInternalAdmin = validSystemRole === 'owner' || validSystemRole === 'admin' || validPlan === 'admin';
+        const userRole = isInternalAdmin
+            ? 'admin'
+            : (validPlan === 'premium' || validPlan === 'premium_plus')
+                ? 'premium'
+                : 'free';
 
         (request as any).user = {
             id: user.id,
             role: userRole,
-            system_role: profile?.system_role || 'user'
+            system_role: validSystemRole
         };
 
     } catch (error: any) {
-        console.error(`🔥 [AUTH_CRASH] Request ${requestId} | Error:`, error.message);
-        const status = error.message === 'SUPABASE_AUTH_TIMEOUT' ? 504 : 401;
-        return reply.status(status).send({ error: `Auth Error: ${error.message}` });
+        const isTimeout = error?.message === 'SUPABASE_AUTH_TIMEOUT';
+        console.error(`🔥 [AUTH_CRASH] Request ${requestId} | Error: ${isTimeout ? 'SUPABASE_AUTH_TIMEOUT' : 'AUTH_INTERNAL_ERROR'}`);
+        const status = isTimeout ? 504 : 401;
+        return reply.status(status).send({ error: isTimeout ? 'Auth Error: SUPABASE_AUTH_TIMEOUT' : 'Auth Error: AUTH_INTERNAL_ERROR' });
     }
 };
 
