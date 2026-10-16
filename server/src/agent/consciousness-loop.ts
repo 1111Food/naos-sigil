@@ -1,16 +1,19 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { config } from '../config/env';
+import fs from 'fs';
 import path from 'path';
 
 const TICK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
-const isProd = __dirname.includes('dist') || process.env.NODE_ENV === 'production';
-const MCP_SERVER_PATH = path.join(__dirname, `../mcp/naos-mcp-server.${isProd ? 'js' : 'ts'}`);
+const jsCandidatePath = path.join(__dirname, '../mcp/naos-mcp-server.js');
+const tsCandidatePath = path.join(__dirname, '../mcp/naos-mcp-server.ts');
+const useCompiledJs = __filename.endsWith('.js') && fs.existsSync(jsCandidatePath);
+const MCP_SERVER_PATH = useCompiledJs ? jsCandidatePath : tsCandidatePath;
 
 async function createMcpClient() {
     const transport = new StdioClientTransport({
-        command: isProd ? 'node' : 'npx',
-        args: isProd ? [MCP_SERVER_PATH] : ['tsx', MCP_SERVER_PATH],
+        command: useCompiledJs ? 'node' : 'npx',
+        args: useCompiledJs ? [MCP_SERVER_PATH] : ['tsx', MCP_SERVER_PATH],
     });
 
     const client = new Client(
