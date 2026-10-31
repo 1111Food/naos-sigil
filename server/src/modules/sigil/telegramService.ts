@@ -7,6 +7,16 @@ import { TelegramLinkService } from './telegramLinkService';
 import { TTSService } from './ttsService';
 
 let bot: Telegraf | null = null;
+let outboundBot: Telegraf | null = null;
+
+const getOutboundTelegramClient = (): Telegraf | null => {
+    if (bot) return bot;
+    if (telegramDegraded || !config.TELEGRAM_BOT_TOKEN) return null;
+    if (!outboundBot) {
+        outboundBot = new Telegraf(config.TELEGRAM_BOT_TOKEN);
+    }
+    return outboundBot;
+};
 let telegramDegraded = false;
 const sigilService = new SigilService();
 
@@ -244,7 +254,7 @@ export const initTelegramBot = () => {
 export const sendProactiveMessage = async (telegramChatId: string, message: string, button?: { label: string; url: string }): Promise<boolean> => {
     // GUARD: Development safety
     if (!config.TELEGRAM_RUNTIME_ENABLED && !config.TELEGRAM_TEST_MODE) {
-        console.log("[TELEGRAM_GUARD] Suppressed message (runtime disabled)");
+        console.error("[TELEGRAM_GUARD] Suppressed message (runtime disabled)");
         return true;
     }
 
@@ -252,20 +262,20 @@ export const sendProactiveMessage = async (telegramChatId: string, message: stri
         // In test mode, we must verify this telegramChatId belongs to the TELEGRAM_TEST_USER_ID (Founder)
         const { data: userLink } = await supabase.from('profiles').select('telegram_chat_id').eq('id', config.TELEGRAM_TEST_USER_ID).single();
         if (!userLink || userLink.telegram_chat_id !== telegramChatId) {
-            console.log("[TELEGRAM_TEST_GUARD] Suppressed message, non-test recipient.");
+            console.error("[TELEGRAM_TEST_GUARD] Suppressed message, non-test recipient.");
             return true;
         }
     }
 
-    if (!bot && config.TELEGRAM_BOT_TOKEN) initTelegramBot();
-    if (!bot) return false;
+    const client = getOutboundTelegramClient();
+    if (!client) return false;
     try {
         const chunks = splitMessage(message);
         for (let i = 0; i < chunks.length; i++) {
             if (i === chunks.length - 1 && button) {
-                await bot.telegram.sendMessage(telegramChatId, chunks[i], Markup.inlineKeyboard([Markup.button.url(button.label, button.url)]));
+                await client.telegram.sendMessage(telegramChatId, chunks[i], Markup.inlineKeyboard([Markup.button.url(button.label, button.url)]));
             } else {
-                await bot.telegram.sendMessage(telegramChatId, chunks[i]);
+                await client.telegram.sendMessage(telegramChatId, chunks[i]);
             }
         }
         return true;
@@ -277,23 +287,23 @@ export const sendProactiveMessage = async (telegramChatId: string, message: stri
 export const sendProactiveVoice = async (telegramChatId: string, audioBuffer: Buffer, message?: string): Promise<boolean> => {
     // GUARD: Development safety
     if (!config.TELEGRAM_RUNTIME_ENABLED && !config.TELEGRAM_TEST_MODE) {
-        console.log("[TELEGRAM_GUARD] Suppressed voice (runtime disabled)");
+        console.error("[TELEGRAM_GUARD] Suppressed voice (runtime disabled)");
         return true;
     }
 
     if (config.TELEGRAM_TEST_MODE) {
         const { data: userLink } = await supabase.from('profiles').select('telegram_chat_id').eq('id', config.TELEGRAM_TEST_USER_ID).single();
         if (!userLink || userLink.telegram_chat_id !== telegramChatId) {
-            console.log("[TELEGRAM_TEST_GUARD] Suppressed voice, non-test recipient.");
+            console.error("[TELEGRAM_TEST_GUARD] Suppressed voice, non-test recipient.");
             return true;
         }
     }
 
-    if (!bot && config.TELEGRAM_BOT_TOKEN) initTelegramBot();
-    if (!bot) return false;
+    const client = getOutboundTelegramClient();
+    if (!client) return false;
     try {
         const captionText = message ? message.substring(0, 100) + '...' : undefined;
-        await bot.telegram.sendVoice(telegramChatId, { source: audioBuffer }, { caption: captionText });
+        await client.telegram.sendVoice(telegramChatId, { source: audioBuffer }, { caption: captionText });
         return true;
     } catch (e) {
         return false;

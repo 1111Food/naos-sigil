@@ -32,9 +32,9 @@ const stateStore: Record<string, SigilState> = {};
 export class SigilService {
 
     constructor() {
-        console.log("🕯️ SigilService: Manifesting AI (Native REST Mode)...");
-        console.log("¿Llave detectada?:", !!config.GOOGLE_API_KEY);
-        console.log("🛡️ SIGIL PROMPT PURGE COMPLETE — SYSTEM LOCK ACTIVE");
+        console.error("🕯️ SigilService: Manifesting AI (Native REST Mode)...");
+        console.error("¿Llave detectada?:", !!config.GOOGLE_API_KEY);
+        console.error("🛡️ SIGIL PROMPT PURGE COMPLETE — SYSTEM LOCK ACTIVE");
     }
 
     async getSigilState(userId: string): Promise<SigilState> {

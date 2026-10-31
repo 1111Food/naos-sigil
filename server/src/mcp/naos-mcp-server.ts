@@ -9,6 +9,11 @@ import { CoherenceService } from '../modules/coherence/service';
 import { sendProactiveMessage } from '../modules/sigil/telegramService';
 import { memoryService } from '../modules/memory/MemoryService';
 
+// Reserve stdout exclusively for MCP JSON-RPC frames; route any console.log to stderr
+console.log = (...args: unknown[]) => {
+    console.error(...args);
+};
+
 // Initialize the MCP Server
 const server = new Server(
     {
@@ -263,7 +268,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             buttonUrl?: string;
         };
         try {
-            console.log(`\n🌌 [MCP_SIGIL] Preparing to deliver proactive nudge to ${userId} (Module: ${moduleType}, Aspect: ${aspect})...`);
+            console.error(`\n🌌 [MCP_SIGIL] Preparing to deliver proactive nudge to ${userId} (Module: ${moduleType}, Aspect: ${aspect})...`);
 
             // Fetch Telegram Chat ID
             const { data: profileData } = await supabase.from('profiles').select('telegram_chat_id').eq('id', userId).single();
@@ -276,7 +281,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     console.warn(`[MCP_SIGIL] Warning: Message delivery to Telegram ${telegramChatId} failed (Offline or network error).`);
                 }
             } else {
-                console.log(`[MCP_SIGIL] User ${userId} has not completed the Recognition Protocol (No telegram_chat_id). Nudge stored only in DB.`);
+                console.error(`[MCP_SIGIL] User ${userId} has not completed the Recognition Protocol (No telegram_chat_id). Nudge stored only in DB.`);
             }
 
             // Log interaction as proactive

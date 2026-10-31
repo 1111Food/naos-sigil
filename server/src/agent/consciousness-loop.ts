@@ -10,10 +10,144 @@ const tsCandidatePath = path.join(__dirname, '../mcp/naos-mcp-server.ts');
 const useCompiledJs = __filename.endsWith('.js') && fs.existsSync(jsCandidatePath);
 const MCP_SERVER_PATH = useCompiledJs ? jsCandidatePath : tsCandidatePath;
 
+const TSX_PREFLIGHT_SUFFIX = path.join('node_modules', 'tsx', 'dist', 'preflight.cjs');
+const TSX_LOADER_URL_SUFFIX = '/node_modules/tsx/dist/loader.mjs';
+
+const FLAGS_TAKING_NEXT_ARG = new Set([
+    '-e', '--eval',
+    '-p', '--print',
+    '-r', '--require',
+    '--import', '--loader', '--experimental-loader',
+    '--inspect-port', '--debug-port',
+    '--watch-path',
+    '-C', '--conditions',
+]);
+
+export function isValidTsxPreflightPath(value: string): boolean {
+    if (typeof value !== 'string' || value.length === 0 || value.includes('..')) {
+        return false;
+    }
+    const normalized = path.normalize(value);
+    if (normalized.includes('..')) {
+        return false;
+    }
+    return (
+        normalized === TSX_PREFLIGHT_SUFFIX ||
+        normalized.endsWith(path.sep + TSX_PREFLIGHT_SUFFIX)
+    );
+}
+
+export function isValidTsxLoaderUrl(value: string): boolean {
+    if (typeof value !== 'string' || !value.startsWith('file:///') || value.includes('..')) {
+        return false;
+    }
+    try {
+        const parsed = new URL(value);
+        return (
+            parsed.protocol === 'file:' &&
+            !parsed.pathname.includes('..') &&
+            parsed.pathname.endsWith(TSX_LOADER_URL_SUFFIX)
+        );
+    } catch {
+        return false;
+    }
+}
+
+export function buildSafeExecArgv(
+    execArgv: readonly string[] = process.execArgv,
+    compiledJs: boolean = useCompiledJs
+): string[] {
+    if (compiledJs) {
+        return [];
+    }
+
+    let validPreflight: string | null = null;
+    let validLoader: string | null = null;
+
+    for (let i = 0; i < execArgv.length; i++) {
+        const arg = execArgv[i];
+        const next = execArgv[i + 1];
+
+        if (arg === '--require' && typeof next === 'string') {
+            if (isValidTsxPreflightPath(next) && validPreflight === null) {
+                validPreflight = next;
+            } else {
+                console.error(`[MCP_STARTUP_GUARD] Rejected non-allowlisted --require target in execArgv: ${next}`);
+            }
+            i++;
+            continue;
+        }
+
+        if (arg === '--import' && typeof next === 'string') {
+            if (isValidTsxLoaderUrl(next) && validLoader === null) {
+                validLoader = next;
+            } else {
+                console.error(`[MCP_STARTUP_GUARD] Rejected non-allowlisted --import target in execArgv: ${next}`);
+            }
+            i++;
+            continue;
+        }
+
+        if (FLAGS_TAKING_NEXT_ARG.has(arg) && typeof next === 'string' && !next.startsWith('-')) {
+            console.error(`[MCP_STARTUP_GUARD] Rejected non-allowlisted execArgv flag and value: ${arg}`);
+            i++;
+            continue;
+        }
+
+        if (
+            (arg === '--inspect' || arg === '--inspect-brk' || arg === '--debug' || arg === '--debug-brk') &&
+            typeof next === 'string' &&
+            /^([\w.-]+:)?\d+$/.test(next)
+        ) {
+            console.error(`[MCP_STARTUP_GUARD] Rejected non-allowlisted debugger flag and port in execArgv: ${arg}`);
+            i++;
+            continue;
+        }
+
+        console.error(`[MCP_STARTUP_GUARD] Rejected non-allowlisted execArgv argument: ${arg}`);
+    }
+
+    if (!validPreflight || !validLoader) {
+        console.error(
+            `[MCP_STARTUP_GUARD] Incomplete TSX loader contract in execArgv (preflight=${Boolean(validPreflight)}, loader=${Boolean(validLoader)}). Refusing to propagate partial hooks.`
+        );
+        return [];
+    }
+
+    return ['--require', validPreflight, '--import', validLoader];
+}
+
+export const MCP_ALLOWED_ENV_KEYS = [
+    'NODE_ENV',
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'SUPABASE_ANON_KEY',
+    'GOOGLE_API_KEY',
+    'GEMINI_API_KEY',
+    'GEMINI_MODEL',
+    'TELEGRAM_BOT_TOKEN',
+    'TELEGRAM_RUNTIME_ENABLED',
+    'TELEGRAM_TEST_MODE',
+    'TELEGRAM_TEST_USER_ID',
+] as const;
+
+export function buildMcpEnv(sourceEnv: NodeJS.ProcessEnv = process.env): Record<string, string> {
+    const env: Record<string, string> = {};
+    for (const key of MCP_ALLOWED_ENV_KEYS) {
+        const value = sourceEnv[key];
+        if (typeof value === 'string' && value.length > 0) {
+            env[key] = value;
+        }
+    }
+    return env;
+}
+
 async function createMcpClient() {
+    const safeExecArgv = buildSafeExecArgv();
     const transport = new StdioClientTransport({
-        command: useCompiledJs ? 'node' : 'npx',
-        args: useCompiledJs ? [MCP_SERVER_PATH] : ['tsx', MCP_SERVER_PATH],
+        command: process.execPath,
+        args: [...safeExecArgv, MCP_SERVER_PATH],
+        env: buildMcpEnv(),
     });
 
     const client = new Client(
@@ -213,4 +347,4 @@ if (require.main === module) {
     startDaemon();
 }
 
-export { startDaemon, wakeUpConsciousness };
+export { startDaemon, wakeUpConsciousness, createMcpClient, MCP_SERVER_PATH };
