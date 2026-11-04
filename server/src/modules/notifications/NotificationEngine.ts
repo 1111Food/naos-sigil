@@ -236,7 +236,7 @@ ${guidance}
         console.log("ðŸŒŒ [NOTIF_ENGINE] Unified Notification Daemon initialized.");
         
         // Run once immediately on start
-        this.checkTuningCycles().catch(e => console.error("ðŸ”¥ [NOTIF_ENGINE] Initial check failed:", e));
+        this.checkTuningCycles().catch(() => console.error("ðŸ”¥ [NOTIF_ENGINE] Initial check failed: NOTIFICATION_CYCLE_FAILURE"));
 
         setInterval(async () => {
             try {
