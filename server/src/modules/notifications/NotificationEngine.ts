@@ -79,7 +79,7 @@ export class NotificationEngine {
                 const isFixedTimeDue = ['06:00', '11:30', '18:00'].includes(userTimeStr);
                 if (!isProtocolDue && !isOracleDue && labAspects.length === 0 && !isFixedTimeDue) continue;
 
-                console.info(`ðŸŽ¯ [CRON] Match FOUND for ${user.email} at ${userTimeStr} (Offset: ${offset})`);
+                console.info(`ðŸŽ¯ [CRON] Match FOUND for [recipient-redacted] at ${userTimeStr} (Offset: ${offset})`);
 
                 const lang = ((user.language === 'en' || user.language === 'es') ? user.language : 'es') as 'es' | 'en';
                 const sigil = new SigilService();
@@ -88,13 +88,13 @@ export class NotificationEngine {
 
                 // --- EXECUTION 1: Lab Consolidations ---
                 if (labAspects.length > 0) {
-                    console.info(`ðŸš€ [NOTIF] Triggering Lab: ${user.email}`);
+                    console.info(`ðŸš€ [NOTIF] Triggering Lab: [recipient-redacted]`);
                     const cleanAspects = labAspects.map(a => a.replace(/^lab_/, '').replace(/_\d+$/, ''));
                     const aspectsStr = [...new Set(cleanAspects)].join(', ');
                     const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(aspectsStr);
                     const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                     const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                    console.info(`ðŸ“¡ [NOTIF] Lab Result for ${user.email}: ${success}`);
+                    console.info(`ðŸ“¡ [NOTIF] Lab Result for [recipient-redacted]: ${success}`);
                     
                     const labIds = userTunings.filter(t => labAspects.includes(t.aspect)).map(t => t.id);
                     await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).in('id', labIds);
@@ -111,7 +111,7 @@ export class NotificationEngine {
                         .limit(1);
 
                     if (!activeProtocols || activeProtocols.length === 0) {
-                        console.info(`â­ï¸ [NOTIF] Skipping Protocol for ${user.email} - No active protocol (likely cancelled or completed).`);
+                        console.info(`â­ï¸ [NOTIF] Skipping Protocol for [recipient-redacted] - No active protocol (likely cancelled or completed).`);
                     } else {
                         const { data: metrics } = await supabase
                             .from('daily_metrics')
@@ -121,26 +121,26 @@ export class NotificationEngine {
                             .lte('created_at', `${userDateStr}T23:59:59.999Z`);
 
                         if (!metrics || metrics.length === 0) {
-                            console.info(`ðŸ”¥ [NOTIF] Triggering Protocol: ${user.email}`);
+                            console.info(`ðŸ”¥ [NOTIF] Triggering Protocol: [recipient-redacted]`);
                             const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '?').replace('{target}', '21');
                             const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${discipline}`;
                             const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                             const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                            console.info(`ðŸ“¨ [NOTIF] Protocol Result for ${user.email}: ${success}`);
+                            console.info(`ðŸ“¨ [NOTIF] Protocol Result for [recipient-redacted]: ${success}`);
                             
                             const p21Tuning = userTunings.find(t => t.aspect === 'protocol21');
                             if (p21Tuning) {
                                 await supabase.from('coherence_tunings').update({ last_triggered_at: new Date().toISOString() }).eq('id', p21Tuning.id);
                             }
                         } else {
-                            console.info(`âœ… [NOTIF] Skipping Protocol for ${user.email} - Already sealed.`);
+                            console.info(`âœ… [NOTIF] Skipping Protocol for [recipient-redacted] - Already sealed.`);
                         }
                     }
                 }
 
                 // --- EXECUTION 3: Daily Reading (V2 Context Builder) ---
                 if (isOracleDue) {
-                    console.info(`ðŸ”® [NOTIF] Checking V2 Daily Context for ${user.email}`);
+                    console.info(`ðŸ”® [NOTIF] Checking V2 Daily Context for [recipient-redacted]`);
                     
                     try {
                         const { DailyContextOrchestrator } = require('../daily/DailyContextOrchestrator');
@@ -153,7 +153,7 @@ export class NotificationEngine {
                         );
 
                         if (v2Payload.interpretation?.interpretationStatus === 'unavailable') {
-                            console.warn(`[NOTIF] Interpretation unavailable for ${user.email}, skipping Telegram message.`);
+                            console.warn(`[NOTIF] Interpretation unavailable for [recipient-redacted], skipping Telegram message.`);
                         } else {
                             const { primarySignal, guidance, reflectionQuestion } = v2Payload.interpretation;
 
@@ -169,16 +169,16 @@ ${guidance}
 "${reflectionQuestion}"`;
 
                             const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                            console.info(`âœ… [NOTIF] V2 Daily Context Result for ${user.email}: ${success}`);
+                            console.info(`âœ… [NOTIF] V2 Daily Context Result for [recipient-redacted]: ${success}`);
                         }
                     } catch (err: any) {
-                        console.error(`âŒ [NOTIF] Error processing V2 Daily Context for ${user.email}:`, err.message);
+                        console.error(`âŒ [NOTIF] Error processing V2 Daily Context for [recipient-redacted]:`, 'NOTIFICATION_PROVIDER_FAILURE');
                     }
                 }
 
                 // --- EXECUTION 4: Inactivity Check (LOCAL TIME 11:30) ---
                 if (userTimeStr === '11:30') {
-                    console.info(`â° [NOTIF] Triggering Local Inactivity sweep for ${user.email}`);
+                    console.info(`â° [NOTIF] Triggering Local Inactivity sweep for [recipient-redacted]`);
                     await this.triggerInactivity(user);
                 }
 
@@ -189,21 +189,21 @@ ${guidance}
                 
 
                 if (moment) {
-                    console.info(`ðŸ‘ï¸ [NOTIF] Triggering VigÃ­a CÃ³smico (${moment}) for ${user.email}`);
+                    console.info(`ðŸ‘ï¸ [NOTIF] Triggering VigÃ­a CÃ³smico (${moment}) for [recipient-redacted]`);
                     try {
                         const transmission = await ConsciousnessEngine.trySendTransmission(user.id, userDateStr, moment, lang);
                         if (transmission) {
                             const telegramMessage = `ðŸ‘ï¸ **VIGÃA CÃ“SMICO** â€” ${moment}\n\n${transmission}`;
                             const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
-                            console.info(`ðŸ“¡ [NOTIF] VigÃ­a Result for ${user.email}: ${success}`);
+                            console.info(`ðŸ“¡ [NOTIF] VigÃ­a Result for [recipient-redacted]: ${success}`);
                         }
                     } catch(err: any) {
-                        console.error(`ðŸ”¥ [NOTIF] Error processing VigÃ­a CÃ³smico for ${user.email}:`, err.message);
+                        console.error(`ðŸ”¥ [NOTIF] Error processing VigÃ­a CÃ³smico for [recipient-redacted]:`, 'NOTIFICATION_PROVIDER_FAILURE');
                     }
                 }
 
             } catch (e) {
-                console.error(`[NOTIF_ENGINE] Failed processing triggers for ${user.id}`, e);
+                console.error(`[NOTIF_ENGINE] Failed processing triggers for [recipient-redacted]`, 'NOTIFICATION_CYCLE_FAILURE');
             }
         }
 
@@ -247,7 +247,7 @@ ${guidance}
                 // Now checkInactivity is called inside checkTuningCycles for each user locally.
 
             } catch (error) {
-                console.error("ðŸ”¥ [NOTIF_ENGINE] Daemon Loop Error:", error);
+                console.error("ðŸ”¥ [NOTIF_ENGINE] Daemon Loop Error:", 'NOTIFICATION_CYCLE_FAILURE');
             }
         }, 1000 * 60);
     }
@@ -277,7 +277,7 @@ ${guidance}
                 const useVoice = user.profile_data?.telegram_voice_enabled !== false;
                 await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice);
             } catch (e) {
-                console.error(`[NOTIF_ENGINE] Inactivity sweep failed for ${user.id}`, e);
+                console.error(`[NOTIF_ENGINE] Inactivity sweep failed for [recipient-redacted]`, 'NOTIFICATION_CYCLE_FAILURE');
             }
         }
     }
