@@ -19,7 +19,7 @@ describe('Proactive notification log privacy guard', () => {
 
     it('does not serialize raw provider and database errors in notification logs', () => {
         for (const line of loggingStatements(notificationSource)) {
-            expect(line).not.toMatch(/,\s*(?:err\.message|e|error)\s*\)/);
+            expect(line).not.toMatch(/,\s*(?:err\.message|e|error)\s*\)+/);
         }
     });
 
