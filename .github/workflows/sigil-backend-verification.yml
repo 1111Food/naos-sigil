@@ -1,0 +1,45 @@
+name: Sigil backend verification
+
+on:
+  pull_request:
+    paths:
+      - "server/**"
+      - ".github/workflows/sigil-backend-verification.yml"
+  push:
+    branches:
+      - "fix/sigil-gemini-nudge-runtime"
+    paths:
+      - "server/**"
+      - ".github/workflows/sigil-backend-verification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-checks:
+    name: TypeScript and Sigil tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run targeted Sigil tests
+        run: npx vitest run src/test/geminiNudge.test.ts
+      - name: Run authorization and privacy regression tests
+        run: npx vitest run src/test/authorizationIntegrity.test.ts src/test/privacyLogAudit.test.ts
+      # Keep the full type-check as an explicit quality gate; diagnostic legacy debt
+      # must not prevent the targeted tests from executing and reporting first.
+      - name: Type-check backend (do not ignore errors)
+        run: npx tsc --noEmit
