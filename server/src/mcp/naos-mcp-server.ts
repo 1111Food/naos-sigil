@@ -268,7 +268,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             buttonUrl?: string;
         };
         try {
-            console.error(`\n🌌 [MCP_SIGIL] Preparing to deliver proactive nudge to ${userId} (Module: ${moduleType}, Aspect: ${aspect})...`);
+            console.error(`\n🌌 [MCP_SIGIL] Preparing to deliver proactive nudge to [recipient-redacted] (Module: [module-redacted], Aspect: [aspect-redacted])...`);
 
             // Fetch Telegram Chat ID
             const { data: profileData } = await supabase.from('profiles').select('telegram_chat_id').eq('id', userId).single();
@@ -278,10 +278,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 const button = buttonLabel && buttonUrl ? { label: buttonLabel, url: buttonUrl } : undefined;
                 const delivered = await sendProactiveMessage(telegramChatId, message, button);
                 if (!delivered) {
-                    console.warn(`[MCP_SIGIL] Warning: Message delivery to Telegram ${telegramChatId} failed (Offline or network error).`);
+                    console.warn(`[MCP_SIGIL] Warning: Message delivery to Telegram [chat-redacted] failed (Offline or network error).`);
                 }
             } else {
-                console.error(`[MCP_SIGIL] User ${userId} has not completed the Recognition Protocol (No telegram_chat_id). Nudge stored only in DB.`);
+                console.error(`[MCP_SIGIL] User [recipient-redacted] has not completed the Recognition Protocol (No telegram_chat_id). Nudge stored only in DB.`);
             }
 
             // Log interaction as proactive
