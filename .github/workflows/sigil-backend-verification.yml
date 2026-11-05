@@ -39,6 +39,8 @@ jobs:
         run: npx vitest run src/test/geminiNudge.test.ts src/test/sigilDeliveryStatus.test.ts
       - name: Run authorization and privacy regression tests
         run: npx vitest run src/test/authorizationIntegrity.test.ts src/test/privacyLogAudit.test.ts
+      - name: Verify canonical 16 archetypes and V4 isolation
+        run: npx vitest run src/test/archetypeCanon.test.ts src/test/archetypeV4Compiler.test.ts
       # Keep the full type-check as an explicit quality gate; diagnostic legacy debt
       # must not prevent the targeted tests from executing and reporting first.
       - name: Type-check backend (do not ignore errors)
