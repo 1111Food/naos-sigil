@@ -36,7 +36,7 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Run targeted Sigil tests
-        run: npx vitest run src/test/geminiNudge.test.ts src/test/sigilDeliveryStatus.test.ts src/test/singleFlight.test.ts
+        run: npx vitest run src/test/geminiNudge.test.ts src/test/sigilDeliveryStatus.test.ts src/test/singleFlight.test.ts src/test/notificationVoice.test.ts
       - name: Run authorization and privacy regression tests
         run: npx vitest run src/test/authorizationIntegrity.test.ts src/test/privacyLogAudit.test.ts
       # Keep the full type-check as an explicit quality gate; diagnostic legacy debt

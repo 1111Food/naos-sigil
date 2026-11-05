@@ -94,7 +94,7 @@ export class NotificationEngine {
                     const aspectsStr = [...new Set(cleanAspects)].join(', ');
                     const prompt = DYNAMIC_SEGMENTS[lang].tuning_reminder(aspectsStr);
                     const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
-                    const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                    const success = await this.sendFullMessage(user.id, user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
                     console.info(`ðŸ“¡ [NOTIF] Lab Result for [recipient-redacted]: ${success}`);
                     
                     const labIds = userTunings.filter(t => labAspects.includes(t.aspect)).map(t => t.id);
@@ -126,7 +126,7 @@ export class NotificationEngine {
                             const discipline = SYSTEM_PROMPTS[lang].templates.discipline.replace('{current}', '?').replace('{target}', '21');
                             const prompt = `${SYSTEM_PROMPTS[lang].templates.structure}\n${discipline}`;
                             const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
-                            const success = await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                            const success = await this.sendFullMessage(user.id, user.telegram_chat_id, message, tts, useVoice, lang === 'en' ? 'global' : 'latam');
                             console.info(`ðŸ“¨ [NOTIF] Protocol Result for [recipient-redacted]: ${success}`);
                             
                             const p21Tuning = userTunings.find(t => t.aspect === 'protocol21');
@@ -169,7 +169,7 @@ ${guidance}
 
 "${reflectionQuestion}"`;
 
-                            const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                            const success = await this.sendFullMessage(user.id, user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
                             console.info(`âœ… [NOTIF] V2 Daily Context Result for [recipient-redacted]: ${success}`);
                         }
                     } catch (err: any) {
@@ -195,7 +195,7 @@ ${guidance}
                         const transmission = await ConsciousnessEngine.trySendTransmission(user.id, userDateStr, moment, lang);
                         if (transmission) {
                             const telegramMessage = `ðŸ‘ï¸ **VIGÃA CÃ“SMICO** â€” ${moment}\n\n${transmission}`;
-                            const success = await this.sendFullMessage(user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
+                            const success = await this.sendFullMessage(user.id, user.telegram_chat_id, telegramMessage, tts, useVoice, lang === 'en' ? 'global' : 'latam');
                             console.info(`ðŸ“¡ [NOTIF] VigÃ­a Result for [recipient-redacted]: ${success}`);
                         }
                     } catch(err: any) {
@@ -220,12 +220,12 @@ ${guidance}
         const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
         const tts = new TTSService();
         const useVoice = user.profile_data?.telegram_voice_enabled !== false;
-        await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice);
+        await this.sendFullMessage(user.id, user.telegram_chat_id, message, tts, useVoice);
     }
 
-    private static async sendFullMessage(chatId: string, text: string, tts: TTSService, useVoice: boolean, region: string = 'global') {
+    private static async sendFullMessage(userId: string, chatId: string, text: string, tts: TTSService, useVoice: boolean, region: string = 'global') {
         if (useVoice) {
-            const { buffer } = await tts.generateVoice(text, region);
+            const { buffer } = await tts.generateVoice(userId, text, region);
             if (buffer) {
                 return await sendProactiveVoice(chatId, buffer, text);
             }
@@ -271,7 +271,7 @@ ${guidance}
                 const message = await sigil.processMessage(user.id, prompt, undefined, undefined, 'maestro', false, undefined, lang, undefined, { persistUserMessage: false, visibleInConversation: false, source: 'internal_notification' });
                 const tts = new TTSService();
                 const useVoice = user.profile_data?.telegram_voice_enabled !== false;
-                await this.sendFullMessage(user.telegram_chat_id, message, tts, useVoice);
+                await this.sendFullMessage(user.id, user.telegram_chat_id, message, tts, useVoice);
             } catch (e) {
                 console.error(`[NOTIF_ENGINE] Inactivity sweep failed for [recipient-redacted]`, 'NOTIFICATION_CYCLE_FAILURE');
             }
