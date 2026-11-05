@@ -7,6 +7,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { CoherenceService } from '../modules/coherence/service';
 import { sendProactiveMessage } from '../modules/sigil/telegramService';
+import { deliveryReceipt, getProactiveDeliveryStatus } from '../modules/sigil/deliveryStatus';
 import { memoryService } from '../modules/memory/MemoryService';
 
 // Reserve stdout exclusively for MCP JSON-RPC frames; route any console.log to stderr
@@ -274,15 +275,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const { data: profileData } = await supabase.from('profiles').select('telegram_chat_id').eq('id', userId).single();
             const telegramChatId = profileData?.telegram_chat_id;
 
+            let telegramReportedSent = false;
             if (telegramChatId) {
                 const button = buttonLabel && buttonUrl ? { label: buttonLabel, url: buttonUrl } : undefined;
-                const delivered = await sendProactiveMessage(telegramChatId, message, button);
-                if (!delivered) {
-                    console.warn(`[MCP_SIGIL] Warning: Message delivery to Telegram [chat-redacted] failed (Offline or network error).`);
+                telegramReportedSent = await sendProactiveMessage(telegramChatId, message, button);
+                if (!telegramReportedSent) {
+                    console.warn('[MCP_SIGIL] Telegram delivery not confirmed (offline, suppressed or network error).');
                 }
             } else {
-                console.error(`[MCP_SIGIL] User [recipient-redacted] has not completed the Recognition Protocol (No telegram_chat_id). Nudge stored only in DB.`);
+                console.warn('[MCP_SIGIL] Telegram recipient is not linked; notification attempt will be recorded without delivery.');
             }
+            const deliveryStatus = getProactiveDeliveryStatus(Boolean(telegramChatId), telegramReportedSent);
 
             // Log interaction as proactive
             await supabase.from('interaction_logs').insert({
@@ -291,17 +294,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 sigil_response: message
             });
 
-            // Update last triggered
+            // This field denotes the evaluated trigger, NOT a confirmed delivery.
+            // Keep the current scheduler behavior to avoid retry storms in the same window.
+            // A durable delivery/retry ledger is a separate change.
             await supabase.from('coherence_tunings')
                 .update({ last_triggered_at: new Date().toISOString() })
                 .eq('user_id', userId)
                 .eq('aspect', aspect);
 
-            return {
-                content: [{ type: 'text', text: `Message delivered and logged for ${userId}.` }],
-            };
-        } catch (error: any) {
-            return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };
+            // Never claim "delivered" if Telegram was blocked, unavailable, or unlinked.
+            return deliveryReceipt(deliveryStatus);
+        } catch {
+            console.error('[MCP_SIGIL] Delivery handling failed: MCP_DELIVERY_INTERNAL_ERROR');
+            return { content: [{ type: 'text', text: 'MCP_DELIVERY_INTERNAL_ERROR' }], isError: true };
         }
     }
 
