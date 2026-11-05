@@ -1,0 +1,45 @@
+name: NAOS Archetypes V4 quality gate
+
+on:
+  pull_request:
+    paths:
+      - "server/src/modules/user/archetype*.ts"
+      - "server/src/modules/user/naosCompiler.service.ts"
+      - "server/src/shared/canon/**"
+      - "server/src/shared/types/archetype.ts"
+      - "server/src/test/archetype*.test.ts"
+      - "server/tsconfig.json"
+      - ".github/workflows/archetype-v4-quality-gate.yml"
+  push:
+    branches:
+      - "audit/archetype-v4-quality-gate"
+    paths:
+      - ".github/workflows/archetype-v4-quality-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archetype-v4:
+    name: Canon, compiler and dark-launch isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: server
+    env:
+      NAOS_ARCHETYPE_V4_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install exact backend dependencies
+        run: npm ci
+      - name: V4 canonical schema and compiler regression tests
+        run: npx vitest run src/test/archetypeCanon.test.ts src/test/archetypeV4Compiler.test.ts
+      - name: Type-check backend
+        run: npx tsc --noEmit
