@@ -45,3 +45,9 @@ server/src/isolation_test.ts
 .vercel
 
 migration_rollback.json
+
+# User-owned profiles, generated voice caches and diagnostic payloads
+# Keep these files local / in protected storage, never in public Git history.
+/data/profiles.json
+/server/data/profiles*.json
+/server/debug_output*.json
