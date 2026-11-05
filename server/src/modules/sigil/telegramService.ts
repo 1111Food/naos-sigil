@@ -255,7 +255,7 @@ export const sendProactiveMessage = async (telegramChatId: string, message: stri
     // GUARD: Development safety
     if (!config.TELEGRAM_RUNTIME_ENABLED && !config.TELEGRAM_TEST_MODE) {
         console.error("[TELEGRAM_GUARD] Suppressed message (runtime disabled)");
-        return true;
+        return false;
     }
 
     if (config.TELEGRAM_TEST_MODE) {
@@ -263,7 +263,7 @@ export const sendProactiveMessage = async (telegramChatId: string, message: stri
         const { data: userLink } = await supabase.from('profiles').select('telegram_chat_id').eq('id', config.TELEGRAM_TEST_USER_ID).single();
         if (!userLink || userLink.telegram_chat_id !== telegramChatId) {
             console.error("[TELEGRAM_TEST_GUARD] Suppressed message, non-test recipient.");
-            return true;
+            return false;
         }
     }
 
@@ -288,14 +288,14 @@ export const sendProactiveVoice = async (telegramChatId: string, audioBuffer: Bu
     // GUARD: Development safety
     if (!config.TELEGRAM_RUNTIME_ENABLED && !config.TELEGRAM_TEST_MODE) {
         console.error("[TELEGRAM_GUARD] Suppressed voice (runtime disabled)");
-        return true;
+        return false;
     }
 
     if (config.TELEGRAM_TEST_MODE) {
         const { data: userLink } = await supabase.from('profiles').select('telegram_chat_id').eq('id', config.TELEGRAM_TEST_USER_ID).single();
         if (!userLink || userLink.telegram_chat_id !== telegramChatId) {
             console.error("[TELEGRAM_TEST_GUARD] Suppressed voice, non-test recipient.");
-            return true;
+            return false;
         }
     }
 

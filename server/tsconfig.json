@@ -17,6 +17,7 @@
     "node_modules",
     "src/test-*.ts",
     "src/debug-*.ts",
+    "src/diag.ts",
     "src/diag-*.ts",
     "src/quick-test.ts",
     "src/raw-test.ts",
