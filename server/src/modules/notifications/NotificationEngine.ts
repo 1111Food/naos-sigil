@@ -6,6 +6,7 @@ import { SYSTEM_PROMPTS, DYNAMIC_SEGMENTS } from '../sigil/prompts';
 import { TTSService } from '../sigil/ttsService';
 
 import { ConsciousnessEngine, TransmissionMoment } from '../sigil/ConsciousnessEngine';
+import { createSingleFlight } from '../../agent/singleFlight';
 
 export class NotificationEngine {
 
@@ -233,23 +234,18 @@ ${guidance}
     }
 
     public static scheduleDaemon() {
-        console.log("ðŸŒŒ [NOTIF_ENGINE] Unified Notification Daemon initialized.");
-        
-        // Run once immediately on start
-        this.checkTuningCycles().catch(() => console.error("ðŸ”¥ [NOTIF_ENGINE] Initial check failed: NOTIFICATION_CYCLE_FAILURE"));
+        console.log("[NOTIF_ENGINE] Unified Notification Daemon initialized.");
 
-        setInterval(async () => {
-            try {
-                await this.checkTuningCycles();
-                
-                const now = new Date();
-                // Removed the fixed 11:30 server check. 
-                // Now checkInactivity is called inside checkTuningCycles for each user locally.
-
-            } catch (error) {
-                console.error("ðŸ”¥ [NOTIF_ENGINE] Daemon Loop Error:", 'NOTIFICATION_CYCLE_FAILURE');
-            }
-        }, 1000 * 60);
+        // One cycle per process at a time; overlapping minute ticks are skipped,
+        // not queued. This does not deduplicate other processes or services.
+        const runOnce = createSingleFlight(() => this.checkTuningCycles());
+        const tick = () => {
+            void runOnce().catch(() => {
+                console.error("[NOTIF_ENGINE] Cycle failed: NOTIFICATION_CYCLE_FAILURE");
+            });
+        };
+        tick();
+        setInterval(tick, 1000 * 60);
     }
 
     private static getUniqueTelegramUsers(users: any[]): any[] {

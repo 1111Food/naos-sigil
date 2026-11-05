@@ -2,6 +2,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { config } from '../config/env';
 import { generateProactiveNudge, GeminiNudgeError } from './geminiNudge';
+import { createSingleFlight } from './singleFlight';
 import fs from 'fs';
 import path from 'path';
 
@@ -316,13 +317,17 @@ async function startDaemon() {
         const client = await createMcpClient();
         console.log("🌌 Sigil Agent Loop: CONNECTED TO MCP SERVER.");
 
-        // First run
-        wakeUpConsciousness(client);
+        // At most one consciousness cycle per process at a time.
+        // Skipping overlapping ticks avoids duplicate concurrent evaluations.
+        const runOnce = createSingleFlight(() => wakeUpConsciousness(client));
+        const tick = () => {
+            void runOnce().catch(() => {
+                console.error('[SIGIL_CONSCIOUSNESS] Cycle unexpectedly failed: LOOP_FAILURE');
+            });
+        };
 
-        // Schedule
-        setInterval(() => {
-            wakeUpConsciousness(client);
-        }, TICK_INTERVAL_MS);
+        tick();
+        setInterval(tick, TICK_INTERVAL_MS);
 
     } catch (err) {
         console.error("🔥 Sigil Agent Loop: CRASHED during startup, but allowing main server to continue.", err);
