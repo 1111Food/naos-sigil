@@ -7,6 +7,11 @@ const CACHE_DIR = process.env.NODE_ENV === 'production'
     ? '/tmp/tts-cache' 
     : path.join(process.cwd(), 'tts-cache');
 
+// Cache directory names must be opaque IDs, never message text, paths or URLs.
+export function isSafeVoiceCacheUserId(userId: string): boolean {
+    return typeof userId === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(userId);
+}
+
 export class TTSService {
 
     constructor() {
@@ -31,6 +36,10 @@ export class TTSService {
         }
 
         const hash = this.getHash(text, region);
+        if (!isSafeVoiceCacheUserId(userId)) {
+            console.warn('[TTS] Invalid cache identifier; audio generation suppressed.');
+            return { buffer: null, hash, error: 'INVALID_USER_CACHE_ID' };
+        }
         const userCacheDir = path.join(CACHE_DIR, userId);
         if (!fs.existsSync(userCacheDir)) {
             fs.mkdirSync(userCacheDir, { recursive: true });
@@ -95,8 +104,9 @@ export class TTSService {
             }
 
             if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`ElevenLabs Error: ${response.status} - ${errText}`);
+                // Do not persist or log provider response bodies: they may reflect
+                // private speech text or credentials.
+                throw new Error(`TTS_PROVIDER_HTTP_${response.status}`);
             }
 
             const arrayBuffer = await response.arrayBuffer();
@@ -106,15 +116,18 @@ export class TTSService {
             try {
                 fs.writeFileSync(cachePath, buffer);
                 console.log(`🔊 [TTS] Audio cached at ${cachePath}`);
-            } catch (cacheErr: any) {
-                console.warn(`⚠️ [TTS] Cache write failed (non-fatal): ${cacheErr.message}`);
+            } catch {
+                console.warn('[TTS] Cache write failed (non-fatal): TTS_CACHE_WRITE_FAILURE');
             }
 
             return { buffer, hash };
 
-        } catch (e: any) {
-            console.error("🔥 [TTS] Audio generation failed:", e);
-            return { buffer: null, hash, error: e.message };
+        } catch (error) {
+            const reason = error instanceof Error && /^TTS_PROVIDER_HTTP_[0-9]{3}$/.test(error.message)
+                ? error.message
+                : 'TTS_PROVIDER_UNAVAILABLE';
+            console.error('[TTS] Audio generation failed: ' + reason);
+            return { buffer: null, hash, error: reason };
         }
     }
 
@@ -124,12 +137,16 @@ export class TTSService {
              console.warn("[TTS] Invalid audio hash format requested");
              return null;
          }
+         if (!isSafeVoiceCacheUserId(userId)) {
+             console.warn('[TTS] Invalid cache identifier for audio lookup');
+             return null;
+         }
 
          const userCacheDir = path.resolve(CACHE_DIR, userId);
          const cachePath = path.resolve(userCacheDir, `${hash}.mp3`);
          
          // Path Traversal Security Verification
-         if (!cachePath.startsWith(userCacheDir)) {
+         if (path.dirname(cachePath) !== userCacheDir) {
              console.warn("[TTS] Path traversal blocked");
              return null;
          }
